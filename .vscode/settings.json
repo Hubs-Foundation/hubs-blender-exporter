@@ -1,0 +1,5 @@
+{
+  "python.autoComplete.extraPaths": [
+    "../fake_bpy_modules_2.80-20190718"
+  ]
+}

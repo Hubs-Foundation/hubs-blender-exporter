@@ -1,0 +1,16 @@
+{
+  "gltfExtensionName": "MOZ_hubs_components",
+  "gltfExtensionVersion": 3,
+  "components": {
+    "kit-piece": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
