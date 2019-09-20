@@ -37,11 +37,14 @@ for path in paths:
 bpy.hubs_config = None
 bpy.registered_hubs_components = {}
 
+class StringArrayValueProperty(PropertyGroup):
+    value: StringProperty(name="value", default="")
+
 class HubsComponentName(PropertyGroup):
-    name: bpy.props.StringProperty(name="name")
+    name: StringProperty(name="name")
 
 class HubsComponentList(PropertyGroup):
-    items: bpy.props.CollectionProperty(type=HubsComponentName)
+    items: CollectionProperty(type=HubsComponentName)
 
 class HubsSettings(PropertyGroup):
     def config_updated(self, _context):
@@ -128,6 +131,18 @@ class HubsSettings(PropertyGroup):
                         min=0,
                         max=1
                     )
+                elif property_type == 'array':
+                    if 'arrayType' not in property_definition:
+                        raise TypeError('Hubs array property  \'%s\' does not specify an arrayType on %s' % (
+                            property_name, component_name))
+
+                    array_type = property_definition['arrayType']
+
+                    if array_type == 'string':
+                        component_property_dict[property_name] = CollectionProperty(name=property_name, type=StringArrayValueProperty)
+                    else:
+                        raise TypeError('Unsupported Hubs arrayType \'%s\' for %s on %s' % (
+                            array_type, property_name, component_name))
                 else:
                     raise TypeError('Unsupported Hubs property type \'%s\' for %s on %s' % (
                         property_type, property_name, component_name))
@@ -221,6 +236,29 @@ class HubsSettingsPanel(Panel):
         row.operator("wm.export_hubs_gltf", text="Export Scene")
         row.operator("wm.export_hubs_gltf", text="Export Selected").selected = True
 
+def get_default_value(obj, path_or_value):
+    if path_or_value.startswith('$'):
+        path_parts = path_or_value.replace('$', '').split('.')
+        return get_path(obj, path_parts)
+    else:
+        return path_or_value
+
+def get_path(obj, path_parts):
+    if len(path_parts) == 1:
+        return getattr(obj, path_parts[0])
+    else:
+        first, rest = path_parts[0], path_parts[1:]
+        if first == '*':
+            return get_wildcard(obj, rest)
+        else:
+            return get_path(getattr(obj, first), rest)
+
+def get_wildcard(arr, path_parts):
+    values = []
+    for item in arr:
+        values.append(get_path(item, path_parts))
+    return values
+
 class AddHubsComponent(Operator):
     bl_idname = "wm.add_hubs_component"
     bl_label = "Add Hubs Component"
@@ -234,6 +272,25 @@ class AddHubsComponent(Operator):
         obj = context.object
         item = obj.hubs_component_list.items.add()
         item.name = self.component_name
+        component_definition = bpy.hubs_config['components'][self.component_name]
+        component_class = bpy.registered_hubs_components[self.component_name]
+        component_class_name = component_class.__name__
+        component = getattr(obj, component_class_name)
+
+        for property_name, property_definition in component_definition['properties'].items():
+            if "default" in property_definition:
+                default_key = property_definition["default"]
+                default_value = get_default_value(obj, default_key)
+                property_type = property_definition['type']
+
+                if property_type == 'array':
+                    arr = getattr(component, property_name)
+                    for value in default_value:
+                        item = arr.add()
+                        item.value = value
+                else:
+                    component[property_name] = default_value
+
         context.area.tag_redraw()
         return {'FINISHED'}
 
@@ -364,10 +421,9 @@ class ExportHubsGLTF(Operator):
         gltf_json = self.__fix_json(exporter.glTF.to_dict())
 
         extension_name = bpy.hubs_config["gltfExtensionName"]
-        gltf_json['extensionsRequired'].remove(extension_name)
 
-        if not gltf_json['extensionsRequired']:
-            del gltf_json['extensionsRequired']
+        if 'extensionsUsed' not in gltf_json:
+            gltf_json['extensionsUsed'] = [extension_name]
 
         if 'extensions' not in gltf_json:
             gltf_json['extensions'] = {}
@@ -400,6 +456,16 @@ def __to_json_compatible(value):
 
     elif isinstance(value, (int, float)):
         return value
+
+    elif isinstance(value, bpy.types.bpy_prop_collection):
+        value = list(value)
+        # make sure contents are json-compatible too
+        for index in range(len(value)):
+            value[index] = __to_json_compatible(value[index])
+        return value
+    
+    elif isinstance(value, StringArrayValueProperty):
+        return value.value
 
     # for list classes
     elif isinstance(value, list):
@@ -459,6 +525,7 @@ def load_handler(_dummy):
     bpy.context.scene.hubs_settings.reload_config()
 
 def register():
+    bpy.utils.register_class(StringArrayValueProperty)
     bpy.utils.register_class(HubsSettings)
     bpy.utils.register_class(HubsComponentName)
     bpy.utils.register_class(HubsComponentList)
@@ -475,6 +542,7 @@ def register():
     gltf2_blender_gather_nodes.__gather_extensions = patched_gather_extensions
 
 def unregister():
+    bpy.utils.unregister_class(StringArrayValueProperty)
     bpy.utils.unregister_class(ReloadHubsConfig)
     bpy.utils.unregister_class(HubsObjectPanel)
     bpy.utils.unregister_class(HubsSettingsPanel)

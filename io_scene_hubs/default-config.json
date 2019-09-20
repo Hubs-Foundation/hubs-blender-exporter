@@ -5,10 +5,17 @@
     "kit-piece": {
       "properties": {
         "id": {
-          "type": "string"
+          "type": "string",
+          "default": "$name"
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "default": "$name"
+        },
+        "tags": {
+          "type": "array",
+          "arrayType": "string",
+          "default": "$users_collection.*.name"
         }
       }
     }
