@@ -263,7 +263,7 @@ class HubsSettingsPanel(Panel):
         row.operator("wm.export_hubs_gltf", text="Export Selected").selected = True
 
 def get_default_value(obj, path_or_value):
-    if path_or_value.startswith('$'):
+    if type(path_or_value) is str and path_or_value.startswith('$'):
         path_parts = path_or_value.replace('$', '').split('.')
         return get_path(obj, path_parts)
     else:
