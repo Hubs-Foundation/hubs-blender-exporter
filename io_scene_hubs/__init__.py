@@ -448,8 +448,16 @@ class ExportHubsGLTF(Operator):
 
         extension_name = bpy.hubs_config["gltfExtensionName"]
 
+        if 'extensionsRequired' in gltf_json:
+            gltf_json['extensionsRequired'].remove(extension_name)
+            if not gltf_json['extensionsRequired']:
+                del gltf_json['extensionsRequired']
+
         if 'extensionsUsed' not in gltf_json:
             gltf_json['extensionsUsed'] = [extension_name]
+        elif extension_name not in gltf_json['extensionsUsed']:
+            gltf_json['extensionsUsed'].append(extension_name)
+
 
         if 'extensions' not in gltf_json:
             gltf_json['extensions'] = {}
