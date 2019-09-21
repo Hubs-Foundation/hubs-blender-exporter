@@ -2,6 +2,7 @@ import os
 import json
 import datetime
 import bpy
+import re
 from bpy.props import IntVectorProperty, BoolProperty, FloatProperty, StringProperty
 from bpy.props import PointerProperty, FloatVectorProperty, CollectionProperty, IntProperty
 from bpy.types import PropertyGroup, Panel, Operator, Menu
@@ -131,6 +132,9 @@ class HubsSettings(PropertyGroup):
                         min=0,
                         max=1
                     )
+                elif property_type == 'collections':
+                    # collections come from the object's users_collection property and don't have an associated Property
+                    continue
                 elif property_type == 'array':
                     if 'arrayType' not in property_definition:
                         raise TypeError('Hubs array property  \'%s\' does not specify an arrayType on %s' % (
@@ -208,8 +212,30 @@ class HubsObjectPanel(Panel):
             col = split.column()
             col.label(text=" ")
             col = split.column()
-            for property_name, _property_definition in component_definition['properties'].items():
-                col.prop(data=component, property=property_name)
+            for property_name, property_definition in component_definition['properties'].items():
+                property_type = property_definition['type']
+                if property_type == 'collections':
+                    collections_row = col.row()
+                    collections_row.label(text=property_name)
+
+                    filtered_collection_names = []
+                    collection_prefix_regex = None
+
+                    if 'collectionPrefix' in property_definition:
+                        collection_prefix = property_definition['collectionPrefix']
+                        collection_prefix_regex = re.compile(r'^' + collection_prefix)
+
+                    for collection in obj.users_collection:
+                        if collection_prefix_regex and collection_prefix_regex.match(collection.name):
+                            new_name = collection_prefix_regex.sub("", collection.name)
+                            filtered_collection_names.append(new_name)
+                        elif not collection_prefix_regex:
+                            filtered_collection_names.append(collection.name)
+
+                    collections_row.box().label(text=", ".join(filtered_collection_names))
+
+                else:
+                    col.prop(data=component, property=property_name)
 
         layout.separator()
 
@@ -504,10 +530,30 @@ def patched_gather_extensions(blender_object, export_settings):
             component_class_name = component_class.__name__
             component = getattr(blender_object, component_class_name)
 
-            for property_name, _property_definition in component_definition['properties'].items():
-                component_data[component_name][property_name] = __to_json_compatible(
-                    getattr(component, property_name)
-                )
+            for property_name, property_definition in component_definition['properties'].items():
+                property_type = property_definition['type']
+
+                if property_type == 'collections':
+                    filtered_collection_names = []
+
+                    collection_prefix_regex = None
+
+                    if 'collectionPrefix' in property_definition:
+                        collection_prefix = property_definition['collectionPrefix']
+                        collection_prefix_regex = re.compile(r'^' + collection_prefix)
+
+                    for collection in blender_object.users_collection:
+                        if collection_prefix_regex and collection_prefix_regex.match(collection.name):
+                            new_name = collection_prefix_regex.sub("", collection.name)
+                            filtered_collection_names.append(new_name)
+                        elif not collection_prefix_regex:
+                            filtered_collection_names.append(collection.name)
+
+                    component_data[component_name][property_name] = filtered_collection_names
+                else:
+                    component_data[component_name][property_name] = __to_json_compatible(
+                        getattr(component, property_name)
+                    )
 
         if extensions is None:
             extensions = {}

@@ -13,9 +13,8 @@
           "default": "$name"
         },
         "tags": {
-          "type": "array",
-          "arrayType": "string",
-          "default": "$users_collection.*.name"
+          "type": "collections",
+          "collectionPrefix": "KIT_"
         }
       }
     }
