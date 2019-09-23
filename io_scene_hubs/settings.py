@@ -85,7 +85,6 @@ class HubsSettings(PropertyGroup):
             self.reload_config()
 
     def reload_config(self):
-        print("reload_config")
         if os.path.splitext(self.config_path)[1] == '.json':
             with open(bpy.path.abspath(self.config_path)) as config_file:
                 bpy.hubs_config = json.load(config_file)

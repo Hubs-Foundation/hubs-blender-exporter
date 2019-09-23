@@ -12,11 +12,15 @@ class HubsComponentName(PropertyGroup):
 class HubsComponentList(PropertyGroup):
     items: CollectionProperty(type=HubsComponentName)
 
+def is_scene_component(component_definition):
+    return 'scene' in component_definition and component_definition['scene']
+
+def is_node_component(component_definition):
+    return not 'node' in component_definition or component_definition['node']
+
 def create_component_class(component_name, component_definition):
     component_class_name = "hubs_component_%s" % component_name.replace('-', '_')
     component_property_dict = {}
-
-    print("create_component_class", component_name, component_definition)
 
     for property_name, property_definition in component_definition['properties'].items():
         property_type = property_definition['type']
@@ -99,6 +103,10 @@ def create_component_class(component_name, component_definition):
         else:
             raise TypeError('Unsupported Hubs property type \'%s\' for %s on %s' % (
                 property_type, property_name, component_name))
+
+    component_property_dict['is_scene_component'] = is_scene_component(component_definition)
+    component_property_dict['is_node_component'] = is_node_component(component_definition)
+    component_property_dict['component_definition'] = component_definition
 
     return type(component_class_name, (PropertyGroup,), component_property_dict)
 

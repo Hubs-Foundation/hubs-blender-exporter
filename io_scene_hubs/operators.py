@@ -4,9 +4,29 @@ from bpy.types import Operator
 from . import components
 from . import exporter
 
-class AddHubsComponent(Operator):
-    bl_idname = "wm.add_hubs_component"
-    bl_label = "Add Hubs Component"
+class AddHubsSceneComponent(Operator):
+    bl_idname = "wm.add_hubs_scene_component"
+    bl_label = "Add Hubs Component to Scene"
+
+    component_name: StringProperty(name="component_name")
+
+    def execute(self, context):
+        if self.component_name == '':
+            return
+
+        components.add_component(
+            context.scene,
+            self.component_name,
+            context.scene.hubs_settings.hubs_config,
+            context.scene.hubs_settings.registered_hubs_components
+        )
+
+        context.area.tag_redraw()
+        return {'FINISHED'}
+
+class AddHubsObjectComponent(Operator):
+    bl_idname = "wm.add_hubs_object_component"
+    bl_label = "Add Hubs Component to Object"
 
     component_name: StringProperty(name="component_name")
 
@@ -24,9 +44,23 @@ class AddHubsComponent(Operator):
         context.area.tag_redraw()
         return {'FINISHED'}
 
-class RemoveHubsComponent(Operator):
-    bl_idname = "wm.remove_hubs_component"
-    bl_label = "Remove Hubs Component"
+class RemoveHubsSceneComponent(Operator):
+    bl_idname = "wm.remove_hubs_scene_component"
+    bl_label = "Remove Hubs Component from Scene"
+
+    component_name: StringProperty(name="component_name")
+
+    def execute(self, context):
+        if self.component_name == '':
+            return
+
+        components.remove_component(context.scene, self.component_name)
+        context.area.tag_redraw()
+        return {'FINISHED'}
+
+class RemoveHubsObjectComponent(Operator):
+    bl_idname = "wm.remove_hubs_object_component"
+    bl_label = "Remove Hubs Component from Object"
 
     component_name: StringProperty(name="component_name")
 
@@ -56,6 +90,7 @@ class ExportHubsGLTF(Operator):
     def execute(self, context):
         try:
             filepath = exporter.export(
+                context.scene,
                 self.selected,
                 context.scene.hubs_settings.hubs_config,
                 context.scene.hubs_settings.registered_hubs_components
@@ -67,13 +102,17 @@ class ExportHubsGLTF(Operator):
             return {'CANCELLED'}
 
 def register():
-    bpy.utils.register_class(AddHubsComponent)
-    bpy.utils.register_class(RemoveHubsComponent)
+    bpy.utils.register_class(AddHubsSceneComponent)
+    bpy.utils.register_class(RemoveHubsSceneComponent)
+    bpy.utils.register_class(AddHubsObjectComponent)
+    bpy.utils.register_class(RemoveHubsObjectComponent)
     bpy.utils.register_class(ReloadHubsConfig)
     bpy.utils.register_class(ExportHubsGLTF)
 
 def unregister():
-    bpy.utils.unregister_class(AddHubsComponent)
-    bpy.utils.unregister_class(RemoveHubsComponent)
+    bpy.utils.unregister_class(AddHubsSceneComponent)
+    bpy.utils.unregister_class(RemoveHubsSceneComponent)
+    bpy.utils.unregister_class(AddHubsObjectComponent)
+    bpy.utils.unregister_class(RemoveHubsObjectComponent)
     bpy.utils.unregister_class(ReloadHubsConfig)
     bpy.utils.unregister_class(ExportHubsGLTF)

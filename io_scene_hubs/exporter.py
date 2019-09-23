@@ -3,6 +3,7 @@ import datetime
 import re
 import bpy
 from io_scene_gltf2.blender.exp import gltf2_blender_gather, gltf2_blender_gather_nodes
+from io_scene_gltf2.blender.exp import gltf2_blender_gather, gltf2_blender_gather_nodes
 from io_scene_gltf2.blender.exp.gltf2_blender_gltf2_exporter import GlTF2Exporter
 from io_scene_gltf2.io.exp import gltf2_io_export
 from io_scene_gltf2.io.com import gltf2_io_extensions
@@ -139,7 +140,7 @@ def patched_gather_extensions(blender_object, export_settings):
 
     return extensions if extensions else None
 
-def export(selected, hubs_config, registered_hubs_components):
+def export(blender_scene, selected, hubs_config, registered_hubs_components):
     if bpy.data.filepath == '':
         raise RuntimeError("Save project before exporting")
 
@@ -195,6 +196,9 @@ def export(selected, hubs_config, registered_hubs_components):
     # In most recent version this function will return active_scene
     # as the first value for a total of 3 return values
     scenes, _animations = gltf2_blender_gather.gather_gltf2(export_settings)
+
+    for gltf_scene in scenes:
+        gltf_scene.extensions = patched_gather_extensions(blender_scene, export_settings)
 
     exporter = GlTF2Exporter(export_settings['gltf_copyright'])
     exporter.add_scene(scenes[0], True)

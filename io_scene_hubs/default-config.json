@@ -2,6 +2,16 @@
   "gltfExtensionName": "MOZ_hubs_components",
   "gltfExtensionVersion": 3,
   "components": {
+    "kit": {
+      "scene": true,
+      "node": false,
+      "properties": {
+        "materialSets": {
+          "type": "string",
+          "default": "test"
+        }
+      }
+    },
     "kit-piece": {
       "properties": {
         "id": {
