@@ -44,6 +44,26 @@ class AddHubsObjectComponent(Operator):
         context.area.tag_redraw()
         return {'FINISHED'}
 
+class AddHubsMaterialComponent(Operator):
+    bl_idname = "wm.add_hubs_material_component"
+    bl_label = "Add Hubs Component to Material"
+
+    component_name: StringProperty(name="component_name")
+
+    def execute(self, context):
+        if self.component_name == '':
+            return
+
+        components.add_component(
+            context.material,
+            self.component_name,
+            context.scene.hubs_settings.hubs_config,
+            context.scene.hubs_settings.registered_hubs_components
+        )
+
+        context.area.tag_redraw()
+        return {'FINISHED'}
+
 class RemoveHubsSceneComponent(Operator):
     bl_idname = "wm.remove_hubs_scene_component"
     bl_label = "Remove Hubs Component from Scene"
@@ -69,6 +89,20 @@ class RemoveHubsObjectComponent(Operator):
             return
 
         components.remove_component(context.object, self.component_name)
+        context.area.tag_redraw()
+        return {'FINISHED'}
+
+class RemoveHubsMaterialComponent(Operator):
+    bl_idname = "wm.remove_hubs_material_component"
+    bl_label = "Remove Hubs Component from Material"
+
+    component_name: StringProperty(name="component_name")
+
+    def execute(self, context):
+        if self.component_name == '':
+            return
+
+        components.remove_component(context.material, self.component_name)
         context.area.tag_redraw()
         return {'FINISHED'}
 
@@ -105,7 +139,9 @@ def register():
     bpy.utils.register_class(AddHubsSceneComponent)
     bpy.utils.register_class(RemoveHubsSceneComponent)
     bpy.utils.register_class(AddHubsObjectComponent)
+    bpy.utils.register_class(AddHubsMaterialComponent)
     bpy.utils.register_class(RemoveHubsObjectComponent)
+    bpy.utils.register_class(RemoveHubsMaterialComponent)
     bpy.utils.register_class(ReloadHubsConfig)
     bpy.utils.register_class(ExportHubsGLTF)
 
@@ -113,6 +149,8 @@ def unregister():
     bpy.utils.unregister_class(AddHubsSceneComponent)
     bpy.utils.unregister_class(RemoveHubsSceneComponent)
     bpy.utils.unregister_class(AddHubsObjectComponent)
+    bpy.utils.unregister_class(AddHubsMaterialComponent)
     bpy.utils.unregister_class(RemoveHubsObjectComponent)
+    bpy.utils.unregister_class(RemoveHubsMaterialComponent)
     bpy.utils.unregister_class(ReloadHubsConfig)
     bpy.utils.unregister_class(ExportHubsGLTF)

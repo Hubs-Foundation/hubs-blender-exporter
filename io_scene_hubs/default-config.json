@@ -6,9 +6,14 @@
       "scene": true,
       "node": false,
       "properties": {
-        "materialSets": {
-          "type": "string",
-          "default": "test"
+        "authorName": {
+          "type": "string"
+        },
+        "authorUrl": {
+          "type": "string"
+        },
+        "license": {
+          "type": "string"
         }
       }
     },
@@ -25,6 +30,15 @@
         "tags": {
           "type": "collections",
           "collectionPrefix": "KIT_"
+        }
+      }
+    },
+    "alt-material": {
+      "material": true,
+      "node": false,
+      "properties": {
+        "id": {
+          "type": "string"
         }
       }
     }

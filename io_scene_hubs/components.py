@@ -18,6 +18,9 @@ def is_scene_component(component_definition):
 def is_node_component(component_definition):
     return not 'node' in component_definition or component_definition['node']
 
+def is_material_component(component_definition):
+    return 'material' in component_definition and component_definition['material']
+
 def create_component_class(component_name, component_definition):
     component_class_name = "hubs_component_%s" % component_name.replace('-', '_')
     component_property_dict = {}
@@ -106,6 +109,7 @@ def create_component_class(component_name, component_definition):
 
     component_property_dict['is_scene_component'] = is_scene_component(component_definition)
     component_property_dict['is_node_component'] = is_node_component(component_definition)
+    component_property_dict['is_material_component'] = is_material_component(component_definition)
     component_property_dict['component_definition'] = component_definition
 
     return type(component_class_name, (PropertyGroup,), component_property_dict)
@@ -166,6 +170,7 @@ def register():
     bpy.utils.register_class(HubsComponentList)
     bpy.types.Object.hubs_component_list = PointerProperty(type=HubsComponentList)
     bpy.types.Scene.hubs_component_list = PointerProperty(type=HubsComponentList)
+    bpy.types.Material.hubs_component_list = PointerProperty(type=HubsComponentList)
 
 def unregister():
     bpy.utils.unregister_class(StringArrayValueProperty)
@@ -173,3 +178,4 @@ def unregister():
     bpy.utils.unregister_class(HubsComponentList)
     del bpy.types.Object.hubs_component_list
     del bpy.types.Scene.hubs_component_list
+    del bpy.types.Material.hubs_component_list

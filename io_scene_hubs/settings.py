@@ -23,8 +23,6 @@ def get_component_class_name(component_name):
 def reload_context(config_path):
     global hubs_context
 
-    print("reload_context", config_path)
-
     if os.path.splitext(config_path)[1] == '.json':
         with open(bpy.path.abspath(config_path)) as config_file:
             hubs_config = json.load(config_file)
@@ -53,7 +51,7 @@ def unregister_compoents():
             bpy.utils.unregister_class(component_class)
     except UnboundLocalError:
         pass
-    
+
     if 'registered_hubs_components' in hubs_context:
         hubs_context['registered_hubs_components'] = {}
 
@@ -77,6 +75,13 @@ def register_components():
         if not 'node' in component_definition or component_definition['node']:
             setattr(
                 bpy.types.Object,
+                get_component_class_name(component_name),
+                PointerProperty(type=component_class)
+            )
+
+        if 'material' in component_definition and component_definition['material']:
+            setattr(
+                bpy.types.Material,
                 get_component_class_name(component_name),
                 PointerProperty(type=component_class)
             )

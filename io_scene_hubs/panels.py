@@ -36,6 +36,23 @@ class AddHubsObjectComponentMenu(Menu):
                 )
                 operator.component_name = component_name
 
+class AddHubsMaterialComponentMenu(Menu):
+    bl_label = "Add Hubs Component to Material"
+    bl_idname = "MATERIAL_MT_add_hubs_material_component_menu"
+
+    def draw(self, context):
+        layout = self.layout
+
+        hubs_components = bpy.context.scene.hubs_settings.registered_hubs_components
+
+        for component_name, component_class in hubs_components.items():
+            if component_class.is_material_component:
+                operator = layout.operator(
+                    "wm.add_hubs_material_component",
+                    text=component_name
+                )
+                operator.component_name = component_name
+
 class HubsObjectPanel(Panel):
     bl_label = "Hubs"
     bl_idname = "OBJECT_PT_hubs"
@@ -69,11 +86,23 @@ class HubsSettingsPanel(Panel):
 
         draw_components_list(self, context)
 
+class HubsMaterialPanel(Panel):
+    bl_label = 'Hubs'
+    bl_idname = "MATERIAL_PT_hubs"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = 'material'
+
+    def draw(self, context):
+        draw_components_list(self, context)
+
 def draw_components_list(panel, context):
     layout = panel.layout
 
     if panel.bl_context == 'scene':
         obj = context.scene
+    elif panel.bl_context == 'material':
+        obj = context.material
     else:
         obj = context.object
 
@@ -93,12 +122,14 @@ def draw_components_list(panel, context):
         row.label(text=component_name)
 
         if panel.bl_context == 'scene':
-            add_component_operator = "wm.remove_hubs_scene_component"
+            remove_component_operator = "wm.remove_hubs_scene_component"
+        elif panel.bl_context == 'material':
+            remove_component_operator = "wm.remove_hubs_material_component"
         else:
-            add_component_operator = "wm.remove_hubs_object_component"
+            remove_component_operator = "wm.remove_hubs_object_component"
 
         row.operator(
-            add_component_operator,
+            remove_component_operator,
             text="",
             icon="X"
         ).component_name = component_name
@@ -143,17 +174,23 @@ def draw_components_list(panel, context):
 
     if panel.bl_context == 'scene':
         menu.name = "SCENE_MT_add_hubs_scene_component_menu"
+    elif panel.bl_context == 'material':
+        menu.name = "MATERIAL_MT_add_hubs_material_component_menu"
     else:
         menu.name = "OBJECT_MT_add_hubs_object_component_menu"
 
 def register():
     bpy.utils.register_class(AddHubsObjectComponentMenu)
     bpy.utils.register_class(AddHubsSceneComponentMenu)
+    bpy.utils.register_class(AddHubsMaterialComponentMenu)
     bpy.utils.register_class(HubsObjectPanel)
     bpy.utils.register_class(HubsSettingsPanel)
+    bpy.utils.register_class(HubsMaterialPanel)
 
 def unregister():
     bpy.utils.unregister_class(AddHubsSceneComponentMenu)
+    bpy.utils.unregister_class(AddHubsMaterialComponentMenu)
     bpy.utils.unregister_class(AddHubsObjectComponentMenu)
     bpy.utils.unregister_class(HubsObjectPanel)
     bpy.utils.unregister_class(HubsSettingsPanel)
+    bpy.utils.unregister_class(HubsMaterialPanel)
