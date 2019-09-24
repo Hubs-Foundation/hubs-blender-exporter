@@ -20,12 +20,75 @@ for path in paths:
 def get_component_class_name(component_name):
     return "hubs_component_%s" % component_name.replace('-', '_')
 
+def reload_context(config_path):
+    global hubs_context
+
+    print("reload_context", config_path)
+
+    if os.path.splitext(config_path)[1] == '.json':
+        with open(bpy.path.abspath(config_path)) as config_file:
+            hubs_config = json.load(config_file)
+    else:
+        hubs_config = None
+        print('Config must be a .json file!')
+
+    if 'hubs_context' in globals():
+        unregister_compoents()
+
+    hubs_context = {
+        'registered_hubs_components': {},
+        'hubs_config': hubs_config
+    }
+
+    register_components()
+
+def unregister_compoents():
+    global hubs_context
+
+    try:
+        for component_name, component_class in hubs_context['registered_hubs_components'].items():
+            component_class_name = get_component_class_name(component_name)
+            if hasattr(bpy.types.Object, component_class_name):
+                delattr(bpy.types.Object, component_class_name)
+            bpy.utils.unregister_class(component_class)
+    except UnboundLocalError:
+        pass
+    
+    if 'registered_hubs_components' in hubs_context:
+        hubs_context['registered_hubs_components'] = {}
+
+def register_components():
+    global hubs_context
+
+    for component_name, component_definition in hubs_context['hubs_config']['components'].items():
+        component_class = components.create_component_class(
+            component_name,
+            component_definition
+        )
+        bpy.utils.register_class(component_class)
+
+        if 'scene' in component_definition and component_definition['scene']:
+            setattr(
+                bpy.types.Scene,
+                get_component_class_name(component_name),
+                PointerProperty(type=component_class)
+            )
+
+        if not 'node' in component_definition or component_definition['node']:
+            setattr(
+                bpy.types.Object,
+                get_component_class_name(component_name),
+                PointerProperty(type=component_class)
+            )
+
+        hubs_context['registered_hubs_components'][component_name] = component_class
+
+@persistent
+def load_handler(_dummy):
+    reload_context(bpy.context.scene.hubs_settings.config_path)
+
 def config_updated(self, _context):
-    self.reload_config()
-
-bpy.registered_hubs_components = {}
-
-bpy.hubs_config = None
+    load_handler(self)
 
 class HubsSettings(PropertyGroup):
     config_path: StringProperty(
@@ -40,70 +103,25 @@ class HubsSettings(PropertyGroup):
 
     @property
     def hubs_config(self):
-        return bpy.hubs_config
+        global hubs_context
+        return hubs_context['hubs_config']
 
     @property
     def registered_hubs_components(self):
-        return bpy.registered_hubs_components
-
-    def unregister_compoents(self):
-        try:
-            for component_name, component_class in self.registered_hubs_components.items():
-                delattr(bpy.types.Object, get_component_class_name(component_name))
-                bpy.utils.unregister_class(component_class)
-        except UnboundLocalError:
-            pass
-
-        bpy.registered_hubs_components = {}
-
-    def register_components(self):
-        for component_name, component_definition in self.hubs_config['components'].items():
-            component_class = components.create_component_class(
-                component_name,
-                component_definition
-            )
-            bpy.utils.register_class(component_class)
-
-            if 'scene' in component_definition and component_definition['scene']:
-                setattr(
-                    bpy.types.Scene,
-                    get_component_class_name(component_name),
-                    PointerProperty(type=component_class)
-                )
-
-            if not 'node' in component_definition or component_definition['node']:
-                setattr(
-                    bpy.types.Object,
-                    get_component_class_name(component_name),
-                    PointerProperty(type=component_class)
-                )
-
-            self.registered_hubs_components[component_name] = component_class
-
-    def load_config(self):
-        if not self.hubs_config:
-            self.reload_config()
+        return hubs_context['registered_hubs_components']
 
     def reload_config(self):
-        if os.path.splitext(self.config_path)[1] == '.json':
-            with open(bpy.path.abspath(self.config_path)) as config_file:
-                bpy.hubs_config = json.load(config_file)
-        else:
-            print('Config must be a .json file!')
-
-        self.unregister_compoents()
-        self.register_components()
-
-@persistent
-def load_handler(_dummy):
-    bpy.context.scene.hubs_settings.load_config()
+        reload_context(self.config_path)
 
 def register():
     bpy.utils.register_class(HubsSettings)
     bpy.types.Scene.hubs_settings = PointerProperty(type=HubsSettings)
     bpy.app.handlers.load_post.append(load_handler)
+    reload_context(default_config_path)
 
 def unregister():
+    global hubs_context
+    del hubs_context
     bpy.utils.unregister_class(HubsSettings)
     del bpy.types.Scene.hubs_settings
     bpy.app.handlers.load_post.remove(load_handler)
