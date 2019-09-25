@@ -1,70 +1,10 @@
 import re
 import bpy
-from bpy.types import Panel, Menu
+from bpy.types import Panel
+from bpy.props import StringProperty
+from . import components
 
-class AddHubsSceneComponentMenu(Menu):
-    bl_label = "Add Hubs Component to Scene"
-    bl_idname = "SCENE_MT_add_hubs_scene_component_menu"
-
-    def draw(self, context):
-        layout = self.layout
-
-        hubs_components = bpy.context.scene.hubs_settings.registered_hubs_components
-
-        for component_name, component_class in hubs_components.items():
-            if component_class.is_scene_component:
-                operator = layout.operator(
-                    "wm.add_hubs_scene_component",
-                    text=component_name
-                )
-                operator.component_name = component_name
-
-class AddHubsObjectComponentMenu(Menu):
-    bl_label = "Add Hubs Component to Object"
-    bl_idname = "OBJECT_MT_add_hubs_object_component_menu"
-
-    def draw(self, context):
-        layout = self.layout
-
-        hubs_components = bpy.context.scene.hubs_settings.registered_hubs_components
-
-        for component_name, component_class in hubs_components.items():
-            if component_class.is_node_component:
-                operator = layout.operator(
-                    "wm.add_hubs_object_component",
-                    text=component_name
-                )
-                operator.component_name = component_name
-
-class AddHubsMaterialComponentMenu(Menu):
-    bl_label = "Add Hubs Component to Material"
-    bl_idname = "MATERIAL_MT_add_hubs_material_component_menu"
-
-    def draw(self, context):
-        layout = self.layout
-
-        hubs_components = bpy.context.scene.hubs_settings.registered_hubs_components
-
-        for component_name, component_class in hubs_components.items():
-            if component_class.is_material_component:
-                operator = layout.operator(
-                    "wm.add_hubs_material_component",
-                    text=component_name
-                )
-                operator.component_name = component_name
-
-class HubsObjectPanel(Panel):
-    bl_label = "Hubs"
-    bl_idname = "OBJECT_PT_hubs"
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_context = "object"
-
-    def draw(self, context):
-        draw_components_list(self, context)
-
-
-class HubsSettingsPanel(Panel):
+class HubsScenePanel(Panel):
     bl_label = 'Hubs'
     bl_idname = "SCENE_PT_hubs"
     bl_space_type = 'PROPERTIES'
@@ -86,6 +26,16 @@ class HubsSettingsPanel(Panel):
 
         draw_components_list(self, context)
 
+class HubsObjectPanel(Panel):
+    bl_label = "Hubs"
+    bl_idname = "OBJECT_PT_hubs"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "object"
+
+    def draw(self, context):
+        draw_components_list(self, context)
+
 class HubsMaterialPanel(Panel):
     bl_label = 'Hubs'
     bl_idname = "MATERIAL_PT_hubs"
@@ -99,16 +49,16 @@ class HubsMaterialPanel(Panel):
 def draw_components_list(panel, context):
     layout = panel.layout
 
-    if panel.bl_context == 'scene':
-        obj = context.scene
-    elif panel.bl_context == 'material':
-        obj = context.material
-    else:
-        obj = context.object
+    obj = components.get_object_source(context, panel.bl_context)
+
+    if obj is None:
+        layout.label(text="No object selected")
+        return
 
     hubs_settings = context.scene.hubs_settings
 
     if hubs_settings.hubs_config is None:
+        layout.label(text="No hubs config loaded")
         return
 
     for component_item in obj.hubs_component_list.items:
@@ -121,18 +71,13 @@ def draw_components_list(panel, context):
         row = layout.row()
         row.label(text=component_name)
 
-        if panel.bl_context == 'scene':
-            remove_component_operator = "wm.remove_hubs_scene_component"
-        elif panel.bl_context == 'material':
-            remove_component_operator = "wm.remove_hubs_material_component"
-        else:
-            remove_component_operator = "wm.remove_hubs_object_component"
-
-        row.operator(
-            remove_component_operator,
+        remove_component_operator = row.operator(
+            "wm.remove_hubs_component",
             text="",
             icon="X"
-        ).component_name = component_name
+        )
+        remove_component_operator.component_name = component_name
+        remove_component_operator.object_source = panel.bl_context
 
         split = layout.split(factor=0.1)
         col = split.column()
@@ -161,36 +106,49 @@ def draw_components_list(panel, context):
                         filtered_collection_names.append(collection.name)
 
                 collections_row.box().label(text=", ".join(filtered_collection_names))
+            elif property_type == 'array':
+                array_value = getattr(component, property_name)
+
+                col.label(text=property_name)
+
+                for i, item in enumerate(array_value):
+                    box_row = col.box().row()
+                    box_row.prop(data=item, property="value", text="")
+                    remove_operator = box_row.operator(
+                        "wm.remove_hubs_component_item",
+                        text="",
+                        icon="X"
+                    )
+                    remove_operator.object_source = panel.bl_context
+                    remove_operator.component_name = component_class_name
+                    remove_operator.property_name = property_name
+                    remove_operator.index = i
+
+                add_operator = layout.operator(
+                    "wm.add_hubs_component_item",
+                    text="Add Item"
+                )
+                add_operator.object_source = panel.bl_context
+                add_operator.component_name = component_class_name
+                add_operator.property_name = property_name
 
             else:
                 col.prop(data=component, property=property_name)
 
     layout.separator()
 
-    menu = layout.operator(
-        "wm.call_menu",
+    add_component_operator = layout.operator(
+        "wm.add_hubs_component",
         text="Add Component"
     )
-
-    if panel.bl_context == 'scene':
-        menu.name = "SCENE_MT_add_hubs_scene_component_menu"
-    elif panel.bl_context == 'material':
-        menu.name = "MATERIAL_MT_add_hubs_material_component_menu"
-    else:
-        menu.name = "OBJECT_MT_add_hubs_object_component_menu"
+    add_component_operator.object_source = panel.bl_context
 
 def register():
-    bpy.utils.register_class(AddHubsObjectComponentMenu)
-    bpy.utils.register_class(AddHubsSceneComponentMenu)
-    bpy.utils.register_class(AddHubsMaterialComponentMenu)
+    bpy.utils.register_class(HubsScenePanel)
     bpy.utils.register_class(HubsObjectPanel)
-    bpy.utils.register_class(HubsSettingsPanel)
     bpy.utils.register_class(HubsMaterialPanel)
 
 def unregister():
-    bpy.utils.unregister_class(AddHubsSceneComponentMenu)
-    bpy.utils.unregister_class(AddHubsMaterialComponentMenu)
-    bpy.utils.unregister_class(AddHubsObjectComponentMenu)
+    bpy.utils.unregister_class(HubsScenePanel)
     bpy.utils.unregister_class(HubsObjectPanel)
-    bpy.utils.unregister_class(HubsSettingsPanel)
     bpy.utils.unregister_class(HubsMaterialPanel)

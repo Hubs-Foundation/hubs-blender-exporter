@@ -1,21 +1,40 @@
 import bpy
-from bpy.props import StringProperty, BoolProperty
+from bpy.props import StringProperty, BoolProperty, IntProperty, EnumProperty
 from bpy.types import Operator
 from . import components
 from . import exporter
 
-class AddHubsSceneComponent(Operator):
-    bl_idname = "wm.add_hubs_scene_component"
-    bl_label = "Add Hubs Component to Scene"
+class AddHubsComponent(Operator):
+    bl_idname = "wm.add_hubs_component"
+    bl_label = "Add Hubs Component"
+    bl_property = "component_name"
 
-    component_name: StringProperty(name="component_name")
+    object_source: StringProperty(name="object_source")
+
+    def get_items(self, context):
+        hubs_components = bpy.context.scene.hubs_settings.registered_hubs_components
+
+        items = []
+
+        obj = components.get_object_source(context, self.object_source)
+
+        for component_name, component_class in hubs_components.items():
+            if (components.is_object_source_component(self.object_source, component_class.component_definition)
+                and not components.has_component(obj, component_name)):
+                items.append((component_name, component_name, ''))
+
+        return items
+
+    component_name: EnumProperty(name="component_name", items=get_items)
 
     def execute(self, context):
         if self.component_name == '':
             return
 
+        obj = components.get_object_source(context, self.object_source)
+
         components.add_component(
-            context.scene,
+            obj,
             self.component_name,
             context.scene.hubs_settings.hubs_config,
             context.scene.hubs_settings.registered_hubs_components
@@ -24,87 +43,55 @@ class AddHubsSceneComponent(Operator):
         context.area.tag_redraw()
         return {'FINISHED'}
 
-class AddHubsObjectComponent(Operator):
-    bl_idname = "wm.add_hubs_object_component"
-    bl_label = "Add Hubs Component to Object"
+    def invoke(self, context, event):
+        context.window_manager.invoke_search_popup(self)
+        return {'RUNNING_MODAL'}
 
+class RemoveHubsComponent(Operator):
+    bl_idname = "wm.remove_hubs_component"
+    bl_label = "Remove Hubs Component"
+
+    object_source: StringProperty(name="object_source")
     component_name: StringProperty(name="component_name")
 
     def execute(self, context):
         if self.component_name == '':
             return
-
-        components.add_component(
-            context.object,
-            self.component_name,
-            context.scene.hubs_settings.hubs_config,
-            context.scene.hubs_settings.registered_hubs_components
-        )
-
+        obj = components.get_object_source(context, self.object_source)
+        components.remove_component(obj, self.component_name)
         context.area.tag_redraw()
         return {'FINISHED'}
 
-class AddHubsMaterialComponent(Operator):
-    bl_idname = "wm.add_hubs_material_component"
-    bl_label = "Add Hubs Component to Material"
+class AddHubsComponentItem(Operator):
+    bl_idname = "wm.add_hubs_component_item"
+    bl_label = "Add a new item"
 
+    object_source: StringProperty(name="object_source")
     component_name: StringProperty(name="component_name")
+    property_name: StringProperty(name="property_name")
 
     def execute(self, context):
-        if self.component_name == '':
-            return
+        obj = components.get_object_source(context, self.object_source)
+        component = getattr(obj, self.component_name)
+        prop = getattr(component, self.property_name)
+        prop.add()
+        return{'FINISHED'}
 
-        components.add_component(
-            context.material,
-            self.component_name,
-            context.scene.hubs_settings.hubs_config,
-            context.scene.hubs_settings.registered_hubs_components
-        )
+class RemoveHubsComponentItem(Operator):
+    bl_idname = "wm.remove_hubs_component_item"
+    bl_label = "Remove an item"
 
-        context.area.tag_redraw()
-        return {'FINISHED'}
-
-class RemoveHubsSceneComponent(Operator):
-    bl_idname = "wm.remove_hubs_scene_component"
-    bl_label = "Remove Hubs Component from Scene"
-
+    object_source: StringProperty(name="object_source")
     component_name: StringProperty(name="component_name")
+    property_name: StringProperty(name="property_name")
+    index: IntProperty(name="index", default=0)
 
     def execute(self, context):
-        if self.component_name == '':
-            return
-
-        components.remove_component(context.scene, self.component_name)
-        context.area.tag_redraw()
-        return {'FINISHED'}
-
-class RemoveHubsObjectComponent(Operator):
-    bl_idname = "wm.remove_hubs_object_component"
-    bl_label = "Remove Hubs Component from Object"
-
-    component_name: StringProperty(name="component_name")
-
-    def execute(self, context):
-        if self.component_name == '':
-            return
-
-        components.remove_component(context.object, self.component_name)
-        context.area.tag_redraw()
-        return {'FINISHED'}
-
-class RemoveHubsMaterialComponent(Operator):
-    bl_idname = "wm.remove_hubs_material_component"
-    bl_label = "Remove Hubs Component from Material"
-
-    component_name: StringProperty(name="component_name")
-
-    def execute(self, context):
-        if self.component_name == '':
-            return
-
-        components.remove_component(context.material, self.component_name)
-        context.area.tag_redraw()
-        return {'FINISHED'}
+        obj = components.get_object_source(context, self.object_source)
+        component = getattr(obj, self.component_name)
+        prop = getattr(component, self.property_name)
+        prop.remove(self.index)
+        return{'FINISHED'}
 
 class ReloadHubsConfig(Operator):
     bl_idname = "wm.reload_hubs_config"
@@ -114,6 +101,7 @@ class ReloadHubsConfig(Operator):
         context.scene.hubs_settings.reload_config()
         context.area.tag_redraw()
         return {'FINISHED'}
+
 
 class ExportHubsGLTF(Operator):
     bl_idname = "wm.export_hubs_gltf"
@@ -136,21 +124,17 @@ class ExportHubsGLTF(Operator):
             return {'CANCELLED'}
 
 def register():
-    bpy.utils.register_class(AddHubsSceneComponent)
-    bpy.utils.register_class(RemoveHubsSceneComponent)
-    bpy.utils.register_class(AddHubsObjectComponent)
-    bpy.utils.register_class(AddHubsMaterialComponent)
-    bpy.utils.register_class(RemoveHubsObjectComponent)
-    bpy.utils.register_class(RemoveHubsMaterialComponent)
+    bpy.utils.register_class(AddHubsComponent)
+    bpy.utils.register_class(RemoveHubsComponent)
+    bpy.utils.register_class(AddHubsComponentItem)
+    bpy.utils.register_class(RemoveHubsComponentItem)
     bpy.utils.register_class(ReloadHubsConfig)
     bpy.utils.register_class(ExportHubsGLTF)
 
 def unregister():
-    bpy.utils.unregister_class(AddHubsSceneComponent)
-    bpy.utils.unregister_class(RemoveHubsSceneComponent)
-    bpy.utils.unregister_class(AddHubsObjectComponent)
-    bpy.utils.unregister_class(AddHubsMaterialComponent)
-    bpy.utils.unregister_class(RemoveHubsObjectComponent)
-    bpy.utils.unregister_class(RemoveHubsMaterialComponent)
+    bpy.utils.unregister_class(AddHubsComponent)
+    bpy.utils.unregister_class(RemoveHubsComponent)
+    bpy.utils.unregister_class(AddHubsComponentItem)
+    bpy.utils.unregister_class(RemoveHubsComponentItem)
     bpy.utils.unregister_class(ReloadHubsConfig)
     bpy.utils.unregister_class(ExportHubsGLTF)

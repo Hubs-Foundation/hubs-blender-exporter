@@ -1,10 +1,13 @@
 import bpy
 from bpy.props import IntVectorProperty, BoolProperty, FloatProperty, StringProperty
 from bpy.props import PointerProperty, FloatVectorProperty, CollectionProperty, IntProperty
-from bpy.types import PropertyGroup
+from bpy.types import PropertyGroup, Material
 
 class StringArrayValueProperty(PropertyGroup):
     value: StringProperty(name="value", default="")
+
+class MaterialArrayValueProperty(PropertyGroup):
+    value: PointerProperty(name="value", type=Material)
 
 class HubsComponentName(PropertyGroup):
     name: StringProperty(name="name")
@@ -20,6 +23,21 @@ def is_node_component(component_definition):
 
 def is_material_component(component_definition):
     return 'material' in component_definition and component_definition['material']
+
+def is_object_source_component(object_source, component_definition):
+    if object_source == 'material':
+        return is_material_component(component_definition)
+    if object_source == 'scene':
+        return is_scene_component(component_definition)
+    return is_node_component(component_definition)
+
+def get_object_source(context, object_source):
+    if object_source == "material":
+        return context.material
+    elif object_source == "scene":
+        return context.scene
+    else:
+        return context.object
 
 def create_component_class(component_name, component_definition):
     component_class_name = "hubs_component_%s" % component_name.replace('-', '_')
@@ -100,6 +118,11 @@ def create_component_class(component_name, component_definition):
                     name=property_name,
                     type=StringArrayValueProperty
                 )
+            elif array_type == 'material':
+                component_property_dict[property_name] = CollectionProperty(
+                    name=property_name,
+                    type=MaterialArrayValueProperty
+                )
             else:
                 raise TypeError('Unsupported Hubs arrayType \'%s\' for %s on %s' % (
                     array_type, property_name, component_name))
@@ -107,9 +130,6 @@ def create_component_class(component_name, component_definition):
             raise TypeError('Unsupported Hubs property type \'%s\' for %s on %s' % (
                 property_type, property_name, component_name))
 
-    component_property_dict['is_scene_component'] = is_scene_component(component_definition)
-    component_property_dict['is_node_component'] = is_node_component(component_definition)
-    component_property_dict['is_material_component'] = is_material_component(component_definition)
     component_property_dict['component_definition'] = component_definition
 
     return type(component_class_name, (PropertyGroup,), component_property_dict)
@@ -164,8 +184,13 @@ def remove_component(obj, component_name):
     items = obj.hubs_component_list.items
     items.remove(items.find(component_name))
 
+def has_component(obj, component_name):
+    items = obj.hubs_component_list.items
+    return component_name in items
+
 def register():
     bpy.utils.register_class(StringArrayValueProperty)
+    bpy.utils.register_class(MaterialArrayValueProperty)
     bpy.utils.register_class(HubsComponentName)
     bpy.utils.register_class(HubsComponentList)
     bpy.types.Object.hubs_component_list = PointerProperty(type=HubsComponentList)
@@ -174,6 +199,7 @@ def register():
 
 def unregister():
     bpy.utils.unregister_class(StringArrayValueProperty)
+    bpy.utils.unregister_class(MaterialArrayValueProperty)
     bpy.utils.unregister_class(HubsComponentName)
     bpy.utils.unregister_class(HubsComponentList)
     del bpy.types.Object.hubs_component_list

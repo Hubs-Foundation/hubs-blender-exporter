@@ -15,14 +15,14 @@ bl_info = {
 }
 
 def register():
-    settings.register()
     components.register()
+    settings.register()
     operators.register()
     panels.register()
 
 def unregister():
-    settings.unregister()
     components.unregister()
+    settings.unregister()
     operators.unregister()
     panels.unregister()
 

@@ -33,12 +33,13 @@
         }
       }
     },
-    "alt-material": {
+    "kit-alt-materials": {
       "material": true,
       "node": false,
       "properties": {
-        "id": {
-          "type": "string"
+        "materials": {
+          "type": "array",
+          "arrayType": "material"
         }
       }
     }

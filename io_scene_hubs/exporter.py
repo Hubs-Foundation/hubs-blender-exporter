@@ -2,7 +2,6 @@ import os
 import datetime
 import re
 import bpy
-from io_scene_gltf2.blender.exp import gltf2_blender_gather, gltf2_blender_gather_nodes
 from io_scene_gltf2.blender.exp import gltf2_blender_gather, gltf2_blender_gather_nodes, gltf2_blender_gather_materials
 from io_scene_gltf2.blender.exp.gltf2_blender_gltf2_exporter import GlTF2Exporter
 from io_scene_gltf2.io.exp import gltf2_io_export
@@ -124,6 +123,23 @@ def patched_gather_extensions(blender_object, export_settings):
                             filtered_collection_names.append(collection.name)
 
                     component_data[component_name][property_name] = filtered_collection_names
+                elif property_type == 'array':
+                    array_type = property_definition['arrayType']
+                    value = []
+                    arr = getattr(component, property_name)
+
+                    if array_type == 'material':
+                        for item in arr:
+                            blender_material = item.value
+                            double_sided = not blender_material.use_backface_culling
+                            material = gltf2_blender_gather_materials.gather_material(
+                                blender_material, double_sided, export_settings)
+                            value.append(material)
+                    else:
+                        for item in arr:
+                            value.append(__to_json_compatible(item.value))
+
+                    component_data[component_name][property_name] = value
                 else:
                     component_data[component_name][property_name] = __to_json_compatible(
                         getattr(component, property_name)
@@ -192,6 +208,7 @@ def export(blender_scene, selected, hubs_config, registered_hubs_components):
     export_settings['registered_hubs_components'] = registered_hubs_components
 
     gltf2_blender_gather_nodes.__gather_extensions = patched_gather_extensions
+    gltf2_blender_gather_materials.__gather_extensions = patched_gather_extensions
 
     # In most recent version this function will return active_scene
     # as the first value for a total of 3 return values
@@ -202,14 +219,6 @@ def export(blender_scene, selected, hubs_config, registered_hubs_components):
 
     exporter = GlTF2Exporter(export_settings['gltf_copyright'])
     exporter.add_scene(scenes[0], True)
-
-    for blender_material in bpy.data.materials:
-        if blender_material.hubs_component_list.items:
-            double_sided = not blender_material.use_backface_culling
-            material = gltf2_blender_gather_materials.gather_material(
-                blender_material, double_sided, export_settings)
-            material.extensions = patched_gather_extensions(blender_material, export_settings)
-            getattr(exporter, '_GlTF2Exporter__traverse')(material)
 
     buffer = exporter.finalize_buffer(export_settings['gltf_filedirectory'], is_glb=True)
     exporter.finalize_images(export_settings['gltf_filedirectory'])
