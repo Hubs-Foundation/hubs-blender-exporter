@@ -123,6 +123,16 @@ def patched_gather_extensions(blender_object, export_settings):
                             filtered_collection_names.append(collection.name)
 
                     component_data[component_name][property_name] = filtered_collection_names
+                elif property_type == 'material':
+                    blender_material = getattr(component, property_name)
+
+                    if blender_material:
+                        double_sided = not blender_material.use_backface_culling
+                        material = gltf2_blender_gather_materials.gather_material(
+                            blender_material, double_sided, export_settings)
+                        component_data[component_name][property_name] = material
+                    else:
+                        component_data[component_name][property_name] = None
                 elif property_type == 'array':
                     array_type = property_definition['arrayType']
                     value = []
@@ -131,10 +141,11 @@ def patched_gather_extensions(blender_object, export_settings):
                     if array_type == 'material':
                         for item in arr:
                             blender_material = item.value
-                            double_sided = not blender_material.use_backface_culling
-                            material = gltf2_blender_gather_materials.gather_material(
-                                blender_material, double_sided, export_settings)
-                            value.append(material)
+                            if blender_material:
+                                double_sided = not blender_material.use_backface_culling
+                                material = gltf2_blender_gather_materials.gather_material(
+                                    blender_material, double_sided, export_settings)
+                                value.append(material)
                     else:
                         for item in arr:
                             value.append(__to_json_compatible(item.value))

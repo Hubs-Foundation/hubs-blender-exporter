@@ -34,9 +34,11 @@
       }
     },
     "kit-alt-materials": {
-      "material": true,
-      "node": false,
+      "node": true,
       "properties": {
+        "defaultMaterial": {
+          "type": "material"
+        },
         "materials": {
           "type": "array",
           "arrayType": "material"

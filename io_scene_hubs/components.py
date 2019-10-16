@@ -101,6 +101,8 @@ def create_component_class(component_name, component_definition):
                 min=0,
                 max=1
             )
+        elif property_type == 'material':
+            component_property_dict[property_name] = PointerProperty(name=property_name, type=Material)
         elif property_type == 'collections':
             # collections come from the object's users_collection property
             # and don't have an associated Property
