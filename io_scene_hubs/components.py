@@ -9,6 +9,9 @@ class StringArrayValueProperty(PropertyGroup):
 class MaterialArrayValueProperty(PropertyGroup):
     value: PointerProperty(name="value", type=Material)
 
+class Material2DArrayValueProperty(PropertyGroup):
+    value: CollectionProperty(name="value", type=MaterialArrayValueProperty)
+
 class HubsComponentName(PropertyGroup):
     name: StringProperty(name="name")
 
@@ -125,9 +128,15 @@ def create_component_class(component_name, component_definition):
                     name=property_name,
                     type=MaterialArrayValueProperty
                 )
+            elif array_type == 'materialArray':
+                component_property_dict[property_name] = CollectionProperty(
+                    name=property_name,
+                    type=Material2DArrayValueProperty
+                )
             else:
                 raise TypeError('Unsupported Hubs arrayType \'%s\' for %s on %s' % (
                     array_type, property_name, component_name))
+                    
         else:
             raise TypeError('Unsupported Hubs property type \'%s\' for %s on %s' % (
                 property_type, property_name, component_name))
@@ -193,6 +202,7 @@ def has_component(obj, component_name):
 def register():
     bpy.utils.register_class(StringArrayValueProperty)
     bpy.utils.register_class(MaterialArrayValueProperty)
+    bpy.utils.register_class(Material2DArrayValueProperty)
     bpy.utils.register_class(HubsComponentName)
     bpy.utils.register_class(HubsComponentList)
     bpy.types.Object.hubs_component_list = PointerProperty(type=HubsComponentList)
@@ -202,6 +212,7 @@ def register():
 def unregister():
     bpy.utils.unregister_class(StringArrayValueProperty)
     bpy.utils.unregister_class(MaterialArrayValueProperty)
+    bpy.utils.unregister_class(Material2DArrayValueProperty)
     bpy.utils.unregister_class(HubsComponentName)
     bpy.utils.unregister_class(HubsComponentList)
     del bpy.types.Object.hubs_component_list

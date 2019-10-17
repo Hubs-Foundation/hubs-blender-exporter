@@ -93,6 +93,39 @@ class RemoveHubsComponentItem(Operator):
         prop.remove(self.index)
         return{'FINISHED'}
 
+class AddHubsComponentItem2D(Operator):
+    bl_idname = "wm.add_hubs_component_item_2d"
+    bl_label = "Add a new item"
+
+    object_source: StringProperty(name="object_source")
+    component_name: StringProperty(name="component_name")
+    property_name: StringProperty(name="property_name")
+    index: IntProperty(name="index", default=0)
+
+    def execute(self, context):
+        obj = components.get_object_source(context, self.object_source)
+        component = getattr(obj, self.component_name)
+        prop = getattr(component, self.property_name)[self.index].value
+        prop.add()
+        return{'FINISHED'}
+
+class RemoveHubsComponentItem2D(Operator):
+    bl_idname = "wm.remove_hubs_component_item_2d"
+    bl_label = "Remove an item"
+
+    object_source: StringProperty(name="object_source")
+    component_name: StringProperty(name="component_name")
+    property_name: StringProperty(name="property_name")
+    index: IntProperty(name="index", default=0)
+    index2: IntProperty(name="index2", default=0)
+
+    def execute(self, context):
+        obj = components.get_object_source(context, self.object_source)
+        component = getattr(obj, self.component_name)
+        prop = getattr(component, self.property_name)[self.index].value
+        prop.remove(self.index2)
+        return{'FINISHED'}
+
 class ReloadHubsConfig(Operator):
     bl_idname = "wm.reload_hubs_config"
     bl_label = "Reload Hubs Config"
@@ -128,6 +161,8 @@ def register():
     bpy.utils.register_class(RemoveHubsComponent)
     bpy.utils.register_class(AddHubsComponentItem)
     bpy.utils.register_class(RemoveHubsComponentItem)
+    bpy.utils.register_class(AddHubsComponentItem2D)
+    bpy.utils.register_class(RemoveHubsComponentItem2D)
     bpy.utils.register_class(ReloadHubsConfig)
     bpy.utils.register_class(ExportHubsGLTF)
 
@@ -136,5 +171,7 @@ def unregister():
     bpy.utils.unregister_class(RemoveHubsComponent)
     bpy.utils.unregister_class(AddHubsComponentItem)
     bpy.utils.unregister_class(RemoveHubsComponentItem)
+    bpy.utils.unregister_class(AddHubsComponentItem2D)
+    bpy.utils.unregister_class(RemoveHubsComponentItem2D)
     bpy.utils.unregister_class(ReloadHubsConfig)
     bpy.utils.unregister_class(ExportHubsGLTF)

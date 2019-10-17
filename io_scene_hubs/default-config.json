@@ -36,12 +36,13 @@
     "kit-alt-materials": {
       "node": true,
       "properties": {
-        "defaultMaterial": {
-          "type": "material"
-        },
-        "materials": {
+        "defaultMaterials": {
           "type": "array",
           "arrayType": "material"
+        },
+        "altMaterials": {
+          "type": "array",
+          "arrayType": "materialArray"
         }
       }
     }

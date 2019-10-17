@@ -146,6 +146,17 @@ def patched_gather_extensions(blender_object, export_settings):
                                 material = gltf2_blender_gather_materials.gather_material(
                                     blender_material, double_sided, export_settings)
                                 value.append(material)
+                    elif array_type == 'materialArray':
+                        for item in arr:
+                            nested_value = []
+                            for nested_item in item.value:
+                                blender_material = nested_item.value
+                                if blender_material:
+                                    double_sided = not blender_material.use_backface_culling
+                                    material = gltf2_blender_gather_materials.gather_material(
+                                        blender_material, double_sided, export_settings)
+                                    nested_value.append(material)
+                            value.append(nested_value)
                     else:
                         for item in arr:
                             value.append(__to_json_compatible(item.value))

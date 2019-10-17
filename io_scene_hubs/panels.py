@@ -107,13 +107,42 @@ def draw_components_list(panel, context):
 
                 collections_row.box().label(text=", ".join(filtered_collection_names))
             elif property_type == 'array':
+                array_type = property_definition['arrayType']
                 array_value = getattr(component, property_name)
 
                 col.label(text=property_name)
 
                 for i, item in enumerate(array_value):
                     box_row = col.box().row()
-                    box_row.prop(data=item, property="value", text="")
+                    if array_type == "materialArray":
+                        nested_column = box_row.column()
+                        if item.value:
+                            for j, material in enumerate(item.value):
+                                nested_col_row = nested_column.box().row()
+                                nested_col_row.prop(data=material, property="value", text="")
+
+                                remove_material_operator = nested_col_row.operator(
+                                    "wm.remove_hubs_component_item_2d",
+                                    text="",
+                                    icon="X"
+                                )
+                                remove_material_operator.object_source = panel.bl_context
+                                remove_material_operator.component_name = component_class_name
+                                remove_material_operator.property_name = property_name
+                                remove_material_operator.index = i
+                                remove_material_operator.index2 = j
+
+                        add_material_operator = nested_column.operator(
+                            "wm.add_hubs_component_item_2d",
+                            text="Add Item"
+                        )
+                        add_material_operator.object_source = panel.bl_context
+                        add_material_operator.component_name = component_class_name
+                        add_material_operator.property_name = property_name
+                        add_material_operator.index = i
+                    else:
+                        box_row.prop(data=item, property="value", text="")
+
                     remove_operator = box_row.operator(
                         "wm.remove_hubs_component_item",
                         text="",
@@ -124,7 +153,7 @@ def draw_components_list(panel, context):
                     remove_operator.property_name = property_name
                     remove_operator.index = i
 
-                add_operator = layout.operator(
+                add_operator = col.operator(
                     "wm.add_hubs_component_item",
                     text="Add Item"
                 )
