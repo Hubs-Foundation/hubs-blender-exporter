@@ -45,13 +45,13 @@ def unregister_components():
     global hubs_context
 
     try:
-        if hubs_context['registered_hubs_components']:
+        if 'registered_hubs_components' in hubs_context:
             for component_name, component_class in hubs_context['registered_hubs_components'].items():
                 component_class_name = get_component_class_name(component_name)
                 if hasattr(bpy.types.Object, component_class_name):
                     delattr(bpy.types.Object, component_class_name)
 
-        if hubs_context['registered_hubs_classes']:
+        if 'registered_hubs_classes' in hubs_context:
             for class_name, registered_class in hubs_context['registered_hubs_classes']:
                 bpy.utils.unregister_class(registered_class)
 
