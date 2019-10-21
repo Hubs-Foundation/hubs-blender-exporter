@@ -31,39 +31,51 @@ def reload_context(config_path):
         print('Config must be a .json file!')
 
     if 'hubs_context' in globals():
-        unregister_compoents()
+        unregister_components()
 
     hubs_context = {
         'registered_hubs_components': {},
+        'registered_classes': {},
         'hubs_config': hubs_config
     }
 
     register_components()
 
-def unregister_compoents():
+def unregister_components():
     global hubs_context
 
     try:
-        for component_name, component_class in hubs_context['registered_hubs_components'].items():
-            component_class_name = get_component_class_name(component_name)
-            if hasattr(bpy.types.Object, component_class_name):
-                delattr(bpy.types.Object, component_class_name)
-            bpy.utils.unregister_class(component_class)
+        if hubs_context['registered_hubs_components']:
+            for component_name, component_class in hubs_context['registered_hubs_components'].items():
+                component_class_name = get_component_class_name(component_name)
+                if hasattr(bpy.types.Object, component_class_name):
+                    delattr(bpy.types.Object, component_class_name)
+
+        if hubs_context['registered_hubs_classes']:
+            for class_name, registered_class in hubs_context['registered_hubs_classes']:
+                bpy.utils.unregister_class(registered_class)
+
+
     except UnboundLocalError:
         pass
 
     if 'registered_hubs_components' in hubs_context:
         hubs_context['registered_hubs_components'] = {}
 
+    if 'registered_hubs_classes' in hubs_context:
+        hubs_context['registered_hubs_classes'] = {}
+
 def register_components():
     global hubs_context
 
     for component_name, component_definition in hubs_context['hubs_config']['components'].items():
-        component_class = components.create_component_class(
-            component_name,
-            component_definition
+        class_name = "hubs_component_%s" % component_name.replace('-', '_')
+
+        component_class = components.define_class(
+            class_name,
+            component_definition,
+            hubs_context
         )
-        bpy.utils.register_class(component_class)
 
         if 'scene' in component_definition and component_definition['scene']:
             setattr(
@@ -114,6 +126,10 @@ class HubsSettings(PropertyGroup):
     @property
     def registered_hubs_components(self):
         return hubs_context['registered_hubs_components']
+
+    @property
+    def registered_hubs_classes(self):
+        return hubs_context['registered_hubs_classes']
 
     def reload_config(self):
         reload_context(self.config_path)

@@ -42,109 +42,142 @@ def get_object_source(context, object_source):
     else:
         return context.object
 
-def create_component_class(component_name, component_definition):
-    component_class_name = "hubs_component_%s" % component_name.replace('-', '_')
-    component_property_dict = {}
+def define_class(class_name, class_definition, hubs_context):
+    registered_classes = hubs_context['registered_classes']
 
-    for property_name, property_definition in component_definition['properties'].items():
-        property_type = property_definition['type']
+    if class_name in registered_classes:
+        return registered_classes[class_name]
 
-        if property_type == 'int':
-            component_property_dict[property_name] = IntProperty(
-                name=property_name
-            )
-        elif property_type == 'float':
-            component_property_dict[property_name] = FloatProperty(
-                name=property_name
-            )
-        elif property_type == 'bool':
-            component_property_dict[property_name] = BoolProperty(
-                name=property_name
-            )
-        elif property_type == 'string':
-            component_property_dict[property_name] = StringProperty(
-                name=property_name
-            )
-        elif property_type == 'ivec2':
-            component_property_dict[property_name] = IntVectorProperty(
-                name=property_name,
-                size=2
-            )
-        elif property_type == 'ivec3':
-            component_property_dict[property_name] = IntVectorProperty(
-                name=property_name,
-                size=3
-            )
-        elif property_type == 'ivec4':
-            component_property_dict[property_name] = IntVectorProperty(
-                name=property_name,
-                size=4
-            )
-        elif property_type == 'vec2':
-            component_property_dict[property_name] = FloatVectorProperty(
-                name=property_name,
-                size=2
-            )
-        elif property_type == 'vec3':
-            component_property_dict[property_name] = FloatVectorProperty(
-                name=property_name,
-                size=3
-            )
-        elif property_type == 'vec4':
-            component_property_dict[property_name] = FloatVectorProperty(
-                name=property_name,
-                size=4
-            )
-        elif property_type == 'color':
-            component_property_dict[property_name] = FloatVectorProperty(
-                name=property_name,
-                subtype='COLOR',
-                default=(1.0, 1.0, 1.0, 1.0),
-                size=4,
-                min=0,
-                max=1
-            )
-        elif property_type == 'material':
-            component_property_dict[property_name] = PointerProperty(name=property_name, type=Material)
-        elif property_type == 'collections':
-            # collections come from the object's users_collection property
-            # and don't have an associated Property
-            continue
-        elif property_type == 'array':
-            if 'arrayType' not in property_definition:
-                raise TypeError(
-                    'Hubs array property  \'%s\' does not specify an arrayType on %s' % (
-                        property_name, component_name))
+    class_property_dict = {}
 
-            array_type = property_definition['arrayType']
+    for property_name, property_definition in class_definition['properties'].items():
+        property_class = define_property(class_name, property_name, property_definition, hubs_context)
 
-            if array_type == 'string':
-                component_property_dict[property_name] = CollectionProperty(
-                    name=property_name,
-                    type=StringArrayValueProperty
-                )
-            elif array_type == 'material':
-                component_property_dict[property_name] = CollectionProperty(
-                    name=property_name,
-                    type=MaterialArrayValueProperty
-                )
-            elif array_type == 'materialArray':
-                component_property_dict[property_name] = CollectionProperty(
-                    name=property_name,
-                    type=Material2DArrayValueProperty
-                )
-            else:
-                raise TypeError('Unsupported Hubs arrayType \'%s\' for %s on %s' % (
-                    array_type, property_name, component_name))
-                    
-        else:
+        if property_class:
+            class_property_dict[property_name] = property_class
+
+    class_property_dict['definition'] = class_definition
+
+    component_class = type(class_name, (PropertyGroup,), class_property_dict)
+
+    registered_classes[class_name] = component_class
+
+    bpy.utils.register_class(component_class)
+
+    return component_class
+
+def define_type(type_name, hubs_context):
+    final_class_name = "hubs_type_%s" % type_name.replace('-', '_')
+
+    registered_classes = hubs_context['registered_classes']
+
+    if final_class_name in registered_classes:
+        return registered_classes[final_class_name]
+
+    hubs_config = hubs_context['hubs_config']
+
+    if 'types' not in hubs_config:
+        raise TypeError('Hubs config has no types definition.')
+
+    if type_name not in hubs_config['types']:
+        raise TypeError('Undefined Hubs type \'%s\'' % (type_name))
+
+    class_definition = hubs_config['types'][type_name]
+
+    return define_class(final_class_name, class_definition, hubs_context)
+
+def define_property(class_name, property_name, property_definition, hubs_context):
+    property_type = property_definition['type']
+
+    if property_type == 'int':
+        return IntProperty(
+            name=property_name
+        )
+    elif property_type == 'float':
+        return FloatProperty(
+            name=property_name
+        )
+    elif property_type == 'bool':
+        return BoolProperty(
+            name=property_name
+        )
+    elif property_type == 'string':
+        return StringProperty(
+            name=property_name
+        )
+    elif property_type == 'ivec2':
+        return IntVectorProperty(
+            name=property_name,
+            size=2
+        )
+    elif property_type == 'ivec3':
+        return IntVectorProperty(
+            name=property_name,
+            size=3
+        )
+    elif property_type == 'ivec4':
+        return IntVectorProperty(
+            name=property_name,
+            size=4
+        )
+    elif property_type == 'vec2':
+        return FloatVectorProperty(
+            name=property_name,
+            size=2
+        )
+    elif property_type == 'vec3':
+        return FloatVectorProperty(
+            name=property_name,
+            size=3
+        )
+    elif property_type == 'vec4':
+        return FloatVectorProperty(
+            name=property_name,
+            size=4
+        )
+    elif property_type == 'color':
+        return FloatVectorProperty(
+            name=property_name,
+            subtype='COLOR',
+            default=(1.0, 1.0, 1.0, 1.0),
+            size=4,
+            min=0,
+            max=1
+        )
+    elif property_type == 'material':
+        return PointerProperty(name=property_name, type=Material)
+    elif property_type == 'collections':
+        # collections come from the object's users_collection property
+        # and don't have an associated Property
+        return None
+    elif property_type == 'array':
+        if 'arrayType' not in property_definition:
+            raise TypeError('Hubs array property  \'%s\' does not specify an arrayType on %s' % (
+                property_name, class_name))
+
+        array_type = property_definition['arrayType']
+
+        property_class = define_type(array_type, hubs_context)
+
+        if not property_class:
+            raise TypeError('Unsupported Hubs array type \'%s\' for %s on %s' % (
+                array_type, property_name, class_name))
+
+        return CollectionProperty(
+            name=property_name,
+            type=property_class
+        )
+    else:
+        property_class = define_type(property_type, hubs_context)
+
+        if not property_class:
             raise TypeError('Unsupported Hubs property type \'%s\' for %s on %s' % (
-                property_type, property_name, component_name))
+                property_type, property_name, class_name))
 
-    component_property_dict['component_definition'] = component_definition
-
-    return type(component_class_name, (PropertyGroup,), component_property_dict)
-
+        return PointerProperty(
+            name=property_name,
+            type=property_class
+        )
 
 def get_default_value(obj, path_or_value):
     if type(path_or_value) is str and path_or_value.startswith('$'):
@@ -176,6 +209,10 @@ def add_component(obj, component_name, hubs_config, registered_hubs_components):
     component_class = registered_hubs_components[component_name]
     component_class_name = component_class.__name__
     component = getattr(obj, component_class_name)
+
+    if 'properties' not in component_definition:
+        raise TypeError('Hubs component \'%s\' definition has no properties field.' % (
+            component_name))
 
     for property_name, property_definition in component_definition['properties'].items():
         if "default" in property_definition:

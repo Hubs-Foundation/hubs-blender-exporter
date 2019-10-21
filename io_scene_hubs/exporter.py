@@ -97,75 +97,11 @@ def patched_gather_extensions(blender_object, export_settings):
 
         for component_item in component_list.items:
             component_name = component_item.name
-            component_data[component_name] = {}
             component_definition = hubs_config['components'][component_name]
             component_class = registered_hubs_components[component_name]
             component_class_name = component_class.__name__
             component = getattr(blender_object, component_class_name)
-
-            for property_name, property_definition in component_definition['properties'].items():
-                property_type = property_definition['type']
-
-                if property_type == 'collections':
-                    filtered_collection_names = []
-
-                    collection_prefix_regex = None
-
-                    if 'collectionPrefix' in property_definition:
-                        collection_prefix = property_definition['collectionPrefix']
-                        collection_prefix_regex = re.compile(r'^' + collection_prefix)
-
-                    for collection in blender_object.users_collection:
-                        if collection_prefix_regex and collection_prefix_regex.match(collection.name):
-                            new_name = collection_prefix_regex.sub("", collection.name)
-                            filtered_collection_names.append(new_name)
-                        elif not collection_prefix_regex:
-                            filtered_collection_names.append(collection.name)
-
-                    component_data[component_name][property_name] = filtered_collection_names
-                elif property_type == 'material':
-                    blender_material = getattr(component, property_name)
-
-                    if blender_material:
-                        double_sided = not blender_material.use_backface_culling
-                        material = gltf2_blender_gather_materials.gather_material(
-                            blender_material, double_sided, export_settings)
-                        component_data[component_name][property_name] = material
-                    else:
-                        component_data[component_name][property_name] = None
-                elif property_type == 'array':
-                    array_type = property_definition['arrayType']
-                    value = []
-                    arr = getattr(component, property_name)
-
-                    if array_type == 'material':
-                        for item in arr:
-                            blender_material = item.value
-                            if blender_material:
-                                double_sided = not blender_material.use_backface_culling
-                                material = gltf2_blender_gather_materials.gather_material(
-                                    blender_material, double_sided, export_settings)
-                                value.append(material)
-                    elif array_type == 'materialArray':
-                        for item in arr:
-                            nested_value = []
-                            for nested_item in item.value:
-                                blender_material = nested_item.value
-                                if blender_material:
-                                    double_sided = not blender_material.use_backface_culling
-                                    material = gltf2_blender_gather_materials.gather_material(
-                                        blender_material, double_sided, export_settings)
-                                    nested_value.append(material)
-                            value.append(nested_value)
-                    else:
-                        for item in arr:
-                            value.append(__to_json_compatible(item.value))
-
-                    component_data[component_name][property_name] = value
-                else:
-                    component_data[component_name][property_name] = __to_json_compatible(
-                        getattr(component, property_name)
-                    )
+            component_data[component_name] = gather_properties(export_settings, blender_object, component, component_definition)
 
         if extensions is None:
             extensions = {}
@@ -177,6 +113,73 @@ def patched_gather_extensions(blender_object, export_settings):
         )
 
     return extensions if extensions else None
+
+def gather_properties(export_settings, blender_object, target, type_definition):
+    value = {}
+
+    for property_name, property_definition in type_definition['properties'].items():
+        value[property_name] = gather_property(export_settings, blender_object, target, property_name, property_definition)
+
+    return value
+
+
+def gather_property(export_settings, blender_object, target, property_name, property_definition):
+    property_type = property_definition['type']
+
+    if property_type == 'material':
+        return gather_material_property(export_settings, blender_object, target, property_name, property_definition)
+    elif property_type == 'collections':
+        return gather_collections_property(export_settings, blender_object, target, property_name, property_definition)
+    elif property_type == 'array':
+        return gather_array_property(export_settings, blender_object, target, property_name, property_definition)
+    else:
+        return __to_json_compatible(getattr(target, property_name))
+
+def gather_array_property(export_settings, blender_object, target, property_name, property_definition):
+    array_type = property_definition['arrayType']
+    type_definition = export_settings['hubs_config']['types'][array_type]
+    is_value_type = len(type_definition['properties']) == 1 and 'value' in type_definition['properties']
+    value = []
+
+    arr = getattr(target, property_name)
+
+    for item in arr:
+        if is_value_type:
+            item_value = gather_property(export_settings, blender_object, item, "value", type_definition['properties']['value'])
+        else:
+            item_value = gather_properties(export_settings, blender_object, item, type_definition)
+        value.append(item_value)
+    
+    return value
+
+def gather_material_property(export_settings, blender_object, target, property_name, property_definition):
+    blender_material = getattr(target, property_name)
+
+    if blender_material:
+        double_sided = not blender_material.use_backface_culling
+        material = gltf2_blender_gather_materials.gather_material(
+            blender_material, double_sided, export_settings)
+        return material
+    else:
+        return None
+
+def gather_collections_property(export_settings, blender_object, target, property_name, property_definition):
+    filtered_collection_names = []
+
+    collection_prefix_regex = None
+
+    if 'collectionPrefix' in property_definition:
+        collection_prefix = property_definition['collectionPrefix']
+        collection_prefix_regex = re.compile(r'^' + collection_prefix)
+
+    for collection in blender_object.users_collection:
+        if collection_prefix_regex and collection_prefix_regex.match(collection.name):
+            new_name = collection_prefix_regex.sub("", collection.name)
+            filtered_collection_names.append(new_name)
+        elif not collection_prefix_regex:
+            filtered_collection_names.append(collection.name)
+
+    return filtered_collection_names
 
 def export(blender_scene, selected, hubs_config, registered_hubs_components):
     if bpy.data.filepath == '':

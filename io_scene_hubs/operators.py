@@ -19,7 +19,7 @@ class AddHubsComponent(Operator):
         obj = components.get_object_source(context, self.object_source)
 
         for component_name, component_class in hubs_components.items():
-            if (components.is_object_source_component(self.object_source, component_class.component_definition)
+            if (components.is_object_source_component(self.object_source, component_class.definition)
                 and not components.has_component(obj, component_name)):
                 items.append((component_name, component_name, ''))
 
@@ -66,64 +66,52 @@ class AddHubsComponentItem(Operator):
     bl_idname = "wm.add_hubs_component_item"
     bl_label = "Add a new item"
 
-    object_source: StringProperty(name="object_source")
-    component_name: StringProperty(name="component_name")
-    property_name: StringProperty(name="property_name")
+    path: StringProperty(name="path")
 
     def execute(self, context):
-        obj = components.get_object_source(context, self.object_source)
-        component = getattr(obj, self.component_name)
-        prop = getattr(component, self.property_name)
-        prop.add()
+        parts = self.path.split(".")
+
+        cur_obj = context
+
+        for part in parts:
+            try:
+                index = int(part)
+                cur_obj = cur_obj[index]
+            except:
+                cur_obj = getattr(cur_obj, part)
+
+        cur_obj.add()
+
+        context.area.tag_redraw()
+
         return{'FINISHED'}
 
 class RemoveHubsComponentItem(Operator):
     bl_idname = "wm.remove_hubs_component_item"
     bl_label = "Remove an item"
 
-    object_source: StringProperty(name="object_source")
-    component_name: StringProperty(name="component_name")
-    property_name: StringProperty(name="property_name")
-    index: IntProperty(name="index", default=0)
+    path: StringProperty(name="path")
 
     def execute(self, context):
-        obj = components.get_object_source(context, self.object_source)
-        component = getattr(obj, self.component_name)
-        prop = getattr(component, self.property_name)
-        prop.remove(self.index)
-        return{'FINISHED'}
+        parts = self.path.split(".")
 
-class AddHubsComponentItem2D(Operator):
-    bl_idname = "wm.add_hubs_component_item_2d"
-    bl_label = "Add a new item"
+        index = int(parts.pop())
 
-    object_source: StringProperty(name="object_source")
-    component_name: StringProperty(name="component_name")
-    property_name: StringProperty(name="property_name")
-    index: IntProperty(name="index", default=0)
+        print(index, parts)
 
-    def execute(self, context):
-        obj = components.get_object_source(context, self.object_source)
-        component = getattr(obj, self.component_name)
-        prop = getattr(component, self.property_name)[self.index].value
-        prop.add()
-        return{'FINISHED'}
+        cur_obj = context
 
-class RemoveHubsComponentItem2D(Operator):
-    bl_idname = "wm.remove_hubs_component_item_2d"
-    bl_label = "Remove an item"
+        for part in parts:
+            try:
+                cur_index = int(part)
+                cur_obj = cur_obj[cur_index]
+            except:
+                cur_obj = getattr(cur_obj, part)
 
-    object_source: StringProperty(name="object_source")
-    component_name: StringProperty(name="component_name")
-    property_name: StringProperty(name="property_name")
-    index: IntProperty(name="index", default=0)
-    index2: IntProperty(name="index2", default=0)
+        cur_obj.remove(index)
 
-    def execute(self, context):
-        obj = components.get_object_source(context, self.object_source)
-        component = getattr(obj, self.component_name)
-        prop = getattr(component, self.property_name)[self.index].value
-        prop.remove(self.index2)
+        context.area.tag_redraw()
+
         return{'FINISHED'}
 
 class ReloadHubsConfig(Operator):
@@ -161,8 +149,6 @@ def register():
     bpy.utils.register_class(RemoveHubsComponent)
     bpy.utils.register_class(AddHubsComponentItem)
     bpy.utils.register_class(RemoveHubsComponentItem)
-    bpy.utils.register_class(AddHubsComponentItem2D)
-    bpy.utils.register_class(RemoveHubsComponentItem2D)
     bpy.utils.register_class(ReloadHubsConfig)
     bpy.utils.register_class(ExportHubsGLTF)
 
@@ -171,7 +157,5 @@ def unregister():
     bpy.utils.unregister_class(RemoveHubsComponent)
     bpy.utils.unregister_class(AddHubsComponentItem)
     bpy.utils.unregister_class(RemoveHubsComponentItem)
-    bpy.utils.unregister_class(AddHubsComponentItem2D)
-    bpy.utils.unregister_class(RemoveHubsComponentItem2D)
     bpy.utils.unregister_class(ReloadHubsConfig)
     bpy.utils.unregister_class(ExportHubsGLTF)
