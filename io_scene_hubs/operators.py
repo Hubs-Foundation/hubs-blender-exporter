@@ -149,6 +149,8 @@ class CopyHubsComponent(Operator):
         registered_types = hubs_settings.hubs_config['types']
         type_definition = registered_types[array_type]
 
+        dest_arr.clear()
+
         for src_item in src_arr:
             dest_item = dest_arr.add()
             self.copy_type(hubs_settings, src_item, dest_item, type_definition)
@@ -164,8 +166,6 @@ class RemoveHubsComponentItem(Operator):
         parts = self.path.split(".")
 
         index = int(parts.pop())
-
-        print(index, parts)
 
         cur_obj = context
 
