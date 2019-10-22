@@ -1,5 +1,5 @@
 import bpy
-from bpy.props import StringProperty, BoolProperty, IntProperty, EnumProperty
+from bpy.props import StringProperty, BoolProperty, IntProperty, EnumProperty, CollectionProperty, PointerProperty
 from bpy.types import Operator
 from . import components
 from . import exporter
@@ -86,6 +86,74 @@ class AddHubsComponentItem(Operator):
 
         return{'FINISHED'}
 
+class CopyHubsComponent(Operator):
+    bl_idname = "wm.copy_hubs_component"
+    bl_label = "Copy component from active object"
+
+    component_name: StringProperty(name="component_name")
+
+    def execute(self, context):
+        src_obj = context.active_object
+        dest_objs = filter(lambda item: src_obj != item, context.selected_objects)
+
+        hubs_settings = context.scene.hubs_settings
+        component_class = hubs_settings.registered_hubs_components[self.component_name]
+        component_class_name = component_class.__name__
+        component_definition = hubs_settings.hubs_config['components'][self.component_name]
+
+        if components.has_component(src_obj, self.component_name):
+            for dest_obj in dest_objs:
+                if components.has_component(dest_obj, self.component_name):
+                    components.remove_component(dest_obj, self.component_name)
+
+                components.add_component(
+                    dest_obj,
+                    self.component_name,
+                    hubs_settings.hubs_config,
+                    hubs_settings.registered_hubs_components
+                )
+
+                src_component = getattr(src_obj, component_class_name)
+                dest_component = getattr(dest_obj, component_class_name)
+
+                self.copy_type(hubs_settings, src_component, dest_component, component_definition)
+
+        return{'FINISHED'}
+
+
+    def copy_type(self, hubs_settings, src_obj, dest_obj, type_definition):
+        for property_name, property_definition in type_definition['properties'].items():
+            self.copy_property(hubs_settings, src_obj, dest_obj, property_name, property_definition)
+
+    def copy_property(self, hubs_settings, src_obj, dest_obj, property_name, property_definition):
+        property_type = property_definition['type']
+
+        if property_type == 'collections':
+            return
+
+        registered_types = hubs_settings.hubs_config['types']
+        is_custom_type = property_type in registered_types
+
+        src_property = getattr(src_obj, property_name)
+        dest_property = getattr(dest_obj, property_name)
+
+        if is_custom_type:
+            dest_obj[property_name] = self.copy_type(hubs_settings, src_property, dest_property, registered_types[property_type])
+        elif property_type == 'array':
+            self.copy_array_property(hubs_settings, src_property, dest_property, property_definition)
+        else:
+            setattr(dest_obj, property_name, src_property)
+
+    def copy_array_property(self, hubs_settings, src_arr, dest_arr, property_definition):
+        array_type = property_definition['arrayType']
+        registered_types = hubs_settings.hubs_config['types']
+        type_definition = registered_types[array_type]
+
+        for src_item in src_arr:
+            dest_item = dest_arr.add()
+            self.copy_type(hubs_settings, src_item, dest_item, type_definition)
+
+
 class RemoveHubsComponentItem(Operator):
     bl_idname = "wm.remove_hubs_component_item"
     bl_label = "Remove an item"
@@ -147,6 +215,7 @@ class ExportHubsGLTF(Operator):
 def register():
     bpy.utils.register_class(AddHubsComponent)
     bpy.utils.register_class(RemoveHubsComponent)
+    bpy.utils.register_class(CopyHubsComponent)
     bpy.utils.register_class(AddHubsComponentItem)
     bpy.utils.register_class(RemoveHubsComponentItem)
     bpy.utils.register_class(ReloadHubsConfig)
@@ -155,6 +224,7 @@ def register():
 def unregister():
     bpy.utils.unregister_class(AddHubsComponent)
     bpy.utils.unregister_class(RemoveHubsComponent)
+    bpy.utils.unregister_class(CopyHubsComponent)
     bpy.utils.unregister_class(AddHubsComponentItem)
     bpy.utils.unregister_class(RemoveHubsComponentItem)
     bpy.utils.unregister_class(ReloadHubsConfig)
