@@ -191,6 +191,41 @@ class ReloadHubsConfig(Operator):
         context.area.tag_redraw()
         return {'FINISHED'}
 
+class MigrateHubsComponents(Operator):
+    bl_idname = "wm.migrate_hubs_components"
+    bl_label = "Migrate Hubs Components"
+
+    def execute(self, context):
+        hubs_settings = context.scene.hubs_settings
+        hubs_config = hubs_settings.hubs_config
+        registered_hubs_components = hubs_settings.registered_hubs_components
+
+        for obj in context.scene.objects:
+            if components.has_component(obj, "kit-alt-materials"):
+                component = obj.hubs_component_kit_alt_materials
+
+                if not component.name:
+                    component.name = obj.name
+
+                if not component.id:
+                    component.id = obj.name
+
+                for defaultMaterial in component.defaultMaterials:
+                    if not defaultMaterial.id:
+                        defaultMaterial.id = defaultMaterial.name
+
+                    material = defaultMaterial.material
+                    if not components.has_component(material, "material-id"):
+                        components.add_component(material, "material-id", hubs_config, registered_hubs_components)
+
+                for altMaterials in component.altMaterials:
+                    for altMaterial in altMaterials.value:
+                        material = altMaterial.value
+                        if not components.has_component(material, "material-id"):
+                            components.add_component(material, "material-id", hubs_config, registered_hubs_components)
+
+        return {'FINISHED'}
+
 
 class ExportHubsGLTF(Operator):
     bl_idname = "wm.export_hubs_gltf"
@@ -219,6 +254,7 @@ def register():
     bpy.utils.register_class(AddHubsComponentItem)
     bpy.utils.register_class(RemoveHubsComponentItem)
     bpy.utils.register_class(ReloadHubsConfig)
+    bpy.utils.register_class(MigrateHubsComponents)
     bpy.utils.register_class(ExportHubsGLTF)
 
 def unregister():
@@ -228,4 +264,5 @@ def unregister():
     bpy.utils.unregister_class(AddHubsComponentItem)
     bpy.utils.unregister_class(RemoveHubsComponentItem)
     bpy.utils.unregister_class(ReloadHubsConfig)
+    bpy.utils.unregister_class(MigrateHubsComponents)
     bpy.utils.unregister_class(ExportHubsGLTF)

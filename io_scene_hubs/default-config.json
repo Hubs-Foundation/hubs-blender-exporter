@@ -1,4 +1,5 @@
 {
+  "configVersion": 1,
   "gltfExtensionName": "MOZ_hubs_components",
   "gltfExtensionVersion": 3,
   "types": {
@@ -19,6 +20,10 @@
     },
     "TaggedMaterial": {
       "properties": {
+        "id": {
+          "type": "string",
+          "default": "$name"
+        },
         "name": {
           "type": "string",
           "default": "$name"
@@ -64,6 +69,14 @@
     "kit-alt-materials": {
       "node": true,
       "properties": {
+        "id": {
+          "type": "string",
+          "default": "$name"
+        },
+        "name": {
+          "type": "string",
+          "default": "$name"
+        },
         "defaultMaterials": {
           "type": "array",
           "arrayType": "TaggedMaterial"
@@ -71,6 +84,21 @@
         "altMaterials": {
           "type": "array",
           "arrayType": "MaterialCollection"
+        }
+      }
+    },
+    "material-id": {
+      "node": false,
+      "scene": false,
+      "material": true,
+      "properties": {
+        "id": {
+          "type": "string",
+          "default": "$name"
+        },
+        "name": {
+          "type": "string",
+          "default": "$name"
         }
       }
     }
