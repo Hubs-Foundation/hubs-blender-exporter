@@ -5,6 +5,9 @@ from . import components
 from . import operators
 from . import panels
 
+from io_scene_gltf2.blender.exp import gltf2_blender_export
+from io_scene_gltf2.io.exp.gltf2_io_user_extensions import export_user_extensions
+
 bl_info = {
     "name" : "io_scene_hubs",
     "author" : "Robert Long",
@@ -16,30 +19,40 @@ bl_info = {
     "category" : "Generic"
 }
 
+orig_gather_gltf = gltf2_blender_export.__gather_gltf
+
+def patched_gather_gltf(exporter, export_settings):
+    orig_gather_gltf(exporter, export_settings)
+    export_user_extensions('gather_gltf_hook', export_settings, exporter._GlTF2Exporter__gltf)
+    exporter._GlTF2Exporter__traverse(exporter._GlTF2Exporter__gltf.extensions)
+
 def register():
-    print("register")
+    gltf2_blender_export.__gather_gltf = patched_gather_gltf
+
     components.register()
     settings.register()
     operators.register()
     panels.register()
 
-    bpy.utils.register_class(ExampleExtensionProperties)
-    bpy.types.Scene.ExampleExtensionProperties = bpy.props.PointerProperty(type=ExampleExtensionProperties)
+    bpy.utils.register_class(HubsComponentsExtensionProperties)
+    bpy.types.Scene.HubsComponentsExtensionProperties = bpy.props.PointerProperty(type=HubsComponentsExtensionProperties)
 
 def unregister():
+    gltf2_blender_export.__gather_gltf = orig_gather_gltf
+
     components.unregister()
     settings.unregister()
     operators.unregister()
     panels.unregister()
 
     unregister_panel()
-    bpy.utils.unregister_class(ExampleExtensionProperties)
-    del bpy.types.Scene.ExampleExtensionProperties
+    bpy.utils.unregister_class(HubsComponentsExtensionProperties)
+    del bpy.types.Scene.HubsComponentsExtensionProperties
 
 if __name__ == "__main__":
     register()
 
-class ExampleExtensionProperties(bpy.types.PropertyGroup):
+class HubsComponentsExtensionProperties(bpy.types.PropertyGroup):
     enabled: bpy.props.BoolProperty(
         name="Export Hubs Components",
         description='Include this extension in the exported glTF file.',
@@ -88,23 +101,20 @@ class GLTF_PT_UserExtensionPanel(bpy.types.Panel):
         operator = sfile.active_operator
         return operator.bl_idname == "EXPORT_SCENE_OT_gltf"
 
-    # def draw_header(self, context):
-    #     props = bpy.context.scene.ExampleExtensionProperties
-    #     self.layout.prop(props, 'enabled')
+    def draw_header(self, context):
+        props = bpy.context.scene.HubsComponentsExtensionProperties
+        self.layout.prop(props, 'enabled', text="")
 
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-        props = bpy.context.scene.ExampleExtensionProperties
+        props = bpy.context.scene.HubsComponentsExtensionProperties
         layout.active = props.enabled
 
-        # box = layout.box()
-        # box.label(text=glTF_extension_name)
-
-        props = bpy.context.scene.ExampleExtensionProperties
-        layout.prop(props, 'float_property', text="Some float value")
+        box = layout.box()
+        box.label(text="No options yet")
 
 
 import logging
@@ -117,26 +127,26 @@ class glTF2ExportUserExtension:
     def __init__(self):
         # We need to wait until we create the gltf2UserExtension to import the gltf2 modules
         # Otherwise, it may fail because the gltf2 may not be loaded yet
-        from io_scene_gltf2.io.com.gltf2_io_extensions import Extension, ChildOfRootExtension
+        from io_scene_gltf2.io.com.gltf2_io_extensions import Extension
         self.Extension = Extension
-        self.ChildOfRootExtension = ChildOfRootExtension
-        self.properties = bpy.context.scene.ExampleExtensionProperties
+        self.properties = bpy.context.scene.HubsComponentsExtensionProperties
         self.hubs_settings = bpy.context.scene.hubs_settings
-        print("settings", self.hubs_settings)
 
-    # def gather_scene_hook(self, gltf2_object, blender_object, export_settings):
-    #     print("gather_scene_hook")
-    #     extension_name = self.hubs_settings.hubs_config["gltfExtensionName"]
-    #         print("adding root extension")
-    #         if gltf2_object.extensions is None:
-    #             gltf2_object.extensions = {}
+    def gather_gltf_hook(self, gltf2_object, export_settings):
+        hubs_config = self.hubs_settings.hubs_config
+        extension_name = hubs_config["gltfExtensionName"]
+        gltf2_object.extensions[extension_name] = self.Extension(
+            name=extension_name,
+            extension={
+                "version": hubs_config["gltfExtensionVersion"]
+            },
+            required=False
+        )
 
     def gather_node_hook(self, gltf2_object, blender_object, export_settings):
-        print("gather_node_hook")
         self.add_hubs_components(gltf2_object, blender_object, export_settings)
 
     def gather_material_hook(self, gltf2_object, blender_object, export_settings):
-        print("gather_material_hook")
         self.add_hubs_components(gltf2_object, blender_object, export_settings)
 
     def add_hubs_components(self, gltf2_object, blender_object, export_settings):
@@ -145,10 +155,7 @@ class glTF2ExportUserExtension:
         hubs_config = self.hubs_settings.hubs_config
         registered_hubs_components = self.hubs_settings.registered_hubs_components
 
-        print("add_hubs_components", blender_object, component_list)
-
         if component_list.items:
-            print("has components")
             extension_name = hubs_config["gltfExtensionName"]
             component_data = {}
 
@@ -167,5 +174,3 @@ class glTF2ExportUserExtension:
                 extension=component_data,
                 required=False
             )
-
-            print(component_data, gltf2_object)

@@ -9,39 +9,6 @@ from io_scene_gltf2.io.com import gltf2_io_extensions
 from io_scene_gltf2.blender.com import gltf2_blender_json
 from . import components
 
-def is_empty_collection(value):
-    return isinstance(value, (dict, list)) and len(value) == 0
-
-def should_include_json_value(key, value):
-    allowed_empty_collections = ["KHR_materials_unlit"]
-
-    if value is None:
-        return False
-    if is_empty_collection(value) and key not in allowed_empty_collections:
-        return False
-    return True
-
-def fix_json(obj):
-    fixed = obj
-    if isinstance(obj, dict):
-        fixed = {}
-        for key, value in obj.items():
-            if not should_include_json_value(key, value):
-                continue
-            fixed[key] = fix_json(value)
-    elif isinstance(obj, list):
-        fixed = []
-        for value in obj:
-            fixed.append(fix_json(value))
-    elif isinstance(obj, float):
-        # force floats to int, if they are integers
-        # (prevent INTEGER_WRITTEN_AS_FLOAT validator warnings)
-        if int(obj) == obj:
-            return int(obj)
-    return fixed
-
-original_gather_extensions = gltf2_blender_gather_nodes.__gather_extensions
-
 def __to_json_compatible(value):
     """Make a value (usually a custom property) compatible with json"""
 
