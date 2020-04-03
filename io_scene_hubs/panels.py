@@ -19,11 +19,6 @@ class HubsScenePanel(Panel):
                  "config_path", text="Config File")
         row.operator("wm.reload_hubs_config", text="", icon="FILE_REFRESH")
 
-        row = layout.row()
-        row.operator("wm.export_hubs_gltf", text="Export Scene")
-        row.operator("wm.export_hubs_gltf",
-                     text="Export Selected").selected = True
-
         draw_components_list(self, context)
 
 class HubsObjectPanel(Panel):

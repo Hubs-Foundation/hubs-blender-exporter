@@ -114,30 +114,31 @@ def patched_gather_extensions(blender_object, export_settings):
 
     return extensions if extensions else None
 
-def gather_properties(export_settings, blender_object, target, type_definition):
+def gather_properties(export_settings, blender_object, target, type_definition, hubs_config):
     value = {}
 
     for property_name, property_definition in type_definition['properties'].items():
-        value[property_name] = gather_property(export_settings, blender_object, target, property_name, property_definition)
+        value[property_name] = gather_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
 
     return value
 
 
-def gather_property(export_settings, blender_object, target, property_name, property_definition):
+def gather_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
     property_type = property_definition['type']
 
     if property_type == 'material':
-        return gather_material_property(export_settings, blender_object, target, property_name, property_definition)
+        return gather_material_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
     elif property_type == 'collections':
-        return gather_collections_property(export_settings, blender_object, target, property_name, property_definition)
+        return gather_collections_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
     elif property_type == 'array':
-        return gather_array_property(export_settings, blender_object, target, property_name, property_definition)
+        return gather_array_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
     else:
         return __to_json_compatible(getattr(target, property_name))
 
-def gather_array_property(export_settings, blender_object, target, property_name, property_definition):
+def gather_array_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
     array_type = property_definition['arrayType']
-    type_definition = export_settings['hubs_config']['types'][array_type]
+    print(array_type)
+    type_definition = hubs_config['types'][array_type]
     is_value_type = len(type_definition['properties']) == 1 and 'value' in type_definition['properties']
     value = []
 
@@ -145,14 +146,14 @@ def gather_array_property(export_settings, blender_object, target, property_name
 
     for item in arr:
         if is_value_type:
-            item_value = gather_property(export_settings, blender_object, item, "value", type_definition['properties']['value'])
+            item_value = gather_property(export_settings, blender_object, item, "value", type_definition['properties']['value'], hubs_config)
         else:
-            item_value = gather_properties(export_settings, blender_object, item, type_definition)
+            item_value = gather_properties(export_settings, blender_object, item, type_definition, hubs_config)
         value.append(item_value)
     
     return value
 
-def gather_material_property(export_settings, blender_object, target, property_name, property_definition):
+def gather_material_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
     blender_material = getattr(target, property_name)
 
     if blender_material:
@@ -163,7 +164,7 @@ def gather_material_property(export_settings, blender_object, target, property_n
     else:
         return None
 
-def gather_collections_property(export_settings, blender_object, target, property_name, property_definition):
+def gather_collections_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
     filtered_collection_names = []
 
     collection_prefix_regex = None
@@ -182,6 +183,7 @@ def gather_collections_property(export_settings, blender_object, target, propert
     return filtered_collection_names
 
 def export(blender_scene, selected, hubs_config, registered_hubs_components):
+    return
     if bpy.data.filepath == '':
         raise RuntimeError("Save project before exporting")
 
@@ -197,9 +199,10 @@ def export(blender_scene, selected, hubs_config, registered_hubs_components):
 
     export_settings['gltf_filedirectory'] = os.path.dirname(
         export_settings['gltf_filepath']) + '/'
+    export_settings['gltf_texturedirectory'] = export_settings['gltf_filedirectory']
     export_settings['gltf_format'] = 'GLB'
     export_settings['gltf_image_format'] = 'NAME'
-    export_settings['gltf_copyright'] = ''
+    export_settings['gltf_copyright'] = None
     export_settings['gltf_texcoords'] = True
     export_settings['gltf_normals'] = True
     export_settings['gltf_tangents'] = False
@@ -229,24 +232,26 @@ def export(blender_scene, selected, hubs_config, registered_hubs_components):
     export_settings['gltf_binaryfilename'] = os.path.splitext(
         os.path.basename(bpy.path.ensure_ext(filepath, filename_ext)))[0] + '.bin'
 
+
     export_settings['hubs_config'] = hubs_config
     export_settings['registered_hubs_components'] = registered_hubs_components
+    export_settings['gltf_user_extensions'] = []
 
-    gltf2_blender_gather_nodes.__gather_extensions = patched_gather_extensions
-    gltf2_blender_gather_materials.__gather_extensions = patched_gather_extensions
+    # gltf2_blender_gather_nodes.__gather_extensions = patched_gather_extensions
+    # gltf2_blender_gather_materials.__gather_extensions = patched_gather_extensions
 
     # In most recent version this function will return active_scene
     # as the first value for a total of 3 return values
-    scenes, _animations = gltf2_blender_gather.gather_gltf2(export_settings)
+    _active_scene, scenes, _animations = gltf2_blender_gather.gather_gltf2(export_settings)
 
-    for gltf_scene in scenes:
-        gltf_scene.extensions = patched_gather_extensions(blender_scene, export_settings)
+    # for gltf_scene in scenes:
+    #     gltf_scene.extensions = patched_gather_extensions(blender_scene, export_settings)
 
-    exporter = GlTF2Exporter(export_settings['gltf_copyright'])
+    exporter = GlTF2Exporter(export_settings)
     exporter.add_scene(scenes[0], True)
 
     buffer = exporter.finalize_buffer(export_settings['gltf_filedirectory'], is_glb=True)
-    exporter.finalize_images(export_settings['gltf_filedirectory'])
+    exporter.finalize_images()
 
     gltf_json = fix_json(exporter.glTF.to_dict())
 
@@ -277,6 +282,6 @@ def export(blender_scene, selected, hubs_config, registered_hubs_components):
         buffer
     )
 
-    gltf2_blender_gather_nodes.__gather_extensions = original_gather_extensions
+    # gltf2_blender_gather_nodes.__gather_extensions = original_gather_extensions
 
     return export_settings['gltf_filepath']
