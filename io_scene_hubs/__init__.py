@@ -74,6 +74,8 @@ class glTF2ExportUserExtension:
         self.hubs_settings = bpy.context.scene.hubs_settings
 
     def gather_gltf_hook(self, gltf2_object, export_settings):
+        if not self.properties.enabled: return
+
         hubs_config = self.hubs_settings.hubs_config
         extension_name = hubs_config["gltfExtensionName"]
         gltf2_object.extensions[extension_name] = self.Extension(
@@ -85,9 +87,13 @@ class glTF2ExportUserExtension:
         )
 
     def gather_node_hook(self, gltf2_object, blender_object, export_settings):
+        if not self.properties.enabled: return
+
         self.add_hubs_components(gltf2_object, blender_object, export_settings)
 
     def gather_material_hook(self, gltf2_object, blender_object, export_settings):
+        if not self.properties.enabled: return
+
         self.add_hubs_components(gltf2_object, blender_object, export_settings)
 
     def add_hubs_components(self, gltf2_object, blender_object, export_settings):
