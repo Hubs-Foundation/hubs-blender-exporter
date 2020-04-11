@@ -49,6 +49,8 @@ def is_object_source_component(object_source, component_definition):
 def get_object_source(context, object_source):
     if object_source == "material":
         return context.material
+    elif object_source == "bone":
+        return context.bone or context.edit_bone
     elif object_source == "scene":
         return context.scene
     else:
@@ -258,6 +260,8 @@ def register():
     bpy.types.Object.hubs_component_list = PointerProperty(type=HubsComponentList)
     bpy.types.Scene.hubs_component_list = PointerProperty(type=HubsComponentList)
     bpy.types.Material.hubs_component_list = PointerProperty(type=HubsComponentList)
+    bpy.types.Bone.hubs_component_list = PointerProperty(type=HubsComponentList)
+    bpy.types.EditBone.hubs_component_list = PointerProperty(type=HubsComponentList)
     bpy.types.Scene.HubsComponentsExtensionProperties = PointerProperty(type=HubsComponentsExtensionProperties)
 
 def unregister():
@@ -270,4 +274,6 @@ def unregister():
     del bpy.types.Object.hubs_component_list
     del bpy.types.Scene.hubs_component_list
     del bpy.types.Material.hubs_component_list
+    del bpy.types.Bone.hubs_component_list
+    del bpy.types.EditBone.hubs_component_list
     del bpy.types.Scene.HubsComponentsExtensionProperties

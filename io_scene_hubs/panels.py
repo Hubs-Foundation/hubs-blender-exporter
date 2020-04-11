@@ -41,6 +41,16 @@ class HubsMaterialPanel(Panel):
     def draw(self, context):
         draw_components_list(self, context)
 
+class HubsBonePanel(Panel):
+    bl_label = "Hubs"
+    bl_idname = "BONE_PT_hubs"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "bone"
+
+    def draw(self, context):
+        draw_components_list(self, context)
+
 class HubsGLTFExportPanel(bpy.types.Panel):
 
     bl_space_type = 'FILE_BROWSER'
@@ -210,8 +220,10 @@ def register():
     bpy.utils.register_class(HubsScenePanel)
     bpy.utils.register_class(HubsObjectPanel)
     bpy.utils.register_class(HubsMaterialPanel)
+    bpy.utils.register_class(HubsBonePanel)
 
 def unregister():
     bpy.utils.unregister_class(HubsScenePanel)
     bpy.utils.unregister_class(HubsObjectPanel)
     bpy.utils.unregister_class(HubsMaterialPanel)
+    bpy.utils.unregister_class(HubsBonePanel)
