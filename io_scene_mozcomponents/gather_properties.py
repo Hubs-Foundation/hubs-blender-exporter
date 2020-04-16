@@ -5,30 +5,30 @@ import bpy
 from io_scene_gltf2.blender.exp import gltf2_blender_gather_materials
 from io_scene_gltf2.blender.com import gltf2_blender_extras
 
-def gather_properties(export_settings, blender_object, target, type_definition, hubs_config):
+def gather_properties(export_settings, blender_object, target, type_definition, mozcomponents_config):
     value = {}
 
     for property_name, property_definition in type_definition['properties'].items():
-        value[property_name] = gather_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
+        value[property_name] = gather_property(export_settings, blender_object, target, property_name, property_definition, mozcomponents_config)
 
     return value
 
-def gather_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
+def gather_property(export_settings, blender_object, target, property_name, property_definition, mozcomponents_config):
     property_type = property_definition['type']
 
     if property_type == 'material':
-        return gather_material_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
+        return gather_material_property(export_settings, blender_object, target, property_name, property_definition, mozcomponents_config)
     elif property_type == 'collections':
-        return gather_collections_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
+        return gather_collections_property(export_settings, blender_object, target, property_name, property_definition, mozcomponents_config)
     elif property_type == 'array':
-        return gather_array_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
+        return gather_array_property(export_settings, blender_object, target, property_name, property_definition, mozcomponents_config)
     else:
         return gltf2_blender_extras.__to_json_compatible(getattr(target, property_name))
 
-def gather_array_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
+def gather_array_property(export_settings, blender_object, target, property_name, property_definition, mozcomponents_config):
     array_type = property_definition['arrayType']
     print(array_type)
-    type_definition = hubs_config['types'][array_type]
+    type_definition = mozcomponents_config['types'][array_type]
     is_value_type = len(type_definition['properties']) == 1 and 'value' in type_definition['properties']
     value = []
 
@@ -36,14 +36,14 @@ def gather_array_property(export_settings, blender_object, target, property_name
 
     for item in arr:
         if is_value_type:
-            item_value = gather_property(export_settings, blender_object, item, "value", type_definition['properties']['value'], hubs_config)
+            item_value = gather_property(export_settings, blender_object, item, "value", type_definition['properties']['value'], mozcomponents_config)
         else:
-            item_value = gather_properties(export_settings, blender_object, item, type_definition, hubs_config)
+            item_value = gather_properties(export_settings, blender_object, item, type_definition, mozcomponents_config)
         value.append(item_value)
     
     return value
 
-def gather_material_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
+def gather_material_property(export_settings, blender_object, target, property_name, property_definition, mozcomponents_config):
     blender_material = getattr(target, property_name)
 
     if blender_material:
@@ -54,7 +54,7 @@ def gather_material_property(export_settings, blender_object, target, property_n
     else:
         return None
 
-def gather_collections_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
+def gather_collections_property(export_settings, blender_object, target, property_name, property_definition, mozcomponents_config):
     filtered_collection_names = []
 
     collection_prefix_regex = None

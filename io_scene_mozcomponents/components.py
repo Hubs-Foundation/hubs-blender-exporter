@@ -12,15 +12,15 @@ class MaterialArrayValueProperty(PropertyGroup):
 class Material2DArrayValueProperty(PropertyGroup):
     value: CollectionProperty(name="value", type=MaterialArrayValueProperty)
 
-class HubsComponentName(PropertyGroup):
+class MozComponentName(PropertyGroup):
     name: StringProperty(name="name")
 
-class HubsComponentList(PropertyGroup):
-    items: CollectionProperty(type=HubsComponentName)
+class MozComponentList(PropertyGroup):
+    items: CollectionProperty(type=MozComponentName)
 
-class HubsComponentsExtensionProperties(bpy.types.PropertyGroup):
+class MozComponentsExtensionProperties(bpy.types.PropertyGroup):
     enabled: bpy.props.BoolProperty(
-        name="Export Hubs Components",
+        name="Export Moz Components",
         description='Include this extension in the exported glTF file.',
         default=True
         )
@@ -54,8 +54,8 @@ def get_object_source(context, object_source):
     else:
         return context.object
 
-def define_class(class_name, class_definition, hubs_context):
-    registered_classes = hubs_context['registered_classes']
+def define_class(class_name, class_definition, mozcomponents_context):
+    registered_classes = mozcomponents_context['registered_classes']
 
     if class_name in registered_classes:
         return registered_classes[class_name]
@@ -63,7 +63,7 @@ def define_class(class_name, class_definition, hubs_context):
     class_property_dict = {}
 
     for property_name, property_definition in class_definition['properties'].items():
-        property_class = define_property(class_name, property_name, property_definition, hubs_context)
+        property_class = define_property(class_name, property_name, property_definition, mozcomponents_context)
 
         if property_class:
             class_property_dict[property_name] = property_class
@@ -78,27 +78,27 @@ def define_class(class_name, class_definition, hubs_context):
 
     return component_class
 
-def define_type(type_name, hubs_context):
-    final_class_name = "hubs_type_%s" % type_name.replace('-', '_')
+def define_type(type_name, mozcomponents_context):
+    final_class_name = "mozcomponents_type_%s" % type_name.replace('-', '_')
 
-    registered_classes = hubs_context['registered_classes']
+    registered_classes = mozcomponents_context['registered_classes']
 
     if final_class_name in registered_classes:
         return registered_classes[final_class_name]
 
-    hubs_config = hubs_context['hubs_config']
+    mozcomponents_config = mozcomponents_context['mozcomponents_config']
 
-    if 'types' not in hubs_config:
-        raise TypeError('Hubs config has no types definition.')
+    if 'types' not in mozcomponents_config:
+        raise TypeError('MOZ_Components config has no types definition.')
 
-    if type_name not in hubs_config['types']:
-        raise TypeError('Undefined Hubs type \'%s\'' % (type_name))
+    if type_name not in mozcomponents_config['types']:
+        raise TypeError('Undefined MOZ_Components type \'%s\'' % (type_name))
 
-    class_definition = hubs_config['types'][type_name]
+    class_definition = mozcomponents_config['types'][type_name]
 
-    return define_class(final_class_name, class_definition, hubs_context)
+    return define_class(final_class_name, class_definition, mozcomponents_context)
 
-def define_property(class_name, property_name, property_definition, hubs_context):
+def define_property(class_name, property_name, property_definition, mozcomponents_context):
     property_type = property_definition['type']
 
     if property_type == 'int':
@@ -164,15 +164,15 @@ def define_property(class_name, property_name, property_definition, hubs_context
         return None
     elif property_type == 'array':
         if 'arrayType' not in property_definition:
-            raise TypeError('Hubs array property  \'%s\' does not specify an arrayType on %s' % (
+            raise TypeError('MOZ_Components array property  \'%s\' does not specify an arrayType on %s' % (
                 property_name, class_name))
 
         array_type = property_definition['arrayType']
 
-        property_class = define_type(array_type, hubs_context)
+        property_class = define_type(array_type, mozcomponents_context)
 
         if not property_class:
-            raise TypeError('Unsupported Hubs array type \'%s\' for %s on %s' % (
+            raise TypeError('Unsupported MOZ_Components array type \'%s\' for %s on %s' % (
                 array_type, property_name, class_name))
 
         return CollectionProperty(
@@ -180,10 +180,10 @@ def define_property(class_name, property_name, property_definition, hubs_context
             type=property_class
         )
     else:
-        property_class = define_type(property_type, hubs_context)
+        property_class = define_type(property_type, mozcomponents_context)
 
         if not property_class:
-            raise TypeError('Unsupported Hubs property type \'%s\' for %s on %s' % (
+            raise TypeError('Unsupported MOZ_Components property type \'%s\' for %s on %s' % (
                 property_type, property_name, class_name))
 
         return PointerProperty(
@@ -214,16 +214,16 @@ def get_wildcard(arr, path_parts):
         values.append(get_path(item, path_parts))
     return values
 
-def add_component(obj, component_name, hubs_config, registered_hubs_components):
-    item = obj.hubs_component_list.items.add()
+def add_component(obj, component_name, mozcomponents_config, registered_moz_components):
+    item = obj.mozcomponents_component_list.items.add()
     item.name = component_name
-    component_definition = hubs_config['components'][component_name]
-    component_class = registered_hubs_components[component_name]
+    component_definition = mozcomponents_config['components'][component_name]
+    component_class = registered_moz_components[component_name]
     component_class_name = component_class.__name__
     component = getattr(obj, component_class_name)
 
     if 'properties' not in component_definition:
-        raise TypeError('Hubs component \'%s\' definition has no properties field.' % (
+        raise TypeError('MOZ_Components component \'%s\' definition has no properties field.' % (
             component_name))
 
     for property_name, property_definition in component_definition['properties'].items():
@@ -241,33 +241,33 @@ def add_component(obj, component_name, hubs_config, registered_hubs_components):
                 component[property_name] = default_value
 
 def remove_component(obj, component_name):
-    items = obj.hubs_component_list.items
+    items = obj.mozcomponents_component_list.items
     items.remove(items.find(component_name))
 
 def has_component(obj, component_name):
-    items = obj.hubs_component_list.items
+    items = obj.mozcomponents_component_list.items
     return component_name in items
 
 def register():
     bpy.utils.register_class(StringArrayValueProperty)
     bpy.utils.register_class(MaterialArrayValueProperty)
     bpy.utils.register_class(Material2DArrayValueProperty)
-    bpy.utils.register_class(HubsComponentName)
-    bpy.utils.register_class(HubsComponentList)
-    bpy.utils.register_class(HubsComponentsExtensionProperties)
-    bpy.types.Object.hubs_component_list = PointerProperty(type=HubsComponentList)
-    bpy.types.Scene.hubs_component_list = PointerProperty(type=HubsComponentList)
-    bpy.types.Material.hubs_component_list = PointerProperty(type=HubsComponentList)
-    bpy.types.Scene.HubsComponentsExtensionProperties = PointerProperty(type=HubsComponentsExtensionProperties)
+    bpy.utils.register_class(MozComponentName)
+    bpy.utils.register_class(MozComponentList)
+    bpy.utils.register_class(MozComponentsExtensionProperties)
+    bpy.types.Object.mozcomponents_component_list = PointerProperty(type=MozComponentList)
+    bpy.types.Scene.mozcomponents_component_list = PointerProperty(type=MozComponentList)
+    bpy.types.Material.mozcomponents_component_list = PointerProperty(type=MozComponentList)
+    bpy.types.Scene.MozComponentsExtensionProperties = PointerProperty(type=MozComponentsExtensionProperties)
 
 def unregister():
     bpy.utils.unregister_class(StringArrayValueProperty)
     bpy.utils.unregister_class(MaterialArrayValueProperty)
     bpy.utils.unregister_class(Material2DArrayValueProperty)
-    bpy.utils.unregister_class(HubsComponentName)
-    bpy.utils.unregister_class(HubsComponentList)
-    bpy.utils.unregister_class(HubsComponentsExtensionProperties)
-    del bpy.types.Object.hubs_component_list
-    del bpy.types.Scene.hubs_component_list
-    del bpy.types.Material.hubs_component_list
-    del bpy.types.Scene.HubsComponentsExtensionProperties
+    bpy.utils.unregister_class(MozComponentName)
+    bpy.utils.unregister_class(MozComponentList)
+    bpy.utils.unregister_class(MozComponentsExtensionProperties)
+    del bpy.types.Object.mozcomponents_component_list
+    del bpy.types.Scene.mozcomponents_component_list
+    del bpy.types.Material.mozcomponents_component_list
+    del bpy.types.Scene.MozComponentsExtensionProperties

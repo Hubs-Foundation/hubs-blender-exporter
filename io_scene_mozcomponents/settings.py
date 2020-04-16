@@ -13,68 +13,68 @@ default_config_filename = 'default-config.json'
 default_config_path = default_config_filename
 
 for path in paths:
-    default_config_path = os.path.join(path, "io_scene_hubs", default_config_filename)
+    default_config_path = os.path.join(path, "io_scene_mozcomponents", default_config_filename)
     if os.path.exists(default_config_path):
         break
 
 def get_component_class_name(component_name):
-    return "hubs_component_%s" % component_name.replace('-', '_')
+    return "moz_component_%s" % component_name.replace('-', '_')
 
 def reload_context(config_path):
-    global hubs_context
+    global mozcomponents_context
 
     if os.path.splitext(config_path)[1] == '.json':
         with open(bpy.path.abspath(config_path)) as config_file:
-            hubs_config = json.load(config_file)
+            mozcomponents_config = json.load(config_file)
     else:
-        hubs_config = None
+        mozcomponents_config = None
         print('Config must be a .json file!')
 
-    if 'hubs_context' in globals():
+    if 'mozcomponents_context' in globals():
         unregister_components()
 
-    hubs_context = {
-        'registered_hubs_components': {},
+    mozcomponents_context = {
+        'registered_moz_components': {},
         'registered_classes': {},
-        'hubs_config': hubs_config
+        'mozcomponents_config': mozcomponents_config
     }
 
     register_components()
 
 def unregister_components():
-    global hubs_context
+    global mozcomponents_context
 
     try:
-        if 'registered_hubs_components' in hubs_context:
-            for component_name, component_class in hubs_context['registered_hubs_components'].items():
+        if 'registered_moz_components' in mozcomponents_context:
+            for component_name, component_class in mozcomponents_context['registered_moz_components'].items():
                 component_class_name = get_component_class_name(component_name)
                 if hasattr(bpy.types.Object, component_class_name):
                     delattr(bpy.types.Object, component_class_name)
 
-        if 'registered_hubs_classes' in hubs_context:
-            for class_name, registered_class in hubs_context['registered_hubs_classes']:
+        if 'registered_moz_classes' in mozcomponents_context:
+            for class_name, registered_class in mozcomponents_context['registered_moz_classes']:
                 bpy.utils.unregister_class(registered_class)
 
 
     except UnboundLocalError:
         pass
 
-    if 'registered_hubs_components' in hubs_context:
-        hubs_context['registered_hubs_components'] = {}
+    if 'registered_moz_components' in mozcomponents_context:
+        mozcomponents_context['registered_moz_components'] = {}
 
-    if 'registered_hubs_classes' in hubs_context:
-        hubs_context['registered_hubs_classes'] = {}
+    if 'registered_moz_classes' in mozcomponents_context:
+        mozcomponents_context['registered_moz_classes'] = {}
 
 def register_components():
-    global hubs_context
+    global mozcomponents_context
 
-    for component_name, component_definition in hubs_context['hubs_config']['components'].items():
-        class_name = "hubs_component_%s" % component_name.replace('-', '_')
+    for component_name, component_definition in mozcomponents_context['mozcomponents_config']['components'].items():
+        class_name = "moz_component_%s" % component_name.replace('-', '_')
 
         component_class = components.define_class(
             class_name,
             component_definition,
-            hubs_context
+            mozcomponents_context
         )
 
         if 'scene' in component_definition and component_definition['scene']:
@@ -98,16 +98,16 @@ def register_components():
                 PointerProperty(type=component_class)
             )
 
-        hubs_context['registered_hubs_components'][component_name] = component_class
+        mozcomponents_context['registered_moz_components'][component_name] = component_class
 
 @persistent
 def load_handler(_dummy):
-    reload_context(bpy.context.scene.hubs_settings.config_path)
+    reload_context(bpy.context.scene.mozcomponents_settings.config_path)
 
 def config_updated(self, _context):
     load_handler(self)
 
-class HubsSettings(PropertyGroup):
+class MozComponentsSettings(PropertyGroup):
     config_path: StringProperty(
         name="config_path",
         description="Path to the config file",
@@ -119,30 +119,30 @@ class HubsSettings(PropertyGroup):
     )
 
     @property
-    def hubs_config(self):
-        global hubs_context
-        return hubs_context['hubs_config']
+    def mozcomponents_config(self):
+        global mozcomponents_context
+        return mozcomponents_context['mozcomponents_config']
 
     @property
-    def registered_hubs_components(self):
-        return hubs_context['registered_hubs_components']
+    def registered_moz_components(self):
+        return mozcomponents_context['registered_moz_components']
 
     @property
-    def registered_hubs_classes(self):
-        return hubs_context['registered_hubs_classes']
+    def registered_moz_classes(self):
+        return mozcomponents_context['registered_moz_classes']
 
     def reload_config(self):
         reload_context(self.config_path)
 
 def register():
-    bpy.utils.register_class(HubsSettings)
-    bpy.types.Scene.hubs_settings = PointerProperty(type=HubsSettings)
+    bpy.utils.register_class(MozComponentsSettings)
+    bpy.types.Scene.mozcomponents_settings = PointerProperty(type=MozComponentsSettings)
     bpy.app.handlers.load_post.append(load_handler)
     reload_context(default_config_path)
 
 def unregister():
-    global hubs_context
-    del hubs_context
-    bpy.utils.unregister_class(HubsSettings)
-    del bpy.types.Scene.hubs_settings
+    global mozcomponents_context
+    del mozcomponents_context
+    bpy.utils.unregister_class(MozComponentsSettings)
+    del bpy.types.Scene.mozcomponents_settings
     bpy.app.handlers.load_post.remove(load_handler)

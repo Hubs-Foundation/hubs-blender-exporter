@@ -3,21 +3,21 @@ from bpy.props import StringProperty, BoolProperty, IntProperty, EnumProperty, C
 from bpy.types import Operator
 from . import components
 
-class AddHubsComponent(Operator):
-    bl_idname = "wm.add_hubs_component"
-    bl_label = "Add Hubs Component"
+class AddMozComponent(Operator):
+    bl_idname = "wm.add_mozcomponents_component"
+    bl_label = "Add MOZ Component"
     bl_property = "component_name"
 
     object_source: StringProperty(name="object_source")
 
     def get_items(self, context):
-        hubs_components = bpy.context.scene.hubs_settings.registered_hubs_components
+        moz_components = bpy.context.scene.mozcomponents_settings.registered_moz_components
 
         items = []
 
         obj = components.get_object_source(context, self.object_source)
 
-        for component_name, component_class in hubs_components.items():
+        for component_name, component_class in moz_components.items():
             if (components.is_object_source_component(self.object_source, component_class.definition)
                 and not components.has_component(obj, component_name)):
                 items.append((component_name, component_name, ''))
@@ -35,8 +35,8 @@ class AddHubsComponent(Operator):
         components.add_component(
             obj,
             self.component_name,
-            context.scene.hubs_settings.hubs_config,
-            context.scene.hubs_settings.registered_hubs_components
+            context.scene.mozcomponents_settings.mozcomponents_config,
+            context.scene.mozcomponents_settings.registered_moz_components
         )
 
         context.area.tag_redraw()
@@ -46,9 +46,9 @@ class AddHubsComponent(Operator):
         context.window_manager.invoke_search_popup(self)
         return {'RUNNING_MODAL'}
 
-class RemoveHubsComponent(Operator):
-    bl_idname = "wm.remove_hubs_component"
-    bl_label = "Remove Hubs Component"
+class RemoveMozComponent(Operator):
+    bl_idname = "wm.remove_mozcomponents_component"
+    bl_label = "Remove Moz Component"
 
     object_source: StringProperty(name="object_source")
     component_name: StringProperty(name="component_name")
@@ -61,8 +61,8 @@ class RemoveHubsComponent(Operator):
         context.area.tag_redraw()
         return {'FINISHED'}
 
-class AddHubsComponentItem(Operator):
-    bl_idname = "wm.add_hubs_component_item"
+class AddMozComponentItem(Operator):
+    bl_idname = "wm.add_mozcomponents_component_item"
     bl_label = "Add a new item"
 
     path: StringProperty(name="path")
@@ -85,8 +85,8 @@ class AddHubsComponentItem(Operator):
 
         return{'FINISHED'}
 
-class CopyHubsComponent(Operator):
-    bl_idname = "wm.copy_hubs_component"
+class CopyMozComponent(Operator):
+    bl_idname = "wm.copy_mozcomponents_component"
     bl_label = "Copy component from active object"
 
     component_name: StringProperty(name="component_name")
@@ -95,10 +95,10 @@ class CopyHubsComponent(Operator):
         src_obj = context.active_object
         dest_objs = filter(lambda item: src_obj != item, context.selected_objects)
 
-        hubs_settings = context.scene.hubs_settings
-        component_class = hubs_settings.registered_hubs_components[self.component_name]
+        mozcomponents_settings = context.scene.mozcomponents_settings
+        component_class = mozcomponents_settings.registered_moz_components[self.component_name]
         component_class_name = component_class.__name__
-        component_definition = hubs_settings.hubs_config['components'][self.component_name]
+        component_definition = mozcomponents_settings.mozcomponents_config['components'][self.component_name]
 
         if components.has_component(src_obj, self.component_name):
             for dest_obj in dest_objs:
@@ -108,55 +108,55 @@ class CopyHubsComponent(Operator):
                 components.add_component(
                     dest_obj,
                     self.component_name,
-                    hubs_settings.hubs_config,
-                    hubs_settings.registered_hubs_components
+                    mozcomponents_settings.mozcomponents_config,
+                    mozcomponents_settings.registered_moz_components
                 )
 
                 src_component = getattr(src_obj, component_class_name)
                 dest_component = getattr(dest_obj, component_class_name)
 
-                self.copy_type(hubs_settings, src_component, dest_component, component_definition)
+                self.copy_type(mozcomponents_settings, src_component, dest_component, component_definition)
 
         return{'FINISHED'}
 
 
-    def copy_type(self, hubs_settings, src_obj, dest_obj, type_definition):
+    def copy_type(self, mozcomponents_settings, src_obj, dest_obj, type_definition):
         for property_name, property_definition in type_definition['properties'].items():
-            self.copy_property(hubs_settings, src_obj, dest_obj, property_name, property_definition)
+            self.copy_property(mozcomponents_settings, src_obj, dest_obj, property_name, property_definition)
 
-    def copy_property(self, hubs_settings, src_obj, dest_obj, property_name, property_definition):
+    def copy_property(self, mozcomponents_settings, src_obj, dest_obj, property_name, property_definition):
         property_type = property_definition['type']
 
         if property_type == 'collections':
             return
 
-        registered_types = hubs_settings.hubs_config['types']
+        registered_types = mozcomponents_settings.mozcomponents_config['types']
         is_custom_type = property_type in registered_types
 
         src_property = getattr(src_obj, property_name)
         dest_property = getattr(dest_obj, property_name)
 
         if is_custom_type:
-            dest_obj[property_name] = self.copy_type(hubs_settings, src_property, dest_property, registered_types[property_type])
+            dest_obj[property_name] = self.copy_type(mozcomponents_settings, src_property, dest_property, registered_types[property_type])
         elif property_type == 'array':
-            self.copy_array_property(hubs_settings, src_property, dest_property, property_definition)
+            self.copy_array_property(mozcomponents_settings, src_property, dest_property, property_definition)
         else:
             setattr(dest_obj, property_name, src_property)
 
-    def copy_array_property(self, hubs_settings, src_arr, dest_arr, property_definition):
+    def copy_array_property(self, mozcomponents_settings, src_arr, dest_arr, property_definition):
         array_type = property_definition['arrayType']
-        registered_types = hubs_settings.hubs_config['types']
+        registered_types = mozcomponents_settings.mozcomponents_config['types']
         type_definition = registered_types[array_type]
 
         dest_arr.clear()
 
         for src_item in src_arr:
             dest_item = dest_arr.add()
-            self.copy_type(hubs_settings, src_item, dest_item, type_definition)
+            self.copy_type(mozcomponents_settings, src_item, dest_item, type_definition)
 
 
-class RemoveHubsComponentItem(Operator):
-    bl_idname = "wm.remove_hubs_component_item"
+class RemoveMozComponentItem(Operator):
+    bl_idname = "wm.remove_mozcomponents_component_item"
     bl_label = "Remove an item"
 
     path: StringProperty(name="path")
@@ -181,47 +181,47 @@ class RemoveHubsComponentItem(Operator):
 
         return{'FINISHED'}
 
-class ReloadHubsConfig(Operator):
-    bl_idname = "wm.reload_hubs_config"
-    bl_label = "Reload Hubs Config"
+class ReloadMozConfig(Operator):
+    bl_idname = "wm.reload_mozcomponents_config"
+    bl_label = "Reload Moz Config"
 
     def execute(self, context):
-        context.scene.hubs_settings.reload_config()
+        context.scene.mozcomponents_settings.reload_config()
         context.area.tag_redraw()
         return {'FINISHED'}
 
-class ResetHubsComponentNames(Operator):
-    bl_idname = "wm.reset_hubs_component_names"
-    bl_label = "Reset Selected Hubs Component Names and Ids"
+class ResetMozComponentNames(Operator):
+    bl_idname = "wm.reset_mozcomponents_component_names"
+    bl_label = "Reset Selected Moz Component Names and Ids"
 
     def execute(self, context):
         for obj in context.selected_objects:
             if components.has_component(obj, "kit-piece"):
-                kit_piece = obj.hubs_component_kit_piece
+                kit_piece = obj.moz_component_kit_piece
                 kit_piece.name = obj.name
                 kit_piece.id = obj.name
 
             if components.has_component(obj, "kit-alt-materials"):
-                alt_materials = obj.hubs_component_kit_alt_materials
+                alt_materials = obj.moz_component_kit_alt_materials
                 alt_materials.name = obj.name
                 alt_materials.id = obj.name
 
         return {'FINISHED'}
 
 def register():
-    bpy.utils.register_class(AddHubsComponent)
-    bpy.utils.register_class(RemoveHubsComponent)
-    bpy.utils.register_class(CopyHubsComponent)
-    bpy.utils.register_class(AddHubsComponentItem)
-    bpy.utils.register_class(RemoveHubsComponentItem)
-    bpy.utils.register_class(ReloadHubsConfig)
-    bpy.utils.register_class(ResetHubsComponentNames)
+    bpy.utils.register_class(AddMozComponent)
+    bpy.utils.register_class(RemoveMozComponent)
+    bpy.utils.register_class(CopyMozComponent)
+    bpy.utils.register_class(AddMozComponentItem)
+    bpy.utils.register_class(RemoveMozComponentItem)
+    bpy.utils.register_class(ReloadMozConfig)
+    bpy.utils.register_class(ResetMozComponentNames)
 
 def unregister():
-    bpy.utils.unregister_class(AddHubsComponent)
-    bpy.utils.unregister_class(RemoveHubsComponent)
-    bpy.utils.unregister_class(CopyHubsComponent)
-    bpy.utils.unregister_class(AddHubsComponentItem)
-    bpy.utils.unregister_class(RemoveHubsComponentItem)
-    bpy.utils.unregister_class(ReloadHubsConfig)
-    bpy.utils.unregister_class(ResetHubsComponentNames)
+    bpy.utils.unregister_class(AddMozComponent)
+    bpy.utils.unregister_class(RemoveMozComponent)
+    bpy.utils.unregister_class(CopyMozComponent)
+    bpy.utils.unregister_class(AddMozComponentItem)
+    bpy.utils.unregister_class(RemoveMozComponentItem)
+    bpy.utils.unregister_class(ReloadMozConfig)
+    bpy.utils.unregister_class(ResetMozComponentNames)
