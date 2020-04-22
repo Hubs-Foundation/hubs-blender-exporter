@@ -17,7 +17,7 @@ bl_info = {
     "category" : "Generic"
 }
 
-# Monkey patch to add gather_gltf_hook, can be removed once handled upstream https://github.com/KhronosGroup/glTF-Blender-IO/issues/1009
+# Monkey patch to add gather_gltf_hook, must be removed once handled upstream https://github.com/KhronosGroup/glTF-Blender-IO/issues/1009
 from io_scene_gltf2.blender.exp import gltf2_blender_export
 from io_scene_gltf2.io.exp.gltf2_io_user_extensions import export_user_extensions
 orig_gather_gltf = gltf2_blender_export.__gather_gltf
@@ -26,8 +26,18 @@ def patched_gather_gltf(exporter, export_settings):
     export_user_extensions('gather_gltf_hook', export_settings, exporter._GlTF2Exporter__gltf)
     exporter._GlTF2Exporter__traverse(exporter._GlTF2Exporter__gltf.extensions)
 
+# Monkey patch to add gather_joint_hook, must be removed once handled upstream
+from io_scene_gltf2.blender.exp import gltf2_blender_gather_joints
+from io_scene_gltf2.io.exp.gltf2_io_user_extensions import export_user_extensions
+orig_gather_joint = gltf2_blender_gather_joints.gather_joint
+def patched_gather_joint(blender_bone, export_settings):
+    node = orig_gather_joint(blender_bone, export_settings)
+    export_user_extensions('gather_joint_hook', export_settings, node, blender_bone)
+    return node
+
 def register():
     gltf2_blender_export.__gather_gltf = patched_gather_gltf
+    gltf2_blender_gather_joints.gather_joint = patched_gather_joint
 
     components.register()
     settings.register()
@@ -37,6 +47,7 @@ def register():
 
 def unregister():
     gltf2_blender_export.__gather_gltf = orig_gather_gltf
+    gltf2_blender_gather_joints.gather_joint = orig_gather_joint
 
     components.unregister()
     settings.unregister()
@@ -91,10 +102,15 @@ class glTF2ExportUserExtension:
 
         self.add_hubs_components(gltf2_object, blender_object, export_settings)
 
-    def gather_material_hook(self, gltf2_object, blender_object, export_settings):
+    def gather_material_hook(self, gltf2_object, blender_material, export_settings):
         if not self.properties.enabled: return
 
-        self.add_hubs_components(gltf2_object, blender_object, export_settings)
+        self.add_hubs_components(gltf2_object, blender_material, export_settings)
+
+    def gather_joint_hook(self, gltf2_object, blender_pose_bone, export_settings):
+        if not self.properties.enabled: return
+
+        self.add_hubs_components(gltf2_object, blender_pose_bone.bone, export_settings)
 
     def add_hubs_components(self, gltf2_object, blender_object, export_settings):
         component_list = blender_object.hubs_component_list

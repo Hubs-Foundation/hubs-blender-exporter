@@ -50,6 +50,12 @@ def unregister_components():
                 component_class_name = get_component_class_name(component_name)
                 if hasattr(bpy.types.Object, component_class_name):
                     delattr(bpy.types.Object, component_class_name)
+                if hasattr(bpy.types.Material, component_class_name):
+                    delattr(bpy.types.Material, component_class_name)
+                if hasattr(bpy.types.Bone, component_class_name):
+                    delattr(bpy.types.Bone, component_class_name)
+                if hasattr(bpy.types.EditBone, component_class_name):
+                    delattr(bpy.types.EditBone, component_class_name)
 
         if 'registered_hubs_classes' in hubs_context:
             for class_name, registered_class in hubs_context['registered_hubs_classes']:
@@ -87,6 +93,16 @@ def register_components():
         if not 'node' in component_definition or component_definition['node']:
             setattr(
                 bpy.types.Object,
+                get_component_class_name(component_name),
+                PointerProperty(type=component_class)
+            )
+            setattr(
+                bpy.types.Bone,
+                get_component_class_name(component_name),
+                PointerProperty(type=component_class)
+            )
+            setattr(
+                bpy.types.EditBone,
                 get_component_class_name(component_name),
                 PointerProperty(type=component_class)
             )
