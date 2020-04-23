@@ -101,6 +101,47 @@
           "default": "$name"
         }
       }
+    },
+    "loop-animation": {
+      "node": true,
+      "properties": {
+        "clip": {
+          "type": "string"
+        },
+        "paused": {
+          "type": "bool",
+          "default": false
+        }
+      }
+    },
+    "scale-audio-feedback": {
+      "node": true,
+      "properties": {
+        "minScale": {
+          "type": "float",
+          "default": 1.0
+        },
+        "maxScale": {
+          "type": "float",
+          "default": 1.5
+        }
+      }
+    },
+    "morph-audio-feedback": {
+      "node": true,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "minValue": {
+          "type": "float",
+          "default": 0.0
+        },
+        "maxValue": {
+          "type": "float",
+          "default": 1.0
+        }
+      }
     }
   }
 }

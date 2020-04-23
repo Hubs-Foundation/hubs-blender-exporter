@@ -2,7 +2,6 @@ import bpy
 from bpy.props import StringProperty, BoolProperty, IntProperty, EnumProperty, CollectionProperty, PointerProperty
 from bpy.types import Operator
 from . import components
-from . import exporter
 
 class AddHubsComponent(Operator):
     bl_idname = "wm.add_hubs_component"
@@ -209,27 +208,6 @@ class ResetHubsComponentNames(Operator):
 
         return {'FINISHED'}
 
-
-class ExportHubsGLTF(Operator):
-    bl_idname = "wm.export_hubs_gltf"
-    bl_label = "Export Hubs GLTF"
-
-    selected: BoolProperty(name="selected", default=False)
-
-    def execute(self, context):
-        try:
-            filepath = exporter.export(
-                context.scene,
-                self.selected,
-                context.scene.hubs_settings.hubs_config,
-                context.scene.hubs_settings.registered_hubs_components
-            )
-            self.report({'INFO'}, 'Project saved to \"%s\"' % (filepath))
-            return {'FINISHED'}
-        except RuntimeError as error:
-            self.report({'ERROR'}, error)
-            return {'CANCELLED'}
-
 def register():
     bpy.utils.register_class(AddHubsComponent)
     bpy.utils.register_class(RemoveHubsComponent)
@@ -238,7 +216,6 @@ def register():
     bpy.utils.register_class(RemoveHubsComponentItem)
     bpy.utils.register_class(ReloadHubsConfig)
     bpy.utils.register_class(ResetHubsComponentNames)
-    bpy.utils.register_class(ExportHubsGLTF)
 
 def unregister():
     bpy.utils.unregister_class(AddHubsComponent)
@@ -248,4 +225,3 @@ def unregister():
     bpy.utils.unregister_class(RemoveHubsComponentItem)
     bpy.utils.unregister_class(ReloadHubsConfig)
     bpy.utils.unregister_class(ResetHubsComponentNames)
-    bpy.utils.unregister_class(ExportHubsGLTF)

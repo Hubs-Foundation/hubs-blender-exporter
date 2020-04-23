@@ -19,11 +19,6 @@ class HubsScenePanel(Panel):
                  "config_path", text="Config File")
         row.operator("wm.reload_hubs_config", text="", icon="FILE_REFRESH")
 
-        row = layout.row()
-        row.operator("wm.export_hubs_gltf", text="Export Scene")
-        row.operator("wm.export_hubs_gltf",
-                     text="Export Selected").selected = True
-
         draw_components_list(self, context)
 
 class HubsObjectPanel(Panel):
@@ -45,6 +40,47 @@ class HubsMaterialPanel(Panel):
 
     def draw(self, context):
         draw_components_list(self, context)
+
+class HubsBonePanel(Panel):
+    bl_label = "Hubs"
+    bl_idname = "BONE_PT_hubs"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "bone"
+
+    def draw(self, context):
+        draw_components_list(self, context)
+
+class HubsGLTFExportPanel(bpy.types.Panel):
+
+    bl_space_type = 'FILE_BROWSER'
+    bl_region_type = 'TOOL_PROPS'
+    bl_label = "Hubs Components"
+    bl_parent_id = "GLTF_PT_export_user_extensions"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        sfile = context.space_data
+        operator = sfile.active_operator
+        return operator.bl_idname == "EXPORT_SCENE_OT_gltf"
+
+    def draw_header(self, context):
+        props = bpy.context.scene.HubsComponentsExtensionProperties
+        self.layout.prop(props, 'enabled', text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        props = bpy.context.scene.HubsComponentsExtensionProperties
+        layout.active = props.enabled
+
+        box = layout.box()
+        box.label(text="No options yet")
+
+
 
 def draw_components_list(panel, context):
     layout = panel.layout
@@ -184,8 +220,10 @@ def register():
     bpy.utils.register_class(HubsScenePanel)
     bpy.utils.register_class(HubsObjectPanel)
     bpy.utils.register_class(HubsMaterialPanel)
+    bpy.utils.register_class(HubsBonePanel)
 
 def unregister():
     bpy.utils.unregister_class(HubsScenePanel)
     bpy.utils.unregister_class(HubsObjectPanel)
     bpy.utils.unregister_class(HubsMaterialPanel)
+    bpy.utils.unregister_class(HubsBonePanel)

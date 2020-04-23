@@ -18,6 +18,13 @@ class HubsComponentName(PropertyGroup):
 class HubsComponentList(PropertyGroup):
     items: CollectionProperty(type=HubsComponentName)
 
+class HubsComponentsExtensionProperties(bpy.types.PropertyGroup):
+    enabled: bpy.props.BoolProperty(
+        name="Export Hubs Components",
+        description='Include this extension in the exported glTF file.',
+        default=True
+        )
+
 def is_scene_component(component_definition):
     return 'scene' in component_definition and component_definition['scene']
 
@@ -37,6 +44,8 @@ def is_object_source_component(object_source, component_definition):
 def get_object_source(context, object_source):
     if object_source == "material":
         return context.material
+    elif object_source == "bone":
+        return context.bone or context.edit_bone
     elif object_source == "scene":
         return context.scene
     else:
@@ -242,9 +251,13 @@ def register():
     bpy.utils.register_class(Material2DArrayValueProperty)
     bpy.utils.register_class(HubsComponentName)
     bpy.utils.register_class(HubsComponentList)
+    bpy.utils.register_class(HubsComponentsExtensionProperties)
     bpy.types.Object.hubs_component_list = PointerProperty(type=HubsComponentList)
     bpy.types.Scene.hubs_component_list = PointerProperty(type=HubsComponentList)
     bpy.types.Material.hubs_component_list = PointerProperty(type=HubsComponentList)
+    bpy.types.Bone.hubs_component_list = PointerProperty(type=HubsComponentList)
+    bpy.types.EditBone.hubs_component_list = PointerProperty(type=HubsComponentList)
+    bpy.types.Scene.HubsComponentsExtensionProperties = PointerProperty(type=HubsComponentsExtensionProperties)
 
 def unregister():
     bpy.utils.unregister_class(StringArrayValueProperty)
@@ -252,6 +265,10 @@ def unregister():
     bpy.utils.unregister_class(Material2DArrayValueProperty)
     bpy.utils.unregister_class(HubsComponentName)
     bpy.utils.unregister_class(HubsComponentList)
+    bpy.utils.unregister_class(HubsComponentsExtensionProperties)
     del bpy.types.Object.hubs_component_list
     del bpy.types.Scene.hubs_component_list
     del bpy.types.Material.hubs_component_list
+    del bpy.types.Bone.hubs_component_list
+    del bpy.types.EditBone.hubs_component_list
+    del bpy.types.Scene.HubsComponentsExtensionProperties
