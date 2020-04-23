@@ -1,21 +1,16 @@
 import os
 import json
 import bpy
+import pathlib
+
 from bpy.props import StringProperty, PointerProperty
 from bpy.types import PropertyGroup
 from bpy.app.handlers import persistent
 from . import components
 
 # Get the path to the default config file
-paths = bpy.utils.script_paths("addons")
-
-default_config_filename = 'default-config.json'
-default_config_path = default_config_filename
-
-for path in paths:
-    default_config_path = os.path.join(path, "io_scene_hubs", default_config_filename)
-    if os.path.exists(default_config_path):
-        break
+main_dir = pathlib.Path(os.path.dirname(__file__)).resolve()
+default_config_path = os.path.join(main_dir, 'default-config.json')
 
 def get_component_class_name(component_name):
     return "hubs_component_%s" % component_name.replace('-', '_')
