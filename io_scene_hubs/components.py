@@ -24,11 +24,6 @@ class HubsComponentsExtensionProperties(bpy.types.PropertyGroup):
         description='Include this extension in the exported glTF file.',
         default=True
         )
-    float_property: bpy.props.FloatProperty(
-        name='Sample FloatProperty',
-        description='This is an example of a FloatProperty used by a UserExtension.',
-        default=1.0
-        )
 
 def is_scene_component(component_definition):
     return 'scene' in component_definition and component_definition['scene']

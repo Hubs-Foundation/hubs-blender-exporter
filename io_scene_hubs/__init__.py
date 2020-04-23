@@ -17,6 +17,9 @@ bl_info = {
     "category" : "Generic"
 }
 
+def get_version_string():
+    return str(bl_info['version'][0]) + '.' + str(bl_info['version'][1]) + '.' + str(bl_info['version'][2])
+
 # Monkey patch to add gather_gltf_hook, must be removed once handled upstream https://github.com/KhronosGroup/glTF-Blender-IO/issues/1009
 from io_scene_gltf2.blender.exp import gltf2_blender_export
 from io_scene_gltf2.io.exp.gltf2_io_user_extensions import export_user_extensions
@@ -83,19 +86,25 @@ class glTF2ExportUserExtension:
         self.Extension = Extension
         self.properties = bpy.context.scene.HubsComponentsExtensionProperties
         self.hubs_settings = bpy.context.scene.hubs_settings
+        self.was_used = False
 
     def gather_gltf_hook(self, gltf2_object, export_settings):
-        if not self.properties.enabled: return
+        if not self.properties.enabled or not self.was_used: return
 
         hubs_config = self.hubs_settings.hubs_config
         extension_name = hubs_config["gltfExtensionName"]
         gltf2_object.extensions[extension_name] = self.Extension(
             name=extension_name,
             extension={
-                "version": hubs_config["gltfExtensionVersion"]
+                "version": hubs_config["gltfExtensionVersion"],
+                "exporterVersion": get_version_string()
             },
             required=False
         )
+
+        if gltf2_object.asset.extras is None:
+            gltf2_object.asset.extras = {}
+        gltf2_object.asset.extras["HUBS_blenderExporterVersion"] = get_version_string()
 
     def gather_node_hook(self, gltf2_object, blender_object, export_settings):
         if not self.properties.enabled: return
@@ -137,3 +146,5 @@ class glTF2ExportUserExtension:
                 extension=component_data,
                 required=False
             )
+
+            self.was_used = True

@@ -27,7 +27,6 @@ def gather_property(export_settings, blender_object, target, property_name, prop
 
 def gather_array_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
     array_type = property_definition['arrayType']
-    print(array_type)
     type_definition = hubs_config['types'][array_type]
     is_value_type = len(type_definition['properties']) == 1 and 'value' in type_definition['properties']
     value = []
