@@ -7,12 +7,15 @@ from . import panels
 from .gather_properties import gather_properties
 
 bl_info = {
-    "name" : "io_scene_hubs",
-    "author" : "Robert Long",
-    "description" : "",
+    "name" : "Hubs Blender Exporter",
+    "author" : "MozillaReality",
+    "description" : "Tools for developing GLTF assets for Mozilla Hubs",
     "blender" : (2, 82, 0),
     "version" : (0, 0, 2),
     "location" : "",
+    "wiki_url": "https://github.com/MozillaReality/hubs-blender-exporter",
+    "tracker_url": "https://github.com/MozillaReality/hubs-blender-exporter/issues",
+    "support": "COMMUNITY",
     "warning" : "",
     "category" : "Generic"
 }
@@ -58,9 +61,6 @@ def unregister():
     panels.unregister()
 
     unregister_export_panel()
-
-if __name__ == "__main__":
-    register()
 
 # called by gltf-blender-io after it has loaded
 def register_panel():
