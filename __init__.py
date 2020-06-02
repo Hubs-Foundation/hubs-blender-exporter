@@ -83,7 +83,12 @@ class glTF2ExportUserExtension:
         # We need to wait until we create the gltf2UserExtension to import the gltf2 modules
         # Otherwise, it may fail because the gltf2 may not be loaded yet
         from io_scene_gltf2.io.com.gltf2_io_extensions import Extension
+        from io_scene_gltf2.blender.exp import gltf2_blender_get
+        from io_scene_gltf2.blender.exp import gltf2_blender_gather_texture_info
+
         self.Extension = Extension
+        self.gltf2_blender_get = gltf2_blender_get
+        self.gltf2_blender_gather_texture_info = gltf2_blender_gather_texture_info
         self.properties = bpy.context.scene.HubsComponentsExtensionProperties
         self.hubs_settings = bpy.context.scene.hubs_settings
         self.was_used = False
@@ -115,6 +120,23 @@ class glTF2ExportUserExtension:
         if not self.properties.enabled: return
 
         self.add_hubs_components(gltf2_object, blender_material, export_settings)
+
+        if (
+            blender_material.node_tree
+            and blender_material.use_nodes
+            and blender_material.node_tree.nodes.get("MOZ_lightmap") is not None
+        ):
+            lightmap_texutre = blender_material.node_tree.nodes["MOZ_lightmap"].inputs[
+                "Lightmap"
+            ]
+
+            gltf2_object.extensions["MOZ_lightmap"] = self.Extension(
+                name="MOZ_lightmap",
+                extension=self.gltf2_blender_gather_texture_info.gather_texture_info(
+                    (lightmap_texutre,), export_settings
+                ),
+                required=False,
+            )
 
     def gather_joint_hook(self, gltf2_object, blender_pose_bone, export_settings):
         if not self.properties.enabled: return
