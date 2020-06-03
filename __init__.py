@@ -73,10 +73,8 @@ class glTF2ExportUserExtension:
         # We need to wait until we create the gltf2UserExtension to import the gltf2 modules
         # Otherwise, it may fail because the gltf2 may not be loaded yet
         from io_scene_gltf2.io.com.gltf2_io_extensions import Extension
-        from io_scene_gltf2.blender.exp import gltf2_blender_get
 
         self.Extension = Extension
-        self.gltf2_blender_get = gltf2_blender_get
         self.properties = bpy.context.scene.HubsComponentsExtensionProperties
         self.hubs_settings = bpy.context.scene.hubs_settings
         self.was_used = False
