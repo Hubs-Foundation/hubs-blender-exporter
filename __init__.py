@@ -4,7 +4,7 @@ from . import settings
 from . import components
 from . import operators
 from . import panels
-from .gather_properties import gather_properties
+from .gather_properties import gather_properties, gather_lightmap_texture_info
 
 bl_info = {
     "name" : "Hubs Blender Exporter",
@@ -84,11 +84,9 @@ class glTF2ExportUserExtension:
         # Otherwise, it may fail because the gltf2 may not be loaded yet
         from io_scene_gltf2.io.com.gltf2_io_extensions import Extension
         from io_scene_gltf2.blender.exp import gltf2_blender_get
-        from io_scene_gltf2.blender.exp import gltf2_blender_gather_texture_info
 
         self.Extension = Extension
         self.gltf2_blender_get = gltf2_blender_get
-        self.gltf2_blender_gather_texture_info = gltf2_blender_gather_texture_info
         self.properties = bpy.context.scene.HubsComponentsExtensionProperties
         self.hubs_settings = bpy.context.scene.hubs_settings
         self.was_used = False
@@ -121,20 +119,11 @@ class glTF2ExportUserExtension:
 
         self.add_hubs_components(gltf2_object, blender_material, export_settings)
 
-        if (
-            blender_material.node_tree
-            and blender_material.use_nodes
-            and blender_material.node_tree.nodes.get("MOZ_lightmap") is not None
-        ):
-            lightmap_texutre = blender_material.node_tree.nodes["MOZ_lightmap"].inputs[
-                "Lightmap"
-            ]
-
+        lightmap_node = blender_material.node_tree and blender_material.use_nodes and blender_material.node_tree.nodes.get("MOZ_lightmap")
+        if (lightmap_node):
             gltf2_object.extensions["MOZ_lightmap"] = self.Extension(
                 name="MOZ_lightmap",
-                extension=self.gltf2_blender_gather_texture_info.gather_texture_info(
-                    (lightmap_texutre,), export_settings
-                ),
+                extension= gather_lightmap_texture_info(lightmap_node, export_settings),
                 required=False,
             )
 
