@@ -4,6 +4,7 @@ from . import settings
 from . import components
 from . import operators
 from . import panels
+from . import nodes
 from .gather_properties import gather_properties, gather_lightmap_texture_info
 
 bl_info = {
@@ -40,7 +41,7 @@ def register():
     settings.register()
     operators.register()
     panels.register()
-
+    nodes.register()
 
 def unregister():
     gltf2_blender_export.__gather_gltf = orig_gather_gltf
@@ -49,6 +50,7 @@ def unregister():
     settings.unregister()
     operators.unregister()
     panels.unregister()
+    nodes.unregister()
 
     unregister_export_panel()
 
@@ -107,13 +109,14 @@ class glTF2ExportUserExtension:
 
         self.add_hubs_components(gltf2_object, blender_material, export_settings)
 
-        lightmap_node = blender_material.node_tree and blender_material.use_nodes and blender_material.node_tree.nodes.get("MOZ_lightmap")
-        if (lightmap_node):
-            gltf2_object.extensions["MOZ_lightmap"] = self.Extension(
-                name="MOZ_lightmap",
-                extension= gather_lightmap_texture_info(lightmap_node, export_settings),
-                required=False,
-            )
+        if blender_material.node_tree and blender_material.use_nodes:
+            lightmap_texture_info = gather_lightmap_texture_info(blender_material, export_settings)
+            if lightmap_texture_info:
+                gltf2_object.extensions["MOZ_lightmap"] = self.Extension(
+                    name="MOZ_lightmap",
+                    extension=lightmap_texture_info,
+                    required=False,
+                )
 
     def gather_joint_hook(self, gltf2_object, blender_pose_bone, export_settings):
         if not self.properties.enabled: return
