@@ -15,8 +15,7 @@ class HubsScenePanel(Panel):
         layout = self.layout
 
         row = layout.row()
-        row.prop(context.scene.hubs_settings,
-                 "config_path", text="Config File")
+        row.prop(context.scene.hubs_settings, "config_path", text="Config File")
         row.operator("wm.reload_hubs_config", text="", icon="FILE_REFRESH")
 
         draw_components_list(self, context)
@@ -118,13 +117,21 @@ def draw_component(panel, context, obj, row, component_item):
     component_class_name = component_class.__name__
     component = getattr(obj, component_class_name)
 
-    col = row.column()
+    has_properties = len(component_definition['properties']) > 0
+
+    col = row.box().column()
     top_row = col.row()
+    if has_properties:
+        top_row.prop(component_item, "expanded",
+                    icon="TRIA_DOWN" if component_item.expanded else "TRIA_RIGHT",
+                    icon_only=True, emboss=False
+        )
     top_row.label(text=component_name)
 
     copy_component_operator = top_row.operator(
         "wm.copy_hubs_component",
-        text="Copy"
+        text="",
+        icon="PASTEDOWN"
     )
     copy_component_operator.component_name = component_name
 
@@ -136,11 +143,13 @@ def draw_component(panel, context, obj, row, component_item):
     remove_component_operator.component_name = component_name
     remove_component_operator.object_source = panel.bl_context
 
-    content_col = col.column()
+    if has_properties and component_item.expanded:
+        col.separator()
+        content_col = col.column()
 
-    path = panel.bl_context + "." + component_class_name
+        path = panel.bl_context + "." + component_class_name
 
-    draw_type(context, content_col, obj, component, path, component_definition)
+        draw_type(context, content_col, obj, component, path, component_definition)
 
 def draw_type(context, col, obj, target, path, type_definition):
     for property_name, property_definition in type_definition['properties'].items():

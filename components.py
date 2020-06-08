@@ -14,6 +14,7 @@ class Material2DArrayValueProperty(PropertyGroup):
 
 class HubsComponentName(PropertyGroup):
     name: StringProperty(name="name")
+    expanded: BoolProperty(name="expanded", default=True)
 
 class HubsComponentList(PropertyGroup):
     items: CollectionProperty(type=HubsComponentName)
