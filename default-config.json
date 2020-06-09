@@ -35,6 +35,30 @@
     }
   },
   "components": {
+    "waypoint": {
+      "node": true,
+      "properties": {
+        "canBeSpawnPoint": {"type": "bool", "default": false},
+        "canBeOccupied": {"type": "bool", "default": false},
+        "canBeClicked": {"type": "bool", "default": false},
+        "willDisableMotion": {"type": "bool", "default": false},
+        "willDisableTeleporting": {"type": "bool", "default": false},
+        "snapToNavMesh": {"type": "bool", "default": false},
+        "willMaintainInitialOrientation": {"type": "bool", "default": false},
+        "willMaintainWorldUp": {"type": "bool", "default": true},
+        "isOccupied": {"type": "bool", "default": false}
+      }
+    },
+    "uv-scroll": {
+      "node": true,
+      "properties": {
+        "speed": {"type": "vec2", "default": {"x": 0, "y": 0}}
+      }
+    },
+    "nav-mesh": {
+      "node": true,
+      "properties": {}
+    },
     "kit": {
       "scene": true,
       "node": false,
