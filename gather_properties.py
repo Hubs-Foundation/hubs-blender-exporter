@@ -29,6 +29,8 @@ def gather_property(export_settings, blender_object, target, property_name, prop
         return gather_collections_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
     elif property_type == 'array':
         return gather_array_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
+    elif property_type in ['vec2', 'vec3', 'vec4', 'ivec2', 'ivec3', 'ivec4']:
+        return gather_vec_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
     else:
         return gltf2_blender_extras.__to_json_compatible(getattr(target, property_name))
 
@@ -60,6 +62,21 @@ def gather_material_property(export_settings, blender_object, target, property_n
     else:
         return None
 
+
+def gather_vec_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
+    vec = getattr(target, property_name)
+
+    out = {
+        "x": vec[0],
+        "y": vec[1],
+    }
+
+    if len(vec) > 2:
+        out["z"] = vec[2]
+    if len(vec) > 3:
+        out["w"] = vec[4]
+
+    return out
 def gather_collections_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
     filtered_collection_names = []
 
