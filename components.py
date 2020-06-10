@@ -1,5 +1,5 @@
 import bpy
-from bpy.props import IntVectorProperty, BoolProperty, FloatProperty, StringProperty
+from bpy.props import IntVectorProperty, BoolProperty, FloatProperty, StringProperty, EnumProperty
 from bpy.props import PointerProperty, FloatVectorProperty, CollectionProperty, IntProperty
 from bpy.types import PropertyGroup, Material
 
@@ -144,6 +144,11 @@ def define_property(class_name, property_name, property_definition, hubs_context
         return FloatVectorProperty(
             name=property_name,
             size=4
+        )
+    elif property_type == 'enum':
+        return EnumProperty(
+            name=property_name,
+            items=[tuple(i) for i in property_definition.get("items")]
         )
     elif property_type == 'color':
         return FloatVectorProperty(
