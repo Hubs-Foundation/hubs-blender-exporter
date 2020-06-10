@@ -4,6 +4,13 @@ import re
 import bpy
 from io_scene_gltf2.blender.exp import gltf2_blender_gather_materials
 from io_scene_gltf2.blender.com import gltf2_blender_extras
+from io_scene_gltf2.blender.exp.gltf2_blender_gather_cache import cached
+from io_scene_gltf2.blender.exp.gltf2_blender_gather_texture_info import (
+    __filter_texture_info,
+    __gather_index,
+    __gather_tex_coord,
+)
+from .nodes import MozLightmapNode
 
 def gather_properties(export_settings, blender_object, target, type_definition, hubs_config):
     value = {}
@@ -70,3 +77,25 @@ def gather_collections_property(export_settings, blender_object, target, propert
             filtered_collection_names.append(collection.name)
 
     return filtered_collection_names
+
+@cached
+def gather_lightmap_texture_info(blender_material, export_settings):
+    nodes = blender_material.node_tree.nodes
+    lightmap_node = next((n for n in nodes if isinstance(n, MozLightmapNode)), None)
+
+    texture = lightmap_node.inputs.get("Lightmap")
+    intensity = lightmap_node.intensity
+
+    if not __filter_texture_info((texture,), export_settings):
+        return None
+
+    texture_info = {
+        "intensity": intensity,
+        "index": __gather_index((texture,), export_settings),
+        "texCoord": __gather_tex_coord((texture,), export_settings)
+    }
+
+    if texture_info["index"] is None:
+        return None
+
+    return texture_info
