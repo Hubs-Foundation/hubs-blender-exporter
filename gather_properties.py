@@ -2,7 +2,8 @@ import os
 import datetime
 import re
 import bpy
-from io_scene_gltf2.blender.exp import gltf2_blender_gather_materials
+from io_scene_gltf2.blender.exp import gltf2_blender_gather_materials, gltf2_blender_gather_image
+from io_scene_gltf2.blender.exp.gltf2_blender_image import ExportImage
 from io_scene_gltf2.blender.com import gltf2_blender_extras
 from io_scene_gltf2.blender.exp.gltf2_blender_gather_cache import cached
 from io_scene_gltf2.blender.exp.gltf2_blender_gather_texture_info import (
@@ -25,6 +26,8 @@ def gather_property(export_settings, blender_object, target, property_name, prop
 
     if property_type == 'material':
         return gather_material_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
+    elif property_type == 'image':
+        return gather_image_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
     elif property_type == 'collections':
         return gather_collections_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
     elif property_type == 'array':
@@ -62,7 +65,6 @@ def gather_material_property(export_settings, blender_object, target, property_n
     else:
         return None
 
-
 def gather_vec_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
     vec = getattr(target, property_name)
 
@@ -77,6 +79,33 @@ def gather_vec_property(export_settings, blender_object, target, property_name, 
         out["w"] = vec[4]
 
     return out
+
+def gather_image_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
+    blender_image = getattr(target, property_name)
+
+    if blender_image:
+        image_data = ExportImage.from_blender_image(blender_image)
+        if image_data.empty():
+            return None
+
+        mime_type = gltf2_blender_gather_image.__gather_mime_type((), image_data, export_settings)
+        name = gltf2_blender_gather_image.__gather_name(image_data, export_settings)
+
+        uri = gltf2_blender_gather_image.__gather_uri(image_data, mime_type, name, export_settings)
+        buffer_view = gltf2_blender_gather_image.__gather_buffer_view(image_data, mime_type, name, export_settings)
+
+        return gltf2_blender_gather_image.__make_image(
+            buffer_view,
+            None,
+            None,
+            mime_type,
+            name,
+            uri,
+            export_settings
+        )
+    else:
+        return None
+
 def gather_collections_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
     filtered_collection_names = []
 
