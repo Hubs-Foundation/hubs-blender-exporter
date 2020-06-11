@@ -114,6 +114,11 @@ class glTF2ExportUserExtension:
     def gather_node_hook(self, gltf2_object, blender_object, export_settings):
         if not self.properties.enabled: return
 
+        # Don't include hubs component data again in extras, even if "include custom properties" is enabled
+        if gltf2_object.extras:
+            for key in list(gltf2_object.extras):
+                if key.startswith("hubs_"): del gltf2_object.extras[key]
+
         self.add_hubs_components(gltf2_object, blender_object, export_settings)
 
     def gather_material_hook(self, gltf2_object, blender_material, export_settings):
