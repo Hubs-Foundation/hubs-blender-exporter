@@ -1,7 +1,7 @@
 import bpy
 from bpy.props import IntVectorProperty, BoolProperty, FloatProperty, StringProperty, EnumProperty
 from bpy.props import PointerProperty, FloatVectorProperty, CollectionProperty, IntProperty
-from bpy.types import PropertyGroup, Material
+from bpy.types import PropertyGroup, Material, Image
 
 class StringArrayValueProperty(PropertyGroup):
     value: StringProperty(name="value", default="")
@@ -191,6 +191,12 @@ def define_property(class_name, property_name, property_definition, hubs_context
             name=property_name,
             description=property_definition.get("description") or "",
             type=Material
+        )
+    elif property_type == 'image':
+        return PointerProperty(
+            name=property_name,
+            description=property_definition.get("description") or "",
+            type=Image
         )
     elif property_type == 'collections':
         # collections come from the object's users_collection property
