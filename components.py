@@ -58,15 +58,16 @@ def define_class(class_name, class_definition, hubs_context):
     if class_name in registered_classes:
         return registered_classes[class_name]
 
-    class_property_dict = {}
+    class_property_dict = {
+        '__annotations__': {},
+        'definition': class_definition
+    }
 
     for property_name, property_definition in class_definition['properties'].items():
         property_class = define_property(class_name, property_name, property_definition, hubs_context)
 
         if property_class:
-            class_property_dict[property_name] = property_class
-
-    class_property_dict['definition'] = class_definition
+            class_property_dict['__annotations__'][property_name] = property_class
 
     component_class = type(class_name, (PropertyGroup,), class_property_dict)
 
