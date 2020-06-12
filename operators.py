@@ -2,6 +2,7 @@ import bpy
 from bpy.props import StringProperty, BoolProperty, IntProperty, EnumProperty, CollectionProperty, PointerProperty
 from bpy.types import Operator
 from . import components
+from functools import reduce
 
 class AddHubsComponent(Operator):
     bl_idname = "wm.add_hubs_component"
@@ -9,22 +10,7 @@ class AddHubsComponent(Operator):
     bl_property = "component_name"
 
     object_source: StringProperty(name="object_source")
-
-    def get_items(self, context):
-        hubs_components = bpy.context.scene.hubs_settings.registered_hubs_components
-
-        items = []
-
-        obj = components.get_object_source(context, self.object_source)
-
-        for component_name, component_class in hubs_components.items():
-            if (components.is_object_source_component(self.object_source, component_class.definition)
-                and not components.has_component(obj, component_name)):
-                items.append((component_name, component_name, ''))
-
-        return items
-
-    component_name: EnumProperty(name="component_name", items=get_items)
+    component_name: StringProperty(name="component_name")
 
     def execute(self, context):
         if self.component_name == '':
@@ -43,7 +29,36 @@ class AddHubsComponent(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        context.window_manager.invoke_search_popup(self)
+        object_source = self.object_source
+        hubs_components = bpy.context.scene.hubs_settings.registered_hubs_components
+
+        def sort_by_category(acc, v):
+            (component_name, component_class) = v
+            category = component_class.definition.get("category", "Misc")
+            acc[category] = acc.get(category, [])
+            acc[category].append(v)
+            return acc
+
+        components_by_category = reduce(sort_by_category, hubs_components.items(), {})
+        obj = components.get_object_source(context, object_source)
+
+        def draw(self, context):
+            row = self.layout.row()
+            for category, cmps in components_by_category.items():
+                column = row.column()
+                column.label(text=category)
+                for (component_name, component_class) in cmps:
+                    if not components.is_object_source_component(object_source, component_class.definition): continue
+
+                    if components.has_component(obj, component_name):
+                        column.label(text=component_name)
+                    else:
+                        op = column.operator(AddHubsComponent.bl_idname, text = component_name, icon='ADD')
+                        op.component_name = component_name
+                        op.object_source = object_source
+
+        bpy.context.window_manager.popup_menu(draw)
+
         return {'RUNNING_MODAL'}
 
 class RemoveHubsComponent(Operator):
