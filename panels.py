@@ -96,17 +96,18 @@ def draw_components_list(panel, context):
         layout.label(text="No hubs config loaded")
         return
 
+    add_component_operator = layout.operator(
+        "wm.add_hubs_component",
+        text="Add Component",
+        icon="ADD"
+    )
+    add_component_operator.object_source = panel.bl_context
+
     for component_item in obj.hubs_component_list.items:
         row = layout.row()
         draw_component(panel, context, obj, row, component_item)
 
     layout.separator()
-
-    add_component_operator = layout.operator(
-        "wm.add_hubs_component",
-        text="Add Component"
-    )
-    add_component_operator.object_source = panel.bl_context
 
 def draw_component(panel, context, obj, row, component_item):
     hubs_settings = context.scene.hubs_settings
