@@ -2,6 +2,7 @@ import bpy
 from bpy.props import StringProperty, BoolProperty, IntProperty, EnumProperty, CollectionProperty, PointerProperty
 from bpy.types import Operator
 from . import components
+from . import settings
 from functools import reduce
 
 class AddHubsComponent(Operator):
@@ -21,8 +22,8 @@ class AddHubsComponent(Operator):
         components.add_component(
             obj,
             self.component_name,
-            context.scene.hubs_settings.hubs_config,
-            context.scene.hubs_settings.registered_hubs_components
+            settings.hubs_context["hubs_config"],
+            settings.hubs_context["registered_hubs_components"]
         )
 
         context.area.tag_redraw()
@@ -30,7 +31,7 @@ class AddHubsComponent(Operator):
 
     def invoke(self, context, event):
         object_source = self.object_source
-        hubs_components = bpy.context.scene.hubs_settings.registered_hubs_components
+        registered_hubs_components = settings.hubs_context["registered_hubs_components"]
 
         def sort_by_category(acc, v):
             (component_name, component_class) = v
@@ -39,7 +40,7 @@ class AddHubsComponent(Operator):
             acc[category].append(v)
             return acc
 
-        components_by_category = reduce(sort_by_category, hubs_components.items(), {})
+        components_by_category = reduce(sort_by_category, registered_hubs_components.items(), {})
         obj = components.get_object_source(context, object_source)
 
         def draw(self, context):
@@ -110,10 +111,12 @@ class CopyHubsComponent(Operator):
         src_obj = context.active_object
         dest_objs = filter(lambda item: src_obj != item, context.selected_objects)
 
-        hubs_settings = context.scene.hubs_settings
-        component_class = hubs_settings.registered_hubs_components[self.component_name]
+        registered_hubs_components = settings.hubs_context["registered_hubs_components"]
+        hubs_config = settings.hubs_context["hubs_config"]
+
+        component_class = registered_hubs_components[self.component_name]
         component_class_name = component_class.__name__
-        component_definition = hubs_settings.hubs_config['components'][self.component_name]
+        component_definition = hubs_config['components'][self.component_name]
 
         if components.has_component(src_obj, self.component_name):
             for dest_obj in dest_objs:
@@ -123,51 +126,51 @@ class CopyHubsComponent(Operator):
                 components.add_component(
                     dest_obj,
                     self.component_name,
-                    hubs_settings.hubs_config,
-                    hubs_settings.registered_hubs_components
+                    hubs_config,
+                    registered_hubs_components
                 )
 
                 src_component = getattr(src_obj, component_class_name)
                 dest_component = getattr(dest_obj, component_class_name)
 
-                self.copy_type(hubs_settings, src_component, dest_component, component_definition)
+                self.copy_type(settings.hubs_context, src_component, dest_component, component_definition)
 
         return{'FINISHED'}
 
 
-    def copy_type(self, hubs_settings, src_obj, dest_obj, type_definition):
+    def copy_type(self, hubs_context, src_obj, dest_obj, type_definition):
         for property_name, property_definition in type_definition['properties'].items():
-            self.copy_property(hubs_settings, src_obj, dest_obj, property_name, property_definition)
+            self.copy_property(hubs_context, src_obj, dest_obj, property_name, property_definition)
 
-    def copy_property(self, hubs_settings, src_obj, dest_obj, property_name, property_definition):
+    def copy_property(self, hubs_context, src_obj, dest_obj, property_name, property_definition):
         property_type = property_definition['type']
 
         if property_type == 'collections':
             return
 
-        registered_types = hubs_settings.hubs_config['types']
+        registered_types = hubs_context["hubs_config"]['types']
         is_custom_type = property_type in registered_types
 
         src_property = getattr(src_obj, property_name)
         dest_property = getattr(dest_obj, property_name)
 
         if is_custom_type:
-            dest_obj[property_name] = self.copy_type(hubs_settings, src_property, dest_property, registered_types[property_type])
+            dest_obj[property_name] = self.copy_type(hubs_context, src_property, dest_property, registered_types[property_type])
         elif property_type == 'array':
-            self.copy_array_property(hubs_settings, src_property, dest_property, property_definition)
+            self.copy_array_property(hubs_context, src_property, dest_property, property_definition)
         else:
             setattr(dest_obj, property_name, src_property)
 
-    def copy_array_property(self, hubs_settings, src_arr, dest_arr, property_definition):
+    def copy_array_property(self, hubs_context, src_arr, dest_arr, property_definition):
         array_type = property_definition['arrayType']
-        registered_types = hubs_settings.hubs_config['types']
+        registered_types = hubs_context["hubs_config"]['types']
         type_definition = registered_types[array_type]
 
         dest_arr.clear()
 
         for src_item in src_arr:
             dest_item = dest_arr.add()
-            self.copy_type(hubs_settings, src_item, dest_item, type_definition)
+            self.copy_type(hubs_context, src_item, dest_item, type_definition)
 
 
 class RemoveHubsComponentItem(Operator):
@@ -198,11 +201,11 @@ class RemoveHubsComponentItem(Operator):
 
 class ReloadHubsConfig(Operator):
     bl_idname = "wm.reload_hubs_config"
-    bl_label = "Reload Hubs Config"
+    bl_label = "Reload Hubs component config"
+    bl_description = "Reload Hubs component config file"
 
     def execute(self, context):
-        context.scene.hubs_settings.reload_config()
-        context.area.tag_redraw()
+        settings.reload_context()
         return {'FINISHED'}
 
 class ResetHubsComponentNames(Operator):

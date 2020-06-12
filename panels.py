@@ -1,24 +1,8 @@
 import re
 import bpy
 from bpy.types import Panel
-from bpy.props import StringProperty
 from . import components
-
-class HubsScenePanel(Panel):
-    bl_label = 'Hubs'
-    bl_idname = "SCENE_PT_hubs"
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_context = 'scene'
-
-    def draw(self, context):
-        layout = self.layout
-
-        row = layout.row()
-        row.prop(context.scene.hubs_settings, "config_path", text="Config File")
-        row.operator("wm.reload_hubs_config", text="", icon="FILE_REFRESH")
-
-        draw_components_list(self, context)
+from . import settings
 
 class HubsObjectPanel(Panel):
     bl_label = "Hubs"
@@ -90,9 +74,7 @@ def draw_components_list(panel, context):
         layout.label(text="No object selected")
         return
 
-    hubs_settings = context.scene.hubs_settings
-
-    if hubs_settings.hubs_config is None:
+    if settings.hubs_context["hubs_config"] is None:
         layout.label(text="No hubs config loaded")
         return
 
@@ -110,11 +92,9 @@ def draw_components_list(panel, context):
     layout.separator()
 
 def draw_component(panel, context, obj, row, component_item):
-    hubs_settings = context.scene.hubs_settings
-
     component_name = component_item.name
-    component_definition = hubs_settings.hubs_config['components'][component_name]
-    component_class = hubs_settings.registered_hubs_components[component_name]
+    component_definition = settings.hubs_context["hubs_config"]['components'][component_name]
+    component_class = settings.hubs_context["registered_hubs_components"][component_name]
     component_class_name = component_class.__name__
     component = getattr(obj, component_class_name)
 
@@ -158,8 +138,7 @@ def draw_type(context, col, obj, target, path, type_definition):
 
 def draw_property(context, col, obj, target, path, property_name, property_definition):
     property_type = property_definition['type']
-    hubs_settings = context.scene.hubs_settings
-    registered_types = hubs_settings.hubs_config['types']
+    registered_types = settings.hubs_context["hubs_config"]['types']
     is_custom_type = property_type in registered_types
 
     if property_type == 'collections':
@@ -194,8 +173,7 @@ def draw_collections_property(_context, col, obj, _target, _path, property_name,
     collections_row.box().label(text=", ".join(filtered_collection_names))
 
 def draw_array_property(context, col, obj, target, path, property_name, property_definition):
-    hubs_settings = context.scene.hubs_settings
-    registered_types = hubs_settings.hubs_config['types']
+    registered_types = settings.hubs_context["hubs_config"]['types']
     array_type = property_definition['arrayType']
     item_definition = registered_types[array_type]
 
@@ -227,13 +205,11 @@ def draw_array_property(context, col, obj, target, path, property_name, property
     add_operator.path = property_path
 
 def register():
-    bpy.utils.register_class(HubsScenePanel)
     bpy.utils.register_class(HubsObjectPanel)
     bpy.utils.register_class(HubsMaterialPanel)
     bpy.utils.register_class(HubsBonePanel)
 
 def unregister():
-    bpy.utils.unregister_class(HubsScenePanel)
     bpy.utils.unregister_class(HubsObjectPanel)
     bpy.utils.unregister_class(HubsMaterialPanel)
     bpy.utils.unregister_class(HubsBonePanel)

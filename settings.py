@@ -4,9 +4,11 @@ import bpy
 import pathlib
 
 from bpy.props import StringProperty, PointerProperty
-from bpy.types import PropertyGroup
-from bpy.app.handlers import persistent
+from bpy.types import PropertyGroup, AddonPreferences
+import pathlib
+import os
 from . import components
+from .operators import ReloadHubsConfig
 
 # Get the path to the default config file
 main_dir = pathlib.Path(os.path.dirname(__file__)).resolve()
@@ -15,7 +17,10 @@ default_config_path = os.path.join(main_dir, 'default-config.json')
 def get_component_class_name(component_name):
     return "hubs_component_%s" % component_name.replace('-', '_')
 
-def reload_context(config_path):
+hubs_context = None
+def reload_context(context=bpy.context):
+    config_path = context.preferences.addons[__package__].preferences.config_path
+    print("Reloading context")
     global hubs_context
 
     if os.path.splitext(config_path)[1] == '.json':
@@ -25,7 +30,7 @@ def reload_context(config_path):
         hubs_config = None
         print('Config must be a .json file!')
 
-    if 'hubs_context' in globals():
+    if hubs_context:
         unregister_components()
 
     hubs_context = {
@@ -37,8 +42,6 @@ def reload_context(config_path):
     register_components()
 
 def unregister_components():
-    global hubs_context
-
     try:
         if 'registered_hubs_components' in hubs_context:
             for component_name, component_class in hubs_context['registered_hubs_components'].items():
@@ -67,8 +70,6 @@ def unregister_components():
         hubs_context['registered_hubs_classes'] = {}
 
 def register_components():
-    global hubs_context
-
     for component_name, component_definition in hubs_context['hubs_config']['components'].items():
         class_name = "hubs_component_%s" % component_name.replace('-', '_')
 
@@ -111,49 +112,32 @@ def register_components():
 
         hubs_context['registered_hubs_components'][component_name] = component_class
 
-@persistent
-def load_handler(_dummy):
-    reload_context(bpy.context.scene.hubs_settings.config_path)
 
-def config_updated(self, _context):
-    load_handler(self)
+def config_updated(_self, context):
+    reload_context(context)
 
-class HubsSettings(PropertyGroup):
+class HubsAddonPreferences(AddonPreferences):
+    bl_idname = __package__
+
     config_path: StringProperty(
-        name="config_path",
-        description="Path to the config file",
+        name="Component Config",
         default=default_config_path,
-        options={'HIDDEN'},
-        maxlen=1024,
         subtype='FILE_PATH',
         update=config_updated
     )
 
-    @property
-    def hubs_config(self):
-        global hubs_context
-        return hubs_context['hubs_config']
-
-    @property
-    def registered_hubs_components(self):
-        return hubs_context['registered_hubs_components']
-
-    @property
-    def registered_hubs_classes(self):
-        return hubs_context['registered_hubs_classes']
-
-    def reload_config(self):
-        reload_context(self.config_path)
+    def draw(self, context):
+        layout = self.layout.row()
+        layout.prop(self, "config_path")
+        layout.operator(ReloadHubsConfig.bl_idname, text="", icon="FILE_REFRESH")
 
 def register():
-    bpy.utils.register_class(HubsSettings)
-    bpy.types.Scene.hubs_settings = PointerProperty(type=HubsSettings)
-    bpy.app.handlers.load_post.append(load_handler)
-    reload_context(default_config_path)
+    bpy.utils.register_class(HubsAddonPreferences)
+    reload_context()
 
 def unregister():
+    bpy.utils.unregister_class(HubsAddonPreferences)
     global hubs_context
+    if hubs_context:
+        unregister_components()
     del hubs_context
-    bpy.utils.unregister_class(HubsSettings)
-    del bpy.types.Scene.hubs_settings
-    bpy.app.handlers.load_post.remove(load_handler)

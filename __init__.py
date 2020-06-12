@@ -78,13 +78,12 @@ class glTF2ExportUserExtension:
 
         self.Extension = Extension
         self.properties = bpy.context.scene.HubsComponentsExtensionProperties
-        self.hubs_settings = bpy.context.scene.hubs_settings
         self.was_used = False
 
     def hubs_gather_gltf_hook(self, gltf2_object, export_settings):
         if not self.properties.enabled or not self.was_used: return
 
-        hubs_config = self.hubs_settings.hubs_config
+        hubs_config = settings.hubs_context["hubs_config"]
         extension_name = hubs_config["gltfExtensionName"]
         gltf2_object.extensions[extension_name] = self.Extension(
             name=extension_name,
@@ -131,8 +130,8 @@ class glTF2ExportUserExtension:
     def add_hubs_components(self, gltf2_object, blender_object, export_settings):
         component_list = blender_object.hubs_component_list
 
-        hubs_config = self.hubs_settings.hubs_config
-        registered_hubs_components = self.hubs_settings.registered_hubs_components
+        hubs_config = settings.hubs_context["hubs_config"]
+        registered_hubs_components = settings.hubs_context["registered_hubs_components"]
 
         if component_list.items:
             extension_name = hubs_config["gltfExtensionName"]
