@@ -83,6 +83,8 @@ def gather_lightmap_texture_info(blender_material, export_settings):
     nodes = blender_material.node_tree.nodes
     lightmap_node = next((n for n in nodes if isinstance(n, MozLightmapNode)), None)
 
+    if not lightmap_node: return
+
     texture = lightmap_node.inputs.get("Lightmap")
     intensity = lightmap_node.intensity
 
