@@ -36,6 +36,7 @@
   },
   "components": {
     "waypoint": {
+      "category": "Scene",
       "node": true,
       "properties": {
         "canBeSpawnPoint": {"type": "bool", "default": false},
@@ -50,16 +51,19 @@
       }
     },
     "uv-scroll": {
+      "category": "Animation",
       "node": true,
       "properties": {
         "speed": {"type": "vec2", "default": {"x": 0, "y": 0}}
       }
     },
     "nav-mesh": {
+      "category": "Scene",
       "node": true,
       "properties": {}
     },
     "kit": {
+      "category": "Architecture Kit",
       "scene": true,
       "node": false,
       "properties": {
@@ -75,6 +79,7 @@
       }
     },
     "kit-piece": {
+      "category": "Architecture Kit",
       "properties": {
         "id": {
           "type": "string",
@@ -91,6 +96,7 @@
       }
     },
     "kit-alt-materials": {
+      "category": "Architecture Kit",
       "node": true,
       "properties": {
         "id": {
@@ -112,6 +118,7 @@
       }
     },
     "material-id": {
+      "category": "Architecture Kit",
       "node": false,
       "scene": false,
       "material": true,
@@ -127,6 +134,7 @@
       }
     },
     "loop-animation": {
+      "category": "Animation",
       "node": true,
       "properties": {
         "clip": {
@@ -139,6 +147,7 @@
       }
     },
     "scale-audio-feedback": {
+      "category": "Avatar",
       "node": true,
       "properties": {
         "minScale": {
@@ -152,6 +161,7 @@
       }
     },
     "morph-audio-feedback": {
+      "category": "Avatar",
       "node": true,
       "properties": {
         "name": {
