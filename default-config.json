@@ -57,6 +57,15 @@
         "speed": {"type": "vec2", "default": {"x": 0, "y": 0}}
       }
     },
+    "personal-space-invader": {
+      "category": "Avatar",
+      "node": true,
+      "properties": {
+      "radius": { "type": "float", "default": 0.1 },
+      "useMaterial": { "type": "bool", "default": false },
+      "invadingOpacity": { "type": "float", "default": 0.3 }
+      }
+    },
     "nav-mesh": {
       "category": "Scene",
       "node": true,
