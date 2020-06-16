@@ -4,6 +4,16 @@ from bpy.types import Panel
 from . import components
 from . import settings
 
+class HubsScenePanel(Panel):
+    bl_label = "Hubs"
+    bl_idname = "SCENE_PT_hubs"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "scene"
+
+    def draw(self, context):
+        draw_components_list(self, context)
+
 class HubsObjectPanel(Panel):
     bl_label = "Hubs"
     bl_idname = "OBJECT_PT_hubs"
@@ -205,11 +215,13 @@ def draw_array_property(context, col, obj, target, path, property_name, property
     add_operator.path = property_path
 
 def register():
+    bpy.utils.register_class(HubsScenePanel)
     bpy.utils.register_class(HubsObjectPanel)
     bpy.utils.register_class(HubsMaterialPanel)
     bpy.utils.register_class(HubsBonePanel)
 
 def unregister():
+    bpy.utils.unregister_class(HubsScenePanel)
     bpy.utils.unregister_class(HubsObjectPanel)
     bpy.utils.unregister_class(HubsMaterialPanel)
     bpy.utils.unregister_class(HubsBonePanel)
