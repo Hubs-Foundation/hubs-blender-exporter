@@ -54,7 +54,8 @@
       "category": "Animation",
       "node": true,
       "properties": {
-        "speed": {"type": "vec2", "default": {"x": 0, "y": 0}}
+        "speed": {"type": "vec2", "default": {"x": 0, "y": 0}},
+        "increment": {"type": "vec2", "default": {"x": 0, "y": 0}}
       }
     },
     "personal-space-invader": {
