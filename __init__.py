@@ -12,7 +12,7 @@ bl_info = {
     "author" : "MozillaReality",
     "description" : "Tools for developing GLTF assets for Mozilla Hubs",
     "blender" : (2, 83, 0),
-    "version" : (0, 0, 3),
+    "version" : (0, 0, 4),
     "location" : "",
     "wiki_url": "https://github.com/MozillaReality/hubs-blender-exporter",
     "tracker_url": "https://github.com/MozillaReality/hubs-blender-exporter/issues",
@@ -113,6 +113,11 @@ class glTF2ExportUserExtension:
 
     def gather_node_hook(self, gltf2_object, blender_object, export_settings):
         if not self.properties.enabled: return
+
+        # Don't include hubs component data again in extras, even if "include custom properties" is enabled
+        if gltf2_object.extras:
+            for key in list(gltf2_object.extras):
+                if key.startswith("hubs_"): del gltf2_object.extras[key]
 
         self.add_hubs_components(gltf2_object, blender_object, export_settings)
 
