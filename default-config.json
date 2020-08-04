@@ -35,6 +35,13 @@
     }
   },
   "components": {
+    "visible": {
+      "category": "Scene",
+      "node": true,
+      "properties": {
+      "visible": { "type": "bool", "default": true }
+      }
+    },
     "waypoint": {
       "category": "Scene",
       "node": true,
