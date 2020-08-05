@@ -39,7 +39,7 @@
       "category": "Scene",
       "node": true,
       "properties": {
-      "visible": { "type": "bool", "default": true }
+        "visible": { "type": "bool", "default": true }
       }
     },
     "waypoint": {
@@ -285,7 +285,9 @@
     "nav-mesh": {
       "category": "Scene",
       "node": true,
-      "properties": {}
+      "properties": {
+        "dummy": { "type": "bool" }
+      }
     },
     "kit": {
       "category": "Architecture Kit",
