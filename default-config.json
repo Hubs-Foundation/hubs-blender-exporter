@@ -35,11 +35,71 @@
     }
   },
   "components": {
+    "background": {
+      "category": "Root",
+      "node": true,
+      "properties": {
+        "color": { "type": "color", "default": "#aaaaaa" }
+      }
+    },
+    "fog": {
+      "category": "Root",
+      "node": true,
+      "properties": {
+        "type": {
+          "type": "enum",
+          "description": "Fog Type",
+          "items": [ 
+            [ "disabled", "No fog", "No fog effect will be applied" ],
+            [ "linear", "Linear fog", "Fog effect will increase linearly with distance" ],
+            [ "exponential", "Exponential fog", "Fog effect will increase exponentially with distance" ]
+          ]
+        },
+        "color": { "type": "color", "default": "#ffffff" },
+        "near": { "type": "float", "default": 1, "description": "Fog Near Distance (linear only)" },
+        "far": { "type": "float", "default": 100, "description": "Fog Far Distance (linear only)" },
+        "density": { "type": "float", "default": 0.1, "description": "Fog Density (exponential only)" }
+      }
+    },
+    "audio-settings": {
+      "category": "Root",
+      "node": true,
+      "properties": {
+        "avatarDistanceModel": {
+          "type": "enum",
+          "description": "Avatar Distance Model",
+          "items": [ 
+            [ "inverse", "Inverse drop off (inverse)", "Volume will decrease inversely with distance" ],
+            [ "linear", "Linear drop off (linear)", "Volume will decrease linearly with distance" ],
+            [ "exponential", "Exponential drop off (exponential)", "Volume will decrease expoentially with distance" ]
+          ]
+        },
+        "avatarRolloffFactor": { "type": "float", "default": 2, "description": "Avatar Rolloff Factor" },
+        "avatarRefDistance": { "type": "float", "default": 1, "unit": "LENGTH", "description": " Avatar Ref Distance" },
+        "avatarMaxDistance": { "type": "float", "default": 10000, "unit": "LENGTH","description": "Avatar Max Distance" },
+        "mediaVolume": { "type": "float", "default": 0.5, "description": "Media Volume" },
+        "mediaDistanceModel": {
+          "type": "enum",
+          "description": "Media Distance Model",
+          "items": [ 
+            [ "inverse", "Inverse drop off (inverse)", "Volume will decrease inversely with distance" ],
+            [ "linear", "Linear drop off (linear)", "Volume will decrease linearly with distance" ],
+            [ "exponential", "Exponential drop off (exponential)", "Volume will decrease expoentially with distance" ]
+          ]
+        },
+        "mediaRolloffFactor": { "type": "float", "default": 2, "description": "Media Rolloff Factor" },
+        "mediaRefDistance": { "type": "float", "default": 1, "unit": "LENGTH","description": " Media Ref Distance" },
+        "mediaMaxDistance": { "type": "float", "default": 10000, "unit": "LENGTH","description": "Media Max Distance" },
+        "mediaConeInnerAngle": { "type": "float", "default": 360, "description": "Media Cone Inner Angle" },
+        "mediaConeOuterAngle": { "type": "float", "default": 0, "description": "Media Cone Outer Angle" },
+        "mediaConeOuterGain": { "type": "float", "default": 0, "description": "Media Cone Outer Gain" }
+      }
+    },
     "visible": {
       "category": "Scene",
       "node": true,
       "properties": {
-        "visible": { "type": "bool", "default": true }
+        "type": { "type": "bool", "default": true }
       }
     },
     "waypoint": {
