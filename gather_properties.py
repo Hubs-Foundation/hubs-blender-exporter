@@ -6,11 +6,7 @@ from io_scene_gltf2.blender.exp import gltf2_blender_gather_materials, gltf2_ble
 from io_scene_gltf2.blender.exp.gltf2_blender_image import ExportImage
 from io_scene_gltf2.blender.com import gltf2_blender_extras
 from io_scene_gltf2.blender.exp.gltf2_blender_gather_cache import cached
-from io_scene_gltf2.blender.exp.gltf2_blender_gather_texture_info import (
-    __filter_texture_info,
-    __gather_index,
-    __gather_tex_coord,
-)
+from io_scene_gltf2.blender.exp.gltf2_blender_gather_texture_info import gather_texture_info
 from .nodes import MozLightmapNode
 
 def gather_properties(export_settings, blender_object, target, type_definition, hubs_config):
@@ -131,19 +127,16 @@ def gather_lightmap_texture_info(blender_material, export_settings):
 
     if not lightmap_node: return
 
-    texture = lightmap_node.inputs.get("Lightmap")
+    texture_socket = lightmap_node.inputs.get("Lightmap")
     intensity = lightmap_node.intensity
 
-    if not __filter_texture_info((texture,), export_settings):
-        return None
+    texture_info = gather_texture_info(texture_socket, (texture_socket,), export_settings)
+    if not texture_info: return
 
-    texture_info = {
+    return {
         "intensity": intensity,
-        "index": __gather_index((texture,), export_settings),
-        "texCoord": __gather_tex_coord((texture,), export_settings)
+        'extensions': texture_info.extensions,
+        'extras': texture_info.extras,
+        "index": texture_info.index,
+        "texCoord": texture_info.tex_coord
     }
-
-    if texture_info["index"] is None:
-        return None
-
-    return texture_info
