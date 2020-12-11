@@ -1,4 +1,5 @@
 import bpy
+import uuid
 
 from . import settings
 from . import components
@@ -138,6 +139,7 @@ class glTF2ExportUserExtension:
 
         if component_list.items:
             extension_name = hubs_config["gltfExtensionName"]
+            is_networked = False
             component_data = {}
 
             for component_item in component_list.items:
@@ -147,6 +149,13 @@ class glTF2ExportUserExtension:
                 component_class_name = component_class.__name__
                 component = getattr(blender_object, component_class_name)
                 component_data[component_name] = gather_properties(export_settings, blender_object, component, component_definition, hubs_config)
+                is_networked |= component_name in ("link", "image", "audio", "video")
+
+            # NAF-supported media require a network ID
+            if is_networked:
+                component_data["networked"] = {
+                    "id" : str(uuid.uuid4()).upper()
+                }
 
             if gltf2_object.extensions is None:
                 gltf2_object.extensions = {}

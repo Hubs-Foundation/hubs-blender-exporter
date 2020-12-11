@@ -74,6 +74,214 @@
       "invadingOpacity": { "type": "float", "default": 0.3 }
       }
     },
+    "link": {
+      "category": "Scene",
+      "node": true,
+      "properties": {
+        "href": {
+          "type": "string",
+          "description": "URL"
+        }
+      }
+    },
+    "image": {
+      "category": "Scene",
+      "node": true,
+      "properties": {
+        "src": {
+          "type": "string",
+          "description": "Image URL"
+        },
+        "controls": {
+          "type": "bool", 
+          "description": "Controls",
+          "default": true
+        },
+        "alphaMode": {
+          "type": "enum",
+          "description": "Transparency Mode",
+          "items": [ 
+            [ "opaque", "No transparency (opaque)", "Alpha channel will be ignored" ],
+            [ "blend", "Gradual transparency (blend)", "Alpha channel will be applied" ],
+            [ "mask", "Binary transparency (mask)", "Alpha channel will be used as a threshold between opaque and transparent pixels" ]
+          ]
+        },
+        "projection": {
+          "type": "enum",
+          "description": "Projection",
+          "items": [ 
+            [ "flat", "2D image (flat)", "Image will be shown on a 2D surface" ],
+            [ "360-equirectangular", "Spherical (360-equirectangular)", "Image will be shown on a sphere" ]
+          ]
+        }
+      }
+    },
+    "audio": {
+      "category": "Scene",
+      "node": true,
+      "properties": {
+        "src": {
+          "type": "string",
+          "description": "Audio URL"
+        },
+        "autoPlay": {
+          "type": "bool", 
+          "description": "Auto Play",
+          "default": true
+        },
+        "controls": {
+          "type": "bool", 
+          "description": "Controls",
+          "default": true
+        },
+        "loop": {
+          "type": "bool", 
+          "description": "Loop",
+          "default": true
+        },
+        "audioType": {
+          "type": "enum",
+          "description": "Audio Type",
+          "items": [ 
+            [ "pannernode", "Positional audio (pannernode)", "Volume will change depending on the listener's position relative to the source" ],
+            [ "stereo", "Background audio (stereo)", "Volume will be independent of the listener's position" ]
+          ]
+        },
+        "volume": {
+          "type": "float", 
+          "description": "Volume",
+          "default": 0.5
+        },
+        "distanceModel": {
+          "type": "enum",
+          "description": "Distance Model",
+          "items": [ 
+            [ "inverse", "Inverse drop off (inverse)", "Volume will decrease inversely with distance" ],
+            [ "linear", "Linear drop off (linear)", "Volume will decrease linearly with distance" ],
+            [ "exponential", "Exponential drop off (exponential)", "Volume will decrease expoentially with distance" ]
+          ]
+        },
+        "rolloffFactor": {
+          "type": "float", 
+          "description": "Rolloff Factor",
+          "default": 1.0
+        },
+        "refDistance": {
+          "type": "float", 
+          "description": "Ref Distance",
+          "unit": "LENGTH",
+          "default": 1.0
+        },
+        "maxDistance": {
+          "type": "float", 
+          "description": "Max Distance",
+          "unit": "LENGTH",
+          "default": 10000.0
+        },
+        "coneInnerAngle": {
+          "type": "float", 
+          "description": "Cone Inner Angle",
+          "default": 360.0
+        },
+        "coneOuterAngle": {
+          "type": "float", 
+          "description": "Cone Outer Angle",
+          "default": 360.0
+        },
+        "coneOuterGain": {
+          "type": "float", 
+          "description": "Cone Outer Gain",
+          "default": 0.0
+        }
+      }
+    },
+    "video": {
+      "category": "Scene",
+      "node": true,
+      "properties": {
+        "src": {
+          "type": "string",
+          "description": "Video URL"
+        },
+        "projection": {
+          "type": "enum",
+          "description": "Projection",
+          "items": [ 
+            [ "flat", "2D image (flat)", "Image will be shown on a 2D surface" ],
+            [ "360-equirectangular", "Spherical (360-equirectangular)", "Image will be shown on a sphere" ]
+          ]
+        },
+        "autoPlay": {
+          "type": "bool", 
+          "description": "Auto Play",
+          "default": true
+        },
+        "controls": {
+          "type": "bool", 
+          "description": "Controls",
+          "default": true
+        },
+        "loop": {
+          "type": "bool", 
+          "description": "Loop",
+          "default": true
+        },
+        "audioType": {
+          "type": "enum",
+          "description": "Audio Type",
+          "items": [ 
+            [ "pannernode", "Positional audio (pannernode)", "Volume will change depending on the listener's position relative to the source" ],
+            [ "stereo", "Background audio (stereo)", "Volume will be independent of the listener's position" ]
+          ]
+        },
+        "volume": {
+          "type": "float", 
+          "description": "Volume",
+          "default": 0.5
+        },
+        "distanceModel": {
+          "type": "enum",
+          "description": "Distance Model",
+          "items": [ 
+            [ "inverse", "Inverse drop off (inverse)", "Volume will decrease inversely with distance" ],
+            [ "linear", "Linear drop off (linear)", "Volume will decrease linearly with distance" ],
+            [ "exponential", "Exponential drop off (exponential)", "Volume will decrease expoentially with distance" ]
+          ]
+        },
+        "rolloffFactor": {
+          "type": "float", 
+          "description": "Rolloff Factor",
+          "default": 1.0
+        },
+        "refDistance": {
+          "type": "float", 
+          "description": "Ref Distance",
+          "unit": "LENGTH",
+          "default": 1.0
+        },
+        "maxDistance": {
+          "type": "float", 
+          "description": "Max Distance",
+          "unit": "LENGTH",
+          "default": 10000.0
+        },
+        "coneInnerAngle": {
+          "type": "float", 
+          "description": "Cone Inner Angle",
+          "default": 360.0
+        },
+        "coneOuterAngle": {
+          "type": "float", 
+          "description": "Cone Outer Angle",
+          "default": 360.0
+        },
+        "coneOuterGain": {
+          "type": "float", 
+          "description": "Cone Outer Gain",
+          "default": 0.0
+        }
+      }
+    },
     "nav-mesh": {
       "category": "Scene",
       "node": true,
