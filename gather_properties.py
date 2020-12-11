@@ -30,6 +30,8 @@ def gather_property(export_settings, blender_object, target, property_name, prop
         return gather_array_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
     elif property_type in ['vec2', 'vec3', 'vec4', 'ivec2', 'ivec3', 'ivec4']:
         return gather_vec_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
+    elif property_type == 'color':
+        return gather_color_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
     else:
         return gltf2_blender_extras.__to_json_compatible(getattr(target, property_name))
 
@@ -119,6 +121,11 @@ def gather_collections_property(export_settings, blender_object, target, propert
             filtered_collection_names.append(collection.name)
 
     return filtered_collection_names
+
+def gather_color_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
+    # Convert RGB color array to hex. Blender stores colors in linear space and GLTF color factors are typically in linear space
+    c = getattr(target, property_name)
+    return "#{0:02x}{1:02x}{2:02x}".format(max(0, min(int(c[0] * 256.0), 255)), max(0, min(int(c[1] * 256.0), 255)), max(0, min(int(c[2] * 256.0), 255)))
 
 @cached
 def gather_lightmap_texture_info(blender_material, export_settings):
