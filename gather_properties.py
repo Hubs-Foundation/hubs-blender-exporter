@@ -15,6 +15,11 @@ def gather_properties(export_settings, blender_object, target, type_definition, 
     for property_name, property_definition in type_definition['properties'].items():
         value[property_name] = gather_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
 
+    if value:
+        return value
+    else:
+        return { "__empty_component_dummy": None }
+
     return value
 
 def gather_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
