@@ -105,7 +105,7 @@
       }
     },
     "waypoint": {
-      "category": "Scene",
+      "category": "Elements",
       "node": true,
       "properties": {
         "canBeSpawnPoint": {"type": "bool", "default": false},
@@ -137,7 +137,7 @@
       }
     },
     "link": {
-      "category": "Scene",
+      "category": "Elements",
       "node": true,
       "properties": {
         "href": {
@@ -147,7 +147,7 @@
       }
     },
     "image": {
-      "category": "Scene",
+      "category": "Elements",
       "node": true,
       "properties": {
         "src": {
@@ -179,7 +179,7 @@
       }
     },
     "audio": {
-      "category": "Scene",
+      "category": "Elements",
       "node": true,
       "properties": {
         "src": {
@@ -258,7 +258,7 @@
       }
     },
     "video": {
-      "category": "Scene",
+      "category": "Elements",
       "node": true,
       "properties": {
         "src": {
