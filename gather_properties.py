@@ -71,15 +71,18 @@ def gather_material_property(export_settings, blender_object, target, property_n
 def gather_vec_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
     vec = getattr(target, property_name)
 
-    out = {
-        "x": vec[0],
-        "y": vec[1],
-    }
+    if property_definition.get("unit") == "PIXEL":
+        out = [vec[0], vec[1]]
+    else:
+        out = {
+            "x": vec[0],
+            "y": vec[1],
+        }
 
-    if len(vec) > 2:
-        out["z"] = vec[2]
-    if len(vec) > 3:
-        out["w"] = vec[4]
+        if len(vec) > 2:
+            out["z"] = vec[2]
+        if len(vec) > 3:
+            out["w"] = vec[4]
 
     return out
 

@@ -104,6 +104,40 @@
         "visible": { "type": "bool", "default": true }
       }
     },
+    "directional-light": {
+      "category": "Elements",
+      "node": true,
+      "properties": {
+        "color": {"type": "color"},
+        "intensity": {"type": "float", "default": 1.0},
+        "castShadow": { "type": "bool", "default": false },
+        "shadowMapResolution": {"type": "ivec2", "unit":"PIXEL", "default": {"x": 512, "y": 512}},
+        "shadowBias": {"type": "float", "default": 0.0},
+        "shadowRadius": {"type": "float", "default": 1.0}
+      }
+    },
+    "point-light": {
+      "category": "Elements",
+      "node": true,
+      "properties": {
+        "color": {"type": "color"},
+        "intensity": {"type": "float", "default": 1.0},
+        "range": {"type": "float", "default": 0.0},
+        "decay": {"type": "float", "default": 2.0},
+        "castShadow": { "type": "bool", "default": false },
+        "shadowMapResolution": {"type": "ivec2", "unit":"PIXEL", "default": {"x": 512, "y": 512}},
+        "shadowBias": {"type": "float", "default": 0.0},
+        "shadowRadius": {"type": "float", "default": 1.0}
+      }
+    },
+    "ambient-light": {
+      "category": "Elements",
+      "node": true,
+      "properties": {
+        "color": {"type": "color"},
+        "intensity": {"type": "float", "default": 1.0}
+      }
+    },
     "waypoint": {
       "category": "Elements",
       "node": true,
