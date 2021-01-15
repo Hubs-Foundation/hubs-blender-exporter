@@ -2,6 +2,18 @@
 
 This addon extends the glTF 2.0 exporter to support the `MOZ_hubs_components` and `MOZ_lightmap` extensions allowing you to add behavior to glTF assets for [Mozilla Hubs](https://hubs.mozilla.com).
 
+
+# To Install
+Find the latest [release](https://github.com/MozillaReality/hubs-blender-exporter/releases) and download the source zip file.   
+<img alt="select source file zip" src="https://user-images.githubusercontent.com/4493657/102955067-e8179500-4489-11eb-9f26-c764dfa1e4dc.png" width=400px height=300px />  
+
+In Blender: `Edit > Preferences > Add-ons`  
+Click install and select the zip file of the latest release.  
+<img width="780" alt="in blender prefs install addon" src="https://user-images.githubusercontent.com/4493657/102955927-dcc56900-448b-11eb-8bfa-07e68b31cffd.png">  
+
+Ensure the hubs component exporter is checked and enabled.  
+<img width="494" alt="hubs blender exporter installed" src="https://user-images.githubusercontent.com/4493657/102956859-c9b39880-448d-11eb-9f02-2f529f14c139.png">
+
 # Adding Components
 
 To add components, go to the "Hubs" section of the properties panel for the thing you want to add a component to. Currently adding components is supported on Scenes, Objects, Bones, and Materials.
