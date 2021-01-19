@@ -24,7 +24,7 @@ Click "Add Component" and select the component you wish to add from the list. On
 
 # Using Lightmaps
 
-To use a lightmap, create a `MOZ_lightamp` node from the `Add > Hubs` menu and hook up a image texture to the `Lightmap` input. Use a `UV Map` node to control what UV set should be used for the lightmap, as you would any other texture in Blender. 
+To use a lightmap, create a `MOZ_lightmap` node from the `Add > Hubs` menu and hook up a image texture to the `Lightmap` input. Use a `UV Map` node to control what UV set should be used for the lightmap, as you would any other texture in Blender. 
 
 ![lightmap node](https://user-images.githubusercontent.com/130735/83931408-65c7bd80-a751-11ea-86b9-a2ae889ec5df.png)
 
