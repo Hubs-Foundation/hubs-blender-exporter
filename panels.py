@@ -12,6 +12,11 @@ class HubsScenePanel(Panel):
     bl_context = "scene"
 
     def draw(self, context):
+        layout = self.layout
+
+        row = layout.row()
+        row.prop(context.scene.hubs_settings, "config_path", text="Config File")
+        row.operator("wm.reload_hubs_config", text="", icon="FILE_REFRESH")
         draw_components_list(self, context)
 
 class HubsObjectPanel(Panel):

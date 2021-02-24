@@ -6,11 +6,7 @@ from io_scene_gltf2.blender.exp import gltf2_blender_gather_materials, gltf2_ble
 from io_scene_gltf2.blender.exp.gltf2_blender_image import ExportImage
 from io_scene_gltf2.blender.com import gltf2_blender_extras
 from io_scene_gltf2.blender.exp.gltf2_blender_gather_cache import cached
-from io_scene_gltf2.blender.exp.gltf2_blender_gather_texture_info import (
-    __filter_texture_info,
-    __gather_index,
-    __gather_tex_coord,
-)
+from io_scene_gltf2.blender.exp.gltf2_blender_gather_texture_info import gather_texture_info
 from .nodes import MozLightmapNode
 
 def gather_properties(export_settings, blender_object, target, type_definition, hubs_config):
@@ -18,6 +14,11 @@ def gather_properties(export_settings, blender_object, target, type_definition, 
 
     for property_name, property_definition in type_definition['properties'].items():
         value[property_name] = gather_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
+
+    if value:
+        return value
+    else:
+        return { "__empty_component_dummy": None }
 
     return value
 
@@ -34,6 +35,8 @@ def gather_property(export_settings, blender_object, target, property_name, prop
         return gather_array_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
     elif property_type in ['vec2', 'vec3', 'vec4', 'ivec2', 'ivec3', 'ivec4']:
         return gather_vec_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
+    elif property_type == 'color':
+        return gather_color_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
     else:
         return gltf2_blender_extras.__to_json_compatible(getattr(target, property_name))
 
@@ -68,15 +71,18 @@ def gather_material_property(export_settings, blender_object, target, property_n
 def gather_vec_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
     vec = getattr(target, property_name)
 
-    out = {
-        "x": vec[0],
-        "y": vec[1],
-    }
+    if property_definition.get("unit") == "PIXEL":
+        out = [vec[0], vec[1]]
+    else:
+        out = {
+            "x": vec[0],
+            "y": vec[1],
+        }
 
-    if len(vec) > 2:
-        out["z"] = vec[2]
-    if len(vec) > 3:
-        out["w"] = vec[4]
+        if len(vec) > 2:
+            out["z"] = vec[2]
+        if len(vec) > 3:
+            out["w"] = vec[4]
 
     return out
 
@@ -124,24 +130,28 @@ def gather_collections_property(export_settings, blender_object, target, propert
 
     return filtered_collection_names
 
+def gather_color_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
+    # Convert RGB color array to hex. Blender stores colors in linear space and GLTF color factors are typically in linear space
+    c = getattr(target, property_name)
+    return "#{0:02x}{1:02x}{2:02x}".format(max(0, min(int(c[0] * 256.0), 255)), max(0, min(int(c[1] * 256.0), 255)), max(0, min(int(c[2] * 256.0), 255)))
+
 @cached
 def gather_lightmap_texture_info(blender_material, export_settings):
     nodes = blender_material.node_tree.nodes
     lightmap_node = next((n for n in nodes if isinstance(n, MozLightmapNode)), None)
 
-    texture = lightmap_node.inputs.get("Lightmap")
+    if not lightmap_node: return
+
+    texture_socket = lightmap_node.inputs.get("Lightmap")
     intensity = lightmap_node.intensity
 
-    if not __filter_texture_info((texture,), export_settings):
-        return None
+    texture_info = gather_texture_info(texture_socket, (texture_socket,), export_settings)
+    if not texture_info: return
 
-    texture_info = {
+    return {
         "intensity": intensity,
-        "index": __gather_index((texture,), export_settings),
-        "texCoord": __gather_tex_coord((texture,), export_settings)
+        'extensions': texture_info.extensions,
+        'extras': texture_info.extras,
+        "index": texture_info.index,
+        "texCoord": texture_info.tex_coord
     }
-
-    if texture_info["index"] is None:
-        return None
-
-    return texture_info

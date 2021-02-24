@@ -35,7 +35,111 @@
     }
   },
   "components": {
+    "background": {
+      "category": "Scene",
+      "scene": true,
+      "node": false,
+      "properties": {
+        "color": { "type": "color", "default": "#aaaaaa" }
+      }
+    },
+    "fog": {
+      "category": "Scene",
+      "scene": true,
+      "node": false,
+      "properties": {
+        "type": {
+          "type": "enum",
+          "description": "Fog Type",
+          "items": [ 
+            [ "linear", "Linear fog", "Fog effect will increase linearly with distance" ],
+            [ "exponential", "Exponential fog", "Fog effect will increase exponentially with distance" ]
+          ]
+        },
+        "color": { "type": "color", "default": "#ffffff" },
+        "near": { "type": "float", "default": 1.0, "description": "Fog Near Distance (linear only)" },
+        "far": { "type": "float", "default": 100.0, "description": "Fog Far Distance (linear only)" },
+        "density": { "type": "float", "default": 0.1, "description": "Fog Density (exponential only)" }
+      }
+    },
+    "audio-settings": {
+      "category": "Scene",
+      "scene": true,
+      "node": false,
+      "properties": {
+        "avatarDistanceModel": {
+          "type": "enum",
+          "description": "Avatar Distance Model",
+          "items": [ 
+            [ "inverse", "Inverse drop off (inverse)", "Volume will decrease inversely with distance" ],
+            [ "linear", "Linear drop off (linear)", "Volume will decrease linearly with distance" ],
+            [ "exponential", "Exponential drop off (exponential)", "Volume will decrease expoentially with distance" ]
+          ]
+        },
+        "avatarRolloffFactor": { "type": "float", "default": 2.0, "description": "Avatar Rolloff Factor" },
+        "avatarRefDistance": { "type": "float", "default": 1.0, "unit": "LENGTH", "description": " Avatar Ref Distance" },
+        "avatarMaxDistance": { "type": "float", "default": 10000.0, "unit": "LENGTH","description": "Avatar Max Distance" },
+        "mediaVolume": { "type": "float", "default": 0.5, "description": "Media Volume" },
+        "mediaDistanceModel": {
+          "type": "enum",
+          "description": "Media Distance Model",
+          "items": [ 
+            [ "inverse", "Inverse drop off (inverse)", "Volume will decrease inversely with distance" ],
+            [ "linear", "Linear drop off (linear)", "Volume will decrease linearly with distance" ],
+            [ "exponential", "Exponential drop off (exponential)", "Volume will decrease expoentially with distance" ]
+          ]
+        },
+        "mediaRolloffFactor": { "type": "float", "default": 2.0, "description": "Media Rolloff Factor" },
+        "mediaRefDistance": { "type": "float", "default": 1.0, "unit": "LENGTH","description": " Media Ref Distance" },
+        "mediaMaxDistance": { "type": "float", "default": 10000.0, "unit": "LENGTH","description": "Media Max Distance" },
+        "mediaConeInnerAngle": { "type": "float", "default": 360.0, "description": "Media Cone Inner Angle" },
+        "mediaConeOuterAngle": { "type": "float", "default": 0.0, "description": "Media Cone Outer Angle" },
+        "mediaConeOuterGain": { "type": "float", "default": 0.0, "description": "Media Cone Outer Gain" }
+      }
+    },
+    "visible": {
+      "category": "Scene",
+      "node": true,
+      "properties": {
+        "visible": { "type": "bool", "default": true }
+      }
+    },
+    "directional-light": {
+      "category": "Elements",
+      "node": true,
+      "properties": {
+        "color": {"type": "color"},
+        "intensity": {"type": "float", "default": 1.0},
+        "castShadow": { "type": "bool", "default": false },
+        "shadowMapResolution": {"type": "ivec2", "unit":"PIXEL", "default": {"x": 512, "y": 512}},
+        "shadowBias": {"type": "float", "default": 0.0},
+        "shadowRadius": {"type": "float", "default": 1.0}
+      }
+    },
+    "point-light": {
+      "category": "Elements",
+      "node": true,
+      "properties": {
+        "color": {"type": "color"},
+        "intensity": {"type": "float", "default": 1.0},
+        "range": {"type": "float", "default": 0.0},
+        "decay": {"type": "float", "default": 2.0},
+        "castShadow": { "type": "bool", "default": false },
+        "shadowMapResolution": {"type": "ivec2", "unit":"PIXEL", "default": {"x": 512, "y": 512}},
+        "shadowBias": {"type": "float", "default": 0.0},
+        "shadowRadius": {"type": "float", "default": 1.0}
+      }
+    },
+    "ambient-light": {
+      "category": "Elements",
+      "node": true,
+      "properties": {
+        "color": {"type": "color"},
+        "intensity": {"type": "float", "default": 1.0}
+      }
+    },
     "waypoint": {
+      "category": "Elements",
       "node": true,
       "properties": {
         "canBeSpawnPoint": {"type": "bool", "default": false},
@@ -50,16 +154,239 @@
       }
     },
     "uv-scroll": {
+      "category": "Animation",
       "node": true,
       "properties": {
-        "speed": {"type": "vec2", "default": {"x": 0, "y": 0}}
+        "speed": {"type": "vec2", "default": {"x": 0, "y": 0}},
+        "increment": {"type": "vec2", "default": {"x": 0, "y": 0}}
+      }
+    },
+    "personal-space-invader": {
+      "category": "Avatar",
+      "node": true,
+      "properties": {
+      "radius": { "type": "float", "default": 0.1 },
+      "useMaterial": { "type": "bool", "default": false },
+      "invadingOpacity": { "type": "float", "default": 0.3 }
+      }
+    },
+    "link": {
+      "category": "Elements",
+      "node": true,
+      "properties": {
+        "href": {
+          "type": "string",
+          "description": "URL"
+        }
+      }
+    },
+    "image": {
+      "category": "Elements",
+      "node": true,
+      "properties": {
+        "src": {
+          "type": "string",
+          "description": "Image URL"
+        },
+        "controls": {
+          "type": "bool", 
+          "description": "Controls",
+          "default": true
+        },
+        "alphaMode": {
+          "type": "enum",
+          "description": "Transparency Mode",
+          "items": [ 
+            [ "opaque", "No transparency (opaque)", "Alpha channel will be ignored" ],
+            [ "blend", "Gradual transparency (blend)", "Alpha channel will be applied" ],
+            [ "mask", "Binary transparency (mask)", "Alpha channel will be used as a threshold between opaque and transparent pixels" ]
+          ]
+        },
+        "projection": {
+          "type": "enum",
+          "description": "Projection",
+          "items": [ 
+            [ "flat", "2D image (flat)", "Image will be shown on a 2D surface" ],
+            [ "360-equirectangular", "Spherical (360-equirectangular)", "Image will be shown on a sphere" ]
+          ]
+        }
+      }
+    },
+    "audio": {
+      "category": "Elements",
+      "node": true,
+      "properties": {
+        "src": {
+          "type": "string",
+          "description": "Audio URL"
+        },
+        "autoPlay": {
+          "type": "bool", 
+          "description": "Auto Play",
+          "default": true
+        },
+        "controls": {
+          "type": "bool", 
+          "description": "Controls",
+          "default": true
+        },
+        "loop": {
+          "type": "bool", 
+          "description": "Loop",
+          "default": true
+        },
+        "audioType": {
+          "type": "enum",
+          "description": "Audio Type",
+          "items": [ 
+            [ "pannernode", "Positional audio (pannernode)", "Volume will change depending on the listener's position relative to the source" ],
+            [ "stereo", "Background audio (stereo)", "Volume will be independent of the listener's position" ]
+          ]
+        },
+        "volume": {
+          "type": "float", 
+          "description": "Volume",
+          "default": 0.5
+        },
+        "distanceModel": {
+          "type": "enum",
+          "description": "Distance Model",
+          "items": [ 
+            [ "inverse", "Inverse drop off (inverse)", "Volume will decrease inversely with distance" ],
+            [ "linear", "Linear drop off (linear)", "Volume will decrease linearly with distance" ],
+            [ "exponential", "Exponential drop off (exponential)", "Volume will decrease expoentially with distance" ]
+          ]
+        },
+        "rolloffFactor": {
+          "type": "float", 
+          "description": "Rolloff Factor",
+          "default": 1.0
+        },
+        "refDistance": {
+          "type": "float", 
+          "description": "Ref Distance",
+          "unit": "LENGTH",
+          "default": 1.0
+        },
+        "maxDistance": {
+          "type": "float", 
+          "description": "Max Distance",
+          "unit": "LENGTH",
+          "default": 10000.0
+        },
+        "coneInnerAngle": {
+          "type": "float", 
+          "description": "Cone Inner Angle",
+          "default": 360.0
+        },
+        "coneOuterAngle": {
+          "type": "float", 
+          "description": "Cone Outer Angle",
+          "default": 360.0
+        },
+        "coneOuterGain": {
+          "type": "float", 
+          "description": "Cone Outer Gain",
+          "default": 0.0
+        }
+      }
+    },
+    "video": {
+      "category": "Elements",
+      "node": true,
+      "properties": {
+        "src": {
+          "type": "string",
+          "description": "Video URL"
+        },
+        "projection": {
+          "type": "enum",
+          "description": "Projection",
+          "items": [ 
+            [ "flat", "2D image (flat)", "Image will be shown on a 2D surface" ],
+            [ "360-equirectangular", "Spherical (360-equirectangular)", "Image will be shown on a sphere" ]
+          ]
+        },
+        "autoPlay": {
+          "type": "bool", 
+          "description": "Auto Play",
+          "default": true
+        },
+        "controls": {
+          "type": "bool", 
+          "description": "Controls",
+          "default": true
+        },
+        "loop": {
+          "type": "bool", 
+          "description": "Loop",
+          "default": true
+        },
+        "audioType": {
+          "type": "enum",
+          "description": "Audio Type",
+          "items": [ 
+            [ "pannernode", "Positional audio (pannernode)", "Volume will change depending on the listener's position relative to the source" ],
+            [ "stereo", "Background audio (stereo)", "Volume will be independent of the listener's position" ]
+          ]
+        },
+        "volume": {
+          "type": "float", 
+          "description": "Volume",
+          "default": 0.5
+        },
+        "distanceModel": {
+          "type": "enum",
+          "description": "Distance Model",
+          "items": [ 
+            [ "inverse", "Inverse drop off (inverse)", "Volume will decrease inversely with distance" ],
+            [ "linear", "Linear drop off (linear)", "Volume will decrease linearly with distance" ],
+            [ "exponential", "Exponential drop off (exponential)", "Volume will decrease expoentially with distance" ]
+          ]
+        },
+        "rolloffFactor": {
+          "type": "float", 
+          "description": "Rolloff Factor",
+          "default": 1.0
+        },
+        "refDistance": {
+          "type": "float", 
+          "description": "Ref Distance",
+          "unit": "LENGTH",
+          "default": 1.0
+        },
+        "maxDistance": {
+          "type": "float", 
+          "description": "Max Distance",
+          "unit": "LENGTH",
+          "default": 10000.0
+        },
+        "coneInnerAngle": {
+          "type": "float", 
+          "description": "Cone Inner Angle",
+          "default": 360.0
+        },
+        "coneOuterAngle": {
+          "type": "float", 
+          "description": "Cone Outer Angle",
+          "default": 360.0
+        },
+        "coneOuterGain": {
+          "type": "float", 
+          "description": "Cone Outer Gain",
+          "default": 0.0
+        }
       }
     },
     "nav-mesh": {
+      "category": "Scene",
       "node": true,
-      "properties": {}
+      "properties": {
+        "dummy": { "type": "bool" }
+      }
     },
     "kit": {
+      "category": "Architecture Kit",
       "scene": true,
       "node": false,
       "properties": {
@@ -75,6 +402,7 @@
       }
     },
     "kit-piece": {
+      "category": "Architecture Kit",
       "properties": {
         "id": {
           "type": "string",
@@ -91,6 +419,7 @@
       }
     },
     "kit-alt-materials": {
+      "category": "Architecture Kit",
       "node": true,
       "properties": {
         "id": {
@@ -112,6 +441,7 @@
       }
     },
     "material-id": {
+      "category": "Architecture Kit",
       "node": false,
       "scene": false,
       "material": true,
@@ -127,6 +457,7 @@
       }
     },
     "loop-animation": {
+      "category": "Animation",
       "node": true,
       "properties": {
         "clip": {
@@ -139,6 +470,7 @@
       }
     },
     "scale-audio-feedback": {
+      "category": "Avatar",
       "node": true,
       "properties": {
         "minScale": {
@@ -152,6 +484,7 @@
       }
     },
     "morph-audio-feedback": {
+      "category": "Avatar",
       "node": true,
       "properties": {
         "name": {

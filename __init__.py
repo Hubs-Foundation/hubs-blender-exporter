@@ -1,4 +1,5 @@
 import bpy
+import uuid
 
 from . import settings
 from . import components
@@ -11,8 +12,8 @@ bl_info = {
     "name" : "Hubs Blender Exporter",
     "author" : "MozillaReality",
     "description" : "Tools for developing GLTF assets for Mozilla Hubs",
-    "blender" : (2, 83, 0),
-    "version" : (0, 0, 3),
+    "blender" : (2, 91, 0),
+    "version" : (0, 0, 5),
     "location" : "",
     "wiki_url": "https://github.com/MozillaReality/hubs-blender-exporter",
     "tracker_url": "https://github.com/MozillaReality/hubs-blender-exporter/issues",
@@ -36,6 +37,7 @@ def patched_gather_gltf(exporter, export_settings):
 
 def register():
     gltf2_blender_export.__gather_gltf = patched_gather_gltf
+
 
     components.register()
     settings.register()
@@ -98,6 +100,16 @@ class glTF2ExportUserExtension:
             gltf2_object.asset.extras = {}
         gltf2_object.asset.extras["HUBS_blenderExporterVersion"] = get_version_string()
 
+    def gather_scene_hook(self, gltf2_object, blender_scene, export_settings):
+        if not self.properties.enabled: return
+
+        # Don't include hubs component data again in extras, even if "include custom properties" is enabled
+        if gltf2_object.extras:
+            for key in list(gltf2_object.extras):
+                if key.startswith("hubs_"): del gltf2_object.extras[key]
+
+        self.add_hubs_components(gltf2_object, blender_scene, export_settings)
+
     def gather_node_hook(self, gltf2_object, blender_object, export_settings):
         if not self.properties.enabled: return
 
@@ -121,10 +133,11 @@ class glTF2ExportUserExtension:
                     extension=lightmap_texture_info,
                     required=False,
                 )
+    def gather_material_unlit_hook(self, gltf2_object, blender_material, export_settings):
+        self.gather_material_hook(gltf2_object, blender_material, export_settings)
 
     def gather_joint_hook(self, gltf2_object, blender_pose_bone, export_settings):
         if not self.properties.enabled: return
-
         self.add_hubs_components(gltf2_object, blender_pose_bone.bone, export_settings)
 
     def add_hubs_components(self, gltf2_object, blender_object, export_settings):
@@ -135,6 +148,7 @@ class glTF2ExportUserExtension:
 
         if component_list.items:
             extension_name = hubs_config["gltfExtensionName"]
+            is_networked = False
             component_data = {}
 
             for component_item in component_list.items:
@@ -144,6 +158,13 @@ class glTF2ExportUserExtension:
                 component_class_name = component_class.__name__
                 component = getattr(blender_object, component_class_name)
                 component_data[component_name] = gather_properties(export_settings, blender_object, component, component_definition, hubs_config)
+                is_networked |= component_name in ("link", "image", "audio", "video")
+
+            # NAF-supported media require a network ID
+            if is_networked:
+                component_data["networked"] = {
+                    "id" : str(uuid.uuid4()).upper()
+                }
 
             if gltf2_object.extensions is None:
                 gltf2_object.extensions = {}
