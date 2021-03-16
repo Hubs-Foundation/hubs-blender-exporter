@@ -500,5 +500,31 @@
         }
       }
     }
+  },
+  "video-texture-target": {
+    "category": "Avatar",
+    "node": false,
+    "scene": false,
+    "material": true,
+    "properties": {
+      "targetBaseColorMap": {
+        "type": "bool",
+        "default": true
+      },
+      "targetEmissiveMap": {
+        "type": "bool",
+        "default": false
+      }
+    }
+  },
+  "billboard": {
+    "category": "Elements",
+    "node": true,
+    "properties": {
+      "onlyY": {
+        "type": "bool",
+        "default": false
+      }
+    }
   }
 }
