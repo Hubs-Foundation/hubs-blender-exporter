@@ -381,9 +381,7 @@
     "nav-mesh": {
       "category": "Scene",
       "node": true,
-      "properties": {
-        "dummy": { "type": "bool" }
-      }
+      "properties": {}
     },
     "kit": {
       "category": "Architecture Kit",
