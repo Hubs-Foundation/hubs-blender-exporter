@@ -61,9 +61,8 @@ def gather_material_property(export_settings, blender_object, target, property_n
     blender_material = getattr(target, property_name)
 
     if blender_material:
-        double_sided = not blender_material.use_backface_culling
         material = gltf2_blender_gather_materials.gather_material(
-            blender_material, double_sided, export_settings)
+            blender_material, export_settings)
         return material
     else:
         return None
