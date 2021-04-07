@@ -37,8 +37,8 @@ def gather_property(export_settings, blender_object, target, property_name, prop
         return gather_vec_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
     elif property_type == 'color':
         return gather_color_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
-    elif property_type == 'object':
-        return gather_object_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
+    elif property_type == 'nodeRef':
+        return gather_node_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
     else:
         return gltf2_blender_extras.__to_json_compatible(getattr(target, property_name))
 
@@ -59,7 +59,7 @@ def gather_array_property(export_settings, blender_object, target, property_name
     
     return value
 
-def gather_object_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
+def gather_node_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
     blender_object = getattr(target, property_name)
 
     if blender_object:

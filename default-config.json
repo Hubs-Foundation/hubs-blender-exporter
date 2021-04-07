@@ -513,7 +513,7 @@
           "default": false
         },
         "src": {
-          "type": "object",
+          "type": "nodeRef",
           "hasComponents": ["video-texture-source"]
         }
       }

@@ -193,7 +193,7 @@ def define_property(class_name, property_name, property_definition, hubs_context
             description=property_definition.get("description") or "",
             type=Material
         )
-    elif property_type == 'object':
+    elif property_type == 'nodeRef':
         def filter_on_component(self, o):
             return components.has_components(o, ["video-texture-source"])
 
@@ -304,7 +304,6 @@ def has_component(obj, component_name):
 def has_components(obj, component_names):
     items = obj.hubs_component_list.items
     for name in component_names:
-        print(obj.name, items, name)
         if name not in items: return False
     return True
 
