@@ -511,6 +511,10 @@
         "targetEmissiveMap": {
           "type": "bool",
           "default": false
+        },
+        "src": {
+          "type": "object",
+          "hasComponents": ["video-texture-source"]
         }
       }
     },
@@ -522,6 +526,14 @@
           "type": "bool",
           "default": false
         }
+      }
+    },
+    "video-texture-source": {
+      "category": "Scene",
+      "node": true,
+      "properties": {
+        "resolution": {"type": "ivec2", "unit":"PIXEL", "default": [1280, 720]},
+        "fps": {"type": "int", "default": 15}
       }
     }
   }
