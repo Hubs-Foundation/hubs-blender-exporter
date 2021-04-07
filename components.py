@@ -1,7 +1,8 @@
 import bpy
 from bpy.props import IntVectorProperty, BoolProperty, FloatProperty, StringProperty, EnumProperty
 from bpy.props import PointerProperty, FloatVectorProperty, CollectionProperty, IntProperty
-from bpy.types import PropertyGroup, Material, Image
+from bpy.types import PropertyGroup, Material, Image, Object
+from . import components
 
 class StringArrayValueProperty(PropertyGroup):
     value: StringProperty(name="value", default="")
@@ -192,6 +193,16 @@ def define_property(class_name, property_name, property_definition, hubs_context
             description=property_definition.get("description") or "",
             type=Material
         )
+    elif property_type == 'object':
+        def filter_on_component(self, o):
+            return components.has_components(o, ["video-texture-source"])
+
+        return PointerProperty(
+            name=property_name,
+            description=property_definition.get("description") or "",
+            type=Object,
+            poll=filter_on_component
+        )
     elif property_type == 'image':
         return PointerProperty(
             name=property_name,
@@ -289,6 +300,13 @@ def remove_component(obj, component_name):
 def has_component(obj, component_name):
     items = obj.hubs_component_list.items
     return component_name in items
+
+def has_components(obj, component_names):
+    items = obj.hubs_component_list.items
+    for name in component_names:
+        print(obj.name, items, name)
+        if name not in items: return False
+    return True
 
 def register():
     bpy.utils.register_class(StringArrayValueProperty)
