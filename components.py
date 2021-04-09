@@ -194,8 +194,10 @@ def define_property(class_name, property_name, property_definition, hubs_context
             type=Material
         )
     elif property_type == 'nodeRef':
+        required_components = property_definition.get("hasComponents") or []
+
         def filter_on_component(self, o):
-            return components.has_components(o, ["video-texture-source"])
+            return components.has_components(o, required_components)
 
         return PointerProperty(
             name=property_name,
