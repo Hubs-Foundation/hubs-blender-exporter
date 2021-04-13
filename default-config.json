@@ -512,7 +512,7 @@
           "type": "bool",
           "default": false
         },
-        "src": {
+        "srcNode": {
           "type": "nodeRef",
           "hasComponents": ["video-texture-source"]
         }
