@@ -292,6 +292,9 @@ def add_component(obj, component_name, hubs_config, registered_hubs_components):
                 for value in default_value:
                     item = arr.add()
                     item.value = value
+            elif property_type == "enum":
+                index = next(i for i, item in enumerate(property_definition["items"]) if item[0] == default_value)
+                component[property_name] = index
             else:
                 component[property_name] = default_value
 
