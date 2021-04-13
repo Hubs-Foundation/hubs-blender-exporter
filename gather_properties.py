@@ -100,7 +100,7 @@ def gather_vec_property(export_settings, blender_object, target, property_name, 
         if len(vec) > 2:
             out["z"] = vec[2]
         if len(vec) > 3:
-            out["w"] = vec[4]
+            out["w"] = vec[3]
 
     return out
 
