@@ -63,15 +63,13 @@ def gather_node_property(export_settings, blender_object, target, property_name,
     blender_object = getattr(target, property_name)
 
     if blender_object:
-        o = gltf2_blender_gather_nodes.gather_node(
+        return gltf2_blender_gather_nodes.gather_node(
             blender_object,
             blender_object.library.name if blender_object.library else None,
             blender_object.users_scene[0],
             None,
             export_settings
         )
-        print(o)
-        return o
     else:
         return None
 
