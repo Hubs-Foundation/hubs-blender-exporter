@@ -1,4 +1,5 @@
 import bpy
+import re
 from bpy.props import IntVectorProperty, BoolProperty, FloatProperty, StringProperty, EnumProperty
 from bpy.props import PointerProperty, FloatVectorProperty, CollectionProperty, IntProperty
 from bpy.types import PropertyGroup, Material, Image, Object
@@ -98,9 +99,13 @@ def define_type(type_name, hubs_context):
 
     return define_class(final_class_name, class_definition, hubs_context)
 
+
+def camel_to_title(s):
+   return re.sub(r'((?<=[a-z])[A-Z]|(?<!\A)[A-Z](?=[a-z]))', r' \1', s).title()
+
 def define_property(class_name, property_name, property_definition, hubs_context):
     property_type = property_definition['type']
-    display_name = property_definition.get("label", property_name)
+    display_name = property_definition.get("label", camel_to_title(property_name))
 
     if property_type == 'int':
         return IntProperty(
