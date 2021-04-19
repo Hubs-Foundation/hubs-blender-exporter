@@ -167,7 +167,10 @@ def draw_property(context, col, obj, target, path, property_name, property_defin
     elif property_type == 'array':
         draw_array_property(context, col, obj, target, path, property_name, property_definition)
     elif is_custom_type:
-        draw_type(context, col, obj, target, path, registered_types[property_type])
+        type_row = col.row()
+        display_name = property_definition.get("label", components.camel_to_title(property_name))
+        type_row.label(text=display_name)
+        draw_type(context, type_row.column(), obj, getattr(target, property_name), path + "." + property_name, registered_types[property_type])
     else:
         col.prop(data=target, property=property_name)
 
