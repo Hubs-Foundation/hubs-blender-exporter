@@ -2,7 +2,7 @@ import os
 import datetime
 import re
 import bpy
-from io_scene_gltf2.blender.exp import gltf2_blender_gather_materials, gltf2_blender_gather_image
+from io_scene_gltf2.blender.exp import gltf2_blender_gather_materials, gltf2_blender_gather_image, gltf2_blender_gather_nodes
 from io_scene_gltf2.blender.exp.gltf2_blender_image import ExportImage
 from io_scene_gltf2.blender.com import gltf2_blender_extras
 from io_scene_gltf2.blender.exp.gltf2_blender_gather_cache import cached
@@ -37,6 +37,8 @@ def gather_property(export_settings, blender_object, target, property_name, prop
         return gather_vec_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
     elif property_type == 'color':
         return gather_color_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
+    elif property_type == 'nodeRef':
+        return gather_node_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
     else:
         return gltf2_blender_extras.__to_json_compatible(getattr(target, property_name))
 
@@ -56,6 +58,20 @@ def gather_array_property(export_settings, blender_object, target, property_name
         value.append(item_value)
     
     return value
+
+def gather_node_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
+    blender_object = getattr(target, property_name)
+
+    if blender_object:
+        return gltf2_blender_gather_nodes.gather_node(
+            blender_object,
+            blender_object.library.name if blender_object.library else None,
+            blender_object.users_scene[0],
+            None,
+            export_settings
+        )
+    else:
+        return None
 
 def gather_material_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
     blender_material = getattr(target, property_name)
@@ -82,7 +98,7 @@ def gather_vec_property(export_settings, blender_object, target, property_name, 
         if len(vec) > 2:
             out["z"] = vec[2]
         if len(vec) > 3:
-            out["w"] = vec[4]
+            out["w"] = vec[3]
 
     return out
 

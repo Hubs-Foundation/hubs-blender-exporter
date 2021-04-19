@@ -111,7 +111,7 @@
         "color": {"type": "color"},
         "intensity": {"type": "float", "default": 1.0},
         "castShadow": { "type": "bool", "default": false },
-        "shadowMapResolution": {"type": "ivec2", "unit":"PIXEL", "default": {"x": 512, "y": 512}},
+        "shadowMapResolution": {"type": "ivec2", "unit":"PIXEL", "default": [512, 512]},
         "shadowBias": {"type": "float", "default": 0.0},
         "shadowRadius": {"type": "float", "default": 1.0}
       }
@@ -125,7 +125,7 @@
         "range": {"type": "float", "default": 0.0},
         "decay": {"type": "float", "default": 2.0},
         "castShadow": { "type": "bool", "default": false },
-        "shadowMapResolution": {"type": "ivec2", "unit":"PIXEL", "default": {"x": 512, "y": 512}},
+        "shadowMapResolution": {"type": "ivec2", "unit":"PIXEL", "default": [512, 512]},
         "shadowBias": {"type": "float", "default": 0.0},
         "shadowRadius": {"type": "float", "default": 1.0}
       }
@@ -505,12 +505,20 @@
       "material": true,
       "properties": {
         "targetBaseColorMap": {
+          "description": "Should the video texture override the base color map?",
           "type": "bool",
           "default": true
         },
         "targetEmissiveMap": {
+          "description": "Should the video texture override the emissive map?",
           "type": "bool",
           "default": false
+        },
+        "srcNode": {
+          "label": "Source",
+          "description": "Node with a vide-texture-source to pull video from",
+          "type": "nodeRef",
+          "hasComponents": ["video-texture-source"]
         }
       }
     },
@@ -522,6 +530,14 @@
           "type": "bool",
           "default": false
         }
+      }
+    },
+    "video-texture-source": {
+      "category": "Scene",
+      "node": true,
+      "properties": {
+        "resolution": {"type": "ivec2", "unit":"PIXEL", "default": [1280, 720]},
+        "fps": {"type": "int", "default": 15}
       }
     }
   }

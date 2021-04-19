@@ -1,7 +1,8 @@
 import bpy
 from bpy.props import IntVectorProperty, BoolProperty, FloatProperty, StringProperty, EnumProperty
 from bpy.props import PointerProperty, FloatVectorProperty, CollectionProperty, IntProperty
-from bpy.types import PropertyGroup, Material, Image
+from bpy.types import PropertyGroup, Material, Image, Object
+from . import components
 
 class StringArrayValueProperty(PropertyGroup):
     value: StringProperty(name="value", default="")
@@ -99,56 +100,57 @@ def define_type(type_name, hubs_context):
 
 def define_property(class_name, property_name, property_definition, hubs_context):
     property_type = property_definition['type']
+    display_name = property_definition.get("label", property_name)
 
     if property_type == 'int':
         return IntProperty(
-            name=property_name,
+            name=display_name,
             description=property_definition.get("description") or "",
             subtype=property_definition.get("subType") or "NONE",
         )
     elif property_type == 'float':
         return FloatProperty(
-            name=property_name,
+            name=display_name,
             description=property_definition.get("description") or "",
             subtype=property_definition.get("subType") or "NONE",
             unit=property_definition.get("unit") or "NONE"
         )
     elif property_type == 'bool':
         return BoolProperty(
-            name=property_name,
+            name=display_name,
             description=property_definition.get("description") or "",
             subtype=property_definition.get("subType") or "NONE"
         )
     elif property_type == 'string':
         return StringProperty(
-            name=property_name,
+            name=display_name,
             description=property_definition.get("description") or "",
             subtype=property_definition.get("subType") or "NONE"
         )
     elif property_type == 'ivec2':
         return IntVectorProperty(
-            name=property_name,
+            name=display_name,
             description=property_definition.get("description") or "",
             subtype=property_definition.get("subType") or "NONE",
             size=2
         )
     elif property_type == 'ivec3':
         return IntVectorProperty(
-            name=property_name,
+            name=display_name,
             description=property_definition.get("description") or "",
             subtype=property_definition.get("subType") or "NONE",
             size=3
         )
     elif property_type == 'ivec4':
         return IntVectorProperty(
-            name=property_name,
+            name=display_name,
             description=property_definition.get("description") or "",
             subtype=property_definition.get("subType") or "NONE",
             size=4
         )
     elif property_type == 'vec2':
         return FloatVectorProperty(
-            name=property_name,
+            name=display_name,
             description=property_definition.get("description") or "",
             subtype=property_definition.get("subType") or "NONE",
             unit=property_definition.get("unit") or "NONE",
@@ -156,7 +158,7 @@ def define_property(class_name, property_name, property_definition, hubs_context
         )
     elif property_type == 'vec3':
         return FloatVectorProperty(
-            name=property_name,
+            name=display_name,
             description=property_definition.get("description") or "",
             subtype=property_definition.get("subType") or "NONE",
             unit=property_definition.get("unit") or "NONE",
@@ -164,7 +166,7 @@ def define_property(class_name, property_name, property_definition, hubs_context
         )
     elif property_type == 'vec4':
         return FloatVectorProperty(
-            name=property_name,
+            name=display_name,
             description=property_definition.get("description") or "",
             subtype=property_definition.get("subType") or "NONE",
             unit=property_definition.get("unit") or "NONE",
@@ -172,13 +174,13 @@ def define_property(class_name, property_name, property_definition, hubs_context
         )
     elif property_type == 'enum':
         return EnumProperty(
-            name=property_name,
+            name=display_name,
             description=property_definition.get("description") or "",
             items=[tuple(i) for i in property_definition.get("items")]
         )
     elif property_type == 'color':
         return FloatVectorProperty(
-            name=property_name,
+            name=display_name,
             description=property_definition.get("description") or "",
             subtype='COLOR',
             default=(1.0, 1.0, 1.0, 1.0),
@@ -188,13 +190,25 @@ def define_property(class_name, property_name, property_definition, hubs_context
         )
     elif property_type == 'material':
         return PointerProperty(
-            name=property_name,
+            name=display_name,
             description=property_definition.get("description") or "",
             type=Material
         )
+    elif property_type == 'nodeRef':
+        required_components = property_definition.get("hasComponents") or []
+
+        def filter_on_component(self, o):
+            return components.has_components(o, required_components)
+
+        return PointerProperty(
+            name=display_name,
+            description=property_definition.get("description") or "",
+            type=Object,
+            poll=filter_on_component
+        )
     elif property_type == 'image':
         return PointerProperty(
-            name=property_name,
+            name=display_name,
             description=property_definition.get("description") or "",
             type=Image
         )
@@ -216,7 +230,7 @@ def define_property(class_name, property_name, property_definition, hubs_context
                 array_type, property_name, class_name))
 
         return CollectionProperty(
-            name=property_name,
+            name=display_name,
             description=property_definition.get("description") or "",
             type=property_class
         )
@@ -228,7 +242,7 @@ def define_property(class_name, property_name, property_definition, hubs_context
                 property_type, property_name, class_name))
 
         return PointerProperty(
-            name=property_name,
+            name=display_name,
             description=property_definition.get("description") or "",
             type=property_class
         )
@@ -279,6 +293,9 @@ def add_component(obj, component_name, hubs_config, registered_hubs_components):
                 for value in default_value:
                     item = arr.add()
                     item.value = value
+            elif property_type == "enum":
+                index = next(i for i, item in enumerate(property_definition["items"]) if item[0] == default_value)
+                component[property_name] = index
             else:
                 component[property_name] = default_value
 
@@ -289,6 +306,12 @@ def remove_component(obj, component_name):
 def has_component(obj, component_name):
     items = obj.hubs_component_list.items
     return component_name in items
+
+def has_components(obj, component_names):
+    items = obj.hubs_component_list.items
+    for name in component_names:
+        if name not in items: return False
+    return True
 
 def register():
     bpy.utils.register_class(StringArrayValueProperty)
