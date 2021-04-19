@@ -505,14 +505,18 @@
       "material": true,
       "properties": {
         "targetBaseColorMap": {
+          "description": "Should the video texture override the base color map?",
           "type": "bool",
           "default": true
         },
         "targetEmissiveMap": {
+          "description": "Should the video texture override the emissive map?",
           "type": "bool",
           "default": false
         },
         "srcNode": {
+          "label": "Source",
+          "description": "Node with a vide-texture-source to pull video from",
           "type": "nodeRef",
           "hasComponents": ["video-texture-source"]
         }
