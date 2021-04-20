@@ -147,6 +147,68 @@
         "intensity": {"type": "float", "default": 1.0}
       }
     },
+    "particle-emitter": {
+      "node": true,
+      "category": "Elements",
+      "properties": {
+        "src": {"type": "string", "default": ""},
+        "startColor": {"type": "color"},
+        "middleColor": {"type": "color"},
+        "endColor": {"type": "color"},
+        "startOpacity": {"type": "float", "default": 1.0},
+        "middleOpacity": {"type": "float", "default": 1.0},
+        "endOpacity": {"type": "float", "default": 1.0},
+        "sizeCurve": {"type": "enum", "items":[
+          ["linear" ,"linear", ""],
+          ["quadraticIn" ,"quadraticIn", ""], ["quadraticOut" ,"quadraticOut", ""], ["quadraticInOut" ,"quadraticInOut", ""],
+          ["cubicIn" ,"cubicIn", ""], ["cubicOut" ,"cubicOut", ""], ["cubicInOut" ,"cubicInOut", ""],
+          ["quarticIn" ,"quarticIn", ""], ["quarticOut" ,"quarticOut", ""], ["quarticInOut" ,"quarticInOut", ""],
+          ["quinticIn" ,"quinticIn", ""], ["quinticOut" ,"quinticOut", ""], ["quinticInOut" ,"quinticInOut", ""],
+          ["sinusoidalIn" ,"sinusoidalIn", ""], ["sinusoidalOut" ,"sinusoidalOut", ""], ["sinusoidalInOut" ,"sinusoidalInOut", ""],
+          ["exponentialIn" ,"exponentialIn", ""], ["exponentialOut" ,"exponentialOut", ""], ["exponentialInOut" ,"exponentialIn", ""],
+          ["circularIn" ,"circularIn", ""], ["circularOut" ,"circularOut", ""], ["circularInOut" ,"circularInOut", ""],
+          ["elasticIn" ,"elasticIn", ""], ["elasticOut" ,"elasticOut", ""], ["elasticInOut" ,"elasticInOut", ""],
+          ["backIn" ,"backIn", ""], ["backOut" ,"backOut", ""], ["backInOut" ,"backInOut", ""],
+          ["bounceIn" ,"bounceIn", ""], ["bounceOut" ,"bounceOut", ""], ["bounceInOut" ,"bounceInOut", ""]
+        ], "default": "linear"},
+        "colorCurve": {"type": "enum", "items":[
+          ["linear" ,"linear", ""],
+          ["quadraticIn" ,"quadraticIn", ""], ["quadraticOut" ,"quadraticOut", ""], ["quadraticInOut" ,"quadraticInOut", ""],
+          ["cubicIn" ,"cubicIn", ""], ["cubicOut" ,"cubicOut", ""], ["cubicInOut" ,"cubicInOut", ""],
+          ["quarticIn" ,"quarticIn", ""], ["quarticOut" ,"quarticOut", ""], ["quarticInOut" ,"quarticInOut", ""],
+          ["quinticIn" ,"quinticIn", ""], ["quinticOut" ,"quinticOut", ""], ["quinticInOut" ,"quinticInOut", ""],
+          ["sinusoidalIn" ,"sinusoidalIn", ""], ["sinusoidalOut" ,"sinusoidalOut", ""], ["sinusoidalInOut" ,"sinusoidalInOut", ""],
+          ["exponentialIn" ,"exponentialIn", ""], ["exponentialOut" ,"exponentialOut", ""], ["exponentialInOut" ,"exponentialIn", ""],
+          ["circularIn" ,"circularIn", ""], ["circularOut" ,"circularOut", ""], ["circularInOut" ,"circularInOut", ""],
+          ["elasticIn" ,"elasticIn", ""], ["elasticOut" ,"elasticOut", ""], ["elasticInOut" ,"elasticInOut", ""],
+          ["backIn" ,"backIn", ""], ["backOut" ,"backOut", ""], ["backInOut" ,"backInOut", ""],
+          ["bounceIn" ,"bounceIn", ""], ["bounceOut" ,"bounceOut", ""], ["bounceInOut" ,"bounceInOut", ""]
+        ], "default": "linear"},
+        "startSize": {"type": "float", "default": 1.0},
+        "endSize": {"type": "float", "default": 1.0},
+        "sizeRandomness": {"type": "float"},
+        "ageRandomness": {"type": "float"},
+        "lifetime": {"type": "float", "default": 1.0, "sybType":"TIME", "unit": "TIME"},
+        "lifetimeRandomness": {"type": "float"},
+        "particleCount": {"type": "int", "subType": "UNSIGNED", "default": 10},
+        "startVelocity": {"type": "vec3", "subType":"XYZ", "unit":"VELOCITY", "default": {"x": 0.0, "y": 0.0, "z": 1.0}},
+        "endVelocity": {"type": "vec3", "subType":"XYZ", "unit":"VELOCITY", "default": {"x": 0.0, "y": 0.0, "z": 1.0}},
+        "velocityCurve": {"type": "enum", "items":[
+          ["linear" ,"linear", ""],
+          ["quadraticIn" ,"quadraticIn", ""], ["quadraticOut" ,"quadraticOut", ""], ["quadraticInOut" ,"quadraticInOut", ""],
+          ["cubicIn" ,"cubicIn", ""], ["cubicOut" ,"cubicOut", ""], ["cubicInOut" ,"cubicInOut", ""],
+          ["quarticIn" ,"quarticIn", ""], ["quarticOut" ,"quarticOut", ""], ["quarticInOut" ,"quarticInOut", ""],
+          ["quinticIn" ,"quinticIn", ""], ["quinticOut" ,"quinticOut", ""], ["quinticInOut" ,"quinticInOut", ""],
+          ["sinusoidalIn" ,"sinusoidalIn", ""], ["sinusoidalOut" ,"sinusoidalOut", ""], ["sinusoidalInOut" ,"sinusoidalInOut", ""],
+          ["exponentialIn" ,"exponentialIn", ""], ["exponentialOut" ,"exponentialOut", ""], ["exponentialInOut" ,"exponentialIn", ""],
+          ["circularIn" ,"circularIn", ""], ["circularOut" ,"circularOut", ""], ["circularInOut" ,"circularInOut", ""],
+          ["elasticIn" ,"elasticIn", ""], ["elasticOut" ,"elasticOut", ""], ["elasticInOut" ,"elasticInOut", ""],
+          ["backIn" ,"backIn", ""], ["backOut" ,"backOut", ""], ["backInOut" ,"backInOut", ""],
+          ["bounceIn" ,"bounceIn", ""], ["bounceOut" ,"bounceOut", ""], ["bounceInOut" ,"bounceInOut", ""]
+        ], "default": "linear"},
+        "angularVelocity": {"type": "float", "unit": "VELOCITY"}
+      }
+    },
     "waypoint": {
       "category": "Elements",
       "node": true,
