@@ -127,7 +127,7 @@ def draw_component(panel, context, obj, row, component_item):
                     icon="TRIA_DOWN" if component_item.expanded else "TRIA_RIGHT",
                     icon_only=True, emboss=False
         )
-    top_row.label(text=component_name)
+    top_row.label(text=components.dash_to_title(component_name))
 
     copy_component_operator = top_row.operator(
         "wm.copy_hubs_component",

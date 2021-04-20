@@ -101,7 +101,10 @@ def define_type(type_name, hubs_context):
 
 
 def camel_to_title(s):
-   return re.sub(r'((?<=[a-z])[A-Z]|(?<!\A)[A-Z](?=[a-z]))', r' \1', s).title()
+    return re.sub(r'((?<=[a-z])[A-Z]|(?<!\A)[A-Z](?=[a-z]))', r' \1', s).title()
+
+def dash_to_title(s):
+    return s.replace("-", " ").title()
 
 def define_property(class_name, property_name, property_definition, hubs_context):
     property_type = property_definition['type']
