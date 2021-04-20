@@ -244,6 +244,7 @@
     "link": {
       "category": "Elements",
       "node": true,
+      "networked": true,
       "properties": {
         "href": {
           "type": "string",
@@ -254,6 +255,7 @@
     "image": {
       "category": "Elements",
       "node": true,
+      "networked": true,
       "properties": {
         "src": {
           "type": "string",
@@ -286,6 +288,7 @@
     "audio": {
       "category": "Elements",
       "node": true,
+      "networked": true,
       "properties": {
         "src": {
           "type": "string",
@@ -365,6 +368,7 @@
     "video": {
       "category": "Elements",
       "node": true,
+      "networked": true,
       "properties": {
         "src": {
           "type": "string",
@@ -676,6 +680,7 @@
     "media-frame": {
       "category": "Elements",
       "node": true,
+      "networked": true,
       "properties": {
         "bounds": {
           "type": "vec3",
