@@ -188,11 +188,6 @@
           "type": "string",
           "description": "Image URL"
         },
-        "controls": {
-          "type": "bool", 
-          "description": "Controls",
-          "default": true
-        },
         "alphaMode": {
           "type": "enum",
           "description": "Transparency Mode",
