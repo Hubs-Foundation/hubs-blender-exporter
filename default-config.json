@@ -539,6 +539,91 @@
         "resolution": {"type": "ivec2", "unit":"PIXEL", "default": [1280, 720]},
         "fps": {"type": "int", "default": 15}
       }
+    },
+    "text": {
+      "category": "Elements",
+      "node": true,
+      "properties": {
+        "value": { 
+          "type": "string",
+          "label": "Text"
+        },
+        "align": {
+          "type": "enum",
+          "description": "Alignment",
+          "items": [ 
+            [ "left", "Left align", "Text will be aligned to the left" ],
+            [ "right", "Right align", "Text will be aligned to the right" ],
+            [ "center", "Center align", "Text will be centered" ]
+          ]
+        },
+        "baseline": {
+          "type": "enum",
+          "description": "Baseline",
+          "items": [ 
+            [ "top", "Top align", "Alignment will be with the top of the text" ],
+            [ "center", "Center align", "Alignment will be with the center of the text" ],
+            [ "bottom", "Bottom align", "Alignment will be with the bottom of the text" ]
+          ]
+        },
+        "side": {
+          "type": "enum",
+          "description": "Display Side",
+          "items": [ 
+            [ "front", "Show on front", "Text will be shown on the front (-Y)" ],
+            [ "back", "Show on back", "Text will be shown on the back (+Y)" ],
+            [ "double", "Show on both", "Text will be shown on both sides" ]
+          ]
+        },
+        "whiteSpace": {
+          "type": "enum",
+          "description": "White Space",
+          "items": [ 
+            [ "normal", "Normal", "Text will flow normally" ],
+            [ "pre", "Preserve", "White space will be preserved" ],
+            [ "nowrap", "No Wrapping", "Text will not be word-wrapped" ]
+          ]
+        },
+        "font": { 
+          "type": "string",
+          "label": "Font",
+          "default": "roboto"
+        },
+        "color": { 
+          "type": "color", 
+          "label": "Color",
+          "default": "#FFF" 
+        },
+        "width": {
+          "type": "float",
+          "label": "Width",
+          "default": 1.0
+        },
+        "letterSpacing": {
+          "type": "float",
+          "label": "Letter Space",
+          "default": 0
+        },
+        "lineHeight": {
+          "type": "float",
+          "label": "Line Height"
+        },
+        "opacity": {
+          "type": "float",
+          "label": "Opacity",
+          "default": 1.0
+        },
+        "xOffset": {
+          "type": "float",
+          "label": "X-Offset",
+          "default": 0.0
+        },
+        "zOffset": {
+          "type": "float",
+          "label": "Z-Offset",
+          "default": 0.001
+        }
+      }
     }
   }
 }
