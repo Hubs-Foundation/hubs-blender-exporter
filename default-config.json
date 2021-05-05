@@ -599,6 +599,15 @@
           "label": "Width",
           "default": 1.0
         },
+        "wrapCount": {
+          "type": "float",
+          "label": "Wrap Count",
+          "default": 40
+        },
+        "wrapPixels": {
+          "type": "float",
+          "label": "Wrap Pixels"
+        },
         "letterSpacing": {
           "type": "float",
           "label": "Letter Space",
