@@ -840,6 +840,11 @@
           "type": "float",
           "description": "A double value describing the amount of volume reduction outside the cone defined by the coneOuterAngle attribute.",
           "default": 0.0
+        },
+        "debug": {
+          "description": "Show debug visuals.",
+          "type": "bool",
+          "default": false
         }
       }
     },
@@ -856,6 +861,11 @@
           "description": "Do not transmit your own audio to audio targets.",
           "type": "bool",
           "default": true
+        },
+        "debug": {
+          "description": "Play white noise when no audio source is in the zone.",
+          "type": "bool",
+          "default": false
         }
       }
     }
