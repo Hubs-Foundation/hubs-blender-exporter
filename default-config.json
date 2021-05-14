@@ -1055,6 +1055,17 @@
       "properties": {
         "culled": { "type": "bool", "default": true, "description": "Ignore entities outside of the camera frustrum. Frustrum culling can cause problems with some animations" }
       }
+    },
+    "model": {
+      "category": "Elements",
+      "node": true,
+      "networked": true,
+      "properties": {
+        "src": {
+          "type": "string",
+          "description": "Model URL"
+        }
+      }
     }
   }
 }
