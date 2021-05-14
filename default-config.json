@@ -868,6 +868,17 @@
           "default": false
         }
       }
+    },
+    "model": {
+      "category": "Elements",
+      "node": true,
+      "networked": true,
+      "properties": {
+        "src": {
+          "type": "string",
+          "description": "Model URL"
+        }
+      }
     }
   }
 }
