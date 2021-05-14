@@ -879,6 +879,13 @@
           "description": "Model URL"
         }
       }
+    },
+    "moveable": {
+      "category": "Elements",
+      "node": true,
+      "networked": true,
+      "properties": {
+      }
     }
   }
 }
