@@ -127,7 +127,7 @@ def draw_component(panel, context, obj, row, component_item):
                     icon="TRIA_DOWN" if component_item.expanded else "TRIA_RIGHT",
                     icon_only=True, emboss=False
         )
-    top_row.label(text=component_name)
+    top_row.label(text=components.dash_to_title(component_name))
 
     copy_component_operator = top_row.operator(
         "wm.copy_hubs_component",
@@ -167,7 +167,10 @@ def draw_property(context, col, obj, target, path, property_name, property_defin
     elif property_type == 'array':
         draw_array_property(context, col, obj, target, path, property_name, property_definition)
     elif is_custom_type:
-        draw_type(context, col, obj, target, path, registered_types[property_type])
+        type_row = col.row()
+        display_name = property_definition.get("label", components.camel_to_title(property_name))
+        type_row.label(text=display_name)
+        draw_type(context, type_row.column(), obj, getattr(target, property_name), path + "." + property_name, registered_types[property_type])
     else:
         col.prop(data=target, property=property_name)
 

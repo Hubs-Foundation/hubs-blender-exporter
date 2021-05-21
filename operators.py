@@ -48,12 +48,13 @@ class AddHubsComponent(Operator):
                 column = row.column()
                 column.label(text=category)
                 for (component_name, component_class) in cmps:
+                    component_display_name = components.dash_to_title(component_name)
                     if not components.is_object_source_component(object_source, component_class.definition): continue
 
                     if components.has_component(obj, component_name):
-                        column.label(text=component_name)
+                        column.label(text=component_display_name)
                     else:
-                        op = column.operator(AddHubsComponent.bl_idname, text = component_name, icon='ADD')
+                        op = column.operator(AddHubsComponent.bl_idname, text = component_display_name, icon='ADD')
                         op.component_name = component_name
                         op.object_source = object_source
 

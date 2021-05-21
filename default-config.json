@@ -32,6 +32,15 @@
           "type": "material"
         }
       }
+    },
+    "SpawnerMediaOptions": {
+      "properties": {
+        "applyGravity": {
+          "description": "Apply gravity to spawned object",
+          "type": "bool",
+          "default": false
+        }
+      }
     }
   },
   "components": {
@@ -74,7 +83,8 @@
             [ "inverse", "Inverse drop off (inverse)", "Volume will decrease inversely with distance" ],
             [ "linear", "Linear drop off (linear)", "Volume will decrease linearly with distance" ],
             [ "exponential", "Exponential drop off (exponential)", "Volume will decrease expoentially with distance" ]
-          ]
+          ],
+          "default": "inverse"
         },
         "avatarRolloffFactor": { "type": "float", "default": 2.0, "description": "Avatar Rolloff Factor" },
         "avatarRefDistance": { "type": "float", "default": 1.0, "unit": "LENGTH", "description": " Avatar Ref Distance" },
@@ -87,7 +97,8 @@
             [ "inverse", "Inverse drop off (inverse)", "Volume will decrease inversely with distance" ],
             [ "linear", "Linear drop off (linear)", "Volume will decrease linearly with distance" ],
             [ "exponential", "Exponential drop off (exponential)", "Volume will decrease expoentially with distance" ]
-          ]
+          ],
+          "default": "inverse"
         },
         "mediaRolloffFactor": { "type": "float", "default": 2.0, "description": "Media Rolloff Factor" },
         "mediaRefDistance": { "type": "float", "default": 1.0, "unit": "LENGTH","description": " Media Ref Distance" },
@@ -138,6 +149,68 @@
         "intensity": {"type": "float", "default": 1.0}
       }
     },
+    "particle-emitter": {
+      "node": true,
+      "category": "Elements",
+      "properties": {
+        "src": {"type": "string", "default": ""},
+        "startColor": {"type": "color"},
+        "middleColor": {"type": "color"},
+        "endColor": {"type": "color"},
+        "startOpacity": {"type": "float", "default": 1.0},
+        "middleOpacity": {"type": "float", "default": 1.0},
+        "endOpacity": {"type": "float", "default": 1.0},
+        "sizeCurve": {"type": "enum", "items":[
+          ["linear" ,"linear", ""],
+          ["quadraticIn" ,"quadraticIn", ""], ["quadraticOut" ,"quadraticOut", ""], ["quadraticInOut" ,"quadraticInOut", ""],
+          ["cubicIn" ,"cubicIn", ""], ["cubicOut" ,"cubicOut", ""], ["cubicInOut" ,"cubicInOut", ""],
+          ["quarticIn" ,"quarticIn", ""], ["quarticOut" ,"quarticOut", ""], ["quarticInOut" ,"quarticInOut", ""],
+          ["quinticIn" ,"quinticIn", ""], ["quinticOut" ,"quinticOut", ""], ["quinticInOut" ,"quinticInOut", ""],
+          ["sinusoidalIn" ,"sinusoidalIn", ""], ["sinusoidalOut" ,"sinusoidalOut", ""], ["sinusoidalInOut" ,"sinusoidalInOut", ""],
+          ["exponentialIn" ,"exponentialIn", ""], ["exponentialOut" ,"exponentialOut", ""], ["exponentialInOut" ,"exponentialIn", ""],
+          ["circularIn" ,"circularIn", ""], ["circularOut" ,"circularOut", ""], ["circularInOut" ,"circularInOut", ""],
+          ["elasticIn" ,"elasticIn", ""], ["elasticOut" ,"elasticOut", ""], ["elasticInOut" ,"elasticInOut", ""],
+          ["backIn" ,"backIn", ""], ["backOut" ,"backOut", ""], ["backInOut" ,"backInOut", ""],
+          ["bounceIn" ,"bounceIn", ""], ["bounceOut" ,"bounceOut", ""], ["bounceInOut" ,"bounceInOut", ""]
+        ], "default": "linear"},
+        "colorCurve": {"type": "enum", "items":[
+          ["linear" ,"linear", ""],
+          ["quadraticIn" ,"quadraticIn", ""], ["quadraticOut" ,"quadraticOut", ""], ["quadraticInOut" ,"quadraticInOut", ""],
+          ["cubicIn" ,"cubicIn", ""], ["cubicOut" ,"cubicOut", ""], ["cubicInOut" ,"cubicInOut", ""],
+          ["quarticIn" ,"quarticIn", ""], ["quarticOut" ,"quarticOut", ""], ["quarticInOut" ,"quarticInOut", ""],
+          ["quinticIn" ,"quinticIn", ""], ["quinticOut" ,"quinticOut", ""], ["quinticInOut" ,"quinticInOut", ""],
+          ["sinusoidalIn" ,"sinusoidalIn", ""], ["sinusoidalOut" ,"sinusoidalOut", ""], ["sinusoidalInOut" ,"sinusoidalInOut", ""],
+          ["exponentialIn" ,"exponentialIn", ""], ["exponentialOut" ,"exponentialOut", ""], ["exponentialInOut" ,"exponentialIn", ""],
+          ["circularIn" ,"circularIn", ""], ["circularOut" ,"circularOut", ""], ["circularInOut" ,"circularInOut", ""],
+          ["elasticIn" ,"elasticIn", ""], ["elasticOut" ,"elasticOut", ""], ["elasticInOut" ,"elasticInOut", ""],
+          ["backIn" ,"backIn", ""], ["backOut" ,"backOut", ""], ["backInOut" ,"backInOut", ""],
+          ["bounceIn" ,"bounceIn", ""], ["bounceOut" ,"bounceOut", ""], ["bounceInOut" ,"bounceInOut", ""]
+        ], "default": "linear"},
+        "startSize": {"type": "float", "default": 1.0},
+        "endSize": {"type": "float", "default": 1.0},
+        "sizeRandomness": {"type": "float"},
+        "ageRandomness": {"type": "float"},
+        "lifetime": {"type": "float", "default": 1.0, "sybType":"TIME", "unit": "TIME"},
+        "lifetimeRandomness": {"type": "float"},
+        "particleCount": {"type": "int", "subType": "UNSIGNED", "default": 10},
+        "startVelocity": {"type": "vec3", "subType":"XYZ", "unit":"VELOCITY", "default": {"x": 0.0, "y": 0.0, "z": 1.0}},
+        "endVelocity": {"type": "vec3", "subType":"XYZ", "unit":"VELOCITY", "default": {"x": 0.0, "y": 0.0, "z": 1.0}},
+        "velocityCurve": {"type": "enum", "items":[
+          ["linear" ,"linear", ""],
+          ["quadraticIn" ,"quadraticIn", ""], ["quadraticOut" ,"quadraticOut", ""], ["quadraticInOut" ,"quadraticInOut", ""],
+          ["cubicIn" ,"cubicIn", ""], ["cubicOut" ,"cubicOut", ""], ["cubicInOut" ,"cubicInOut", ""],
+          ["quarticIn" ,"quarticIn", ""], ["quarticOut" ,"quarticOut", ""], ["quarticInOut" ,"quarticInOut", ""],
+          ["quinticIn" ,"quinticIn", ""], ["quinticOut" ,"quinticOut", ""], ["quinticInOut" ,"quinticInOut", ""],
+          ["sinusoidalIn" ,"sinusoidalIn", ""], ["sinusoidalOut" ,"sinusoidalOut", ""], ["sinusoidalInOut" ,"sinusoidalInOut", ""],
+          ["exponentialIn" ,"exponentialIn", ""], ["exponentialOut" ,"exponentialOut", ""], ["exponentialInOut" ,"exponentialIn", ""],
+          ["circularIn" ,"circularIn", ""], ["circularOut" ,"circularOut", ""], ["circularInOut" ,"circularInOut", ""],
+          ["elasticIn" ,"elasticIn", ""], ["elasticOut" ,"elasticOut", ""], ["elasticInOut" ,"elasticInOut", ""],
+          ["backIn" ,"backIn", ""], ["backOut" ,"backOut", ""], ["backInOut" ,"backInOut", ""],
+          ["bounceIn" ,"bounceIn", ""], ["bounceOut" ,"bounceOut", ""], ["bounceInOut" ,"bounceInOut", ""]
+        ], "default": "linear"},
+        "angularVelocity": {"type": "float", "unit": "VELOCITY"}
+      }
+    },
     "waypoint": {
       "category": "Elements",
       "node": true,
@@ -173,6 +246,7 @@
     "link": {
       "category": "Elements",
       "node": true,
+      "networked": true,
       "properties": {
         "href": {
           "type": "string",
@@ -183,6 +257,7 @@
     "image": {
       "category": "Elements",
       "node": true,
+      "networked": true,
       "properties": {
         "src": {
           "type": "string",
@@ -215,6 +290,7 @@
     "audio": {
       "category": "Elements",
       "node": true,
+      "networked": true,
       "properties": {
         "src": {
           "type": "string",
@@ -294,6 +370,7 @@
     "video": {
       "category": "Elements",
       "node": true,
+      "networked": true,
       "properties": {
         "src": {
           "type": "string",
@@ -544,14 +621,14 @@
       "category": "Elements",
       "node": true,
       "properties": {
-        "value": { 
+        "value": {
           "type": "string",
           "label": "Text"
         },
         "align": {
           "type": "enum",
           "description": "Alignment",
-          "items": [ 
+          "items": [
             [ "left", "Left align", "Text will be aligned to the left" ],
             [ "right", "Right align", "Text will be aligned to the right" ],
             [ "center", "Center align", "Text will be centered" ]
@@ -560,7 +637,7 @@
         "baseline": {
           "type": "enum",
           "description": "Baseline",
-          "items": [ 
+          "items": [
             [ "top", "Top align", "Alignment will be with the top of the text" ],
             [ "center", "Center align", "Alignment will be with the center of the text" ],
             [ "bottom", "Bottom align", "Alignment will be with the bottom of the text" ]
@@ -569,7 +646,7 @@
         "side": {
           "type": "enum",
           "description": "Display Side",
-          "items": [ 
+          "items": [
             [ "front", "Show on front", "Text will be shown on the front (-Y)" ],
             [ "back", "Show on back", "Text will be shown on the back (+Y)" ],
             [ "double", "Show on both", "Text will be shown on both sides" ]
@@ -578,21 +655,21 @@
         "whiteSpace": {
           "type": "enum",
           "description": "White Space",
-          "items": [ 
+          "items": [
             [ "normal", "Normal", "Text will flow normally" ],
             [ "pre", "Preserve", "White space will be preserved" ],
             [ "nowrap", "No Wrapping", "Text will not be word-wrapped" ]
           ]
         },
-        "font": { 
+        "font": {
           "type": "string",
           "label": "Font",
           "default": "roboto"
         },
-        "color": { 
-          "type": "color", 
+        "color": {
+          "type": "color",
           "label": "Color",
-          "default": "#FFF" 
+          "default": "#FFF"
         },
         "width": {
           "type": "float",
@@ -631,6 +708,258 @@
           "type": "float",
           "label": "Z-Offset",
           "default": 0.001
+        }
+      }
+    },
+    "ammo-shape":{
+      "category": "Scene",
+      "node": true,
+      "properties": {
+        "type": {
+          "type": "enum",
+          "description": "Avatar Distance Model",
+          "items": [
+            [ "box", "Box Collider", "A box-shaped primitive collision shape"],
+            [ "sphere", "Sphere Collider", "A primitive collision shape which is represents a sphere" ],
+            [ "hull", "Convex Hull", "A convex hull wrapped around the objects vertecies. A good analogy for a convex hull is an elastic membrane or balloon under pressure which is placed around a given set of vertices. When released the membrane will assume the shape of the convex hull." ],
+            [ "mesh", "Mesh Collider", "A shape made of the actual vertecies of the object. This can be expensive for large meshes." ]
+          ],
+          "default": "hull"
+        },
+        "fit": {
+          "type": "enum",
+          "description": "Shape fitting mode",
+          "items": [
+            [ "all", "Automatic fit all", "Automatically match the shape to fit the object's vertecies"],
+            [ "manual", "Manual fit", "Use the manually specified dimensions to define the shape, ignoring the object's vertecies" ]
+          ],
+          "default": "all"
+        },
+        "halfExtents": {
+          "type": "vec3",
+          "description": "Half dimensions of the collider. (Only used when fit is set to \"manual\" and type is set ot \"box\")",
+          "unit":"LENGTH",
+          "subType":"XYZ_LENGTH",
+          "default": [ 0.5,  0.5,  0.5 ]
+        },
+        "minHalfExtent": {
+          "type": "float",
+          "description": "The minimum size to use when automatically generating half extents. (Only used when fit is set to \"all\" and type is set ot \"box\")",
+          "unit": "LENGTH",
+          "default": 0.0
+        },
+        "maxHalfExtent": {
+          "type": "float",
+          "description": "The maximum size to use when automatically generating half extents. (Only used when fit is set to \"all\" and type is set ot \"box\")",
+          "unit": "LENGTH",
+          "default": 1000.0
+        },
+        "sphereRadius": {
+          "type": "float",
+          "description": "Radius of the sphere collider. (Only used when fit is set to \"manual\" and type is set ot \"sphere\")",
+          "unit": "LENGTH",
+          "default": 0.5
+        },
+        "offset": {
+          "type": "vec3",
+          "description": "An offset to apply to the collider relative to the object's origin.",
+          "subType":"XYZ",
+          "default": [ 0.0, 0.0,  0.0 ]
+        },
+        "includeInvisible": {
+          "type": "bool",
+          "description": "Include invisible objects when generating a collider. (Only used if \"fit\" is set to \"all\")",
+          "default": false
+        }
+      }
+    },
+    "media-frame": {
+      "category": "Elements",
+      "node": true,
+      "networked": true,
+      "properties": {
+        "bounds": {
+          "type": "vec3",
+          "description": "Bounding box to fit objects into when they are snapped into the media frame.",
+          "unit":"LENGTH",
+          "subType":"XYZ_LENGTH",
+          "default": [ 1.0,  1.0,  1.0 ]
+        },
+        "mediaType": {
+          "type": "enum",
+          "description": "Limit what type of media this frame will capture",
+          "items": [
+            [ "all", "All Media", "Allow any type of media."],
+            [ "all-2d", "Only 2D Media", "Allow only Images, Videos, and PDFs." ],
+            [ "model", "Only 3D Models", "Allow only 3D models." ],
+            [ "image", "Only Images", "Allow only images." ],
+            [ "video", "Only Videos", "Allow only videos." ],
+            [ "pdf", "Only PDFs", "Allow only PDFs." ]
+          ],
+          "default": "all-2d"
+        },
+        "snapToCenter": {
+          "type": "bool",
+          "description": "Snap the media to the center of the media frame when capturing. If set to false the object will just remain in the place it was dorpped but still be considered \"captured\" by the media frame.",
+          "default": true
+        }
+      }
+    },
+    "skybox": {
+      "category": "Scene",
+      "node": true,
+      "properties": {
+        "azimuth": {
+          "type": "float",
+          "label": "Time of Day",
+          "default": 0.15
+        },
+        "inclination": {
+          "type": "float",
+          "label": "Latitude",
+          "default": 0.0
+        },
+        "luminance": {
+          "type": "float",
+          "label": "Luminance",
+          "default": 1.0
+        },
+        "mieCoefficient": {
+          "type": "float",
+          "label": "Scattering Amount",
+          "default": 0.005
+        },
+        "mieDirectionalG": {
+          "type": "float",
+          "label": "Scattering Distance",
+          "default": 0.8
+        },
+        "turbidity": {
+          "type": "float",
+          "label": "Horizon Start",
+          "default": 10.0
+        },
+        "rayleigh": {
+          "type": "float",
+          "label": "Horizon Start",
+          "default": 2.0
+        },
+        "distance": {
+          "type": "float",
+          "label": "Distance",
+          "default": 8000.0
+        }
+      }
+    },
+    "spawner": {
+      "category": "Elements",
+      "node": true,
+      "properties": {
+        "src": { "type": "string" },
+        "mediaOptions": { "type": "SpawnerMediaOptions" }
+      }
+    },
+    "audio-target": {
+      "category": "Elements",
+      "node": true,
+      "properties": {
+        "srcNode": {
+          "label": "Source",
+          "description": "Node with a audio-source-zone to pull audio from",
+          "type": "nodeRef",
+          "hasComponents": ["zone-audio-source"]
+        },
+
+        "gain": {
+          "type": "float",
+          "description": "How much to amplify the source audio by",
+          "default": 1.5
+        },
+        "minDelay": {
+          "type": "float",
+          "description": "Minumum random delay applied to the source audio",
+          "default": 0.01
+        },
+        "maxDelay": {
+          "type": "float",
+          "description": "Maxumum random delay applied to the source audio",
+          "default": 0.03
+        },
+
+        "positional": {
+          "description": "Should audio be spatialized. Note the remaining audio properties only apply to positional audio sources.",
+          "type": "bool",
+          "default": true
+        },
+        "distanceModel": {
+          "type": "enum",
+          "description": "Distance Model",
+          "items": [
+            [ "inverse", "Inverse", "Volume will decrease inversely with distance" ],
+            [ "linear", "Linear", "Volume will decrease linearly with distance" ],
+            [ "exponential", "Exponential", "Volume will decrease expoentially with distance" ]
+          ],
+          "default": "inverse"
+        },
+        "refDistance": {
+          "type": "float",
+          "subType":"DISTANCE",
+          "description": "A double value representing the reference distance for reducing volume as the audio source moves further from the listener. For distances greater than this the volume will be reduced based on rolloffFactor and distanceModel.",
+          "unit": "LENGTH",
+          "default": 1.0
+        },
+        "rolloffFactor": {
+          "type": "float",
+          "description": "A double value describing how quickly the volume is reduced as the source moves away from the listener. This value is used by all distance models.",
+          "default": 1.0
+        },
+        "maxDistance": {
+          "type": "float",
+          "subType":"DISTANCE",
+          "description": "A double value representing the maximum distance between the audio source and the listener, after which the volume is not reduced any further. This value is used only by the linear distance model.",
+          "unit": "LENGTH",
+          "default": 10000.0
+        },
+        "coneInnerAngle": {
+          "type": "float",
+          "description": "A double value describing the angle, in degrees, of a cone inside of which there will be no volume reduction.",
+          "default": 360.0
+        },
+        "coneOuterAngle": {
+          "type": "float",
+          "description": "A double value describing the angle, in degrees, of a cone outside of which the volume will be reduced by a constant value, defined by the coneOuterGain attribute.",
+          "default": 0.0
+        },
+        "coneOuterGain": {
+          "type": "float",
+          "description": "A double value describing the amount of volume reduction outside the cone defined by the coneOuterAngle attribute.",
+          "default": 0.0
+        },
+        "debug": {
+          "description": "Show debug visuals.",
+          "type": "bool",
+          "default": false
+        }
+      }
+    },
+    "zone-audio-source": {
+      "category": "Elements",
+      "node": true,
+      "properties": {
+        "onlyMods": {
+          "description": "Only room moderators should be able to transmit audio from this source.",
+          "type": "bool",
+          "default": true
+        },
+        "muteSelf": {
+          "description": "Do not transmit your own audio to audio targets.",
+          "type": "bool",
+          "default": true
+        },
+        "debug": {
+          "description": "Play white noise when no audio source is in the zone.",
+          "type": "bool",
+          "default": false
         }
       }
     }
