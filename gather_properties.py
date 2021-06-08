@@ -150,7 +150,7 @@ def gather_color_property(export_settings, blender_object, target, property_name
     c = getattr(target, property_name)
     return "#{0:02x}{1:02x}{2:02x}".format(max(0, min(int(c[0] * 256.0), 255)), max(0, min(int(c[1] * 256.0), 255)), max(0, min(int(c[2] * 256.0), 255)))
 
-@cached
+# @cached
 def gather_lightmap_texture_info(blender_material, export_settings):
     nodes = blender_material.node_tree.nodes
     lightmap_node = next((n for n in nodes if isinstance(n, MozLightmapNode)), None)
@@ -160,7 +160,9 @@ def gather_lightmap_texture_info(blender_material, export_settings):
     texture_socket = lightmap_node.inputs.get("Lightmap")
     intensity = lightmap_node.intensity
 
-    texture_info = gather_texture_info(texture_socket, (texture_socket,), export_settings)
+    print("gather_lightmap")
+
+    texture_info = gather_hdr_texture_info(texture_socket, (texture_socket,), export_settings)
     if not texture_info: return
 
     return {
@@ -170,3 +172,70 @@ def gather_lightmap_texture_info(blender_material, export_settings):
         "index": texture_info.index,
         "texCoord": texture_info.tex_coord
     }
+
+
+from typing import Optional, Tuple
+from io_scene_gltf2.blender.exp.gltf2_blender_image import ExportImage
+from io_scene_gltf2.io.exp.gltf2_io_image_data import ImageData
+
+ImageData.extension_for_mime["image/vnd.radiance"] = ".hdr"
+class HDRExportImage(ExportImage):
+    def preferred_mime_type(self) -> str:
+        print("HDR export")
+        return "image/vnd.radiance"
+
+    def __blender_format_for_mime(self, mime_type: Optional[str]) -> str:
+        if not mime_type == "image/vnd.radiance":
+            raise Exception("HDRExportImage only supports exporting .hdr images")
+        return "HDR"
+
+    def __check_magic(self, data: bytes) -> bool:
+        return data.startswith(b'#?RADIANCE')
+
+from io_scene_gltf2.io.com import gltf2_io
+from io_scene_gltf2.blender.exp import gltf2_blender_gather_texture_info, gltf2_blender_gather_texture, gltf2_blender_gather_image
+from io_scene_gltf2.io.com.gltf2_io_extensions import Extension
+def gather_hdr_texture_info(primary_socket, blender_shader_sockets, export_settings):
+    print("gather hdr texture")
+
+    texture_extensions = gltf2_blender_gather_texture.__gather_extensions(blender_shader_sockets, export_settings)
+
+    if texture_extensions is None:
+        texture_extensions = {}
+
+    # is_hdr = primary_socket.node.color.image.file_format != "PNG"
+    is_hdr = True
+    print("HDR",is_hdr)
+
+    if is_hdr:
+        ext_name = "MOZ_texture_rgbe"
+        texture_extensions[ext_name] = Extension(
+            name=ext_name,
+            extension={
+                "source": gltf2_blender_gather_image.gather_image(blender_shader_sockets, export_settings, HDRExportImage)
+            },
+            required=False
+        )
+        print("ext", texture_extensions[ext_name])
+
+    print("got image")
+
+    texture = gltf2_io.Texture(
+        extensions=texture_extensions,
+        extras=gltf2_blender_gather_texture.__gather_extras(blender_shader_sockets, export_settings),
+        name=gltf2_blender_gather_texture.__gather_name(blender_shader_sockets, export_settings),
+        sampler=gltf2_blender_gather_texture.__gather_sampler(blender_shader_sockets, export_settings),
+        source= None if is_hdr else gltf2_blender_gather_texture.__gather_source(blender_shader_sockets, export_settings)
+    )
+
+    # export_user_extensions('gather_texture_hook', export_settings, texture, blender_shader_sockets)
+
+    tex_transform, tex_coord = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(primary_socket, export_settings)
+
+    texture_info = gltf2_io.TextureInfo(
+        extensions=gltf2_blender_gather_texture_info.__gather_extensions(tex_transform, export_settings),
+        extras=gltf2_blender_gather_texture_info.__gather_extras(blender_shader_sockets, export_settings),
+        index=texture,
+        tex_coord=tex_coord
+    )
+    return texture_info
