@@ -307,6 +307,10 @@ def add_component(obj, component_name, hubs_config, registered_hubs_components):
             else:
                 component[property_name] = default_value
 
+    if 'deps' in component_definition:
+        for dep in component_definition["deps"]:
+            add_component(obj, dep, hubs_config, registered_hubs_components)
+
 def remove_component(obj, component_name):
     items = obj.hubs_component_list.items
     items.remove(items.find(component_name))
