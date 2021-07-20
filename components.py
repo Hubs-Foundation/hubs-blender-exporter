@@ -279,6 +279,11 @@ def get_wildcard(arr, path_parts):
     return values
 
 def add_component(obj, component_name, hubs_config, registered_hubs_components):
+    if any(item.name == component_name for item in obj.hubs_component_list.items):
+        print('Hubs component \'%s\' already exists' % (
+            component_name))
+        return
+
     item = obj.hubs_component_list.items.add()
     item.name = component_name
     component_definition = hubs_config['components'][component_name]
@@ -306,6 +311,10 @@ def add_component(obj, component_name, hubs_config, registered_hubs_components):
                 component[property_name] = index
             else:
                 component[property_name] = default_value
+
+    if 'deps' in component_definition:
+        for dep in component_definition["deps"]:
+            add_component(obj, dep, hubs_config, registered_hubs_components)
 
 def remove_component(obj, component_name):
     items = obj.hubs_component_list.items

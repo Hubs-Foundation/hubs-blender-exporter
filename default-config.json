@@ -310,62 +310,9 @@
           "type": "bool", 
           "description": "Loop",
           "default": true
-        },
-        "audioType": {
-          "type": "enum",
-          "description": "Audio Type",
-          "items": [ 
-            [ "pannernode", "Positional audio (pannernode)", "Volume will change depending on the listener's position relative to the source" ],
-            [ "stereo", "Background audio (stereo)", "Volume will be independent of the listener's position" ]
-          ]
-        },
-        "volume": {
-          "type": "float", 
-          "description": "Volume",
-          "default": 0.5
-        },
-        "distanceModel": {
-          "type": "enum",
-          "description": "Distance Model",
-          "items": [ 
-            [ "inverse", "Inverse drop off (inverse)", "Volume will decrease inversely with distance" ],
-            [ "linear", "Linear drop off (linear)", "Volume will decrease linearly with distance" ],
-            [ "exponential", "Exponential drop off (exponential)", "Volume will decrease expoentially with distance" ]
-          ]
-        },
-        "rolloffFactor": {
-          "type": "float", 
-          "description": "Rolloff Factor",
-          "default": 1.0
-        },
-        "refDistance": {
-          "type": "float", 
-          "description": "Ref Distance",
-          "unit": "LENGTH",
-          "default": 1.0
-        },
-        "maxDistance": {
-          "type": "float", 
-          "description": "Max Distance",
-          "unit": "LENGTH",
-          "default": 10000.0
-        },
-        "coneInnerAngle": {
-          "type": "float", 
-          "description": "Cone Inner Angle",
-          "default": 360.0
-        },
-        "coneOuterAngle": {
-          "type": "float", 
-          "description": "Cone Outer Angle",
-          "default": 360.0
-        },
-        "coneOuterGain": {
-          "type": "float", 
-          "description": "Cone Outer Gain",
-          "default": 0.0
         }
-      }
+      },
+      "deps": ["audio-params"]
     },
     "video": {
       "category": "Elements",
@@ -398,62 +345,9 @@
           "type": "bool", 
           "description": "Loop",
           "default": true
-        },
-        "audioType": {
-          "type": "enum",
-          "description": "Audio Type",
-          "items": [ 
-            [ "pannernode", "Positional audio (pannernode)", "Volume will change depending on the listener's position relative to the source" ],
-            [ "stereo", "Background audio (stereo)", "Volume will be independent of the listener's position" ]
-          ]
-        },
-        "volume": {
-          "type": "float", 
-          "description": "Volume",
-          "default": 0.5
-        },
-        "distanceModel": {
-          "type": "enum",
-          "description": "Distance Model",
-          "items": [ 
-            [ "inverse", "Inverse drop off (inverse)", "Volume will decrease inversely with distance" ],
-            [ "linear", "Linear drop off (linear)", "Volume will decrease linearly with distance" ],
-            [ "exponential", "Exponential drop off (exponential)", "Volume will decrease expoentially with distance" ]
-          ]
-        },
-        "rolloffFactor": {
-          "type": "float", 
-          "description": "Rolloff Factor",
-          "default": 1.0
-        },
-        "refDistance": {
-          "type": "float", 
-          "description": "Ref Distance",
-          "unit": "LENGTH",
-          "default": 1.0
-        },
-        "maxDistance": {
-          "type": "float", 
-          "description": "Max Distance",
-          "unit": "LENGTH",
-          "default": 10000.0
-        },
-        "coneInnerAngle": {
-          "type": "float", 
-          "description": "Cone Inner Angle",
-          "default": 360.0
-        },
-        "coneOuterAngle": {
-          "type": "float", 
-          "description": "Cone Outer Angle",
-          "default": 360.0
-        },
-        "coneOuterGain": {
-          "type": "float", 
-          "description": "Cone Outer Gain",
-          "default": 0.0
         }
-      }
+      },
+      "deps": ["audio-params"]
     },
     "nav-mesh": {
       "category": "Scene",
@@ -869,27 +763,51 @@
           "type": "nodeRef",
           "hasComponents": ["zone-audio-source"]
         },
-
+        "debug": {
+          "description": "Show debug visuals.",
+          "type": "bool",
+          "default": false
+        }
+      },
+      "deps": ["audio-params"]
+    },
+    "zone-audio-source": {
+      "category": "Elements",
+      "node": true,
+      "properties": {
+        "onlyMods": {
+          "description": "Only room moderators should be able to transmit audio from this source.",
+          "type": "bool",
+          "default": true
+        },
+        "muteSelf": {
+          "description": "Do not transmit your own audio to audio targets.",
+          "type": "bool",
+          "default": true
+        },
+        "debug": {
+          "description": "Play white noise when no audio source is in the zone.",
+          "type": "bool",
+          "default": false
+        }
+      }
+    },
+    "audio-params": {
+      "category": "Elements",
+      "node": true,
+      "properties": {
+        "audioType": {
+          "type": "enum",
+          "description": "Audio Type",
+          "items": [ 
+            [ "pannernode", "Positional audio (pannernode)", "Volume will change depending on the listener's position relative to the source" ],
+            [ "stereo", "Background audio (stereo)", "Volume will be independent of the listener's position" ]
+          ]
+        },
         "gain": {
           "type": "float",
           "description": "How much to amplify the source audio by",
-          "default": 1.5
-        },
-        "minDelay": {
-          "type": "float",
-          "description": "Minumum random delay applied to the source audio",
-          "default": 0.01
-        },
-        "maxDelay": {
-          "type": "float",
-          "description": "Maxumum random delay applied to the source audio",
-          "default": 0.03
-        },
-
-        "positional": {
-          "description": "Should audio be spatialized. Note the remaining audio properties only apply to positional audio sources.",
-          "type": "bool",
-          "default": true
+          "default": 1.0
         },
         "distanceModel": {
           "type": "enum",
@@ -934,34 +852,26 @@
           "type": "float",
           "description": "A double value describing the amount of volume reduction outside the cone defined by the coneOuterAngle attribute.",
           "default": 0.0
-        },
-        "debug": {
-          "description": "Show debug visuals.",
-          "type": "bool",
-          "default": false
         }
       }
     },
-    "zone-audio-source": {
+    "audio-zone": {
       "category": "Elements",
       "node": true,
+      "networked": true,
       "properties": {
-        "onlyMods": {
-          "description": "Only room moderators should be able to transmit audio from this source.",
+        "inOut": {
           "type": "bool",
+          "description": "The zone audio parameters affect the sources inside the zone when the listener is outside",
           "default": true
         },
-        "muteSelf": {
-          "description": "Do not transmit your own audio to audio targets.",
+        "outIn": {
           "type": "bool",
+          "description": "The zone audio parameters affect the sources outside the zone when the listener is inside",
           "default": true
-        },
-        "debug": {
-          "description": "Play white noise when no audio source is in the zone.",
-          "type": "bool",
-          "default": false
         }
-      }
+      },
+      "deps": ["audio-params"]
     }
   }
 }
