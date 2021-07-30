@@ -763,6 +763,16 @@
           "type": "nodeRef",
           "hasComponents": ["zone-audio-source"]
         },
+        "minDelay": {
+          "type": "float",
+          "description": "Minumum random delay applied to the source audio",
+          "default": 0.01
+        },
+        "maxDelay": {
+          "type": "float",
+          "description": "Maxumum random delay applied to the source audio",
+          "default": 0.03
+        },
         "debug": {
           "description": "Show debug visuals.",
           "type": "bool",
