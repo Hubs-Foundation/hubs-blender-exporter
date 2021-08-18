@@ -751,7 +751,7 @@
         },
         "rayleigh": {
           "type": "float",
-          "label": "Horizon Start",
+          "label": "Horizon End",
           "default": 2.0
         },
         "distance": {
@@ -905,6 +905,42 @@
       "properties": {
         "cast": { "type": "bool", "default": true },
         "receive": { "type": "bool", "default": true }
+      }
+    },
+    "environment-settings": {
+      "category": "Scene",
+      "node": false,
+      "scene": true,
+      "properties": {
+        "toneMapping": {
+          "type": "enum",
+          "description": "Tone Mapping",
+          "items": [
+            [ "NoToneMapping", "None", "No tone mapping." ],
+            [ "LinearToneMapping", "Linear", "Linear tone mapping" ],
+            [ "ReinhardToneMapping", "Reinhard", "Reinhard tone mapping" ],
+            [ "CineonToneMapping", "Cineon", "Cineon tone mapping" ],
+            [ "ACESFilmicToneMapping", "ACES Filmic", "ACES Filmic tone mapping" ]
+          ],
+          "default": "ACESFilmicToneMapping"
+        },
+        "toneMappingExposure": {
+          "label": "Exposure",
+          "type": "float",
+          "description": "Exposure level of tone mapping",
+          "default": 1.0
+        },
+        "backgroundColor": { "type": "color", "default": "#aaaaaa" },
+        "backgroundTexture": {
+          "type": "texture",
+          "label": "Backgorund Image",
+          "description": "An equirectangular image to use as the scene background"
+        },
+        "envMapTexture": {
+          "type": "texture",
+          "label": "EnvMap",
+          "description": "An equirectangular image to use as the default environment map for all objects"
+        }
       }
     }
   }
