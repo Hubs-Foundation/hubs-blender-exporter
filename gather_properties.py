@@ -2,7 +2,7 @@ import os
 import datetime
 import re
 import bpy
-from io_scene_gltf2.blender.exp import gltf2_blender_gather_materials, gltf2_blender_gather_image, gltf2_blender_gather_nodes
+from io_scene_gltf2.blender.exp import gltf2_blender_gather_materials, gltf2_blender_gather_image, gltf2_blender_gather_nodes, gltf2_blender_gather_texture
 from io_scene_gltf2.blender.exp.gltf2_blender_image import ExportImage
 from io_scene_gltf2.blender.com import gltf2_blender_extras
 from io_scene_gltf2.blender.exp.gltf2_blender_gather_cache import cached
@@ -29,6 +29,8 @@ def gather_property(export_settings, blender_object, target, property_name, prop
         return gather_material_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
     elif property_type == 'image':
         return gather_image_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
+    elif property_type == 'texture':
+        return gather_texture_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
     elif property_type == 'collections':
         return gather_collections_property(export_settings, blender_object, target, property_name, property_definition, hubs_config)
     elif property_type == 'array':
@@ -63,13 +65,18 @@ def gather_node_property(export_settings, blender_object, target, property_name,
     blender_object = getattr(target, property_name)
 
     if blender_object:
-        return gltf2_blender_gather_nodes.gather_node(
+        node = gltf2_blender_gather_nodes.gather_node(
             blender_object,
             blender_object.library.name if blender_object.library else None,
             blender_object.users_scene[0],
             None,
             export_settings
         )
+
+        return {
+            "__mhc_link_type": "node",
+            "index": node
+        }
     else:
         return None
 
@@ -115,7 +122,7 @@ def gather_image_property(export_settings, blender_object, target, property_name
         uri = gltf2_blender_gather_image.__gather_uri(image_data, mime_type, name, export_settings)
         buffer_view = gltf2_blender_gather_image.__gather_buffer_view(image_data, mime_type, name, export_settings)
 
-        return gltf2_blender_gather_image.__make_image(
+        image = gltf2_blender_gather_image.__make_image(
             buffer_view,
             None,
             None,
@@ -124,8 +131,88 @@ def gather_image_property(export_settings, blender_object, target, property_name
             uri,
             export_settings
         )
+
+        return {
+            "__mhc_link_type": "image",
+            "index": image
+        }
     else:
         return None
+
+from io_scene_gltf2.io.exp.gltf2_io_binary_data import BinaryData
+from io_scene_gltf2.io.exp.gltf2_io_image_data import ImageData
+class HubsImageData(ImageData):
+    @property
+    def file_extension(self):
+        if self._mime_type == "image/vnd.radiance":
+            return ".hdr"
+        return super.file_extension(self)
+
+# TODO DRY this up
+@cached
+def gather_image(blender_image, export_settings):
+    if not blender_image:
+        return None
+
+    is_hdr = blender_image.file_format == "HDR"
+
+    # TODO handle non HDR images
+    if is_hdr:
+        mime_type = "image/vnd.radiance"
+        data = __encode_from_image(blender_image)
+        name, _extension = os.path.splitext(os.path.basename(blender_image.filepath))
+
+        buffer_view = None
+        uri = None
+        if export_settings[gltf2_blender_export_keys.FORMAT] == 'GLTF_SEPARATE':
+            uri = HubsImageData(data=data, mime_type=mime_type, name=name)
+        else:
+            buffer_view = BinaryData(data=data)
+
+        return  gltf2_io.Image(
+            buffer_view=buffer_view,
+            extensions=None,
+            extras=None,
+            mime_type=mime_type,
+            name=name,
+            uri=uri
+        )
+
+    return None
+
+@cached
+def gather_texture(blender_image, export_settings):
+    image = gather_image(blender_image, export_settings)
+
+    texture_extensions = {}
+    is_hdr = blender_image and blender_image.file_format == "HDR"
+
+    if is_hdr:
+        ext_name = "MOZ_texture_rgbe"
+        texture_extensions[ext_name] = Extension(
+            name=ext_name,
+            extension={
+                "source": image
+            },
+            required=False
+        )
+
+    # export_user_extensions('gather_texture_hook', export_settings, texture, blender_shader_sockets)
+
+    return gltf2_io.Texture(
+        extensions=texture_extensions,
+        extras=None,
+        name=None,
+        sampler=0,
+        source=None if is_hdr else image
+    )
+
+def gather_texture_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
+    blender_image = getattr(target, property_name)
+    return {
+        "__mhc_link_type": "texture",
+        "index": gather_texture(blender_image, export_settings)
+    }
 
 def gather_collections_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
     filtered_collection_names = []
@@ -176,7 +263,6 @@ def gather_lightmap_texture_info(blender_material, export_settings):
 
 from io_scene_gltf2.blender.exp import gltf2_blender_gather_texture_info, gltf2_blender_gather_texture, gltf2_blender_export_keys
 from io_scene_gltf2.io.com.gltf2_io_extensions import Extension
-from io_scene_gltf2.io.exp import gltf2_io_binary_data, gltf2_io_image_data
 from io_scene_gltf2.io.com import gltf2_io
 
 # TODO this should allow conversion from other HDR formats (namely EXR), and in memory images
@@ -206,9 +292,9 @@ def gather_hdr_texture_info(primary_socket, blender_shader_sockets, export_setti
         buffer_view = None
         uri = None
         if export_settings[gltf2_blender_export_keys.FORMAT] == 'GLTF_SEPARATE':
-            uri = gltf2_io_image_data.ImageData(data=data, mime_type=mime_type, name=name)
+            uri = HubsImageData(data=data, mime_type=mime_type, name=name)
         else:
-            buffer_view = gltf2_io_binary_data.BinaryData(data=data)
+            buffer_view = BinaryData(data=data)
 
         image = gltf2_io.Image(
             buffer_view=buffer_view,

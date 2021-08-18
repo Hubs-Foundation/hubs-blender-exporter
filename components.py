@@ -216,7 +216,7 @@ def define_property(class_name, property_name, property_definition, hubs_context
             type=Object,
             poll=filter_on_component
         )
-    elif property_type == 'image':
+    elif property_type == 'image' or property_type == 'texture':
         return PointerProperty(
             name=display_name,
             description=property_definition.get("description") or "",
