@@ -184,6 +184,9 @@ def gather_image(blender_image, export_settings):
 def gather_texture(blender_image, export_settings):
     image = gather_image(blender_image, export_settings)
 
+    if not image:
+        return None
+
     texture_extensions = {}
     is_hdr = blender_image and blender_image.file_format == "HDR"
 
@@ -209,9 +212,15 @@ def gather_texture(blender_image, export_settings):
 
 def gather_texture_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
     blender_image = getattr(target, property_name)
+
+    texture = gather_texture(blender_image, export_settings)
+
+    if not texture:
+        return None
+
     return {
         "__mhc_link_type": "texture",
-        "index": gather_texture(blender_image, export_settings)
+        "index": texture
     }
 
 def gather_collections_property(export_settings, blender_object, target, property_name, property_definition, hubs_config):
