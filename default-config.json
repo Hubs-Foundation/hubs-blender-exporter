@@ -882,6 +882,14 @@
         }
       },
       "deps": ["audio-params"]
+    },
+    "shadow": {
+      "category": "Elements",
+      "node": true,
+      "properties": {
+        "cast": { "type": "bool", "default": true },
+        "receive": { "type": "bool", "default": true }
+      }
     }
   }
 }
