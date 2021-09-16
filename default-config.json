@@ -141,6 +141,22 @@
         "shadowRadius": {"type": "float", "default": 1.0}
       }
     },
+    "spot-light": {
+      "category": "Elements",
+      "node": true,
+      "properties": {
+        "color": {"type": "color"},
+        "intensity": {"type": "float", "default": 1.0},
+        "range": {"type": "float", "default": 0.0},
+        "decay": {"type": "float", "default": 2.0},
+        "innerConeAngle": {"type": "float", "default": 0.0, "min": 0.0, "max": 1.57079632679, "subType":"ANGLE", "unit":"ROTATION"},
+        "outerConeAngle": {"type": "float", "default": 0.78539816339, "min": 0.0005729577951408, "max": 1.57079632679, "subType":"ANGLE", "unit":"ROTATION"},
+        "castShadow": { "type": "bool", "default": false },
+        "shadowMapResolution": {"type": "ivec2", "unit":"PIXEL", "default": [512, 512]},
+        "shadowBias": {"type": "float", "default": 0.0},
+        "shadowRadius": {"type": "float", "default": 1.0}
+      }
+    },
     "ambient-light": {
       "category": "Elements",
       "node": true,
