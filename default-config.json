@@ -44,14 +44,6 @@
     }
   },
   "components": {
-    "background": {
-      "category": "Scene",
-      "scene": true,
-      "node": false,
-      "properties": {
-        "color": { "type": "color", "default": "#aaaaaa" }
-      }
-    },
     "fog": {
       "category": "Scene",
       "scene": true,
