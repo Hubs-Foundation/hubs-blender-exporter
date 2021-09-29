@@ -122,8 +122,8 @@ def define_property(class_name, property_name, property_definition, hubs_context
             description=property_definition.get("description") or "",
             subtype=property_definition.get("subType") or "NONE",
             unit=property_definition.get("unit") or "NONE",
-            min=property_definition.get("min") if "min" in property_definition else -1e+38,
-            max=property_definition.get("max") if "max" in property_definition else +1e+38,
+            min=property_definition.get("min", float('-inf')),
+            max=property_definition.get("max", float('inf')),
         )
     elif property_type == 'bool':
         return BoolProperty(
