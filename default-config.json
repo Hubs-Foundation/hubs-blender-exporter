@@ -1,7 +1,7 @@
 {
   "configVersion": 1,
   "gltfExtensionName": "MOZ_hubs_components",
-  "gltfExtensionVersion": 3,
+  "gltfExtensionVersion": 4,
   "types": {
     "MaterialItem": {
       "properties": {
