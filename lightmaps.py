@@ -15,12 +15,12 @@ def selectImageTexture(lightmapNode, material):
         imageTexture.select = True
         print(f" - selected image texture '{imageTexture.name}' ({imageTexture.label})")
     else:
-        print(" ! no image texture found")      
+        raise ValueError(f"No image texture found on material '{material.name}'")      
     return imageTexture          
 
 # Find the UV map associated with an image texture
 
-def findUvMap(imageTexture):
+def findUvMap(imageTexture, material):
     # Search for the parent UV Map
     for inputs in imageTexture.inputs:
         for links in inputs.links:
@@ -28,7 +28,7 @@ def findUvMap(imageTexture):
             if links.from_node.bl_idname == "ShaderNodeUVMap": 
                 return links.from_node.uv_map
             else:
-                print(f" ! unexpected node type '{links.from_node.bl_idname}' instead of 'ShaderNodeUVMap'")
+                raise ValueError(f"Unexpected node type '{links.from_node.bl_idname}' instead of 'ShaderNodeUVMap' on material '{material.name}'")
     return None
 
 # Select the object that holds this mesh
@@ -45,7 +45,7 @@ def selectObjectFromMesh(mesh):
 
 def selectUvMaps(imageTexture, material):
     # Select the lightmap UVs on the associated mesh
-    uvMap = findUvMap(imageTexture)
+    uvMap = findUvMap(imageTexture, material)
     if uvMap:                        
         print(f" - found UV Map Node '{uvMap}'")
         # Search for meshes that use this material (can't find a parent property so this will have to do)
@@ -58,9 +58,9 @@ def selectUvMaps(imageTexture, material):
                     mesh.uv_layers.active = uvLayer
                     print(f" - UV layer '{uvMap}' is now active on '{mesh.name}'")                                
                 else:
-                    print(f" ! failed to find UV layer '{uvMap}' in '{mesh.name}'")
+                    raise ValueError(f"Failed to find UV layer '{uvMap}' for mesh '{mesh.name}' using material '{material.name}'")
     else:
-        print(f" ! no UV map found")
+        raise ValueError(f"No UV map found for image texture '{imageTexture.name}' with image '{imageTexture.image.name}' in material '{material.name}'")
 
 # Selects all MOZ lightmap related components ready for baking
 
@@ -75,9 +75,12 @@ def selectLightmapComponents():
                 # Is this node a MOZ lightmap node?
                 if shadernode.bl_idname == "moz_lightmap.node":
                     print(f"found '{shadernode.name}' ({shadernode.label}) on material '{material.name}'")
-                    # Select just the image texture node and activate it so it will be targetted by the bake
-                    imageTexture = selectImageTexture(shadernode, material)
+                    # Select and activate just the image texture node so it will be targetted by the bake
+                    imageTexture = selectImageTexture(shadernode, material)                
                     material.node_tree.nodes.active = imageTexture
                     if imageTexture:
+                        # Check image texture actually has an image
+                        if imageTexture.image == None:
+                            raise ValueError(f"No image found on image texture '{imageTexture.name}' ('{imageTexture.label}') in material '{material.name}'")
                         selectUvMaps(imageTexture, material)
                         
