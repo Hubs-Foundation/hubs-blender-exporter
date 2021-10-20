@@ -3,6 +3,7 @@ from bpy.props import StringProperty, BoolProperty, IntProperty, EnumProperty, C
 from bpy.types import Operator
 from . import components
 from functools import reduce
+from . import lightmaps
 
 class AddHubsComponent(Operator):
     bl_idname = "wm.add_hubs_component"
@@ -224,6 +225,15 @@ class ResetHubsComponentNames(Operator):
 
         return {'FINISHED'}
 
+class PrepareHubsLightmaps(Operator):
+    bl_idname = "wm.prepare_hubs_lightmaps"
+    bl_label = "Prepare Lightmaps"
+    bl_description = "Select all MOZ_lightmap input textures and the matching mesh UV layer"
+
+    def execute(self, context):
+        lightmaps.selectLightmapComponents()
+        return {'FINISHED'}
+
 def register():
     bpy.utils.register_class(AddHubsComponent)
     bpy.utils.register_class(RemoveHubsComponent)
@@ -232,6 +242,7 @@ def register():
     bpy.utils.register_class(RemoveHubsComponentItem)
     bpy.utils.register_class(ReloadHubsConfig)
     bpy.utils.register_class(ResetHubsComponentNames)
+    bpy.utils.register_class(PrepareHubsLightmaps)
 
 def unregister():
     bpy.utils.unregister_class(AddHubsComponent)
@@ -241,3 +252,4 @@ def unregister():
     bpy.utils.unregister_class(RemoveHubsComponentItem)
     bpy.utils.unregister_class(ReloadHubsConfig)
     bpy.utils.unregister_class(ResetHubsComponentNames)
+    bpy.utils.unregister_class(PrepareHubsLightmaps)

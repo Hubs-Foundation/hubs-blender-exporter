@@ -3,6 +3,19 @@ import bpy
 from bpy.types import Panel
 from bpy.props import StringProperty
 from . import components
+from . import operators
+
+class HubsRenderPanel(Panel):
+    bl_label = 'Hubs'
+    bl_idname = "RENDER_PT_hubs"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = 'render'
+
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.operator(operators.PrepareHubsLightmaps.bl_idname)
 
 class HubsScenePanel(Panel):
     bl_label = 'Hubs'
@@ -230,12 +243,14 @@ def draw_array_property(context, col, obj, target, path, property_name, property
     add_operator.path = property_path
 
 def register():
+    bpy.utils.register_class(HubsRenderPanel)
     bpy.utils.register_class(HubsScenePanel)
     bpy.utils.register_class(HubsObjectPanel)
     bpy.utils.register_class(HubsMaterialPanel)
     bpy.utils.register_class(HubsBonePanel)
 
 def unregister():
+    bpy.utils.unregister_class(HubsRenderPanel)
     bpy.utils.unregister_class(HubsScenePanel)
     bpy.utils.unregister_class(HubsObjectPanel)
     bpy.utils.unregister_class(HubsMaterialPanel)
