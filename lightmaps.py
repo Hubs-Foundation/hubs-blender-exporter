@@ -64,8 +64,9 @@ def selectUvMaps(imageTexture, material):
 
 # Selects all MOZ lightmap related components ready for baking
 
-def selectLightmapComponents():
-    # Deslect all objects to start with (only lightmapped objects should be selected)
+def selectLightmapComponents():    
+    # Deslect all objects to start with (can only be done in object mode)
+    bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.select_all(action='DESELECT')
     # For every material
     for material in bpy.data.materials:
