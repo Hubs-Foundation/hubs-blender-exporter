@@ -227,12 +227,14 @@ class ResetHubsComponentNames(Operator):
 
 class PrepareHubsLightmaps(Operator):
     bl_idname = "wm.prepare_hubs_lightmaps"
-    bl_label = "Prepare Lightmaps"
+    bl_label = "Prepare all Lightmaps"
     bl_description = "Select all MOZ_lightmap input textures, the matching mesh UV layer, and the objects ready for baking"
+
+    target: StringProperty(name="target")
 
     def execute(self, context):
         try: 
-            lightmaps.selectLightmapComponents()
+            lightmaps.selectLightmapComponents(self.target)
             self.report({'INFO'}, "Lightmaps prepared and ready to bake")
         except Exception as e:
             self.report({'ERROR'}, str(e))

@@ -4,6 +4,7 @@ from bpy.types import Panel
 from bpy.props import StringProperty
 from . import components
 from . import operators
+from . import lightmaps
 
 class HubsRenderPanel(Panel):
     bl_label = 'Hubs'
@@ -15,7 +16,14 @@ class HubsRenderPanel(Panel):
     def draw(self, context):
         layout = self.layout
         row = layout.row()
-        row.operator(operators.PrepareHubsLightmaps.bl_idname)
+        row.operator(operators.PrepareHubsLightmaps.bl_idname).target = ""
+        lightmapImages = lightmaps.listLightmapImages()
+        # Is the more than 1 lightmap texture?
+        if len(lightmapImages) > 1:
+            for lightmapImage in lightmapImages:
+                row = layout.row()
+                row.operator(operators.PrepareHubsLightmaps.bl_idname, text=f"Prepare '{lightmapImage.name}'").target = lightmapImage.name
+
 
 class HubsScenePanel(Panel):
     bl_label = 'Hubs'
