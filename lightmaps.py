@@ -82,6 +82,11 @@ def selectLightmapComponents(targetName):
     # For every material
     for material in bpy.data.materials:
         if material.node_tree:
+            # Deactivate and unselect all nodes in the shader graph
+            #  - they can be active even if the UI doesn't show it and they will be baked
+            material.node_tree.nodes.active = None
+            for n in material.node_tree.nodes:
+                n.select = False
             # For every node in the material graph
             for shadernode in material.node_tree.nodes:
                 # Is this node a MOZ lightmap node?
@@ -92,10 +97,6 @@ def selectLightmapComponents(targetName):
                         # Check image texture actually has an image
                         if imageTexture.image == None:
                             raise ValueError(f"No image found on image texture '{imageTexture.name}' ('{imageTexture.label}') in material '{material.name}'")
-                        # Deactivate and unselect all nodes
-                        material.node_tree.nodes.active = None
-                        for n in material.node_tree.nodes:
-                            n.select = False
                         # Is this lightmap texture image being targetted?
                         if targetName == "" or targetName == imageTexture.image.name:
                             # Select and activate the image texture node so it will be targetted by the bake
@@ -105,7 +106,7 @@ def selectLightmapComponents(targetName):
 
                             selectUvMaps(imageTexture, material)
                         else:
-                            print(f"Ignoring image texture '{imageTexture.name}' because it uses image '{imageTexture.image.name}' and the target is '{targetName}'")
+                            print(f" - ignoring image texture '{imageTexture.name}' because it uses image '{imageTexture.image.name}' and the target is '{targetName}'")
                     else:
                         raise ValueError(f"No image texture found on material '{material.name}'")      
                         
