@@ -92,11 +92,12 @@ def selectLightmapComponents(targetName):
                         # Check image texture actually has an image
                         if imageTexture.image == None:
                             raise ValueError(f"No image found on image texture '{imageTexture.name}' ('{imageTexture.label}') in material '{material.name}'")
+                        # Deactivate and unselect all nodes
+                        material.node_tree.nodes.active = None
+                        for n in material.node_tree.nodes:
+                            n.select = False
                         # Is this lightmap texture image being targetted?
                         if targetName == "" or targetName == imageTexture.image.name:
-                            # Unselect all nodes so there will be only one remaining selection
-                            for n in material.node_tree.nodes:
-                                n.select = False
                             # Select and activate the image texture node so it will be targetted by the bake
                             imageTexture.select = True
                             material.node_tree.nodes.active = imageTexture
