@@ -22,7 +22,7 @@ class HubsRenderPanel(Panel):
         if len(lightmapImages) > 1:
             for lightmapImage in lightmapImages:
                 row = layout.row()
-                row.operator(operators.PrepareHubsLightmaps.bl_idname, text=f"Prepare '{lightmapImage.name}'").target = lightmapImage.name
+                row.operator(operators.PrepareHubsLightmaps.bl_idname, text=f"Prepare '{lightmapImage.name}' for packing").target = lightmapImage.name
 
 
 class HubsScenePanel(Panel):

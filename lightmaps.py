@@ -1,4 +1,5 @@
 import bpy
+import bmesh
 
 # Find and select the image texture associated with a MOZ_lightmap settings
 def findImageTexture(lightmapNode):
@@ -22,7 +23,7 @@ def findUvMap(imageTexture, material):
     return None
 
 # Select the object that holds this mesh
-def selectObjectFromMesh(mesh):
+def selectObjectFromMesh(mesh, material):
     for o in bpy.context.scene.objects:
         if o.type == "MESH":
             if o.data.name == mesh.name:
@@ -30,7 +31,17 @@ def selectObjectFromMesh(mesh):
                 o.hide_set(False)
                 o.select_set(True)
                 print(f" --- selected object '{o.name}' because it uses mesh '{mesh.name}'")                                
-                return
+                # Select the faces that have been assigned to this material (important for UV packing for lightmaps)
+                materialSlotIndex = o.material_slots.find(material.name)
+                if materialSlotIndex < 0:              
+                    raise ValueError(f"Failed to find a slot with material '{material.name}' in '{mesh.name}' attached to object '{o.name}'")
+                bm = bmesh.new()
+                bm.from_mesh(o.data)
+                for f in bm.faces:
+                    if f.material_index == materialSlotIndex:
+                        f.select = True
+                bm.to_mesh(o.data)
+                bm.free()
 
 # Select the UV input to the image texture for every mesh that uses the given material
 def selectUvMaps(imageTexture, material):
@@ -42,7 +53,7 @@ def selectUvMaps(imageTexture, material):
         for mesh in bpy.data.meshes:
             if mesh.materials.find(material.name) != -1:
                 print(f" -- found mesh '{mesh.name}' that uses this material")                                
-                selectObjectFromMesh(mesh)                          
+                selectObjectFromMesh(mesh, material)                          
                 if mesh.uv_layers.find(uvMap) != -1:
                     uvLayer = mesh.uv_layers[uvMap]
                     mesh.uv_layers.active = uvLayer
@@ -54,9 +65,20 @@ def selectUvMaps(imageTexture, material):
 
 # Selects all MOZ lightmap related components ready for baking
 def selectLightmapComponents(targetName):    
-    # Deslect all objects to start with (bake objects will be selected)
+    # Force UI into OBJECT mode so scripts can manipulate meshes
+    bpy.ops.object.mode_set(mode='OBJECT')  
+    # Deslect all objects to start with (bake objects will then be selected)
     for o in bpy.context.scene.objects:
         o.select_set(False)
+        # Deselect and show all mesh faces (targetted faces will then be selected)
+        if o.type == "MESH":
+            bm = bmesh.new()
+            bm.from_mesh(o.data)
+            for f in bm.faces:
+                f.hide = False
+                f.select = False
+            bm.to_mesh(o.data)
+            bm.free()
     # For every material
     for material in bpy.data.materials:
         if material.node_tree:

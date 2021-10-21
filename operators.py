@@ -227,7 +227,7 @@ class ResetHubsComponentNames(Operator):
 
 class PrepareHubsLightmaps(Operator):
     bl_idname = "wm.prepare_hubs_lightmaps"
-    bl_label = "Prepare all Lightmaps"
+    bl_label = "Prepare all lightmaps for baking"
     bl_description = "Select all MOZ_lightmap input textures, the matching mesh UV layer, and the objects ready for baking"
 
     target: StringProperty(name="target")
