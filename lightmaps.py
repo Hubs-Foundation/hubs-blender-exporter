@@ -36,8 +36,9 @@ def findUvMap(imageTexture, material):
 def selectObjectFromMesh(mesh):
     for o in bpy.context.scene.objects:
         if o.type == "MESH":
-            # if this mesh exists in the dict
             if o.data.name == mesh.name:
+                # Objects cannot be selected if they are hidden
+                o.hide_set(False)
                 o.select_set(True)
                 return
 
