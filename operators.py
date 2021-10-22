@@ -235,6 +235,7 @@ class PrepareHubsLightmaps(Operator):
     def execute(self, context):
         try: 
             lightmaps.selectLightmapComponents(self.target)
+            lightmaps.assertNoMixedMaterials()
             self.report({'INFO'}, "Lightmaps prepared and ready to bake")
         except Exception as e:
             self.report({'ERROR'}, str(e))

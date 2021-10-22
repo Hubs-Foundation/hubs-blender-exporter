@@ -66,8 +66,23 @@ def selectUvMaps(imageTexture, material):
     else:
         raise ValueError(f"No UV map found for image texture '{imageTexture.name}' with image '{imageTexture.image.name}' in material '{material.name}'")
 
+# Check for selected objects with non-lightmapped materials. They might get baked and have corrupted image textures
+def assertNoMixedMaterials():
+    for object in bpy.context.scene.objects:
+        if object.select_get():
+            hasLightmapNode = False
+            for materialSlot in object.material_slots:
+                material = materialSlot.material
+                for shadernode in material.node_tree.nodes:
+                    if shadernode.bl_idname == "moz_lightmap.node":
+                        hasLightmapNode = True
+                        break
+                if not hasLightmapNode:
+                    raise ValueError(f"Multi-material object '{object.name}' uses '{materialSlot.name}' with no lightmap. It will be corrupted by baking") 
+
+
 # Selects all MOZ lightmap related components ready for baking
-def selectLightmapComponents(targetName):    
+def selectLightmapComponents(target):    
     # Force UI into OBJECT mode so scripts can manipulate meshes
     bpy.ops.object.mode_set(mode='OBJECT')  
     # Deslect all objects to start with (bake objects will then be selected)
@@ -101,7 +116,7 @@ def selectLightmapComponents(targetName):
                         if imageTexture.image == None:
                             raise ValueError(f"No image found on image texture '{imageTexture.name}' ('{imageTexture.label}') in material '{material.name}'")
                         # Is this lightmap texture image being targetted?
-                        if targetName == "" or targetName == imageTexture.image.name:
+                        if target == "" or target == imageTexture.image.name:
                             # Select and activate the image texture node so it will be targetted by the bake
                             imageTexture.select = True
                             material.node_tree.nodes.active = imageTexture
@@ -109,7 +124,7 @@ def selectLightmapComponents(targetName):
 
                             selectUvMaps(imageTexture, material)
                         else:
-                            print(f" - ignoring image texture '{imageTexture.name}' because it uses image '{imageTexture.image.name}' and the target is '{targetName}'")
+                            print(f" - ignoring image texture '{imageTexture.name}' because it uses image '{imageTexture.image.name}' and the target is '{target}'")
                     else:
                         raise ValueError(f"No image texture found on material '{material.name}'")      
                         
