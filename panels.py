@@ -17,7 +17,7 @@ class HubsRenderPanel(Panel):
         layout = self.layout
         row = layout.row()
         row.operator(operators.PrepareHubsLightmaps.bl_idname).target = ""
-        lightmapImages = lightmaps.listLightmapImages()
+        lightmapImages = sorted(lightmaps.listLightmapImages(), key=lambda it:it.name)
         # Is the more than 1 lightmap texture?
         if len(lightmapImages) > 1:
             for lightmapImage in lightmapImages:
