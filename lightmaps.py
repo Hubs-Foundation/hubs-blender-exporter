@@ -22,26 +22,29 @@ def findUvMap(imageTexture, material):
                 raise ValueError(f"Unexpected node type '{links.from_node.bl_idname}' instead of 'ShaderNodeUVMap' on material '{material.name}'")
     return None
 
+# Selects all the faces of the mesh that have been assigned the given material (important for UV packing for lightmaps)
+def selectMeshFacesFromMaterial(object, mesh, material):
+    materialSlotIndex = object.material_slots.find(material.name)
+    if materialSlotIndex < 0:              
+        raise ValueError(f"Failed to find a slot with material '{material.name}' in '{mesh.name}' attached to object '{object.name}'")
+    bm = bmesh.new()
+    bm.from_mesh(object.data)
+    for f in bm.faces:
+        if f.material_index == materialSlotIndex:
+            f.select = True
+    bm.to_mesh(object.data)
+    bm.free()
+
 # Select the object that holds this mesh
 def selectObjectFromMesh(mesh, material):
-    for o in bpy.context.scene.objects:
-        if o.type == "MESH":
-            if o.data.name == mesh.name:
+    for object in bpy.context.scene.objects:
+        if object.type == "MESH":
+            if object.data.name == mesh.name:
                 # Objects cannot be selected if they are hidden
-                o.hide_set(False)
-                o.select_set(True)
-                print(f" --- selected object '{o.name}' because it uses mesh '{mesh.name}'")                                
-                # Select the faces that have been assigned to this material (important for UV packing for lightmaps)
-                materialSlotIndex = o.material_slots.find(material.name)
-                if materialSlotIndex < 0:              
-                    raise ValueError(f"Failed to find a slot with material '{material.name}' in '{mesh.name}' attached to object '{o.name}'")
-                bm = bmesh.new()
-                bm.from_mesh(o.data)
-                for f in bm.faces:
-                    if f.material_index == materialSlotIndex:
-                        f.select = True
-                bm.to_mesh(o.data)
-                bm.free()
+                object.hide_set(False)
+                object.select_set(True)
+                print(f" --- selected object '{object.name}' because it uses mesh '{mesh.name}'")                                
+                selectMeshFacesFromMaterial(object, mesh, material)
 
 # Select the UV input to the image texture for every mesh that uses the given material
 def selectUvMaps(imageTexture, material):
