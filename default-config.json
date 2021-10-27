@@ -925,7 +925,7 @@
         "backgroundColor": { "type": "color", "default": "#aaaaaa" },
         "backgroundTexture": {
           "type": "texture",
-          "label": "Backgorund Image",
+          "label": "Background Image",
           "description": "An equirectangular image to use as the scene background"
         },
         "envMapTexture": {
