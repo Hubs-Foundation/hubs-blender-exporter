@@ -910,11 +910,12 @@
           "items": [
             [ "NoToneMapping", "None", "No tone mapping." ],
             [ "LinearToneMapping", "Linear", "Linear tone mapping" ],
-            [ "ReinhardToneMapping", "Reinhard", "Reinhard tone mapping" ],
-            [ "CineonToneMapping", "Cineon", "Cineon tone mapping" ],
-            [ "ACESFilmicToneMapping", "ACES Filmic", "ACES Filmic tone mapping" ]
+            [ "ReinhardToneMapping", "ThreeJS 'Reinhard'", "ThreeJS 'Reinhard' tone mapping" ],
+            [ "CineonToneMapping", "ThreeJS 'Cineon'", "ThreeJS 'Cineon' tone mapping" ],
+            [ "ACESFilmicToneMapping", "ThreeJS 'ACES Filmic'", "ThreeJS 'ACES Filmic' tone mapping" ],
+            [ "LUTToneMapping", "Blender 'Filmic'", "Match Blender's Filmic tone mapping" ]
           ],
-          "default": "ACESFilmicToneMapping"
+          "default": "LUTToneMapping"
         },
         "toneMappingExposure": {
           "label": "Exposure",
