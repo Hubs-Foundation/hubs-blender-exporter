@@ -1,9 +1,11 @@
 import bpy
 import bmesh
 
+# Label for decoy texture
+HUBS_DECOY_IMAGE_TEXTURE = "HUBS_DECOY_IMAGE_TEXTURE"
+
 # Find and select the image texture associated with a MOZ_lightmap settings
 def findImageTexture(lightmapNode):
-    imageTexture = None
     for inputs in lightmapNode.inputs:
         for links in inputs.links:
             return links.from_node
@@ -66,21 +68,6 @@ def selectUvMaps(imageTexture, material):
     else:
         raise ValueError(f"No UV map found for image texture '{imageTexture.name}' with image '{imageTexture.image.name}' in material '{material.name}'")
 
-# Check for selected objects with non-lightmapped materials. They might get baked and have corrupted image textures
-def assertNoMixedMaterials():
-    for object in bpy.context.scene.objects:
-        if object.select_get():
-            hasLightmapNode = False
-            for materialSlot in object.material_slots:
-                material = materialSlot.material
-                for shadernode in material.node_tree.nodes:
-                    if shadernode.bl_idname == "moz_lightmap.node":
-                        hasLightmapNode = True
-                        break
-                if not hasLightmapNode:
-                    raise ValueError(f"Multi-material object '{object.name}' uses '{materialSlot.name}' with no lightmap. It will be corrupted by baking") 
-
-
 # Selects all MOZ lightmap related components ready for baking
 def selectLightmapComponents(target):    
     # Force UI into OBJECT mode so scripts can manipulate meshes
@@ -127,6 +114,11 @@ def selectLightmapComponents(target):
                             print(f" - ignoring image texture '{imageTexture.name}' because it uses image '{imageTexture.image.name}' and the target is '{target}'")
                     else:
                         raise ValueError(f"No image texture found on material '{material.name}'")      
+                # Is it a decoy node?
+                elif shadernode.bl_idname == "ShaderNodeTexImage" and shadernode.label == "HUBS_DECOY_IMAGE_TEXTURE":
+                    # Select and activate the image texture node so it will be targetted by the bake
+                    shadernode.select = True
+                    material.node_tree.nodes.active = shadernode
                         
 # List all the lightmap textures images
 def listLightmapImages():
@@ -143,3 +135,43 @@ def listLightmapImages():
                         if imageTexture.image:
                             result.add(imageTexture.image)
     return result
+
+# Check for selected objects with non-lightmapped materials. They might get baked and have corrupted image textures
+def assertSelectedObjectsAreSafeToBake(addDecoyRatherThanThrow):
+    decoyCount = 0
+    for object in bpy.context.scene.objects:
+        if object.select_get():
+            for materialSlot in object.material_slots:
+                material = materialSlot.material
+                hasLightmapNode = False
+                hasAtRiskImageTexture = False
+                hasDecoyImageTexture = False
+                for shadernode in material.node_tree.nodes:
+                    if shadernode.bl_idname == "moz_lightmap.node":
+                        hasLightmapNode = True
+                    elif shadernode.bl_idname == "ShaderNodeTexImage":
+                        if shadernode.label == HUBS_DECOY_IMAGE_TEXTURE:
+                            hasDecoyImageTexture = True
+                        else:
+                            hasAtRiskImageTexture = True
+                if hasAtRiskImageTexture and not (hasLightmapNode or hasDecoyImageTexture):
+                    if addDecoyRatherThanThrow:
+                        decoy_image_texture = material.node_tree.nodes.new("ShaderNodeTexImage")
+                        decoy_image_texture.label = HUBS_DECOY_IMAGE_TEXTURE
+                        decoyCount += 1
+                    else:
+                        raise ValueError(f"Multi-material object '{object.name}' uses '{materialSlot.name}' with no lightmap or decoy texture. It will be corrupted by baking") 
+    return decoyCount
+
+def removeAllDecoyImageTextures():
+    decoyCount = 0
+    # For every material
+    for material in bpy.data.materials:
+        if material.node_tree:
+            # For every node in the material graph
+            for shadernode in material.node_tree.nodes:
+                # Is this a decoy image?
+                if shadernode.bl_idname == "ShaderNodeTexImage" and shadernode.label == HUBS_DECOY_IMAGE_TEXTURE:
+                    material.node_tree.nodes.remove(shadernode)
+                    decoyCount += 1
+    return decoyCount

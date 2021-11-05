@@ -227,7 +227,7 @@ class ResetHubsComponentNames(Operator):
 
 class PrepareHubsLightmaps(Operator):
     bl_idname = "wm.prepare_hubs_lightmaps"
-    bl_label = "Prepare all lightmaps for baking"
+    bl_label = "Select all lightmap elements for baking"
     bl_description = "Select all MOZ_lightmap input textures, the matching mesh UV layer, and the objects ready for baking"
 
     target: StringProperty(name="target")
@@ -235,11 +235,40 @@ class PrepareHubsLightmaps(Operator):
     def execute(self, context):
         try: 
             lightmaps.selectLightmapComponents(self.target)
-            lightmaps.assertNoMixedMaterials()
+            lightmaps.assertSelectedObjectsAreSafeToBake(False)
             self.report({'INFO'}, "Lightmaps prepared and ready to bake")
         except Exception as e:
             self.report({'ERROR'}, str(e))
         return {'FINISHED'}
+
+
+class AddDecoyImageTextures(Operator):
+    bl_idname = "wm.add_decoy_image_textures"
+    bl_label = "Add to Selected"
+    bl_description = "Adds decoy image textures to the materials of selected meshes if they are required"
+
+    def execute(self, context):
+        try: 
+            decoyCount = lightmaps.assertSelectedObjectsAreSafeToBake(True)
+            self.report({'INFO'}, f"Added {decoyCount} decoy textures")
+        except Exception as e:
+            self.report({'ERROR'}, str(e))
+        return {'FINISHED'}
+
+class RemoveDecoyImageTextures(Operator):
+    bl_idname = "wm.remove_decoy_image_textures"
+    bl_label = "Remove All"
+    bl_description = "Remove all decoy image textures from materials regardless of selection"
+
+    def execute(self, context):
+        try: 
+            decoyCount = lightmaps.removeAllDecoyImageTextures()
+            self.report({'INFO'}, f"Removed {decoyCount} decoy textures")
+        except Exception as e:
+            self.report({'ERROR'}, str(e))
+        return {'FINISHED'}
+
+
 
 def register():
     bpy.utils.register_class(AddHubsComponent)
@@ -250,6 +279,8 @@ def register():
     bpy.utils.register_class(ReloadHubsConfig)
     bpy.utils.register_class(ResetHubsComponentNames)
     bpy.utils.register_class(PrepareHubsLightmaps)
+    bpy.utils.register_class(AddDecoyImageTextures)
+    bpy.utils.register_class(RemoveDecoyImageTextures)
 
 def unregister():
     bpy.utils.unregister_class(AddHubsComponent)
@@ -260,3 +291,5 @@ def unregister():
     bpy.utils.unregister_class(ReloadHubsConfig)
     bpy.utils.unregister_class(ResetHubsComponentNames)
     bpy.utils.unregister_class(PrepareHubsLightmaps)
+    bpy.utils.unregister_class(AddDecoyImageTextures)
+    bpy.utils.unregister_class(RemoveDecoyImageTextures)

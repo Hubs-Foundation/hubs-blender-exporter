@@ -18,11 +18,15 @@ class HubsRenderPanel(Panel):
         row = layout.row()
         row.operator(operators.PrepareHubsLightmaps.bl_idname).target = ""
         lightmapImages = sorted(lightmaps.listLightmapImages(), key=lambda it:it.name)
-        # Is the more than 1 lightmap texture?
+        # Is their more than 1 lightmap texture?
         if len(lightmapImages) > 1:
             for lightmapImage in lightmapImages:
                 row = layout.row()
-                row.operator(operators.PrepareHubsLightmaps.bl_idname, text=f"Prepare '{lightmapImage.name}' for packing").target = lightmapImage.name
+                row.operator(operators.PrepareHubsLightmaps.bl_idname, text=f"Select '{lightmapImage.name}' elements for packing").target = lightmapImage.name
+        row = layout.row()
+        row.label(text="Decoy Textures")
+        row.operator(operators.AddDecoyImageTextures.bl_idname)
+        row.operator(operators.RemoveDecoyImageTextures.bl_idname)
 
 
 class HubsScenePanel(Panel):
