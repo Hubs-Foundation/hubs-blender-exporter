@@ -71,7 +71,10 @@ def selectUvMaps(imageTexture, material):
 # Selects all MOZ lightmap related components ready for baking
 def selectLightmapComponents(target):    
     # Force UI into OBJECT mode so scripts can manipulate meshes
-    bpy.ops.object.mode_set(mode='OBJECT')  
+    try: 
+        bpy.ops.object.mode_set(mode='OBJECT')  
+    except Exception as e:
+        print(f"Failed to enter OBJECT mode (usually non-fatal): {str(e)}")                                
     # Deslect all objects to start with (bake objects will then be selected)
     for o in bpy.context.scene.objects:
         o.select_set(False)
