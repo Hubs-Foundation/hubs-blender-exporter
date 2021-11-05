@@ -78,8 +78,8 @@
           ],
           "default": "inverse"
         },
-        "avatarRolloffFactor": { "type": "float", "default": 2.0, "description": "Avatar Rolloff Factor" },
-        "avatarRefDistance": { "type": "float", "default": 1.0, "unit": "LENGTH", "description": " Avatar Ref Distance" },
+        "avatarRolloffFactor": { "type": "float", "default": 5.0, "description": "Avatar Rolloff Factor" },
+        "avatarRefDistance": { "type": "float", "default": 5.0, "unit": "LENGTH", "description": " Avatar Ref Distance" },
         "avatarMaxDistance": { "type": "float", "default": 10000.0, "unit": "LENGTH","description": "Avatar Max Distance" },
         "mediaVolume": { "type": "float", "default": 0.5, "description": "Media Volume" },
         "mediaDistanceModel": {
@@ -92,12 +92,12 @@
           ],
           "default": "inverse"
         },
-        "mediaRolloffFactor": { "type": "float", "default": 2.0, "description": "Media Rolloff Factor" },
-        "mediaRefDistance": { "type": "float", "default": 1.0, "unit": "LENGTH","description": " Media Ref Distance" },
+        "mediaRolloffFactor": { "type": "float", "default": 5.0, "description": "Media Rolloff Factor" },
+        "mediaRefDistance": { "type": "float", "default": 5.0, "unit": "LENGTH","description": " Media Ref Distance" },
         "mediaMaxDistance": { "type": "float", "default": 10000.0, "unit": "LENGTH","description": "Media Max Distance" },
         "mediaConeInnerAngle": { "type": "float", "default": 360.0, "description": "Media Cone Inner Angle" },
         "mediaConeOuterAngle": { "type": "float", "default": 0.0, "description": "Media Cone Outer Angle" },
-        "mediaConeOuterGain": { "type": "float", "default": 0.0, "description": "Media Cone Outer Gain" }
+        "mediaConeOuterGain": { "type": "float", "default": 0.9, "description": "Media Cone Outer Gain" }
       }
     },
     "visible": {
@@ -842,12 +842,12 @@
           "subType":"DISTANCE",
           "description": "A double value representing the reference distance for reducing volume as the audio source moves further from the listener. For distances greater than this the volume will be reduced based on rolloffFactor and distanceModel.",
           "unit": "LENGTH",
-          "default": 1.0
+          "default": 5.0
         },
         "rolloffFactor": {
           "type": "float",
           "description": "A double value describing how quickly the volume is reduced as the source moves away from the listener. This value is used by all distance models.",
-          "default": 1.0
+          "default": 5.0
         },
         "maxDistance": {
           "type": "float",
@@ -869,7 +869,7 @@
         "coneOuterGain": {
           "type": "float",
           "description": "A double value describing the amount of volume reduction outside the cone defined by the coneOuterAngle attribute.",
-          "default": 0.0
+          "default": 0.9
         }
       }
     },
