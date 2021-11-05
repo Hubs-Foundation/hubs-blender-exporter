@@ -16,8 +16,10 @@ class HubsRenderPanel(Panel):
     def draw(self, context):
         layout = self.layout
         row = layout.row()
-        row.operator(operators.PrepareHubsLightmaps.bl_idname).target = ""
         lightmapImages = sorted(lightmaps.listLightmapImages(), key=lambda it:it.name)
+        # Only show the panel if there are any lightmaps to prepare
+        if len(lightmapImages) > 0:
+            row.operator(operators.PrepareHubsLightmaps.bl_idname).target = ""
         # Is their more than 1 lightmap texture?
         if len(lightmapImages) > 1:
             for lightmapImage in lightmapImages:
