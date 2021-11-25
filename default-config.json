@@ -157,6 +157,15 @@
         "intensity": {"type": "float", "default": 1.0}
       }
     },
+    "hemisphere-light": {
+      "category": "Elements",
+      "node": true,
+      "properties": {
+        "skyColor": {"type": "color"},
+        "groundColor": {"type": "color"},
+        "intensity": {"type": "float", "default": 1.0}
+      }
+    },
     "particle-emitter": {
       "node": true,
       "category": "Elements",
