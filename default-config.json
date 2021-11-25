@@ -255,7 +255,7 @@
       "node": true,
       "properties": {
         "speed": {"type": "vec2", "default": [0, 0]},
-        "increment": {"type": "vec2", "default": [0, 0]}}
+        "increment": {"type": "vec2", "default": [0, 0]}
       }
     },
     "personal-space-invader": {
