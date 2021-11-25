@@ -107,6 +107,22 @@
         "visible": { "type": "bool", "default": true }
       }
     },
+    "simple-water": {
+      "category": "Elements",
+      "node": true,
+      "properties": {
+        "color": { "type": "color"},
+        "opacity": { "type": "float", "default": 1.0 },
+        "tideHeight": { "type": "float", "default": 0.01 },
+        "tideScale": { "type": "vec2", "default": [1.00, 1.00] },
+        "tideSpeed": { "type": "vec2", "default": [0.50, 0.50] },
+        "waveHeight": { "type": "float", "default": 1.0 },
+        "waveScale": { "type": "vec2", "default": [1.00, 20.00] },
+        "waveSpeed": { "type": "vec2", "default": [0.05, 6.00] },
+        "ripplesSpeed": { "type": "float", "default": 0.25 },
+        "ripplesScale": { "type": "float", "default": 1.0 }
+      }
+    },
     "directional-light": {
       "category": "Elements",
       "node": true,
@@ -198,7 +214,7 @@
         "endSize": {"type": "float", "default": 1.0},
         "sizeRandomness": {"type": "float"},
         "ageRandomness": {"type": "float"},
-        "lifetime": {"type": "float", "default": 1.0, "sybType":"TIME", "unit": "TIME"},
+        "lifetime": {"type": "float", "default": 1.0, "subType":"TIME", "unit": "TIME"},
         "lifetimeRandomness": {"type": "float"},
         "particleCount": {"type": "int", "subType": "UNSIGNED", "default": 10},
         "startVelocity": {"type": "vec3", "subType":"XYZ", "unit":"VELOCITY", "default": {"x": 0.0, "y": 0.0, "z": 1.0}},
@@ -238,8 +254,8 @@
       "category": "Animation",
       "node": true,
       "properties": {
-        "speed": {"type": "vec2", "default": {"x": 0, "y": 0}},
-        "increment": {"type": "vec2", "default": {"x": 0, "y": 0}}
+        "speed": {"type": "vec2", "default": [0, 0]},
+        "increment": {"type": "vec2", "default": [0, 0]}}
       }
     },
     "personal-space-invader": {
