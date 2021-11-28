@@ -29,14 +29,54 @@ def get_version_string():
 # ideally we can resolve this upstream somehow https://github.com/KhronosGroup/glTF-Blender-IO/issues/1009
 from io_scene_gltf2.blender.exp import gltf2_blender_export
 from io_scene_gltf2.io.exp.gltf2_io_user_extensions import export_user_extensions
+from io_scene_gltf2.blender.imp.gltf2_blender_node import BlenderNode
 orig_gather_gltf = gltf2_blender_export.__gather_gltf
+orig_BlenderNode_create_object = BlenderNode.create_object
+
 def patched_gather_gltf(exporter, export_settings):
     orig_gather_gltf(exporter, export_settings)
     export_user_extensions('hubs_gather_gltf_hook', export_settings, exporter._GlTF2Exporter__gltf)
     exporter._GlTF2Exporter__traverse(exporter._GlTF2Exporter__gltf.extensions)
 
+@staticmethod
+def patched_BlenderNode_create_object(gltf, vnode_id):
+    obj = orig_BlenderNode_create_object(gltf, vnode_id)
+
+    vnode = gltf.vnodes[vnode_id]
+    node = None
+
+    if vnode.camera_node_idx is not None:
+        parent_vnode = gltf.vnodes[vnode.parent]
+        if parent_vnode.name:
+            node = [n for n in gltf.data.nodes if n.name == parent_vnode.name][0]
+
+    else:
+        if vnode.name:
+            node = [n for n in gltf.data.nodes if n.name == vnode.name][0]
+
+
+    if node is not None:
+        extensions = node.extensions
+        if extensions:
+            MOZ_hubs_components = extensions.get('MOZ_hubs_components')
+            if MOZ_hubs_components:
+                for glb_component_name, glb_component_value in MOZ_hubs_components.items():
+                    print(node.name)
+                    print(obj)
+                    bpy.context.view_layer.objects.active = obj
+
+                    bpy.ops.wm.add_hubs_component(object_source="object", component_name=glb_component_name)
+
+                    blender_component = getattr(obj, f"hubs_component_{glb_component_name.replace('-', '_')}")
+
+                    for property_name, property_value in glb_component_value.items():
+                        blender_component[property_name] = property_value
+
+    return obj
+
 def register():
     gltf2_blender_export.__gather_gltf = patched_gather_gltf
+    BlenderNode.create_object = patched_BlenderNode_create_object
 
 
     components.register()
@@ -47,6 +87,7 @@ def register():
 
 def unregister():
     gltf2_blender_export.__gather_gltf = orig_gather_gltf
+    BlenderNode.create_object = orig_BlenderNode_create_object
 
     components.unregister()
     settings.unregister()
