@@ -1,5 +1,7 @@
 import bpy
 import uuid
+import traceback
+import re
 
 from . import settings
 from . import components
@@ -40,6 +42,7 @@ def patched_gather_gltf(exporter, export_settings):
 
 @staticmethod
 def patched_BlenderNode_create_object(gltf, vnode_id):
+    #print("loading hubs components")
     obj = orig_BlenderNode_create_object(gltf, vnode_id)
 
     vnode = gltf.vnodes[vnode_id]
@@ -55,22 +58,73 @@ def patched_BlenderNode_create_object(gltf, vnode_id):
             node = [n for n in gltf.data.nodes if n.name == vnode.name][0]
 
 
+    #print(f"node is: {node}")
     if node is not None:
         extensions = node.extensions
+        #print(f"extensions are: {extensions}")
         if extensions:
             MOZ_hubs_components = extensions.get('MOZ_hubs_components')
+            #print(f"MOZ_hubs_components are: {MOZ_hubs_components}")
             if MOZ_hubs_components:
                 for glb_component_name, glb_component_value in MOZ_hubs_components.items():
-                    print(node.name)
-                    print(obj)
+                    if glb_component_name == 'networked':
+                        return
+
+                    print(f"Node Name: {node.name}")
+                    print(f"Object: {obj}")
+                    print(f"Hubs Component Name: {glb_component_name}")
+                    print(f"Hubs Component Value: {glb_component_value}")
                     bpy.context.view_layer.objects.active = obj
 
-                    bpy.ops.wm.add_hubs_component(object_source="object", component_name=glb_component_name)
+                    try:
+                        bpy.ops.wm.add_hubs_component(object_source="object", component_name=glb_component_name)
 
-                    blender_component = getattr(obj, f"hubs_component_{glb_component_name.replace('-', '_')}")
+                        blender_component = getattr(obj, f"hubs_component_{glb_component_name.replace('-', '_')}")
 
-                    for property_name, property_value in glb_component_value.items():
-                        blender_component[property_name] = property_value
+                        if glb_component_name == 'audio-target':
+                            for property_name, property_value in glb_component_value.items():
+                                if property_name == 'srcNode':
+                                    blender_component[property_name] = bpy.data.objects[gltf.vnodes[property_value['index']].name]
+
+                                else:
+                                    if blender_component.bl_rna.properties[property_name].type == 'FLOAT':
+                                        property_value = float(property_value)
+                                    print(f"{property_name} = {property_value}")
+                                    blender_component[property_name] = property_value
+
+                        else:
+                            for property_name, property_value in glb_component_value.items():
+
+                                if isinstance(property_value, dict):
+                                    blender_subcomponent = getattr(blender_component, property_name)
+                                    for x, subproperty_value in enumerate(property_value.values()):
+                                        if blender_component.bl_rna.properties[property_name].type == 'FLOAT':
+                                            subproperty_value = float(subproperty_value)
+
+                                        print(f"{property_name}[{x}] = {subproperty_value}")
+                                        blender_subcomponent[x] = subproperty_value
+
+                                else:
+                                    if re.fullmatch("#[0-9a-fA-F]*", str(property_value)):
+                                        hexcolor = property_value.lstrip('#')
+                                        rgb_int = tuple(int(hexcolor[i:i+2], 16) for i in (0, 2, 4))
+                                        rgb_float = tuple((i/255 for i in rgb_int))
+
+                                        for x, value in enumerate(rgb_float):
+                                            print(f"{property_name}[{x}] = {value}")
+                                            getattr(blender_component, property_name)[x] = value
+
+                                    else:
+                                        if blender_component.bl_rna.properties[property_name].type == 'FLOAT':
+                                            property_value = float(property_value)
+
+                                        print(f"{property_name} = {property_value}")
+                                        blender_component[property_name] = property_value
+
+                    except Exception:
+                        print("Error encountered while adding Hubs components:")
+                        traceback.print_exc()
+                        print("Continuing on....\n")
 
     return obj
 
