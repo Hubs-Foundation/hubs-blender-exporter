@@ -83,14 +83,16 @@ def patched_BlenderNode_create_object(gltf, vnode_id):
 
                         if glb_component_name == 'audio-target':
                             for property_name, property_value in glb_component_value.items():
+
                                 if property_name == 'srcNode':
-                                    blender_component[property_name] = bpy.data.objects[gltf.vnodes[property_value['index']].name]
+                                    setattr(blender_component, property_name, bpy.data.objects[gltf.vnodes[property_value['index']].name])
 
                                 else:
-                                    if blender_component.bl_rna.properties[property_name].type == 'FLOAT':
-                                        property_value = float(property_value)
                                     print(f"{property_name} = {property_value}")
-                                    blender_component[property_name] = property_value
+                                    setattr(blender_component, property_name, property_value)
+
+                        elif glb_component_name == 'kit-alt-materials':
+                            pass
 
                         else:
                             for property_name, property_value in glb_component_value.items():
@@ -98,9 +100,6 @@ def patched_BlenderNode_create_object(gltf, vnode_id):
                                 if isinstance(property_value, dict):
                                     blender_subcomponent = getattr(blender_component, property_name)
                                     for x, subproperty_value in enumerate(property_value.values()):
-                                        if blender_component.bl_rna.properties[property_name].type == 'FLOAT':
-                                            subproperty_value = float(subproperty_value)
-
                                         print(f"{property_name}[{x}] = {subproperty_value}")
                                         blender_subcomponent[x] = subproperty_value
 
@@ -115,11 +114,8 @@ def patched_BlenderNode_create_object(gltf, vnode_id):
                                             getattr(blender_component, property_name)[x] = value
 
                                     else:
-                                        if blender_component.bl_rna.properties[property_name].type == 'FLOAT':
-                                            property_value = float(property_value)
-
                                         print(f"{property_name} = {property_value}")
-                                        blender_component[property_name] = property_value
+                                        setattr(blender_component, property_name, property_value)
 
                     except Exception:
                         print("Error encountered while adding Hubs components:")
