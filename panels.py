@@ -113,9 +113,9 @@ def draw_component(panel, context, obj, row, component_item):
     hubs_settings = context.scene.hubs_settings
 
     component_name = component_item.name
-    component_definition = hubs_settings.hubs_config['components'].get(component_name)
-    if component_definition:
-        component_class = hubs_settings.registered_hubs_components[component_name]
+    component_class = hubs_settings.registered_hubs_components[component_name]
+    if component_class:
+        component_definition = component_class.definition
         component_class_name = component_class.__name__
         component = getattr(obj, component_class_name)
 
@@ -145,13 +145,16 @@ def draw_component(panel, context, obj, row, component_item):
         remove_component_operator.component_name = component_name
         remove_component_operator.object_source = panel.bl_context
 
-        if has_properties and component_item.expanded:
+        if hasattr(component, "draw"):
+            component.draw(col)
+        elif has_properties and component_item.expanded:
             col.separator()
             content_col = col.column()
 
             path = panel.bl_context + "." + component_class_name
 
             draw_type(context, content_col, obj, component, path, component_definition)
+
     else:
         col = row.box().column()
         top_row = col.row()

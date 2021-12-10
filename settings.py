@@ -51,6 +51,7 @@ def unregister_components():
                     delattr(bpy.types.Bone, component_class_name)
                 if hasattr(bpy.types.EditBone, component_class_name):
                     delattr(bpy.types.EditBone, component_class_name)
+                bpy.utils.unregister_class(component_class)
 
         if 'registered_hubs_classes' in hubs_context:
             for class_name, registered_class in hubs_context['registered_hubs_classes']:
@@ -110,6 +111,48 @@ def register_components():
             )
 
         hubs_context['registered_hubs_components'][component_name] = component_class
+
+    # static components
+    # TODO don't hardcode this, laod all from a directory
+
+    if "hubs_component_reflection_probe" in hubs_context['registered_classes']:
+        return
+
+    hubs_context['registered_classes']["hubs_component_reflection_probe"] = hubs_component_reflection_probe
+    hubs_context['registered_hubs_components']["reflection-probe"] = hubs_component_reflection_probe
+    bpy.utils.register_class(hubs_component_reflection_probe)
+    setattr(
+        bpy.types.Object,
+        "hubs_component_reflection_probe",
+        PointerProperty(type=hubs_component_reflection_probe)
+    )
+
+from bpy.props import IntVectorProperty, BoolProperty, FloatProperty, StringProperty, EnumProperty
+from bpy.props import PointerProperty, FloatVectorProperty, CollectionProperty, IntProperty
+from bpy.types import PropertyGroup, Material, Image, Object
+class hubs_component_reflection_probe(PropertyGroup):
+    definition = {
+        'category': 'Scene',
+        'node': True,
+        'scene': False,
+        "properties": []
+    }
+
+    size: FloatProperty(name="size", default=1.0)
+    envMapTexture: PointerProperty(
+        name="EnvMap",
+        description="An equirectangular image to use as the environment map for this probe",
+        type=Image
+    )
+
+    def draw(self, col):
+        for key in self.__annotations__.keys():
+            col.prop(data=self, property=key)
+
+        col.operator(
+            "render.hubs_render_reflection_probe",
+            text="Bake"
+        )
 
 @persistent
 def load_handler(_dummy):

@@ -3,6 +3,7 @@ from bpy.props import StringProperty, BoolProperty, IntProperty, EnumProperty, C
 from bpy.types import Operator
 from . import components
 from functools import reduce
+import math
 
 class AddHubsComponent(Operator):
     bl_idname = "wm.add_hubs_component"
@@ -224,6 +225,121 @@ class ResetHubsComponentNames(Operator):
 
         return {'FINISHED'}
 
+probe_baking = False
+class BakeProbeOperator(bpy.types.Operator):
+    bl_idname = "render.hubs_render_reflection_probe"
+    bl_label = "Render Hubs Reflection Probe"
+
+    _timer = None
+    done = False
+    cancelled = False
+    probe = None
+
+    @classmethod
+    def poll(cls, context):
+        return not probe_baking
+
+    def render_post(self, scene, depsgraph):
+        print("Finished render")
+        self.done = True
+
+
+    def render_cancelled(self, scene, depsgraph):
+        print("Render canceled")
+        self.cancelled = True
+
+    def execute(self, context):
+        global probe_baking
+
+        bpy.app.handlers.render_post.append(self.render_post)
+        bpy.app.handlers.render_cancel.append(self.render_cancelled)
+
+        self._timer = context.window_manager.event_timer_add(0.5, window=context.window)
+        context.window_manager.modal_handler_add(self)
+
+        print("RENDER PROBE")
+        print(context.object)
+
+        probe_baking = True
+        self.probe = context.object
+
+        self.camera_data = bpy.data.cameras.new(name='Temp EnvMap Camera')
+        camera_object = bpy.data.objects.new('Temp EnvMap Camera', self.camera_data)
+        bpy.context.scene.collection.objects.link(camera_object)
+
+        _render_probe(self.probe, self.camera_data, camera_object)
+
+        print("RUNNING_MODAL")
+
+        return {"RUNNING_MODAL"}
+
+    def modal(self, context, event):
+        global probe_baking
+
+        # print("ev: %s" % event.type)
+        if event.type == 'TIMER' and (self.cancelled or self.done):
+            bpy.app.handlers.render_post.remove(self.render_post)
+            bpy.app.handlers.render_cancel.remove(self.render_cancelled)
+            context.window_manager.event_timer_remove(self._timer)
+
+            bpy.data.cameras.remove(self.camera_data)
+
+            probe_baking = False
+
+            if self.cancelled: return {"CANCELLED"}
+
+            image_name = "generated_cubemap-%s" % self.probe.name
+            img = bpy.data.images.get(image_name)
+            if not img:
+                img = bpy.data.images.load(filepath = bpy.context.scene.render.filepath)
+                img.name = image_name
+            else:
+                img.reload()
+
+            self.probe.hubs_component_reflection_probe['envMapTexture'] = img
+            self.probe.hubs_component_reflection_probe['size'] = self.probe.data.influence_distance
+
+            return {"FINISHED"}
+
+
+        return {"PASS_THROUGH"}
+
+
+def _render_probe(probe, camera_data, camera_object):
+    try:
+        camera_data.type = "PANO"
+        camera_data.cycles.panorama_type = "EQUIRECTANGULAR"
+
+        camera_data.cycles.longitude_min = -math.pi
+        camera_data.cycles.longitude_max = math.pi
+        camera_data.cycles.latitude_min = -math.pi/2
+        camera_data.cycles.latitude_max = math.pi/2
+
+        camera_data.clip_start = probe.data.clip_start
+        camera_data.clip_end = probe.data.clip_end
+
+        camera_object.matrix_world = probe.matrix_world.copy()
+        camera_object.rotation_euler.x += math.pi/2
+        camera_object.rotation_euler.z += -math.pi/2
+
+        bpy.context.scene.camera = camera_object
+        bpy.context.scene.render.engine = "CYCLES"
+        bpy.context.scene.render.resolution_x = 256
+        bpy.context.scene.render.resolution_y = 128
+        bpy.context.scene.render.image_settings.file_format = "HDR"
+        bpy.context.scene.render.filepath = "//generated_cubemaps/%s.hdr" % probe.name
+
+        # TODO don't clobber renderer properties
+        # TODO handle skipping compositor
+
+        tmp_pref = bpy.context.preferences.view.render_display_type
+        bpy.context.preferences.view.render_display_type = "NONE"
+        bpy.ops.render.render("INVOKE_DEFAULT", write_still=True)
+        bpy.context.preferences.view.render_display_type = tmp_pref
+
+    except e:
+        print(e)
+
 def register():
     bpy.utils.register_class(AddHubsComponent)
     bpy.utils.register_class(RemoveHubsComponent)
@@ -232,6 +348,7 @@ def register():
     bpy.utils.register_class(RemoveHubsComponentItem)
     bpy.utils.register_class(ReloadHubsConfig)
     bpy.utils.register_class(ResetHubsComponentNames)
+    bpy.utils.register_class(BakeProbeOperator)
 
 def unregister():
     bpy.utils.unregister_class(AddHubsComponent)
@@ -241,3 +358,4 @@ def unregister():
     bpy.utils.unregister_class(RemoveHubsComponentItem)
     bpy.utils.unregister_class(ReloadHubsConfig)
     bpy.utils.unregister_class(ResetHubsComponentNames)
+    bpy.utils.unregister_class(BakeProbeOperator)

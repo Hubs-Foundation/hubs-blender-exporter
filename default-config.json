@@ -935,22 +935,6 @@
           "description": "An equirectangular image to use as the default environment map for all objects"
         }
       }
-    },
-    "reflection-probe": {
-      "category": "Scene",
-      "node": true,
-      "scene": false,
-      "properties": {
-        "envMapTexture": {
-          "type": "texture",
-          "label": "EnvMap",
-          "description": "An equirectangular image to use as the environment map for this probe"
-        },
-        "size": {
-          "type": "float",
-          "default": 1.0
-        }
-      }
     }
   }
 }
