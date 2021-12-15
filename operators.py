@@ -297,7 +297,6 @@ class BakeProbeOperator(bpy.types.Operator):
                 img.reload()
 
             self.probe.hubs_component_reflection_probe['envMapTexture'] = img
-            self.probe.hubs_component_reflection_probe['size'] = self.probe.data.influence_distance
 
             return {"FINISHED"}
 

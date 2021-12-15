@@ -154,12 +154,15 @@ class glTF2ExportUserExtension:
 
             for component_item in component_list.items:
                 component_name = component_item.name
-                component_definition = hubs_config['components'][component_name]
                 component_class = registered_hubs_components[component_name]
-                component_class_name = component_class.__name__
-                component = getattr(blender_object, component_class_name)
-                component_data[component_name] = gather_properties(export_settings, blender_object, component, component_definition, hubs_config)
-                is_networked |= component_definition.get("networked", False)
+                component = getattr(blender_object, component_class.__name__)
+
+                if hasattr(component, "gather"):
+                    component_data[component_name] = component.gather(blender_object, export_settings)
+                else:
+                    component_definition = hubs_config['components'][component_name]
+                    component_data[component_name] = gather_properties(export_settings, blender_object, component, component_definition, hubs_config)
+                    is_networked |= component_definition.get("networked", False)
 
             # NAF-supported media require a network ID
             if is_networked:

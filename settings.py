@@ -130,6 +130,7 @@ def register_components():
 from bpy.props import IntVectorProperty, BoolProperty, FloatProperty, StringProperty, EnumProperty
 from bpy.props import PointerProperty, FloatVectorProperty, CollectionProperty, IntProperty
 from bpy.types import PropertyGroup, Material, Image, Object
+from . import gather_properties
 class hubs_component_reflection_probe(PropertyGroup):
     definition = {
         'category': 'Scene',
@@ -138,7 +139,6 @@ class hubs_component_reflection_probe(PropertyGroup):
         "properties": []
     }
 
-    size: FloatProperty(name="size", default=1.0)
     envMapTexture: PointerProperty(
         name="EnvMap",
         description="An equirectangular image to use as the environment map for this probe",
@@ -153,6 +153,16 @@ class hubs_component_reflection_probe(PropertyGroup):
             "render.hubs_render_reflection_probe",
             text="Bake"
         )
+
+    # TODO most of this should be automatic with optional override
+    def gather(self, blender_object, export_settings):
+        return {
+            "size": blender_object.data.influence_distance,
+            "envMapTexture": {
+                "__mhc_link_type": "texture",
+                "index": gather_properties.gather_texture(self.envMapTexture, export_settings)
+            }
+        }
 
 @persistent
 def load_handler(_dummy):
