@@ -225,6 +225,15 @@ class ResetHubsComponentNames(Operator):
 
         return {'FINISHED'}
 
+
+resolutions = [
+    (128, 64),
+    (256, 128),
+    (512, 256),
+    (1024, 512),
+    (2048, 1024)
+]
+
 probe_baking = False
 class BakeProbeOperator(bpy.types.Operator):
     bl_idname = "render.hubs_render_reflection_probe"
@@ -256,9 +265,6 @@ class BakeProbeOperator(bpy.types.Operator):
 
         self._timer = context.window_manager.event_timer_add(0.5, window=context.window)
         context.window_manager.modal_handler_add(self)
-
-        print("RENDER PROBE")
-        print(context.object)
 
         probe_baking = True
         self.probe = context.object
@@ -323,8 +329,9 @@ def _render_probe(probe, camera_data, camera_object):
 
         bpy.context.scene.camera = camera_object
         bpy.context.scene.render.engine = "CYCLES"
-        bpy.context.scene.render.resolution_x = 256
-        bpy.context.scene.render.resolution_y = 128
+        (x, y) = resolutions[probe.hubs_component_reflection_probe['resolution']]
+        bpy.context.scene.render.resolution_x = x
+        bpy.context.scene.render.resolution_y = y
         bpy.context.scene.render.image_settings.file_format = "HDR"
         bpy.context.scene.render.filepath = "//generated_cubemaps/%s.hdr" % probe.name
 

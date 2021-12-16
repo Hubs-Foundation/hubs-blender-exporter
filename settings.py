@@ -145,6 +145,19 @@ class hubs_component_reflection_probe(PropertyGroup):
         type=Image
     )
 
+    resolution: EnumProperty(
+        name='Resolution',
+        description='Resolution for the environment map',
+        items=[
+            ('128x64', '128x64', '128 x 64'),
+            ('256x128', '256x128', '256 x 128'),
+            ('512x256', '512x256', '512 x 256'),
+            ('1024x512', '1024x512', '1024 x 512'),
+            ('2048x1024', '2048x1024', '2048 x 1024'),
+        ],
+        default='256x128'
+    )
+
     def draw(self, col):
         for key in self.__annotations__.keys():
             col.prop(data=self, property=key)
