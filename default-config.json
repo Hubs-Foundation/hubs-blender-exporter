@@ -935,6 +935,13 @@
           "description": "An equirectangular image to use as the default environment map for all objects"
         }
       }
+    },
+    "frustrum": {
+      "category": "Elements",
+      "node": true,
+      "properties": {
+        "culled": { "type": "bool", "default": true, "description": "Ignore entities outside of the camera frustrum. Frustrum culling can cause problems with some animations" }
+      }
     }
   }
 }
