@@ -273,11 +273,7 @@ class BakeProbeOperator(bpy.types.Operator):
         camera_object = bpy.data.objects.new('Temp EnvMap Camera', self.camera_data)
         bpy.context.scene.collection.objects.link(camera_object)
 
-        _render_probe(self.probe, self.camera_data, camera_object)
-
-        print("RUNNING_MODAL")
-
-        return {"RUNNING_MODAL"}
+        return _render_probe(self.probe, self.camera_data, camera_object)
 
     def modal(self, context, event):
         global probe_baking
@@ -329,7 +325,7 @@ def _render_probe(probe, camera_data, camera_object):
 
         bpy.context.scene.camera = camera_object
         bpy.context.scene.render.engine = "CYCLES"
-        (x, y) = resolutions[probe.hubs_component_reflection_probe['resolution']]
+        (x, y) = resolutions[probe.hubs_component_reflection_probe.get('resolution', 1)]
         bpy.context.scene.render.resolution_x = x
         bpy.context.scene.render.resolution_y = y
         bpy.context.scene.render.image_settings.file_format = "HDR"
@@ -343,8 +339,11 @@ def _render_probe(probe, camera_data, camera_object):
         bpy.ops.render.render("INVOKE_DEFAULT", write_still=True)
         bpy.context.preferences.view.render_display_type = tmp_pref
 
-    except e:
+        return {"RUNNING_MODAL"}
+
+    except Exception as e:
         print(e)
+        return {"CANCELLED"}
 
 def register():
     bpy.utils.register_class(AddHubsComponent)
