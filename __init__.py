@@ -48,8 +48,6 @@ def patched_gather_gltf(exporter, export_settings):
 
 @staticmethod
 def patched_BlenderNode_create_object(gltf, vnode_id):
-    #print("loading hubs components")
-    orig_active_obj = bpy.context.view_layer.objects.active
     obj = orig_BlenderNode_create_object(gltf, vnode_id)
 
     vnode = gltf.vnodes[vnode_id]
@@ -65,106 +63,12 @@ def patched_BlenderNode_create_object(gltf, vnode_id):
             node = [n for n in gltf.data.nodes if n.name == vnode.name][0]
 
 
-    #print(f"node is: {node}")
     if node is not None:
-        print(dir(node))
         extensions = node.extensions
-        #print(f"extensions are: {extensions}")
         if extensions:
             MOZ_hubs_components = extensions.get('MOZ_hubs_components')
-            #print(f"MOZ_hubs_components are: {MOZ_hubs_components}")
             if MOZ_hubs_components:
-                for glb_component_name, glb_component_value in MOZ_hubs_components.items():
-                    if glb_component_name == 'networked':
-                        return
-
-                    print(f"Node Name: {node.name}")
-                    print(f"Object: {obj}")
-                    print(f"Hubs Component Name: {glb_component_name}")
-                    print(f"Hubs Component Value: {glb_component_value}")
-                    bpy.context.view_layer.objects.active = obj
-
-                    try:
-                        # ADD MAIN HUBS COMPONENT
-                        bpy.ops.wm.add_hubs_component(object_source="object", component_name=glb_component_name)
-
-                        blender_component = getattr(obj, f"hubs_component_{glb_component_name.replace('-', '_')}")
-
-                        # AUDIO TARGET HUBS COMPONENT BEGIN
-                        if glb_component_name == 'audio-target':
-                            for property_name, property_value in glb_component_value.items():
-
-                                if property_name == 'srcNode':
-                                    setattr(blender_component, property_name, gltf.vnodes[property_value['index']].blender_object)
-
-                                else:
-                                    print(f"{property_name} = {property_value}")
-                                    setattr(blender_component, property_name, property_value)
-                        # AUDIO TARGET HUBS COMPONENT END
-
-                        # KIT ALT MATERIALS BEGIN
-                        elif glb_component_name == 'kit-alt-materials':
-                            #print(gltf.data.materials[0].name)
-                            for property_name, property_value in glb_component_value.items():
-
-                                # DEFAULT MATERIALS BEGIN
-                                if property_name == 'defaultMaterials':
-                                    for x, glb_defaultMaterial in enumerate(property_value):
-                                        bpy.ops.wm.add_hubs_component_item(path="object.hubs_component_kit_alt_materials.defaultMaterials")
-
-                                        for subproperty_name, subproperty_value in glb_defaultMaterial.items():
-                                            if subproperty_name == 'material':
-                                                setattr(blender_component.defaultMaterials[x], 'material', bpy.data.materials[gltf.data.materials[subproperty_value].name])
-
-                                            else:
-                                                setattr(blender_component.defaultMaterials[x], subproperty_name, subproperty_value)
-                                # DEFAULT MATERIALS END
-
-                                # ALT MATERIALS BEGIN
-                                elif property_name == 'altMaterials':
-                                    for x, glb_altMaterial in enumerate(property_value):
-                                        bpy.ops.wm.add_hubs_component_item(path="object.hubs_component_kit_alt_materials.altMaterials")
-                                        altMaterial_component = blender_component.altMaterials[x]
-
-                                        for y, glb_sub_altMaterial_index in enumerate(glb_altMaterial):
-                                            bpy.ops.wm.add_hubs_component_item(path=f"object.hubs_component_kit_alt_materials.altMaterials.{y}.value")
-                                            altMaterial_component.value[y].value = bpy.data.materials[gltf.data.materials[glb_sub_altMaterial_index].name]
-
-                                else:
-                                    setattr(blender_component, property_name, property_value)
-                                # ALT MATERIALS END
-
-                        # KIT ALT MATERIALS END
-
-                        else:
-                            for property_name, property_value in glb_component_value.items():
-
-                                if isinstance(property_value, dict):
-                                    blender_subcomponent = getattr(blender_component, property_name)
-                                    for x, subproperty_value in enumerate(property_value.values()):
-                                        print(f"{property_name}[{x}] = {subproperty_value}")
-                                        blender_subcomponent[x] = subproperty_value
-
-                                else:
-                                    if re.fullmatch("#[0-9a-fA-F]*", str(property_value)):
-                                        hexcolor = property_value.lstrip('#')
-                                        rgb_int = tuple(int(hexcolor[i:i+2], 16) for i in (0, 2, 4))
-                                        rgb_float = tuple((i/255 for i in rgb_int))
-
-                                        for x, value in enumerate(rgb_float):
-                                            print(f"{property_name}[{x}] = {value}")
-                                            getattr(blender_component, property_name)[x] = value
-
-                                    else:
-                                        print(f"{property_name} = {property_value}")
-                                        setattr(blender_component, property_name, property_value)
-
-                    except Exception:
-                        print("Error encountered while adding Hubs components:")
-                        traceback.print_exc()
-                        print("Continuing on....\n")
-
-    bpy.context.view_layer.objects.active = orig_active_obj
+                stored_components['object'][node.name] = (vnode, node)
 
     return obj
 
@@ -184,9 +88,110 @@ def patched_BlenderMaterial_create(gltf, material_idx, vertex_color):
 @staticmethod
 def patched_BlenderScene_create(gltf):
     orig_BlenderScene_create(gltf)
-    #orig_active_obj = bpy.context.view_layer.objects.active
+    create_object_components(gltf)
+    create_material_components(gltf)
 
 
+
+def create_object_components(gltf):
+    for vnode, node in stored_components['object'].values():
+        MOZ_hubs_components = node.extensions['MOZ_hubs_components']
+        for glb_component_name, glb_component_value in MOZ_hubs_components.items():
+            if glb_component_name == 'networked':
+                continue
+
+            try:
+                # ADD MAIN HUBS COMPONENT
+                obj = vnode.blender_object
+
+                print(f"Node Name: {node.name}")
+                print(f"Object: {obj}")
+                print(f"Hubs Component Name: {glb_component_name}")
+                print(f"Hubs Component Value: {glb_component_value}")
+
+                context_override = bpy.context.copy()
+                context_override['object'] = obj
+
+                bpy.ops.wm.add_hubs_component(context_override, object_source="object", component_name=glb_component_name)
+
+                blender_component = getattr(obj, f"hubs_component_{glb_component_name.replace('-', '_')}")
+
+                # AUDIO TARGET HUBS COMPONENT BEGIN
+                if glb_component_name == 'audio-target':
+                    for property_name, property_value in glb_component_value.items():
+
+                        if property_name == 'srcNode':
+                            setattr(blender_component, property_name, gltf.vnodes[property_value['index']].blender_object)
+
+                        else:
+                            print(f"{property_name} = {property_value}")
+                            setattr(blender_component, property_name, property_value)
+                # AUDIO TARGET HUBS COMPONENT END
+
+                # KIT ALT MATERIALS BEGIN
+                elif glb_component_name == 'kit-alt-materials':
+                    #print(gltf.data.materials[0].name)
+                    for property_name, property_value in glb_component_value.items():
+
+                        # DEFAULT MATERIALS BEGIN
+                        if property_name == 'defaultMaterials':
+                            for x, glb_defaultMaterial in enumerate(property_value):
+                                bpy.ops.wm.add_hubs_component_item(context_override, path="object.hubs_component_kit_alt_materials.defaultMaterials")
+
+                                for subproperty_name, subproperty_value in glb_defaultMaterial.items():
+                                    if subproperty_name == 'material':
+                                        setattr(blender_component.defaultMaterials[x], 'material', bpy.data.materials[gltf.data.materials[subproperty_value].name])
+
+                                    else:
+                                        setattr(blender_component.defaultMaterials[x], subproperty_name, subproperty_value)
+                        # DEFAULT MATERIALS END
+
+                        # ALT MATERIALS BEGIN
+                        elif property_name == 'altMaterials':
+                            for x, glb_altMaterial in enumerate(property_value):
+                                bpy.ops.wm.add_hubs_component_item(context_override, path="object.hubs_component_kit_alt_materials.altMaterials")
+                                altMaterial_component = blender_component.altMaterials[x]
+
+                                for y, glb_sub_altMaterial_index in enumerate(glb_altMaterial):
+                                    bpy.ops.wm.add_hubs_component_item(context_override, path=f"object.hubs_component_kit_alt_materials.altMaterials.0.value")
+                                    altMaterial_component.value[y].value = bpy.data.materials[gltf.data.materials[glb_sub_altMaterial_index].name]
+
+                        else:
+                            setattr(blender_component, property_name, property_value)
+                        # ALT MATERIALS END
+
+                # KIT ALT MATERIALS END
+
+                else:
+                    for property_name, property_value in glb_component_value.items():
+
+                        if isinstance(property_value, dict):
+                            blender_subcomponent = getattr(blender_component, property_name)
+                            for x, subproperty_value in enumerate(property_value.values()):
+                                print(f"{property_name}[{x}] = {subproperty_value}")
+                                blender_subcomponent[x] = subproperty_value
+
+                        else:
+                            if re.fullmatch("#[0-9a-fA-F]*", str(property_value)):
+                                hexcolor = property_value.lstrip('#')
+                                rgb_int = tuple(int(hexcolor[i:i+2], 16) for i in (0, 2, 4))
+                                rgb_float = tuple((i/255 for i in rgb_int))
+
+                                for x, value in enumerate(rgb_float):
+                                    print(f"{property_name}[{x}] = {value}")
+                                    getattr(blender_component, property_name)[x] = value
+
+                            else:
+                                print(f"{property_name} = {property_value}")
+                                setattr(blender_component, property_name, property_value)
+
+            except Exception:
+                print("Error encountered while adding Hubs components:")
+                traceback.print_exc()
+                print("Continuing on....\n")
+
+
+def create_material_components(gltf):
     for glb_material in stored_components['material'].values():
         MOZ_hubs_components = glb_material.extensions['MOZ_hubs_components']
 
@@ -194,40 +199,18 @@ def patched_BlenderScene_create(gltf):
             print(f"Hubs Component Name: {glb_component_name}")
             print(f"Hubs Component Value: {glb_component_value}")
 
-            # ADD MAIN HUBS COMPONENT
-            material = bpy.data.materials[glb_material.blender_material[None]]
-            #material_obj = [obj for obj in bpy.data.objects if material.name in obj.material_slots][0]
-            #material_obj.active_material_index = [idx for idx, mat in enumerate(material_obj.material_slots) if mat.name == material.name][0]
-
-            #bpy.context.view_layer.objects.active = material_obj
-            #orig_material_obj_sel_state = material_obj.select_get()
-            #material_obj.select_set(True)
-
-            #orig_active_material_index = material_obj.active_material_index
-
-
-            context_override = bpy.context.copy()
-            #area = [area for area in bpy.context.screen.areas if area.type == "PROPERTIES"][0]
-
-            #context_override['window'] = bpy.context.window
-            #context_override['screen'] = bpy.context.screen
-            #context_override['blend_data'] = bpy.context.blend_data
-            #context_override['annotation_data_owner'] = None
-            #context_override['area'] = area
-            #context_override['scene'] = bpy.context.scene
-            context_override['material'] = material
-            #context_override['region'] = area.regions[1]
-            #context_override['space_data'] = area.spaces.active
-            #context_override['space_data'].context = 'MATERIAL'
-            #context_override['region'] = area.regions[-1]
-
-
-
-            bpy.ops.wm.add_hubs_component(context_override, object_source="material", component_name=glb_component_name)
-
-            blender_component = getattr(material, f"hubs_component_{glb_component_name.replace('-', '_')}")
-
             try:
+                # ADD MAIN HUBS COMPONENT
+                material = bpy.data.materials[glb_material.blender_material[None]]
+
+                context_override = bpy.context.copy()
+                context_override['material'] = material
+
+                bpy.ops.wm.add_hubs_component(context_override, object_source="material", component_name=glb_component_name)
+
+                blender_component = getattr(material, f"hubs_component_{glb_component_name.replace('-', '_')}")
+
+
                 if glb_component_name == 'video-texture-target':
                     for property_name, property_value in glb_component_value.items():
 
@@ -242,12 +225,6 @@ def patched_BlenderScene_create(gltf):
                 print("Error encountered while adding Hubs components:")
                 traceback.print_exc()
                 print("Continuing on....\n")
-
-            #space_data.context = orig_space_data_context
-            #material_obj.active_material_index = orig_active_material_index
-            #material_obj.select_set(orig_material_obj_sel_state)
-
-    #bpy.context.view_layer.objects.active = orig_active_obj
 
 def register():
     gltf2_blender_export.__gather_gltf = patched_gather_gltf
