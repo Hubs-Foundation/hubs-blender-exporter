@@ -34,6 +34,7 @@ from io_scene_gltf2.io.exp.gltf2_io_user_extensions import export_user_extension
 from io_scene_gltf2.blender.imp.gltf2_blender_node import BlenderNode
 from io_scene_gltf2.blender.imp.gltf2_blender_material import BlenderMaterial
 from io_scene_gltf2.blender.imp.gltf2_blender_scene import BlenderScene
+from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
 orig_gather_gltf = gltf2_blender_export.__gather_gltf
 orig_BlenderNode_create_object = BlenderNode.create_object
 orig_BlenderMaterial_create = BlenderMaterial.create
@@ -90,8 +91,7 @@ def patched_BlenderScene_create(gltf):
     orig_BlenderScene_create(gltf)
     create_object_components(gltf)
     create_material_components(gltf)
-
-
+    create_scene_components(gltf)
 
 def create_object_components(gltf):
     for vnode, node in stored_components['object'].values():
@@ -225,6 +225,67 @@ def create_material_components(gltf):
                 print("Error encountered while adding Hubs components:")
                 traceback.print_exc()
                 print("Continuing on....\n")
+
+def create_scene_components(gltf):
+    if gltf.data.scene is None:
+        return
+
+    gltf_scene = gltf.data.scenes[gltf.data.scene]
+    extensions = gltf_scene.extensions
+    if extensions:
+        MOZ_hubs_components = extensions.get('MOZ_hubs_components')
+        if MOZ_hubs_components:
+            enviro_imgs = {}
+
+            for glb_component_name, glb_component_value in MOZ_hubs_components.items():
+                print(f"Hubs Component Name: {glb_component_name}")
+                print(f"Hubs Component Value: {glb_component_value}")
+
+                if glb_component_name == "environment-settings":
+
+                    for gltf_texture in gltf.data.textures:
+                        extensions = gltf_texture.extensions
+                        if extensions:
+                            MOZ_texture_rgbe = extensions.get('MOZ_texture_rgbe')
+                            if MOZ_texture_rgbe:
+                                BlenderImage.create(gltf, MOZ_texture_rgbe['source'])
+                                pyimg = gltf.data.images[MOZ_texture_rgbe['source']]
+                                blender_image_name = pyimg.blender_image_name
+                                enviro_imgs[MOZ_texture_rgbe['source']] = blender_image_name
+
+
+                try:
+                    # ADD MAIN HUBS COMPONENT
+                    scene = bpy.data.scenes[gltf.blender_scene]
+                    bpy.ops.wm.add_hubs_component(object_source="scene", component_name=glb_component_name)
+                    blender_component = getattr(scene, f"hubs_component_{glb_component_name.replace('-', '_')}")
+
+                    for property_name, property_value in glb_component_value.items():
+
+                        if isinstance(property_value, dict) and property_value['__mhc_link_type'] == "texture":
+                            blender_image_name = enviro_imgs[property_value['index']]
+                            blender_image = bpy.data.images[blender_image_name]
+
+                            setattr(blender_component, property_name, blender_image)
+
+                        else:
+                            if re.fullmatch("#[0-9a-fA-F]*", str(property_value)):
+                                hexcolor = property_value.lstrip('#')
+                                rgb_int = tuple(int(hexcolor[i:i+2], 16) for i in (0, 2, 4))
+                                rgb_float = tuple((i/255 for i in rgb_int))
+
+                                for x, value in enumerate(rgb_float):
+                                    print(f"{property_name}[{x}] = {value}")
+                                    getattr(blender_component, property_name)[x] = value
+
+                            else:
+                                print(f"{property_name} = {property_value}")
+                                setattr(blender_component, property_name, property_value)
+
+                except Exception:
+                    print("Error encountered while adding Hubs components:")
+                    traceback.print_exc()
+                    print("Continuing on....\n")
 
 def register():
     gltf2_blender_export.__gather_gltf = patched_gather_gltf
