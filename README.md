@@ -37,3 +37,15 @@ Note that for use in Hubs, you currently **MUST** use the second UV set, as Thre
 This addon works in conjunction with the official glTF exporter, so exporting is done through it. Select "File > Export > glTF 2.0" and then ensure "Hubs Components" is enabled under "Extensions".
 
 ![gltf export window](https://user-images.githubusercontent.com/130735/84547591-be9ad700-acb8-11ea-8c58-7b1104f0a3a7.png)
+
+# Import into Hubs
+
+The easiest way to use your scene file is through the Spoke [project creation page](https://hubs.mozilla.com/spoke/projects/create) and selecting _Import From Blender_:
+
+<img width="710" alt="Screenshot 2021-10-31 at 14 05 21" src="https://user-images.githubusercontent.com/303516/139588457-8d9d7835-6101-4cfc-886b-ad3e86c37846.png">
+
+This will bring up the Publish Scene From Blender dialog where you can upload your GLB file and a thumbnail picture for your scene:
+
+<img width="826" alt="Screenshot 2021-10-31 at 14 31 44" src="https://user-images.githubusercontent.com/303516/139588871-ca440552-a270-4feb-9208-65b65ee02b4a.png">
+
+It is also possible to use the GLB file to replace the scene for an existing Hubs room directly by going to Room Settings > Change Scene > Custom Scene and entering the URL of the GLB file. This assumes the file has been already uploaded to an online storage provider.
