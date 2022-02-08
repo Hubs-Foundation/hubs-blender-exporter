@@ -525,25 +525,171 @@
       "properties": {
         "value": {
           "type": "string",
-          "label": "Text"
+          "label": "Text",
+          "description": "The string of text to be rendered. Newlines and repeating whitespace characters are honored."
         },
-        "align": {
+
+        "fontSize": {
+          "type": "float",
+          "label": "Font Size",
+          "description": "Font size, in local meters.",
+          "unit": "LENGTH",
+          "default": 0.075
+        },
+
+        "textAlign": {
           "type": "enum",
-          "description": "Alignment",
+          "description": "The horizontal alignment of each line of text within the overall text bounding box.",
           "items": [
-            [ "left", "Left align", "Text will be aligned to the left" ],
-            [ "right", "Right align", "Text will be aligned to the right" ],
-            [ "center", "Center align", "Text will be centered" ]
+            [ "left", "Left", "Text will be aligned to the left" ],
+            [ "center", "Center", "Text will be centered" ],
+            [ "right", "Right", "Text will be aligned to the right" ],
+            [ "justify", "Justify", "Text will be justified" ]
           ]
         },
-        "baseline": {
+        "anchorX": {
           "type": "enum",
-          "description": "Baseline",
+          "description": "Defines the horizontal position in the text block that should line up with the local origin.",
           "items": [
-            [ "top", "Top align", "Alignment will be with the top of the text" ],
-            [ "center", "Center align", "Alignment will be with the center of the text" ],
-            [ "bottom", "Bottom align", "Alignment will be with the bottom of the text" ]
+            [ "left", "Left", "Left side of the text will be at the pivot point of this object." ],
+            [ "center", "Center", "Center of the text will be at the pivot point of this object." ],
+            [ "right", "Right", "Right side of the text will be at the pivot point of this object." ]
+          ],
+          "default": "center"
+        },
+        "anchorY": {
+          "type": "enum",
+          "description": "Defines the vertical position in the text block that should line up with the local origin.",
+          "items": [
+            [ "top", "Top", "Top of the text will be at the pivot point of this object." ],
+            [ "top-baseline", "Top Baseline", "Top baseline of the text will be at the pivot point of this object." ],
+            [ "middle", "Middle", "Middle of the text will be at the pivot point of this object." ],
+            [ "bottom-baseline", "Bottom Baseline", "Bottom baseline of the text will be at the pivot point of this object." ],
+            [ "bottom", "Bottom", "Bottom of the text will be at the pivot point of this object." ]
+          ],
+          "default": "middle"
+        },
+
+        "color": {
+          "type": "color",
+          "label": "Color",
+          "default": [ 1.0, 1.0, 1.0, 1.0 ]
+        },
+
+        "letterSpacing": {
+          "type": "float",
+          "label": "Letter Spacing",
+          "description": "Sets a uniform adjustment to spacing between letters after kerning is applied, in local meters. Positive numbers increase spacing and negative numbers decrease it.",
+          "unit": "LENGTH",
+          "default": 0.0
+        },
+        "lineHeight": {
+          "type": "float",
+          "label": "Line Height",
+          "description": "Sets the height of each line of text. If 0, a reasonable height based on the chosen font's ascender/descender metrics will be used, otherwise it is interpreted as a multiple of the fontSize.",
+          "default": 0.0
+        },
+
+        "outlineWidth": {
+          "type": "string",
+          "label": "Outline Width",
+          "description": "The width of an outline/halo to be drawn around each text glyph using the outlineColor and outlineOpacity. This can help improve readability when the text is displayed against a background of low or varying contrast.\n\n The width can be specified as either an absolute number in local units, or as a percentage string e.g. \"10%\" which is interpreted as a percentage of the fontSize.",
+          "default": "0"
+        },
+        "outlineColor": {
+          "type": "color",
+          "label": "Outline Color",
+          "description": "The color to use for the text outline when outlineWidth, outlineBlur, and/or outlineOffsetX/Y are set.",
+          "default": [ 0.0, 0.0, 0.0, 1.0]
+        },
+        "outlineBlur": {
+          "type": "string",
+          "label": "Outline Blur",
+          "description": "Specifies a blur radius applied to the outer edge of the text's outlineWidth. If the outlineWidth is zero, the blur will be applied at the glyph edge, like CSS's text-shadow blur radius. A blur plus a nonzero outlineWidth can give a solid outline with a fuzzy outer edge.\n\nThe blur radius can be specified as either an absolute number in local meters, or as a percentage string e.g. \"12%\" which is treated as a percentage of the fontSize.",
+          "default": "0"
+        },
+        "outlineOffsetX": {
+          "type": "string",
+          "label": "Outline X Offset",
+          "description": "This defines a horizontal offset of the text outline. Using an offset with outlineWidth: 0 creates a drop-shadow effect like CSS's text-shadow; also see outlineBlur.\n\n The offsets can be specified as either an absolute number in local units, or as a percentage string e.g. \"12%\" which is treated as a percentage of the fontSize.",
+          "default": "0"
+        },
+        "outlineOffsetY": {
+          "type": "string",
+          "label": "Outline Y Offset",
+          "description": "This defines a vertical offset of the text outline. Using an offset with outlineWidth: 0 creates a drop-shadow effect like CSS's text-shadow; also see outlineBlur.\n\n The offsets can be specified as either an absolute number in local units, or as a percentage string e.g. \"12%\" which is treated as a percentage of the fontSize.",
+          "default": "0"
+        },
+        "outlineOpacity": {
+          "type": "float",
+          "label": "Outline Opacity",
+          "description": "Sets the opacity of a configured text outline, in the range 0 to 1",
+          "default": 1.0,
+          "min": 0.0,
+          "max": 1.0
+        },
+
+        "fillOpacity": {
+          "type": "float",
+          "label": "Fill Opacity",
+          "description": "Controls the opacity of just the glyph's fill area, separate from any configured strokeOpacity, outlineOpacity, and the material's opacity. A fillOpacity of 0 will make the fill invisible, leaving just the stroke and/or outline.",
+          "default": 1.0
+        },
+
+        "strokeWidth": {
+          "type": "string",
+          "label": "Stroke Width",
+          "description": "Sets the width of a stroke drawn inside the edge of each text glyph, using the strokeColor and strokeOpacity.\n\n The width can be specified as either an absolute number in local units, or as a percentage string e.g. \"10%\" which is interpreted as a percentage of the fontSize.",
+          "default": "0"
+        },
+        "strokeColor": {
+          "type": "color",
+          "label": "Stroke Color",
+          "description": "The color of the text stroke, when strokeWidth is nonzero.",
+          "default": [ 0.0, 0.0, 0.0, 1.0]
+        },
+        "strokeOpacity": {
+          "type": "float",
+          "label": "Stroke Opacity",
+          "description": "The opacity of the text stroke, when strokeWidth is nonzero.",
+          "default": 1.0,
+          "min": 0.0,
+          "max": 1.0
+        },
+
+        "textIndent": {
+          "type": "float",
+          "label": "Text Indent",
+          "description": "An indentation applied to the first character of each hard newline. Behaves like CSS text-indent.",
+          "default": 0.0
+        },
+
+        "whiteSpace": {
+          "type": "enum",
+          "label": "Wrapping",
+          "description": "Defines whether text should wrap when a line reaches the maxWidth.",
+          "items": [
+            [ "normal", "Normal", "Allow wrapping according to the 'wrapping mode'." ],
+            [ "nowrap", "No Wrapping", "Prevent wrapping." ]
           ]
+        },
+        "overflowWrap": {
+          "type": "enum",
+          "label": "Wrapping Mode",
+          "description": "Defines how text wraps if the whiteSpace property is 'normal'.",
+          "items": [
+            [ "normal", "Normal", "Break only at whitespace characters." ],
+            [ "break-word", "Break Word", "Allow breaking within words." ]
+          ]
+        },
+
+        "opacity": {
+          "type": "float",
+          "label": "Opacity",
+          "description": "The opacity of the entire text object.",
+          "default": 1.0,
+          "min": 0.0,
+          "max": 1.0
         },
         "side": {
           "type": "enum",
@@ -554,62 +700,29 @@
             [ "double", "Show on both", "Text will be shown on both sides" ]
           ]
         },
-        "whiteSpace": {
-          "type": "enum",
-          "description": "White Space",
-          "items": [
-            [ "normal", "Normal", "Text will flow normally" ],
-            [ "pre", "Preserve", "White space will be preserved" ],
-            [ "nowrap", "No Wrapping", "Text will not be word-wrapped" ]
-          ]
-        },
-        "font": {
-          "type": "string",
-          "label": "Font",
-          "default": "roboto"
-        },
-        "color": {
-          "type": "color",
-          "label": "Color",
-          "default": "#FFF"
-        },
-        "width": {
+
+        "maxWidth": {
           "type": "float",
-          "label": "Width",
-          "default": 1.0
+          "label": "Max Width",
+          "description": "The maximum width of the text block, above which text may start wrapping according to the whiteSpace and overflowWrap properties.",
+          "unit": "LENGTH",
+          "default": Infinity
         },
-        "wrapCount": {
+        "curveRadius": {
           "type": "float",
-          "label": "Wrap Count",
-          "default": 40.0
-        },
-        "wrapPixels": {
-          "type": "float",
-          "label": "Wrap Pixels"
-        },
-        "letterSpacing": {
-          "type": "float",
-          "label": "Letter Space",
-          "default": 0
-        },
-        "lineHeight": {
-          "type": "float",
-          "label": "Line Height"
-        },
-        "opacity": {
-          "type": "float",
-          "label": "Opacity",
-          "default": 1.0
-        },
-        "xOffset": {
-          "type": "float",
-          "label": "X-Offset",
+          "label": "Curve Radius",
+          "description": "Defines a cylindrical radius along which the text's plane will be curved. Positive numbers put the cylinder's centerline (oriented vertically) that distance in front of the text, for a concave curvature, while negative numbers put it behind the text for a convex curvature. The centerline will be aligned with the text's local origin; you can use anchorX to offset it.",
+          "unit": "LENGTH",
           "default": 0.0
         },
-        "zOffset": {
-          "type": "float",
-          "label": "Z-Offset",
-          "default": 0.001
+        "direction": {
+          "type": "enum",
+          "description": "Sets the base direction for the text.",
+          "items": [
+            [ "auto", "Auto", "Use the default text direction defined by the system and font." ],
+            [ "ltr", "Left to Right", "Order text left to right." ],
+            [ "rtl", "Right to Left", "Order text right to left." ]
+          ]
         }
       }
     },
