@@ -113,44 +113,56 @@ def draw_component(panel, context, obj, row, component_item):
     hubs_settings = context.scene.hubs_settings
 
     component_name = component_item.name
-    component_definition = hubs_settings.hubs_config['components'][component_name]
-    component_class = hubs_settings.registered_hubs_components[component_name]
-    component_class_name = component_class.__name__
-    component = getattr(obj, component_class_name)
+    component_definition = hubs_settings.hubs_config['components'].get(component_name)
+    if component_definition:
+        component_class = hubs_settings.registered_hubs_components[component_name]
+        component_class_name = component_class.__name__
+        component = getattr(obj, component_class_name)
 
-    has_properties = len(component_definition['properties']) > 0
+        has_properties = len(component_definition['properties']) > 0
 
-    col = row.box().column()
-    top_row = col.row()
-    if has_properties:
-        top_row.prop(component_item, "expanded",
-                    icon="TRIA_DOWN" if component_item.expanded else "TRIA_RIGHT",
-                    icon_only=True, emboss=False
+        col = row.box().column()
+        top_row = col.row()
+        if has_properties:
+            top_row.prop(component_item, "expanded",
+                        icon="TRIA_DOWN" if component_item.expanded else "TRIA_RIGHT",
+                        icon_only=True, emboss=False
+            )
+        top_row.label(text=components.dash_to_title(component_name))
+
+        copy_component_operator = top_row.operator(
+            "wm.copy_hubs_component",
+            text="",
+            icon="PASTEDOWN"
         )
-    top_row.label(text=components.dash_to_title(component_name))
+        copy_component_operator.component_name = component_name
 
-    copy_component_operator = top_row.operator(
-        "wm.copy_hubs_component",
-        text="",
-        icon="PASTEDOWN"
-    )
-    copy_component_operator.component_name = component_name
+        remove_component_operator = top_row.operator(
+            "wm.remove_hubs_component",
+            text="",
+            icon="X"
+        )
+        remove_component_operator.component_name = component_name
+        remove_component_operator.object_source = panel.bl_context
 
-    remove_component_operator = top_row.operator(
-        "wm.remove_hubs_component",
-        text="",
-        icon="X"
-    )
-    remove_component_operator.component_name = component_name
-    remove_component_operator.object_source = panel.bl_context
+        if has_properties and component_item.expanded:
+            col.separator()
+            content_col = col.column()
 
-    if has_properties and component_item.expanded:
-        col.separator()
-        content_col = col.column()
+            path = panel.bl_context + "." + component_class_name
 
-        path = panel.bl_context + "." + component_class_name
-
-        draw_type(context, content_col, obj, component, path, component_definition)
+            draw_type(context, content_col, obj, component, path, component_definition)
+    else:
+        col = row.box().column()
+        top_row = col.row()
+        top_row.label(text=f"Unknown component '{component_name}'",icon="ERROR")
+        remove_component_operator = top_row.operator(
+            "wm.remove_hubs_component",
+            text="",
+            icon="X"
+        )
+        remove_component_operator.component_name = component_name
+        remove_component_operator.object_source = panel.bl_context
 
 def draw_type(context, col, obj, target, path, type_definition):
     for property_name, property_definition in type_definition['properties'].items():
