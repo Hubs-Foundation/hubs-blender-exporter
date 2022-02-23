@@ -731,7 +731,7 @@
           "label": "Max Width",
           "description": "The maximum width of the text block, above which text may start wrapping according to the whiteSpace and overflowWrap properties.",
           "unit": "LENGTH",
-          "default": Infinity
+          "default": 1.0
         },
         "curveRadius": {
           "type": "float",
