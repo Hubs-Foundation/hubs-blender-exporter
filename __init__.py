@@ -15,7 +15,7 @@ bl_info = {
     "author" : "MozillaReality",
     "description" : "Tools for developing GLTF assets for Mozilla Hubs",
     "blender" : (2, 93, 4),
-    "version" : (0, 0, 13),
+    "version" : (0, 0, 15),
     "location" : "",
     "wiki_url": "https://github.com/MozillaReality/hubs-blender-exporter",
     "tracker_url": "https://github.com/MozillaReality/hubs-blender-exporter/issues",
