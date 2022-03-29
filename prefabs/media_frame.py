@@ -2,8 +2,8 @@ import bpy
 from ..gizmos.gizmo_group import update_gizmos
 
 
-class OBJECT_OT_hba__media_frame_add(bpy.types.Operator):
-    bl_idname = "object.hba_media_frame_add"
+class OBJECT_OT_hba_prefab_media_frame_add(bpy.types.Operator):
+    bl_idname = "object.hba_prefab_media_frame_add"
     bl_label = "Add Media Frame"
     bl_options = {"UNDO"}
 
@@ -16,8 +16,8 @@ class OBJECT_OT_hba__media_frame_add(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class RENDER_PT_hba_media_frame(bpy.types.Panel):
-    bl_idname = "HBA_PT_Media_Frame"
+class RENDER_PT_hba_prefab_media_frame(bpy.types.Panel):
+    bl_idname = "HBA_PT_Prefab_Media_Frame"
     bl_label = "Media Frame"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -33,23 +33,23 @@ class RENDER_PT_hba_media_frame(bpy.types.Panel):
 
         layout = self.layout
         row = layout.row()
-        row.prop(obj, "HBA_media_frame_prop_1")
+        row.prop(obj, "HBA_prefab_media_frame_prop_1")
 
 
 def register():
-    bpy.types.Object.HBA_media_frame_prop_1 = bpy.props.BoolProperty(
+    bpy.types.Object.HBA_prefab_media_frame_prop_1 = bpy.props.BoolProperty(
         name="Prop 1",
         description="Prop 1",
         default=False
     )
-    bpy.utils.register_class(OBJECT_OT_hba__media_frame_add)
-    bpy.utils.register_class(RENDER_PT_hba_media_frame)
+    bpy.utils.register_class(OBJECT_OT_hba_prefab_media_frame_add)
+    bpy.utils.register_class(RENDER_PT_hba_prefab_media_frame)
 
 
 def unregister():
-    del bpy.types.Object.HBA_media_frame_prop_1
-    bpy.utils.unregister_class(RENDER_PT_hba_media_frame)
-    bpy.utils.unregister_class(OBJECT_OT_hba__media_frame_add)
+    del bpy.types.Object.HBA_prefab_media_frame_prop_1
+    bpy.utils.unregister_class(RENDER_PT_hba_prefab_media_frame)
+    bpy.utils.unregister_class(OBJECT_OT_hba_prefab_media_frame_add)
 
 
 if __name__ == "__main__":

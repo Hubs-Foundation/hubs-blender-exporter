@@ -24,11 +24,11 @@ class OBJECT_PT_hba_settings_prefabs(OBJECT_PT_hba_settings_panel, bpy.types.Pan
         layout = self.layout
 
         row = layout.row()
-        row.operator("object.hba_waypoint_add", text="Add Waypoint")
+        row.operator("object.hba_prefab_waypoint_add", text="Add Waypoint")
         row = layout.row()
-        row.operator("object.hba_media_frame_add", text="Add Media Frame")
+        row.operator("object.hba_prefab_media_frame_add", text="Add Media Frame")
         row = layout.row()
-        row.operator("object.hba_audio_zone_add", text="Add Audio Zone")
+        row.operator("object.hba_prefab_audio_zone_add", text="Add Audio Zone")
 
         row = layout.row()
 

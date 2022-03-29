@@ -2,8 +2,8 @@ import bpy
 from ..gizmos.gizmo_group import update_gizmos
 
 
-class OBJECT_OT_hba_waypoint_add(bpy.types.Operator):
-    bl_idname = "object.hba_waypoint_add"
+class OBJECT_OT_hba_prefab_waypoint_add(bpy.types.Operator):
+    bl_idname = "object.hba_prefab_waypoint_add"
     bl_label = "Add Waypoint"
     bl_options = {"UNDO"}
 
@@ -16,8 +16,8 @@ class OBJECT_OT_hba_waypoint_add(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class RENDER_PT_hba_waypoint(bpy.types.Panel):
-    bl_idname = "HBA_PT_Waypoint"
+class RENDER_PT_hba_prefab_waypoint(bpy.types.Panel):
+    bl_idname = "HBA_PT_Prefab_Waypoint"
     bl_label = "Waypoint"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -77,8 +77,8 @@ def register():
         description="Snap to nav mesh",
         default=False
     )
-    bpy.utils.register_class(OBJECT_OT_hba_waypoint_add)
-    bpy.utils.register_class(RENDER_PT_hba_waypoint)
+    bpy.utils.register_class(OBJECT_OT_hba_prefab_waypoint_add)
+    bpy.utils.register_class(RENDER_PT_hba_prefab_waypoint)
 
 
 def unregister():
@@ -88,8 +88,8 @@ def unregister():
     del bpy.types.Object.HBA_waypoint_prop_will_disable_motion
     del bpy.types.Object.HBA_waypoint_prop_will_disable_teleporting
     del bpy.types.Object.HBA_waypoint_prop_snap_to_nav_mesh
-    bpy.utils.unregister_class(RENDER_PT_hba_waypoint)
-    bpy.utils.unregister_class(OBJECT_OT_hba_waypoint_add)
+    bpy.utils.unregister_class(RENDER_PT_hba_prefab_waypoint)
+    bpy.utils.unregister_class(OBJECT_OT_hba_prefab_waypoint_add)
 
 
 if __name__ == "__main__":
