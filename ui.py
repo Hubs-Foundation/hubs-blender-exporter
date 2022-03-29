@@ -16,9 +16,9 @@ class OBJECT_PT_hba_settings_panel:
     bl_category = 'Hubs'
 
 
-class OBJECT_PT_hba_settings_elements(OBJECT_PT_hba_settings_panel, bpy.types.Panel):
-    bl_idname = "OBJECT_PT_hba_settings_elements"
-    bl_label = "Elements"
+class OBJECT_PT_hba_settings_prefabs(OBJECT_PT_hba_settings_panel, bpy.types.Panel):
+    bl_idname = "OBJECT_PT_hba_settings_prefabs"
+    bl_label = "Prefabs"
 
     def draw(self, context):
         layout = self.layout
@@ -71,7 +71,7 @@ class OBJECT_PT_hba_settings_export(OBJECT_PT_hba_settings_panel, bpy.types.Pane
 
 classes = (
     OBJECT_OT_hba_settings_export,
-    OBJECT_PT_hba_settings_elements,
+    OBJECT_PT_hba_settings_prefabs,
     OBJECT_PT_hba_settings_components,
     OBJECT_PT_hba_settings_export
 )
