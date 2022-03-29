@@ -1,10 +1,10 @@
 import bpy
+from bpy.types import Object, Operator, Panel, Menu
 from ..gizmos.gizmo_group import update_gizmos
 
-
-class HBAPrefabWaypointAdd(bpy.types.Operator):
+class HBAPrefabWaypointAdd(Operator):
     bl_idname = "object.hba_prefab_waypoint_add"
-    bl_label = "Add Waypoint Prefab"
+    bl_label = "Waypoint"
     bl_options = {"UNDO"}
 
     def invoke(self, context, event):
@@ -13,12 +13,18 @@ class HBAPrefabWaypointAdd(bpy.types.Operator):
         obj.empty_display_type = 'PLAIN_AXES'
         obj.HBA_component_type = 'WAYPOINT'
         update_gizmos(None, context)
+        obj.select_set(True)
+        bpy.context.view_layer.objects.active = obj
         return {"FINISHED"}
 
-def menu_func(self, context):
-    self.layout.operator(HBAPrefabWaypointAdd.bl_idname, text=HBAPrefabWaypointAdd.bl_label)
+class LilyGizmosAddMenu(Menu):
+    bl_label = "Hubs"
+    bl_idname = "VIEW3D_MT_hubs_add_menu"
 
-class HBAPrefabWaypointPanel(bpy.types.Panel):
+    def draw(self, context):
+        self.layout.operator(HBAPrefabWaypointAdd.bl_idname, icon='MESH_CUBE')
+
+class HBAPrefabWaypointPanel(Panel):
     bl_idname = "HBA_PT_Prefab_Waypoint"
     bl_label = "Waypoint"
     bl_space_type = 'PROPERTIES'
@@ -47,50 +53,49 @@ class HBAPrefabWaypointPanel(bpy.types.Panel):
         row = layout.row()
         row.prop(obj, "HBA_waypoint_prop_snap_to_nav_mesh")
 
+operators = [HBAPrefabWaypointAdd]
 
 def register():
-    bpy.types.Object.HBA_waypoint_prop_can_be_spawn_point = bpy.props.BoolProperty(
+    Object.HBA_waypoint_prop_can_be_spawn_point = bpy.props.BoolProperty(
         name="Can be spawn point",
         description="Can this waypoint be a spawn point",
         default=False
     )
-    bpy.types.Object.HBA_waypoint_prop_can_be_occupied = bpy.props.BoolProperty(
+    Object.HBA_waypoint_prop_can_be_occupied = bpy.props.BoolProperty(
         name="Can be occupied",
         description="Can this waypoint be occupied",
         default=False
     )
-    bpy.types.Object.HBA_waypoint_prop_can_be_clicked = bpy.props.BoolProperty(
+    Object.HBA_waypoint_prop_can_be_clicked = bpy.props.BoolProperty(
         name="Can be clicked",
         description="Can this waypoint be clicked",
         default=False
     )
-    bpy.types.Object.HBA_waypoint_prop_will_disable_motion = bpy.props.BoolProperty(
+    Object.HBA_waypoint_prop_will_disable_motion = bpy.props.BoolProperty(
         name="Will disable motion",
         description="This waypoint will disable avatars motion",
         default=False
     )
-    bpy.types.Object.HBA_waypoint_prop_will_disable_teleporting = bpy.props.BoolProperty(
+    Object.HBA_waypoint_prop_will_disable_teleporting = bpy.props.BoolProperty(
         name="Will disable teleporting",
         description="This waypoint will disable avatar's teleporting",
         default=False
     )
-    bpy.types.Object.HBA_waypoint_prop_snap_to_nav_mesh = bpy.props.BoolProperty(
+    Object.HBA_waypoint_prop_snap_to_nav_mesh = bpy.props.BoolProperty(
         name="Snap to nav mesh",
         description="Snap to nav mesh",
         default=False
     )
     bpy.utils.register_class(HBAPrefabWaypointAdd)
     bpy.utils.register_class(HBAPrefabWaypointPanel)
-    bpy.types.VIEW3D_MT_object.append(menu_func)
-
 
 def unregister():
-    del bpy.types.Object.HBA_waypoint_prop_can_be_spawn_point
-    del bpy.types.Object.HBA_waypoint_prop_can_be_occupied
-    del bpy.types.Object.HBA_waypoint_prop_can_be_clicked
-    del bpy.types.Object.HBA_waypoint_prop_will_disable_motion
-    del bpy.types.Object.HBA_waypoint_prop_will_disable_teleporting
-    del bpy.types.Object.HBA_waypoint_prop_snap_to_nav_mesh
+    del Object.HBA_waypoint_prop_can_be_spawn_point
+    del Object.HBA_waypoint_prop_can_be_occupied
+    del Object.HBA_waypoint_prop_can_be_clicked
+    del Object.HBA_waypoint_prop_will_disable_motion
+    del Object.HBA_waypoint_prop_will_disable_teleporting
+    del Object.HBA_waypoint_prop_snap_to_nav_mesh
     bpy.utils.unregister_class(HBAPrefabWaypointPanel)
     bpy.utils.unregister_class(HBAPrefabWaypointAdd)
 
