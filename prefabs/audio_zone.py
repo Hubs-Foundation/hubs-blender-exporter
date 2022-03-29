@@ -2,9 +2,9 @@ import bpy
 from ..gizmos.gizmo_group import update_gizmos
 
 
-class OBJECT_OT_hba_prefab_audio_zone_add(bpy.types.Operator):
+class HBAPrefabAudioZoneAdd(bpy.types.Operator):
     bl_idname = "object.hba_prefab_audio_zone_add"
-    bl_label = "Add Audio Zone"
+    bl_label = "Add Audio Zone Prefab"
     bl_options = {"UNDO"}
 
     def invoke(self, context, event):
@@ -16,7 +16,7 @@ class OBJECT_OT_hba_prefab_audio_zone_add(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class RENDER_PT_hba_prefab_audio_zone(bpy.types.Panel):
+class HBAPrefabAudioZonePanel(bpy.types.Panel):
     bl_idname = "HBA_PT_Prefab_Audio_Zone"
     bl_label = "Audio Zone"
     bl_space_type = 'PROPERTIES'
@@ -42,14 +42,14 @@ def register():
         description="Prop 1",
         default=False
     )
-    bpy.utils.register_class(OBJECT_OT_hba_prefab_audio_zone_add)
-    bpy.utils.register_class(RENDER_PT_hba_prefab_audio_zone)
+    bpy.utils.register_class(HBAPrefabAudioZoneAdd)
+    bpy.utils.register_class(HBAPrefabAudioZonePanel)
 
 
 def unregister():
     del bpy.types.Object.HBA_prefab_audio_zone_prop_1
-    bpy.utils.unregister_class(RENDER_PT_hba_prefab_audio_zone)
-    bpy.utils.unregister_class(OBJECT_OT_hba_prefab_audio_zone_add)
+    bpy.utils.unregister_class(HBAPrefabAudioZonePanel)
+    bpy.utils.unregister_class(HBAPrefabAudioZoneAdd)
 
 
 if __name__ == "__main__":

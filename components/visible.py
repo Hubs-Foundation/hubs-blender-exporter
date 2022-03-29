@@ -11,7 +11,7 @@ class VisibleComponentProperties(PropertyGroup):
     visible: BoolProperty(name="Visible", default=True, update=update_visible)
 
 
-class OBJECT_OT_hba_component_visible_switch(bpy.types.Operator):
+class HBAComponentVisibleSwitch(bpy.types.Operator):
     bl_idname = "object.hba_component_visible_switch"
     bl_label = "Change Visible component state"
     bl_options = {"UNDO"}
@@ -21,7 +21,7 @@ class OBJECT_OT_hba_component_visible_switch(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class OBJECT_OT_hba_component_visible_add(bpy.types.Operator):
+class HBAComponentVisibleAdd(bpy.types.Operator):
     bl_idname = "object.hba_component_visible_add"
     bl_label = "Add Visible component"
     bl_options = {"UNDO"}
@@ -59,14 +59,14 @@ def register():
     bpy.utils.register_class(VisibleComponentProperties)
     bpy.types.Object.HBA_object_component_visible = PointerProperty(
         type=VisibleComponentProperties)
-    bpy.utils.register_class(OBJECT_OT_hba_component_visible_add)
-    bpy.utils.register_class(OBJECT_OT_hba_component_visible_switch)
+    bpy.utils.register_class(HBAComponentVisibleSwitch)
+    bpy.utils.register_class(HBAComponentVisibleAdd)
     bpy.utils.register_class(RENDER_PT_hba_component_visible)
 
 
 def unregister():
     bpy.utils.unregister_class(RENDER_PT_hba_component_visible)
-    bpy.utils.unregister_class(OBJECT_OT_hba_component_visible_switch)
-    bpy.utils.unregister_class(OBJECT_OT_hba_component_visible_add)
+    bpy.utils.unregister_class(HBAComponentVisibleAdd)
+    bpy.utils.unregister_class(HBAComponentVisibleSwitch)
     del bpy.types.Object.HBA_object_component_visible
     bpy.utils.unregister_class(VisibleComponentProperties)
