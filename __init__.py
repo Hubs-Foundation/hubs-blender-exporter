@@ -1,6 +1,6 @@
 from .io import gltf_exporter
 from .gizmos import (gizmo_registry, gizmo_group)
-from . import (settings, components, elements, ui)
+from . import (settings, components, prefabs, ui)
 bl_info = {
     "name": "New Hubs Blender Addon",
     "author": "Mozilla Hubs",
@@ -25,7 +25,7 @@ def register():
     gizmo_registry.register()
     gizmo_group.register()
     components.register()
-    elements.register()
+    prefabs.register()
     ui.register()
 
 
@@ -33,7 +33,7 @@ def unregister():
     print('Unregister Addon')
 
     ui.unregister()
-    elements.unregister()
+    prefabs.unregister()
     components.unregister()
     gizmo_group.unregister()
     gizmo_registry.unregister()

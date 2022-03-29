@@ -1,5 +1,5 @@
 import bpy
-from ..types import HubsElementTypes
+from ..types import HubsPrefabTypes
 from .gizmo_info import (
     GizmoInfo
 )
@@ -82,7 +82,7 @@ def consolidate_register_functions():
 
     def register():
         bpy.types.Object.HBA_component_type = bpy.props.EnumProperty(
-            items=HubsElementTypes)
+            items=HubsPrefabTypes)
         bpy.utils.register_class(delete_override)
         for f in register_functions:
             f()
