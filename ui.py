@@ -1,7 +1,6 @@
 import bpy
 
-
-class OBJECT_OT_hba_settings_export(bpy.types.Operator):
+class HBASettingsExport(bpy.types.Operator):
     bl_idname = "object.hba_settings_export"
     bl_label = "Render"
     bl_options = {"UNDO"}
@@ -9,15 +8,14 @@ class OBJECT_OT_hba_settings_export(bpy.types.Operator):
     def invoke(self, context, event):
         return {"FINISHED"}
 
-
-class OBJECT_PT_hba_settings_panel:
+class HBASettingsPanel:
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'Hubs'
 
 
-class OBJECT_PT_hba_settings_prefabs(OBJECT_PT_hba_settings_panel, bpy.types.Panel):
-    bl_idname = "OBJECT_PT_hba_settings_prefabs"
+class HBASettingsPrefabsPanel(HBASettingsPanel, bpy.types.Panel):
+    bl_idname = "HBA_PT_Settings_Prefabs"
     bl_label = "Prefabs"
 
     def draw(self, context):
@@ -33,8 +31,8 @@ class OBJECT_PT_hba_settings_prefabs(OBJECT_PT_hba_settings_panel, bpy.types.Pan
         row = layout.row()
 
 
-class OBJECT_PT_hba_settings_components(OBJECT_PT_hba_settings_panel, bpy.types.Panel):
-    bl_idname = "OBJECT_PT_hba_settings_components"
+class HBASettingsComponentsPanel(HBASettingsPanel, bpy.types.Panel):
+    bl_idname = "HBA_PT_Settings_Components"
     bl_label = "Components"
 
     @classmethod
@@ -48,12 +46,13 @@ class OBJECT_PT_hba_settings_components(OBJECT_PT_hba_settings_panel, bpy.types.
         row.operator("object.hba_component_visible_add",
                      text="Visible")
         row = layout.row()
-
+        row.operator("object.hba_component_waypoint_add",
+                     text="Waypoint")
         row = layout.row()
 
 
-class OBJECT_PT_hba_settings_export(OBJECT_PT_hba_settings_panel, bpy.types.Panel):
-    bl_idname = "OBJECT_PT_hba_settings_export"
+class HBASettingsExportPanel(HBASettingsPanel, bpy.types.Panel):
+    bl_idname = "HBA_PT_Settings_Export"
     bl_label = "Render"
 
     def draw(self, context):
@@ -70,10 +69,10 @@ class OBJECT_PT_hba_settings_export(OBJECT_PT_hba_settings_panel, bpy.types.Pane
 
 
 classes = (
-    OBJECT_OT_hba_settings_export,
-    OBJECT_PT_hba_settings_prefabs,
-    OBJECT_PT_hba_settings_components,
-    OBJECT_PT_hba_settings_export
+    HBASettingsExport,
+    HBASettingsPrefabsPanel,
+    HBASettingsComponentsPanel,
+    HBASettingsExportPanel
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)
