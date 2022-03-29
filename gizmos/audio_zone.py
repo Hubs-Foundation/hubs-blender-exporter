@@ -1,4 +1,4 @@
-from ..gizmo_info import GizmoInfo
+from gizmo_info import GizmoInfo
 from .hubs_gizmo import stock_gizmo_update
 
 AUDIO_ZONE = GizmoInfo(

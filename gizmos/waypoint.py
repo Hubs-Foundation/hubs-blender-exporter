@@ -1,4 +1,4 @@
-from ..gizmo_info import GizmoInfo
+from gizmo_info import GizmoInfo
 from .models import spawn_point
 from .hubs_gizmo import (HubsGizmo, hubs_gizmo_update)
 from os.path import (join, dirname)
