@@ -1,10 +1,11 @@
 import bpy
+from bpy.types import Object, Operator, Panel
 from ..gizmos.gizmo_group import update_gizmos
 
 
-class HBAPrefabMediaFrameAdd(bpy.types.Operator):
+class HBAPrefabMediaFrameAdd(Operator):
     bl_idname = "object.hba_prefab_media_frame_add"
-    bl_label = "Add Media Frame Prefab"
+    bl_label = "Media Frame"
     bl_options = {"UNDO"}
 
     def invoke(self, context, event):
@@ -13,10 +14,12 @@ class HBAPrefabMediaFrameAdd(bpy.types.Operator):
         obj.empty_display_type = 'PLAIN_AXES'
         obj.HBA_component_type = 'MEDIA_FRAME'
         update_gizmos(None, context)
+        obj.select_set(True)
+        bpy.context.view_layer.objects.active = obj
         return {"FINISHED"}
 
 
-class HBAPrefabMediaFramePanel(bpy.types.Panel):
+class HBAPrefabMediaFramePanel(Panel):
     bl_idname = "HBA_PT_Prefab_Media_Frame"
     bl_label = "Media Frame"
     bl_space_type = 'PROPERTIES'
@@ -35,9 +38,10 @@ class HBAPrefabMediaFramePanel(bpy.types.Panel):
         row = layout.row()
         row.prop(obj, "HBA_prefab_media_frame_prop_1")
 
+operators = [HBAPrefabMediaFrameAdd]
 
 def register():
-    bpy.types.Object.HBA_prefab_media_frame_prop_1 = bpy.props.BoolProperty(
+    Object.HBA_prefab_media_frame_prop_1 = bpy.props.BoolProperty(
         name="Prop 1",
         description="Prop 1",
         default=False
@@ -47,7 +51,7 @@ def register():
 
 
 def unregister():
-    del bpy.types.Object.HBA_prefab_media_frame_prop_1
+    del Object.HBA_prefab_media_frame_prop_1
     bpy.utils.unregister_class(HBAPrefabMediaFramePanel)
     bpy.utils.unregister_class(HBAPrefabMediaFrameAdd)
 
