@@ -3,7 +3,7 @@ from bpy.types import (
     GizmoGroup,
 )
 from .gizmo_registry import registry
-from .types.hubs_gizmo import HubsGizmo
+from .gizmo_custom import HubsGizmo
 from .utils import load_gizmo_model
 
 class HubsGizmoGroup(GizmoGroup):
@@ -36,7 +36,7 @@ class HubsGizmoGroup(GizmoGroup):
         widget = self.gizmos.new(info.type)
 
         if (info.type == HubsGizmo.bl_idname):
-            # Ideally we should load the models from a glb but for some reason it hangs
+            ## Ideally we should load the models from a glb but it throws an exception right now.
             # load_gizmo_model(info.id, info.path)
             # setattr(widget, "hba_gizmo_shape", load_gizmo_model(info.id, info.path))
             setattr(widget, "hba_gizmo_shape", info.shape)
