@@ -4,7 +4,6 @@ from bpy.types import (
     Gizmo
 )
 
-
 def hubs_gizmo_update(self, widget):
     widget.matrix_basis = self.matrix_world.normalized()
     bpy.context.view_layer.update()

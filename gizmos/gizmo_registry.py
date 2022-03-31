@@ -4,9 +4,6 @@ from .gizmo_info import (
     GizmoInfo
 )
 
-# -------------------------------------------------------------------
-
-
 def get_gizmo_modules():
     import os
     from os.path import join, dirname, realpath, isfile
@@ -23,9 +20,6 @@ def get_gizmo_modules():
         for name in gizmo_module_names
     ]
 
-# -------------------------------------------------------------------
-
-
 def load_gizmo_registry():
     """Recurse in the Gizmos directory to build the gizmo registry"""
     registry = {}
@@ -39,9 +33,6 @@ def load_gizmo_registry():
                 registry[identifier] = member
 
     return registry
-
-# -------------------------------------------------------------------
-
 
 class delete_override(bpy.types.Operator):
     """Override object delete operator to update gizmos after deletion"""
@@ -81,21 +72,18 @@ def consolidate_register_functions():
             unregister_functions.append(getattr(module, 'unregister'))
 
     def register():
-        bpy.types.Object.HBA_component_type = bpy.props.EnumProperty(
+        bpy.types.Object.hubs_gizmo_type = bpy.props.EnumProperty(
             items=HubsPrefabTypes)
         bpy.utils.register_class(delete_override)
         for f in register_functions:
             f()
 
     def unregister():
-        del bpy.types.Object.HBA_component_type
+        del bpy.types.Object.hubs_gizmo_type
         bpy.utils.unregister_class(delete_override)
         for f in unregister_functions[::-1]:
             f()
     return register, unregister
-
-# -------------------------------------------------------------------
-
 
 registry = load_gizmo_registry()
 
