@@ -12,7 +12,7 @@ class HBAPrefabMediaFrameAdd(Operator):
         obj = bpy.data.objects.new("empty", None)
         bpy.context.scene.collection.objects.link(obj)
         obj.empty_display_type = 'PLAIN_AXES'
-        obj.HBA_component_type = 'MEDIA_FRAME'
+        obj.hubs_gizmo_type = 'MEDIA_FRAME'
         update_gizmos(None, context)
         obj.select_set(True)
         bpy.context.view_layer.objects.active = obj
@@ -29,7 +29,7 @@ class HBAPrefabMediaFramePanel(Panel):
 
     @classmethod
     def poll(cls, context):
-        return hasattr(context.active_object, "HBA_component_type") and context.active_object.HBA_component_type == 'MEDIA_FRAME'
+        return hasattr(context.active_object, "hubs_gizmo_type") and context.active_object.hubs_gizmo_type == 'MEDIA_FRAME'
 
     def draw(self, context):
         obj = context.object

@@ -8,7 +8,7 @@ from .utils import load_gizmo_model
 
 class HubsGizmoGroup(GizmoGroup):
     bl_idname = "OBJECT_GGT_hba_gizmo_group"
-    bl_label = "Object Camera Test Widget"
+    bl_label = "Hubs gizmo group"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
     bl_options = {'3D', 'PERSISTENT', 'SHOW_MODAL_ALL', 'SELECT'}
@@ -20,11 +20,11 @@ class HubsGizmoGroup(GizmoGroup):
 
     def get_params(self, context):
         return [
-            (obj, obj.HBA_component_type)
+            (obj, obj.hubs_gizmo_type)
             for obj in context.view_layer.objects
             if obj.type == 'EMPTY'
             and obj.visible_get()
-            and hasattr(obj, "HBA_component_type")
+            and hasattr(obj, "hubs_gizmo_type")
         ]
 
     def setup_param(self, context, param):

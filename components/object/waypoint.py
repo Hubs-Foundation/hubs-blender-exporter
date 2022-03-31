@@ -44,7 +44,7 @@ class HBAComponentWaypointAdd(bpy.types.Operator):
 
     def invoke(self, context, event):
         add_component(context.object, COMPONENT_NAME)
-        context.object.HBA_component_type = 'WAYPOINT'
+        context.object.hubs_gizmo_type = 'WAYPOINT'
         update_gizmos(None, context)
 
         return {"FINISHED"}
