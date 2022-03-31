@@ -23,12 +23,13 @@ def register():
 
     bpy.types.Object.hubs_component_list = PointerProperty(
         type=HubsComponentList)
-    bpy.types.Object.hubs_active_gizmo = PointerProperty(type=HubsActiveGizmo)
+    bpy.types.Object.hubs_object_gizmos = CollectionProperty(
+        type=HubsActiveGizmo)
 
 
 def unregister():
     del bpy.types.Object.hubs_component_list
-    del bpy.types.Object.hubs_active_gizmo
+    del bpy.types.Object.hubs_object_gizmos
 
     bpy.utils.unregister_class(HubsComponentName)
     bpy.utils.unregister_class(HubsComponentList)

@@ -16,71 +16,75 @@ class HubsGizmoGroup(GizmoGroup):
 
     def setup(self, context):
         self.widgets = {}
-        for p in self.get_params(context):
-            self.setup_param(context, p)
+        self.widgets_types = {}
+        for obj in self.get_objects_with_gizmos(context):
+            self.widgets[obj.name] = []
+            self.setup_gizmos(context, obj)
 
-    def get_params(self, context):
+    def get_objects_with_gizmos(self, context):
         return [
-            (obj, obj.hubs_active_gizmo.type)
+            obj
             for _, obj in bpy.context.scene.objects.items()
-            if hasattr(obj, "hubs_active_gizmo")
-            and obj.hubs_active_gizmo.type
+            if hasattr(obj, "hubs_object_gizmos")
         ]
 
-    def setup_param(self, context, param):
-        ob, type = param
-        if type not in registry:
-            return
-        info = registry[type]
+    def setup_gizmos(self, context, obj):
+        for component in obj.hubs_object_gizmos:
+            if component.type not in registry:
+                return
+            info = registry[component.type]
 
-        widget = self.gizmos.new(info.type)
+            widget = self.gizmos.new(info.type)
 
-        if (info.type == HubsGizmo.bl_idname):
-            # Ideally we should load the models from a glb but it throws an exception right now.
-            # load_gizmo_model(info.id, info.path)
-            # setattr(widget, "hba_gizmo_shape", load_gizmo_model(info.id, info.path))
-            setattr(widget, "hba_gizmo_shape", info.shape)
-            widget.setup()
+            if (info.type == HubsGizmo.bl_idname):
+                # Ideally we should load the models from a glb but it throws an exception right now.
+                # load_gizmo_model(info.id, info.path)
+                # setattr(widget, "hba_gizmo_shape", load_gizmo_model(info.id, info.path))
+                setattr(widget, "hba_gizmo_shape", info.shape)
+                widget.setup()
 
-        widget.draw_style = info.styles
+            widget.draw_style = info.styles
 
-        widget.matrix_basis = ob.matrix_world.normalized()
-        widget.line_width = 3
+            widget.matrix_basis = obj.matrix_world.normalized()
+            widget.line_width = 3
 
-        widget.color = info.color
-        widget.alpha = 0.5
-        widget.hide = not ob.visible_get()
-        widget.hide_select = True
+            widget.color = info.color
+            widget.alpha = 0.5
+            widget.hide = not obj.visible_get()
+            widget.hide_select = True
 
-        widget.scale_basis = 1.0
-        widget.use_draw_modal = True
+            widget.scale_basis = 1.0
+            widget.use_draw_modal = True
 
-        widget.color_highlight = info.color_highlight
-        widget.alpha_highlight = 1.0
+            widget.color_highlight = info.color_highlight
+            widget.alpha_highlight = 1.0
 
-        op = widget.target_set_operator("transform.translate")
-        op.constraint_axis = False, False, False
-        op.orient_type = 'LOCAL'
-        op.release_confirm = True
+            op = widget.target_set_operator("transform.translate")
+            op.constraint_axis = False, False, False
+            op.orient_type = 'LOCAL'
+            op.release_confirm = True
 
-        self.widgets[ob.name] = widget
-        self.refresh_param(context, param)
+            self.widgets[obj.name].append(widget)
+            self.widgets_types[id(widget)] = component.type
+            self.refresh_gizmos(context, obj)
 
     def refresh(self, context):
-        for p in self.get_params(context):
-            self.refresh_param(context, p)
+        for obj in self.get_objects_with_gizmos(context):
+            self.refresh_gizmos(context, obj)
 
-    def refresh_param(self, _, param):
-        ob, type = param
-
-        if ob.name not in self.widgets:
+    def refresh_gizmos(self, _, obj):
+        if obj.name not in self.widgets:
             return
 
-        widget = self.widgets[ob.name]
-        widget.hide = not ob.visible_get()
+        widgets = self.widgets[obj.name]
+        for widget in widgets:
+            if id(widget) not in self.widgets_types:
+                return
 
-        info = registry[type]
-        info.update(ob, widget)
+            widget.hide = not obj.visible_get()
+
+            info = registry[self.widgets_types[id(widget)]]
+            info.update(obj, widget)
 
 
 classes = (
