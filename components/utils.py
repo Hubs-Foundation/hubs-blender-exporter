@@ -51,10 +51,11 @@ def has_components(obj, component_names):
 
 
 def add_gizmo(obj, component_name):
-    obj.hubs_active_gizmo.type = component_name
+    gizmo = obj.hubs_object_gizmos.add()
+    gizmo.type = component_name
     update_gizmos(None, bpy.context)
 
 
 def remove_gizmo(obj, component_name):
-    obj.hubs_active_gizmo.type = ''
+    del obj.hubs_object_gizmos[component_name]
     update_gizmos(None, bpy.context)
