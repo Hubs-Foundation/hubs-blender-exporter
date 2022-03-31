@@ -1,3 +1,6 @@
+import bpy
+from ..gizmos.gizmo_group import update_gizmos
+
 def get_modules_in_folder(folder):
   from os.path import basename, isfile, join
   import glob
@@ -37,3 +40,11 @@ def has_components(obj, component_names):
     for name in component_names:
         if name not in items: return False
     return True
+
+def add_gizmo(obj, component_name):
+  obj.hubs_active_gizmo.type = component_name
+  update_gizmos(None, bpy.context)
+
+def remove_gizmo(obj, component_name):
+  obj.hubs_active_gizmo.type = ''
+  update_gizmos(None, bpy.context)

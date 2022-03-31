@@ -2,7 +2,6 @@ import bpy
 from bpy.props import BoolProperty, PointerProperty
 from bpy.types import PropertyGroup
 from ..utils import *
-from ...gizmos.gizmo_group import update_gizmos
 
 COMPONENT_NAME = "waypoint"
 
@@ -43,8 +42,7 @@ class HBAComponentWaypointAdd(bpy.types.Operator):
 
     def invoke(self, context, event):
         add_component(context.object, COMPONENT_NAME)
-        context.object.hubs_active_gizmo.type = COMPONENT_NAME
-        update_gizmos(None, context)
+        add_gizmo(context.object, COMPONENT_NAME)
 
         return {"FINISHED"}
 
