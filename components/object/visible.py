@@ -6,11 +6,14 @@ from ..utils import *
 
 COMPONENT_NAME = 'visible'
 
+
 def update(self, context):
     context.object.hide_viewport = not bpy.context.object.hubs_component_visible.visible
 
+
 class VisibleComponentProperties(PropertyGroup):
     visible: BoolProperty(name="Visible", default=True, update=update)
+
 
 class HBAComponentVisibleAdd(bpy.types.Operator):
     bl_idname = "object.hba_component_visible_add"
@@ -24,6 +27,7 @@ class HBAComponentVisibleAdd(bpy.types.Operator):
         context.object.hide_viewport = not bpy.context.object.hubs_component_visible.visible
         return {"FINISHED"}
 
+
 class HBAComponentVisibleRemove(bpy.types.Operator):
     bl_idname = "object.hba_component_visible_remove"
     bl_label = "Remove Visible component"
@@ -34,6 +38,7 @@ class HBAComponentVisibleRemove(bpy.types.Operator):
 
         context.object.hide_viewport = False
         return {"FINISHED"}
+
 
 class HBAComponentVisiblePanel(bpy.types.Panel):
     bl_idname = "HBA_PT_Component_Visible"

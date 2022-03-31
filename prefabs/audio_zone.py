@@ -3,6 +3,7 @@ from bpy.types import Object, Operator
 from ..gizmos.gizmo_group import update_gizmos
 from ..components.utils import *
 
+
 class HBAPrefabAudioZoneAdd(Operator):
     bl_idname = "object.hba_prefab_audio_zone_add"
     bl_label = "Audio Zone"
@@ -16,7 +17,9 @@ class HBAPrefabAudioZoneAdd(Operator):
         bpy.context.view_layer.objects.active = obj
         return {"FINISHED"}
 
+
 operators = [HBAPrefabAudioZoneAdd]
+
 
 def register():
     bpy.utils.register_class(HBAPrefabAudioZoneAdd)

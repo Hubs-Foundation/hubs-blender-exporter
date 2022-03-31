@@ -3,6 +3,7 @@ from .gizmo_info import (
     GizmoInfo
 )
 
+
 def get_gizmo_modules():
     import os
     from os.path import join, dirname, realpath, isfile
@@ -19,6 +20,7 @@ def get_gizmo_modules():
         for name in gizmo_module_names
     ]
 
+
 def load_gizmo_registry():
     """Recurse in the Gizmos directory to build the gizmo registry"""
     registry = {}
@@ -32,6 +34,7 @@ def load_gizmo_registry():
                 registry[member.id] = member
 
     return registry
+
 
 class delete_override(bpy.types.Operator):
     """Override object delete operator to update gizmos after deletion"""
@@ -80,6 +83,7 @@ def consolidate_register_functions():
         for f in unregister_functions[::-1]:
             f()
     return register, unregister
+
 
 registry = load_gizmo_registry()
 

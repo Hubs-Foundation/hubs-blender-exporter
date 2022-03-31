@@ -10,5 +10,6 @@ def get_addon_folder():
         else:
             pass
 
+
 def get_module_path(module_names):
     return '.'.join([get_addon_folder()] + module_names)

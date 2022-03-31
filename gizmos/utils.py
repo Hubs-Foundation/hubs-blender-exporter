@@ -1,14 +1,17 @@
 import bpy
 import mathutils
 
+
 def hubs_gizmo_update(self, widget):
     widget.matrix_basis = self.matrix_world.normalized()
     bpy.context.view_layer.update()
+
 
 def gizmo_update(self, widget):
     mat_scale = mathutils.Matrix.Scale(2.0, 4)
     widget.matrix_basis = self.matrix_world @ mat_scale
     bpy.context.view_layer.update()
+
 
 def load_gizmo_model(id, path):
     assert id != None, "No Gizmo id provided"

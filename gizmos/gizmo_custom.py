@@ -2,6 +2,7 @@ from bpy.types import (
     Gizmo
 )
 
+
 class HubsGizmo(Gizmo):
     """Generic gizmo to render all Hubs custom gizmos"""
     bl_idname = "GIZMO_GT_hba_gizmo"

@@ -1,5 +1,6 @@
 from . import (component, object, scene)
 
+
 def register():
     component.register()
     object.register()
