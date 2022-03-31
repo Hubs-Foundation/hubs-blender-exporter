@@ -1,16 +1,16 @@
-from ..consts import ADDON_ROOT_FOLDER
 import importlib
 from os.path import dirname, basename, isfile, join
 import glob
 import bpy
 from bpy.types import VIEW3D_MT_add, Menu
+from ..utils import get_module_path
 
 modules = glob.glob(join(dirname(__file__), "*.py"))
 __all__ = [basename(f)[:-3] for f in modules if isfile(f)
            and not f.endswith('__init__.py')]
 
 
-folder = ADDON_ROOT_FOLDER + '.prefabs'
+modules_path =  get_module_path(['prefabs'])
 
 registered_modules = []
 
@@ -43,9 +43,9 @@ def register():
     Dynamically register all prefabs in this folder.
     '''
     for module_name in __all__:
-        if (module_name != folder):
+        if (module_name != modules_path):
             module = importlib.import_module(
-                '.' + module_name, folder)
+                '.' + module_name, modules_path)
             registered_modules.append(module)
             print("Register prefab: " + module.__name__)
             module.register()
