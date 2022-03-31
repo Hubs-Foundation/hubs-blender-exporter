@@ -6,6 +6,7 @@ from .gizmo_registry import registry
 from .gizmo_custom import HubsGizmo
 from .utils import load_gizmo_model
 
+
 class HubsGizmoGroup(GizmoGroup):
     bl_idname = "OBJECT_GGT_hba_gizmo_group"
     bl_label = "Hubs gizmo group"
@@ -35,7 +36,7 @@ class HubsGizmoGroup(GizmoGroup):
         widget = self.gizmos.new(info.type)
 
         if (info.type == HubsGizmo.bl_idname):
-            ## Ideally we should load the models from a glb but it throws an exception right now.
+            # Ideally we should load the models from a glb but it throws an exception right now.
             # load_gizmo_model(info.id, info.path)
             # setattr(widget, "hba_gizmo_shape", load_gizmo_model(info.id, info.path))
             setattr(widget, "hba_gizmo_shape", info.shape)
@@ -71,7 +72,7 @@ class HubsGizmoGroup(GizmoGroup):
 
     def refresh_param(self, _, param):
         ob, type = param
-        
+
         if ob.name not in self.widgets:
             return
 

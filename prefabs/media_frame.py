@@ -3,6 +3,7 @@ from bpy.types import Object, Operator
 from ..gizmos.gizmo_group import update_gizmos
 from ..components.utils import *
 
+
 class HBAPrefabMediaFrameAdd(Operator):
     bl_idname = "object.hba_prefab_media_frame_add"
     bl_label = "Media Frame"
@@ -16,7 +17,9 @@ class HBAPrefabMediaFrameAdd(Operator):
         bpy.context.view_layer.objects.active = obj
         return {"FINISHED"}
 
+
 operators = [HBAPrefabMediaFrameAdd]
+
 
 def register():
     bpy.utils.register_class(HBAPrefabMediaFrameAdd)

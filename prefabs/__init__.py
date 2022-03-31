@@ -10,9 +10,10 @@ __all__ = [basename(f)[:-3] for f in modules if isfile(f)
            and not f.endswith('__init__.py')]
 
 
-modules_path =  get_module_path(['prefabs'])
+modules_path = get_module_path(['prefabs'])
 
 registered_modules = []
+
 
 class HubsAddMenu(Menu):
     bl_label = "Hubs"
@@ -26,17 +27,20 @@ class HubsAddMenu(Menu):
                 self.layout.operator(
                     operator.bl_idname,
                     text=operator.bl_label,
-                    icon='MESH_CUBE', # TODO: Use custom prefab icon
+                    icon='MESH_CUBE',  # TODO: Use custom prefab icon
                 )
+
 
 def VIEW3D_MT_hubs_add(self, context):
     # TODO: Replace with custom icon
     self.layout.menu(menu=HubsAddMenu.bl_idname, icon='MESH_CUBE')
 
+
 classes = (
     HubsAddMenu,
 )
 register_cls, unregister_cls = bpy.utils.register_classes_factory(classes)
+
 
 def register():
     '''

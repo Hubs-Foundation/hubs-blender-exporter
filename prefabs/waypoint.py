@@ -2,6 +2,7 @@ import bpy
 from bpy.types import Operator
 from ..gizmos.gizmo_group import update_gizmos
 
+
 class HBAPrefabWaypointAdd(Operator):
     bl_idname = "object.hba_prefab_waypoint_add"
     bl_label = "Waypoint"
@@ -15,10 +16,13 @@ class HBAPrefabWaypointAdd(Operator):
         bpy.context.view_layer.objects.active = obj
         return {"FINISHED"}
 
+
 operators = [HBAPrefabWaypointAdd]
+
 
 def register():
     bpy.utils.register_class(HBAPrefabWaypointAdd)
+
 
 def unregister():
     bpy.utils.unregister_class(HBAPrefabWaypointAdd)

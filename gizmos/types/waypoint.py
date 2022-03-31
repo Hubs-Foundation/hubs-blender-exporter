@@ -11,6 +11,7 @@ WAYPOINT = GizmoInfo(
     type=HubsGizmo.bl_idname,
     draw_options=[],
     shape=spawn_point.SHAPE,
-    path=join(dirname(__file__), "models", "spawn-point.glb"), # Used in case of loading from GLB (disabled at the moment)
+    # Used in case of loading from GLB (disabled at the moment)
+    path=join(dirname(__file__), "models", "spawn-point.glb"),
     update=hubs_gizmo_update
 )

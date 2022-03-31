@@ -1,5 +1,6 @@
 import bpy
 
+
 class HBASettingsExport(bpy.types.Operator):
     bl_idname = "object.hba_settings_export"
     bl_label = "Render"
@@ -7,6 +8,7 @@ class HBASettingsExport(bpy.types.Operator):
 
     def invoke(self, context, event):
         return {"FINISHED"}
+
 
 class HBASettingsPanel:
     bl_space_type = 'VIEW_3D'
@@ -24,7 +26,8 @@ class HBASettingsPrefabsPanel(HBASettingsPanel, bpy.types.Panel):
         row = layout.row()
         row.operator("object.hba_prefab_waypoint_add", text="Add Waypoint")
         row = layout.row()
-        row.operator("object.hba_prefab_media_frame_add", text="Add Media Frame")
+        row.operator("object.hba_prefab_media_frame_add",
+                     text="Add Media Frame")
         row = layout.row()
         row.operator("object.hba_prefab_audio_zone_add", text="Add Audio Zone")
 

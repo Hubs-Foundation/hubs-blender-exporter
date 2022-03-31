@@ -5,6 +5,7 @@ from ..utils import *
 
 COMPONENT_NAME = "waypoint"
 
+
 class WaypointComponentProperties(PropertyGroup):
     canBeSpawnPoint: BoolProperty(
         name="canBeSpawnPoint",
@@ -34,6 +35,7 @@ class WaypointComponentProperties(PropertyGroup):
         name="snapToNavMesh",
         description="Avatars will move as close as they can to this waypoint but will not leave the ground",
         default=False)
+
 
 class HBAComponentWaypointAdd(bpy.types.Operator):
     bl_idname = "object.hba_component_waypoint_add"
@@ -93,12 +95,14 @@ class HBAComponentWaypointPanel(bpy.types.Panel):
                  text="Snap to navmesh")
         row = layout.row()
 
+
 def register():
     bpy.utils.register_class(WaypointComponentProperties)
     bpy.types.Object.hubs_component_waypoint = PointerProperty(
         type=WaypointComponentProperties)
     bpy.utils.register_class(HBAComponentWaypointAdd)
     bpy.utils.register_class(HBAComponentWaypointPanel)
+
 
 def unregister():
     bpy.utils.unregister_class(HBAComponentWaypointPanel)
