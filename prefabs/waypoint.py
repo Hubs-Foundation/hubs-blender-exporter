@@ -11,7 +11,6 @@ class HBAPrefabWaypointAdd(Operator):
         obj = bpy.data.objects.new("empty", None)
         bpy.context.scene.collection.objects.link(obj)
         obj.empty_display_type = 'PLAIN_AXES'
-        obj.hubs_gizmo_type = 'WAYPOINT'
         update_gizmos(None, context)
         obj.select_set(True)
         bpy.context.view_layer.objects.active = obj

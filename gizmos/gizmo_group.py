@@ -20,11 +20,10 @@ class HubsGizmoGroup(GizmoGroup):
 
     def get_params(self, context):
         return [
-            (obj, obj.hubs_gizmo_type)
-            for obj in context.view_layer.objects
-            if obj.type == 'EMPTY'
-            and obj.visible_get()
-            and hasattr(obj, "hubs_gizmo_type")
+            (obj, obj.hubs_active_gizmo.type)
+            for _, obj in bpy.context.scene.objects.items()
+            if hasattr(obj, "hubs_active_gizmo")
+            and obj.hubs_active_gizmo.type
         ]
 
     def setup_param(self, context, param):
@@ -49,8 +48,8 @@ class HubsGizmoGroup(GizmoGroup):
 
         widget.color = info.color
         widget.alpha = 0.5
-        widget.hide = False
-        widget.hide_select = False
+        widget.hide = not ob.visible_get()
+        widget.hide_select = True
 
         widget.scale_basis = 1.0
         widget.use_draw_modal = True
@@ -72,10 +71,12 @@ class HubsGizmoGroup(GizmoGroup):
 
     def refresh_param(self, _, param):
         ob, type = param
-
+        
         if ob.name not in self.widgets:
             return
+
         widget = self.widgets[ob.name]
+        widget.hide = not ob.visible_get()
 
         info = registry[type]
         info.update(ob, widget)

@@ -2,10 +2,9 @@ import bpy
 from bpy.props import BoolProperty, PointerProperty
 from bpy.types import PropertyGroup
 from ..utils import *
-import os
 from ...gizmos.gizmo_group import update_gizmos
 
-COMPONENT_NAME = os.path.basename(__file__)[:-3]
+COMPONENT_NAME = "waypoint"
 
 class WaypointComponentProperties(PropertyGroup):
     canBeSpawnPoint: BoolProperty(
@@ -44,7 +43,7 @@ class HBAComponentWaypointAdd(bpy.types.Operator):
 
     def invoke(self, context, event):
         add_component(context.object, COMPONENT_NAME)
-        context.object.hubs_gizmo_type = 'WAYPOINT'
+        context.object.hubs_active_gizmo.type = COMPONENT_NAME
         update_gizmos(None, context)
 
         return {"FINISHED"}
@@ -96,14 +95,12 @@ class HBAComponentWaypointPanel(bpy.types.Panel):
                  text="Snap to navmesh")
         row = layout.row()
 
-
 def register():
     bpy.utils.register_class(WaypointComponentProperties)
     bpy.types.Object.hubs_component_waypoint = PointerProperty(
         type=WaypointComponentProperties)
     bpy.utils.register_class(HBAComponentWaypointAdd)
     bpy.utils.register_class(HBAComponentWaypointPanel)
-
 
 def unregister():
     bpy.utils.unregister_class(HBAComponentWaypointPanel)

@@ -2,9 +2,9 @@ import bpy
 from bpy.props import BoolProperty, PointerProperty
 from bpy.types import PropertyGroup
 from ..utils import *
-import os
 
-COMPONENT_NAME = os.path.basename(__file__)[:-3]
+
+COMPONENT_NAME = 'visible'
 
 def update(self, context):
     context.object.hide_viewport = not bpy.context.object.hubs_component_visible.visible

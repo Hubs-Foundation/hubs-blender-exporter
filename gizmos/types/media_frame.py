@@ -1,7 +1,8 @@
 from ..gizmo_info import GizmoInfo
-from ..gizmo_custom import gizmo_update
+from ..utils import gizmo_update
 
 MEDIA_FRAME = GizmoInfo(
+    id="media-frame",
     name="Media Frame",
     type="GIZMO_GT_cage_3d",
     styles=('BOX'),

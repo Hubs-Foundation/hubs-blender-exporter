@@ -1,5 +1,4 @@
 import bpy
-from ..types import HubsPrefabTypes
 from .gizmo_info import (
     GizmoInfo
 )
@@ -29,8 +28,8 @@ def load_gizmo_registry():
             member = getattr(module, identifier)
             t = type(member)
             if t == GizmoInfo:
-                print("Registering gizmo: " + identifier)
-                registry[identifier] = member
+                print("Registering gizmo with id: " + member.id)
+                registry[member.id] = member
 
     return registry
 
@@ -72,14 +71,11 @@ def consolidate_register_functions():
             unregister_functions.append(getattr(module, 'unregister'))
 
     def register():
-        bpy.types.Object.hubs_gizmo_type = bpy.props.EnumProperty(
-            items=HubsPrefabTypes)
         bpy.utils.register_class(delete_override)
         for f in register_functions:
             f()
 
     def unregister():
-        del bpy.types.Object.hubs_gizmo_type
         bpy.utils.unregister_class(delete_override)
         for f in unregister_functions[::-1]:
             f()
