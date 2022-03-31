@@ -1,5 +1,5 @@
 from ..gizmo_info import GizmoInfo
-from ..hubs_gizmo import gizmo_update
+from ..gizmo_custom import gizmo_update
 
 AUDIO_ZONE = GizmoInfo(
     name="Audio Zone",
