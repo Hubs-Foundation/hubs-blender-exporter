@@ -1,5 +1,5 @@
 from ..gizmo_info import GizmoInfo
-from .hubs_gizmo import gizmo_update
+from ..hubs_gizmo import gizmo_update
 
 MEDIA_FRAME = GizmoInfo(
     name="Media Frame",

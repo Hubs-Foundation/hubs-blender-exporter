@@ -16,7 +16,7 @@ def gizmo_update(self, widget):
 
 
 class HubsGizmo(Gizmo):
-    """Generic gizmo to render all Hubs gizmos"""
+    """Generic gizmo to render all Hubs custom gizmos"""
     bl_idname = "GIZMO_GT_hba_gizmo"
     bl_target_properties = (
         {"id": "location", "type": 'FLOAT', "array_length": 3},
