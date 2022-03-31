@@ -2,5 +2,9 @@
   "python.autoComplete.extraPaths": [
     "../fake_bpy_modules_2.80-20190718"
   ],
-  "python.formatting.provider": "autopep8"
+  "python.formatting.provider": "autopep8",
+  "python.analysis.extraPaths": [
+    "../fake_bpy_modules_2.80-20190718"
+  ],
+  "editor.formatOnSave": true
 }
