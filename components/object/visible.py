@@ -21,7 +21,11 @@ class HBAComponentVisibleAdd(bpy.types.Operator):
     bl_options = {"UNDO"}
 
     def invoke(self, context, event):
+        return self.execute(context)
+
+    def execute(self, context):
         add_component(bpy.context.object, COMPONENT_NAME)
+        add_gizmo(bpy.context.object, 'media-frame')
 
         bpy.context.object.hubs_component_visible.visible = True
         context.object.hide_viewport = not bpy.context.object.hubs_component_visible.visible

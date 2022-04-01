@@ -43,10 +43,13 @@ class HBAComponentWaypointAdd(bpy.types.Operator):
     bl_options = {"UNDO"}
 
     def invoke(self, context, event):
+        return self.execute(context)
+
+    def execute(self, context):
         add_component(context.object, COMPONENT_NAME)
         add_gizmo(context.object, COMPONENT_NAME)
 
-        return {"FINISHED"}
+        return {'FINISHED'}
 
 
 class HBAComponentWaypointPanel(bpy.types.Panel):
