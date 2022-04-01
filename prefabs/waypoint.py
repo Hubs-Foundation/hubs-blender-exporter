@@ -14,6 +14,9 @@ class HBAPrefabWaypointAdd(Operator):
         obj.empty_display_type = 'PLAIN_AXES'
         obj.select_set(True)
         bpy.context.view_layer.objects.active = obj
+
+        bpy.ops.object.hba_component_waypoint_add()
+
         return {"FINISHED"}
 
 
