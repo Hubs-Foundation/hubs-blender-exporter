@@ -27,12 +27,12 @@ def register():
 
 
 def unregister():
-    print('Unregister Addon')
-
     components.unregister()
     gizmos.unregister()
     nodes.unregister()
     gltf_exporter.unregister()
+
+    print('Addon unregistered')
 
 
 # called by gltf-blender-io after it has loaded
