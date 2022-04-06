@@ -2,7 +2,7 @@ import bpy
 from bpy.types import (
     GizmoGroup,
 )
-from .gizmo_registry import registry
+from .gizmo_registry import get_components_registry
 from .gizmo_custom import HubsGizmo
 from .utils import load_gizmo_model
 
@@ -29,10 +29,11 @@ class HubsGizmoGroup(GizmoGroup):
         ]
 
     def setup_gizmos(self, context, obj):
-        for component in obj.hubs_object_gizmos:
-            if component.type not in registry:
+        gizmos_registry = get_components_registry()
+        for gizmo in obj.hubs_object_gizmos:
+            if gizmo.name not in gizmos_registry:
                 return
-            info = registry[component.type]
+            info = gizmos_registry[gizmo.name]
 
             widget = self.gizmos.new(info.type)
 
@@ -65,7 +66,7 @@ class HubsGizmoGroup(GizmoGroup):
             op.release_confirm = True
 
             self.widgets[obj.name].append(widget)
-            self.widgets_types[id(widget)] = component.type
+            self.widgets_types[id(widget)] = gizmo.name
             self.refresh_gizmos(context, obj)
 
     def refresh(self, context):
@@ -76,6 +77,8 @@ class HubsGizmoGroup(GizmoGroup):
         if obj.name not in self.widgets:
             return
 
+        gizmos_registry = get_components_registry()
+
         widgets = self.widgets[obj.name]
         for widget in widgets:
             if id(widget) not in self.widgets_types:
@@ -83,7 +86,7 @@ class HubsGizmoGroup(GizmoGroup):
 
             widget.hide = not obj.visible_get()
 
-            info = registry[self.widgets_types[id(widget)]]
+            info = gizmos_registry[self.widgets_types[id(widget)]]
             info.update(obj, widget)
 
 

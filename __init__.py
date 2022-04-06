@@ -1,6 +1,5 @@
 from .io import gltf_exporter
-from .gizmos import (gizmo_registry, gizmo_group)
-from . import (settings, components, prefabs, ui)
+from . import (nodes, components, gizmos)
 bl_info = {
     "name" : "Hubs Blender Exporter",
     "author" : "MozillaReality",
@@ -15,30 +14,24 @@ bl_info = {
     "category": "Generic"
 }
 
+# TODO Support architecture kit?
+
 
 def register():
     print('Register Addon')
 
     gltf_exporter.register()
-
-    settings.register()
-    gizmo_registry.register()
-    gizmo_group.register()
+    nodes.register()
+    gizmos.register()
     components.register()
-    prefabs.register()
-    ui.register()
 
 
 def unregister():
     print('Unregister Addon')
 
-    ui.unregister()
-    prefabs.unregister()
     components.unregister()
-    gizmo_group.unregister()
-    gizmo_registry.unregister()
-    settings.unregister()
-
+    gizmos.unregister()
+    nodes.unregister()
     gltf_exporter.unregister()
 
 
