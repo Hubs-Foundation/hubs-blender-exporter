@@ -36,9 +36,9 @@ def load_gizmo_registry():
 
 def unload_gizmo_registry():
     """Recurse in the Gizmos directory to unload the registered the gizmos"""
-    print("Unregistering all gizmos")
     global __registry
     del __registry
+    print("All gizmos unregistered")
 
 
 class delete_override(bpy.types.Operator):

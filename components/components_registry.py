@@ -73,8 +73,6 @@ def register_component(component_name, component_class):
 
 
 def unregister_component(component_name, component_class):
-    print("Unregistering component: " + component_name)
-
     if component_class.get_node_type() == NodeType.SCENE:
         delattr(bpy.types.Scene, component_name)
     elif component_class.get_node_type() == NodeType.NODE:
@@ -83,6 +81,8 @@ def unregister_component(component_name, component_class):
         delattr(bpy.types.EditBone, component_name)
     elif component_class.get_node_type() == NodeType.MATERIAL:
         delattr(bpy.types.Material, component_name)
+
+    print("Component unregistered: " + component_class.get_export_name())
 
 
 def load_components_registry():
