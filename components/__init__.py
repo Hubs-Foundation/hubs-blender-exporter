@@ -1,13 +1,13 @@
-from . import (component, object, scene)
+from . import (components_registry, panels, operators)
 
 
 def register():
-    component.register()
-    object.register()
-    scene.register()
+    components_registry.register()
+    operators.register()
+    panels.register()
 
 
 def unregister():
-    object.unregister()
-    scene.unregister()
-    component.unregister()
+    panels.unregister()
+    operators.unregister()
+    components_registry.unregister()

@@ -23,7 +23,7 @@ def get_gizmo_modules():
 
 def load_gizmo_registry():
     """Recurse in the Gizmos directory to build the gizmo registry"""
-    registry = {}
+    global __registry
     for module in get_gizmo_modules():
         # Find variables of type GizmoInfo in the module and register them in registry
         for identifier in dir(module):
@@ -31,9 +31,14 @@ def load_gizmo_registry():
             t = type(member)
             if t == GizmoInfo:
                 print("Registering gizmo with id: " + member.id)
-                registry[member.id] = member
+                __registry[member.id] = member
 
-    return registry
+
+def unload_gizmo_registry():
+    """Recurse in the Gizmos directory to unload the registered the gizmos"""
+    print("Unregistering all gizmos")
+    global __registry
+    del __registry
 
 
 class delete_override(bpy.types.Operator):
@@ -78,13 +83,24 @@ def consolidate_register_functions():
         for f in register_functions:
             f()
 
+        load_gizmo_registry()
+
     def unregister():
         bpy.utils.unregister_class(delete_override)
         for f in unregister_functions[::-1]:
             f()
+
+        unload_gizmo_registry()
+
     return register, unregister
 
 
-registry = load_gizmo_registry()
+__registry = {}
+
+
+def get_components_registry():
+    global __registry
+    return __registry
+
 
 register, unregister = consolidate_register_functions()
