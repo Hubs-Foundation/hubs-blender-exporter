@@ -1,7 +1,7 @@
 from bpy.props import FloatProperty, EnumProperty
 from .hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
-from ..consts import DISTACE_MODELS
+from ..consts import DISTACE_MODELS, MAX_ANGLE
 
 # TODO Add this component in the scene by default?
 
@@ -49,10 +49,10 @@ class hubs_component_audio_settings(HubsComponent):
         name="Media Max Distance", description="Media Max Distance", subtype="DISTANCE", default=10000.0, min=0.0, soft_min=0.0)
 
     mediaConeInnerAngle: FloatProperty(
-        name="Media Cone Inner Angle", description="Media Cone Inner Angle", default=360.0, min=0.0, soft_min=0.0, max=360.0, soft_max=360.0)
+        name="Media Cone Inner Angle", description="Media Cone Inner Angle", subtype="ANGLE", default=MAX_ANGLE, min=0.0, soft_min=0.0, max=MAX_ANGLE, soft_max=MAX_ANGLE)
 
     mediaConeOuterAngle: FloatProperty(
-        name="Media Cone Inner Angle", description="Media Cone Outer Angle", default=0.0, min=0.0, soft_min=0.0, max=360.0, soft_max=360.0)
+        name="Media Cone Inner Angle", description="Media Cone Outer Angle", subtype="ANGLE", default=0.0, min=0.0, soft_min=0.0, max=MAX_ANGLE, soft_max=MAX_ANGLE)
 
     mediaConeOuterGain: FloatProperty(
-        name="Media Cone Inner Angle", description="Media Cone Outer Gain", default=0.0, min=0.0, soft_min=0.0)
+        name="Media Cone Outer Gain", description="Media Cone Outer Gain", default=0.0, min=0.0, soft_min=0.0)
