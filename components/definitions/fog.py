@@ -11,7 +11,7 @@ class hubs_component_fog(HubsComponent):
         'display_name': 'fog',
         'category': Category.SCENE,
         'node_type': NodeType.SCENE,
-        'pane_type': PanelType.SCENE
+        'panel_type': PanelType.SCENE
     }
 
     type: EnumProperty(

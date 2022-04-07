@@ -9,7 +9,7 @@ class hubs_component_waypoint(HubsComponent):
         'display_name': 'Waypoint',
         'category': Category.OBJECT,
         'node_type': NodeType.NODE,
-        'pane_type': PanelType.OBJECT,
+        'panel_type': PanelType.OBJECT,
         'gizmo': 'waypoint',
         'icon': 'spawn-point.png'
     }

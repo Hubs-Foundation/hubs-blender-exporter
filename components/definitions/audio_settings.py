@@ -1,7 +1,7 @@
 from bpy.props import FloatProperty, EnumProperty
 from .hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
-from ..consts import DISTACE_TYPES
+from ..consts import DISTACE_MODELS
 
 # TODO Add this component in the scene by default?
 
@@ -12,13 +12,13 @@ class hubs_component_audio_settings(HubsComponent):
         'display_name': 'Audio Settings',
         'category': Category.SCENE,
         'node_type': NodeType.SCENE,
-        'pane_type': PanelType.SCENE
+        'panel_type': PanelType.SCENE
     }
 
     avatarDistanceModel: EnumProperty(
         name="Avatar Distance Model",
         description="Avatar Distance Model",
-        items=DISTACE_TYPES,
+        items=DISTACE_MODELS,
         default="inverse")
 
     avatarRolloffFactor: FloatProperty(
@@ -36,7 +36,7 @@ class hubs_component_audio_settings(HubsComponent):
     mediaDistanceModel: EnumProperty(
         name="Media Distance Model",
         description="Media Distance Model",
-        items=DISTACE_TYPES,
+        items=DISTACE_MODELS,
         default="inverse")
 
     mediaRolloffFactor: FloatProperty(

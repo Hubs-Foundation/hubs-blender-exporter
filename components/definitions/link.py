@@ -10,7 +10,7 @@ class hubs_component_link(HubsComponent):
         'display_name': 'Link',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'pane_type': PanelType.OBJECT,
+        'panel_type': PanelType.OBJECT,
         'icon': 'link.png',
         'networked': True
     }

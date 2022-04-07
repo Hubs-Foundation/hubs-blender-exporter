@@ -17,7 +17,7 @@ class hubs_component_video_texture_target(HubsComponent):
         'display_name': 'Video Texture Target',
         'category': Category.AVATAR,
         'node_type': NodeType.MATERIAL,
-        'pane_type': PanelType.MATERIAL
+        'panel_type': PanelType.MATERIAL
     }
 
     targetBaseColorMap: BoolProperty(

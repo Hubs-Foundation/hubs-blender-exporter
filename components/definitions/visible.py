@@ -14,7 +14,7 @@ class hubs_component_visible(HubsComponent):
         'display_name': 'Visible',
         'category': Category.OBJECT,
         'node_type': NodeType.NODE,
-        'pane_type': PanelType.OBJECT,
+        'panel_type': PanelType.OBJECT,
         'icon': 'eye.png'
     }
 

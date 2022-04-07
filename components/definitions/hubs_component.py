@@ -14,7 +14,7 @@ class HubsComponent(PropertyGroup):
         # Node type to where the component with be registered
         'node_type': NodeType.NODE,
         # Panel where to show this component
-        'pane_type': PanelType.OBJECT,
+        'panel_type': PanelType.OBJECT,
         # Wether or not this component is networked
         "networked": False,
         # The dependencies will be added as a result of adding this component
@@ -32,8 +32,12 @@ class HubsComponent(PropertyGroup):
         return default
 
     @classmethod
+    def get_name(cls):
+        return cls.__name__
+
+    @classmethod
     def get_export_name(cls):
-        return cls.__get_definition('export_name', cls.__name__.replace('_', '-'))
+        return cls.__get_definition('export_name', cls.__name__.lower().replace('_', '-'))
 
     @classmethod
     def get_node_type(cls):
@@ -41,7 +45,7 @@ class HubsComponent(PropertyGroup):
 
     @classmethod
     def get_panel_type(cls):
-        return cls.__get_definition('pane_type', PanelType.OBJECT)
+        return cls.__get_definition('panel_type', PanelType.OBJECT)
 
     @classmethod
     def get_category(cls):

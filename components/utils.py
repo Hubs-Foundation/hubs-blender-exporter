@@ -1,10 +1,21 @@
 import bpy
 from ..gizmos.gizmo_group import update_gizmos
+from ..components import components_registry
 
 
 def add_component(obj, component_name):
     item = obj.hubs_component_list.items.add()
     item.name = component_name
+
+    component_class = components_registry.get_component_by_name(component_name)
+    if component_class:
+        for dep_id in component_class.get_deps():
+            dep_class = components_registry.get_component_by_id(dep_id)
+            if dep_class:
+                add_component(obj, dep_class.get_name())
+            else:
+                print("Dependecy '%s' from module '%s' not registered" %
+                      (dep_id, component_name))
 
 
 def remove_component(obj, component_name):
