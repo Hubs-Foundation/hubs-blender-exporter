@@ -39,9 +39,10 @@ class glTF2ExportUserExtension:
 
         self.Extension = Extension
         self.properties = bpy.context.scene.HubsComponentsExtensionProperties
+        self.was_used = True  # TODO change default to False
 
     def hubs_gather_gltf_hook(self, gltf2_object, export_settings):
-        if not self.properties.enabled:
+        if not self.properties.enabled or not self.was_used:
             return
 
         extension_name = hubs_config["gltfExtensionName"]
@@ -140,6 +141,8 @@ class glTF2ExportUserExtension:
                 extension=component_data,
                 required=False
             )
+
+            self.was_used = True
 
 
 class HubsComponentsExtensionProperties(bpy.types.PropertyGroup):
