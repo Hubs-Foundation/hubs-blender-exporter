@@ -2,7 +2,7 @@ import bpy
 from bpy.props import PointerProperty, EnumProperty
 from bpy.types import Image
 from .hubs_component import HubsComponent
-from ..types import PanelType, NodeType
+from ..types import Category, PanelType, NodeType
 from ... import io
 import math
 
@@ -136,7 +136,7 @@ class hubs_component_reflection_probe(HubsComponent):
     _definition = {
         'export_name': 'reflection-probe',
         'display_name': 'Reflection Probe',
-        'category': 'Scene',
+        'category': Category.SCENE,
         'node_type': NodeType.NODE,
         'pane_type': PanelType.OBJECT_DATA
     }

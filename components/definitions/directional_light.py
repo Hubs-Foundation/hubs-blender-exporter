@@ -1,7 +1,7 @@
 import bpy
 from bpy.props import FloatVectorProperty, FloatProperty, BoolProperty, IntVectorProperty
 from .hubs_component import HubsComponent
-from ..types import PanelType, NodeType
+from ..types import Category, PanelType, NodeType
 
 
 def update(self, context):
@@ -12,7 +12,7 @@ class hubs_component_directional_light(HubsComponent):
     _definition = {
         'export_name': 'directional-light',
         'display_name': 'Directional Light',
-        'category': 'Elements',
+        'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
         'pane_type': PanelType.OBJECT,
         'icon': 'bolt.png'

@@ -1,6 +1,6 @@
 from bpy.props import EnumProperty, StringProperty, BoolProperty
 from .hubs_component import HubsComponent
-from ..types import PanelType, NodeType
+from ..types import Category, PanelType, NodeType
 
 # TODO Add this component in the scene by default?
 
@@ -19,7 +19,7 @@ class hubs_component_image(HubsComponent):
     _definition = {
         'export_name': 'image',
         'display_name': 'Image',
-        'category': 'Elements',
+        'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
         'pane_type': PanelType.OBJECT,
         'networked': True,

@@ -1,7 +1,7 @@
 from bpy.props import FloatProperty, BoolProperty, PointerProperty
 from .hubs_component import HubsComponent
 from ..utils import has_components
-from ..types import PanelType, NodeType
+from ..types import Category, PanelType, NodeType
 from bpy.types import Object
 
 required_components = ['hubs_component_zone_audio_source']
@@ -15,7 +15,7 @@ class hubs_component_audio_target(HubsComponent):
     _definition = {
         'export_name': 'audio-target',
         'display_name': 'Audio Target',
-        'category': 'Elements',
+        'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
         'pane_type': PanelType.OBJECT
     }

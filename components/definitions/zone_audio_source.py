@@ -1,13 +1,13 @@
 from bpy.props import BoolProperty
 from .hubs_component import HubsComponent
-from ..types import PanelType, NodeType
+from ..types import Category, PanelType, NodeType
 
 
 class hubs_component_zone_audio_source(HubsComponent):
     _definition = {
         'export_name': 'zone-audio-source',
         'display_name': 'Zone Audio Source',
-        'category': 'Elements',
+        'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
         'pane_type': PanelType.OBJECT,
     }

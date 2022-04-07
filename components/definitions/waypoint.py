@@ -1,13 +1,13 @@
 from bpy.props import BoolProperty
 from .hubs_component import HubsComponent
-from ..types import PanelType, NodeType
+from ..types import Category, PanelType, NodeType
 
 
 class hubs_component_waypoint(HubsComponent):
     _definition = {
         'export_name': 'waypoint',
         'display_name': 'Waypoint',
-        'category': 'Object',
+        'category': Category.OBJECT,
         'node_type': NodeType.NODE,
         'pane_type': PanelType.OBJECT,
         'gizmo': 'waypoint',
