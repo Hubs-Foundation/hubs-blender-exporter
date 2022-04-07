@@ -42,4 +42,4 @@ glTF2ExportUserExtension = gltf_exporter.glTF2ExportUserExtension
 
 
 def register_panel():
-    return gltf_exporter.register_panel()
+    return gltf_exporter.register_export_panel()
