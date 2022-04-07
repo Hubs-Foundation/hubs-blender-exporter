@@ -24,6 +24,7 @@ def get_gizmo_modules():
 def load_gizmo_registry():
     """Recurse in the Gizmos directory to build the gizmo registry"""
     global __registry
+    __registry = {}
     for module in get_gizmo_modules():
         # Find variables of type GizmoInfo in the module and register them in registry
         for identifier in dir(module):
