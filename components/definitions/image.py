@@ -17,7 +17,7 @@ PROJECTION_MODE = [("flat", "2D image (flat)", "Image will be shown on a 2D surf
 
 class hubs_component_image(HubsComponent):
     _definition = {
-        'export_name': 'image',
+        'id': 'image',
         'display_name': 'Image',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

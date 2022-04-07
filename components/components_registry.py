@@ -39,7 +39,7 @@ def get_component_definitions():
 
 
 def register_component(component_name, component_class):
-    print("Registering component: " + component_class.get_export_name())
+    print("Registering component: " + component_class.get_id())
     bpy.utils.register_class(component_class)
 
     if component_class.get_node_type() == NodeType.SCENE:
@@ -82,7 +82,7 @@ def unregister_component(component_name, component_class):
     elif component_class.get_node_type() == NodeType.MATERIAL:
         delattr(bpy.types.Material, component_name)
 
-    print("Component unregistered: " + component_class.get_export_name())
+    print("Component unregistered: " + component_class.get_id())
 
 
 def load_components_registry():
@@ -141,7 +141,7 @@ def get_component_by_name(component_id):
 
 def get_component_by_id(component_id):
     global __registry
-    return next((component_class for _, component_class in __registry.items() if component_class.get_export_name() == component_id), None)
+    return next((component_class for _, component_class in __registry.items() if component_class.get_id() == component_id), None)
 
 
 def register():
