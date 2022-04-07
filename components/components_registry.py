@@ -82,12 +82,15 @@ def unregister_component(component_name, component_class):
     elif component_class.get_node_type() == NodeType.MATERIAL:
         delattr(bpy.types.Material, component_name)
 
+    bpy.utils.unregister_class(component_class)
+
     print("Component unregistered: " + component_class.get_id())
 
 
 def load_components_registry():
     """Recurse in the components directory to build the components registry"""
     global __registry
+    __registry = {}
     for module in get_component_definitions():
         for name, obj in inspect.getmembers(module):
             if inspect.isclass(obj) and issubclass(obj, HubsComponent) and obj != HubsComponent:
@@ -104,6 +107,7 @@ def unload_components_registry():
 
 def load_icons():
     global __component_icons
+    __component_icons = {}
     pcoll = bpy.utils.previews.new()
     icons_dir = os.path.join(os.path.dirname(__file__), "icons")
     icons = [f for f in listdir(icons_dir) if isfile(join(icons_dir, f))]
