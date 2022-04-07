@@ -14,7 +14,7 @@ class hubs_component_directional_light(HubsComponent):
         'display_name': 'Directional Light',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'pane_type': PanelType.OBJECT,
+        'panel_type': PanelType.OBJECT,
         'icon': 'bolt.png'
     }
 

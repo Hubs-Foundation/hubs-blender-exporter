@@ -9,7 +9,7 @@ class hubs_component_zone_audio_source(HubsComponent):
         'display_name': 'Zone Audio Source',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'pane_type': PanelType.OBJECT,
+        'panel_type': PanelType.OBJECT,
     }
 
     onlyMods: BoolProperty(

@@ -10,7 +10,7 @@ class hubs_component_point_light(HubsComponent):
         'display_name': 'Point Light',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'pane_type': PanelType.OBJECT,
+        'panel_type': PanelType.OBJECT,
         'icon': 'point-light.png'
     }
 

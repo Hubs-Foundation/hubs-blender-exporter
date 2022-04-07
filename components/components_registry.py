@@ -25,7 +25,7 @@ class HubsGizmoType(PropertyGroup):
     name: StringProperty(name="name")
 
 
-def get_components():
+def get_component_definitions():
     component_module_names = []
     components_dir = join(dirname(realpath(__file__)), "definitions")
     for f in os.listdir(components_dir):
@@ -88,7 +88,7 @@ def unregister_component(component_name, component_class):
 def load_components_registry():
     """Recurse in the components directory to build the components registry"""
     global __registry
-    for module in get_components():
+    for module in get_component_definitions():
         for name, obj in inspect.getmembers(module):
             if inspect.isclass(obj) and issubclass(obj, HubsComponent) and obj != HubsComponent:
                 register_component(name, obj)
@@ -113,7 +113,7 @@ def load_icons():
     __component_icons["hubs"] = pcoll
 
 
-def unload_iconms():
+def unload_icons():
     print("Unloading all icons")
     global __component_icons
     __component_icons["hubs"].close()
@@ -132,6 +132,16 @@ def get_components_registry():
 def get_components_icons():
     global __component_icons
     return __component_icons["hubs"]
+
+
+def get_component_by_name(component_id):
+    global __registry
+    return __registry.get(component_id, None)
+
+
+def get_component_by_id(component_id):
+    global __registry
+    return next((component_class for _, component_class in __registry.items() if component_class.get_export_name() == component_id), None)
 
 
 def register():
@@ -169,6 +179,7 @@ def unregister():
     bpy.utils.unregister_class(HubsGizmoType)
 
     unload_components_registry()
+    unload_icons()
 
     global __registry
     del __registry

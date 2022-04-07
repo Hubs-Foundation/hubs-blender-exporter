@@ -138,7 +138,7 @@ class hubs_component_reflection_probe(HubsComponent):
         'display_name': 'Reflection Probe',
         'category': Category.SCENE,
         'node_type': NodeType.NODE,
-        'pane_type': PanelType.OBJECT_DATA
+        'panel_type': PanelType.OBJECT_DATA
     }
 
     envMapTexture: PointerProperty(

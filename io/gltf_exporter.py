@@ -124,7 +124,7 @@ class glTF2ExportUserExtension:
             for component_item in component_list.items:
                 component_name = component_item.name
                 component_class = registered_hubs_components[component_name]
-                component = getattr(blender_object, component_class.__name__)
+                component = getattr(blender_object, component_class.get_name())
                 component_data[component_class.get_export_name()] = component.gather(
                     export_settings, blender_object)
 

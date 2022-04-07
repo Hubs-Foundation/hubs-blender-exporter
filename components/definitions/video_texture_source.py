@@ -9,7 +9,7 @@ class hubs_component_video_texture_source(HubsComponent):
         'display_name': 'Video Texture Source',
         'category': Category.SCENE,
         'node_type': NodeType.NODE,
-        'pane_type': PanelType.OBJECT_DATA
+        'panel_type': PanelType.OBJECT_DATA
     }
 
     resolution: IntVectorProperty(name="Resolution",
