@@ -17,7 +17,8 @@ class hubs_component_audio_params(HubsComponent):
         'display_name': 'Audio Params',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'panel_type': PanelType.SCENE
+        'panel_type': PanelType.OBJECT,
+        'dep_only': True
     }
 
     audioType: EnumProperty(
