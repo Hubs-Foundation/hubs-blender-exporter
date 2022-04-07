@@ -1,6 +1,6 @@
 from bpy.props import FloatProperty, EnumProperty
 from .hubs_component import HubsComponent
-from ..types import PanelType, NodeType
+from ..types import Category, PanelType, NodeType
 from ..consts import DISTACE_TYPES
 
 # TODO Add this component in the scene by default?
@@ -10,7 +10,7 @@ class hubs_component_audio_settings(HubsComponent):
     _definition = {
         'export_name': 'audio-settings',
         'display_name': 'Audio Settings',
-        'category': 'Scene',
+        'category': Category.SCENE,
         'node_type': NodeType.SCENE,
         'pane_type': PanelType.SCENE
     }

@@ -1,7 +1,7 @@
 import bpy
 from bpy.props import BoolProperty
 from .hubs_component import HubsComponent
-from ..types import PanelType, NodeType
+from ..types import Category, PanelType, NodeType
 
 
 def update(self, context):
@@ -12,7 +12,7 @@ class hubs_component_visible(HubsComponent):
     _definition = {
         'export_name': 'visible',
         'display_name': 'Visible',
-        'category': 'Object',
+        'category': Category.OBJECT,
         'node_type': NodeType.NODE,
         'pane_type': PanelType.OBJECT,
         'icon': 'eye.png'

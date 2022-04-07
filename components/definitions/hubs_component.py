@@ -1,16 +1,16 @@
 from bpy.types import PropertyGroup
 from ...io.utils import gather_properties
-from ..types import PanelType, NodeType
+from ..types import Category, PanelType, NodeType
 
 
 class HubsComponent(PropertyGroup):
     _definition = {
-        # Name on the component. This is the name that it will be used when exporting the component.
+        # This is the name that it will be used when exporting the component.
         'export_name': 'hubs-component',
         # Name to be used in the panels, if not set the component name will be used
         'display_name': 'Hubs Component',
         # Category that's is shown in the "Add Component" menu
-        'category': 'Object|Scene|Elements|Animation|Avatar|Architecture Kit',
+        'category': Category.MISC,
         # Node type to where the component with be registered
         'node_type': NodeType.NODE,
         # Panel where to show this component
@@ -20,7 +20,7 @@ class HubsComponent(PropertyGroup):
         # The dependencies will be added as a result of adding this component
         'deps': [],
         # Id of the gizmo to show when this component is added
-        'gizmo': '[gizmo_name]',
+        'gizmo': 'gizmo',
         # Name of the icon to load
         'icon': 'icon.png'
     }
@@ -45,7 +45,11 @@ class HubsComponent(PropertyGroup):
 
     @classmethod
     def get_category(cls):
-        return cls.__get_definition('category', 'Misc')
+        return cls.__get_definition('category', Category.MISC)
+
+    @classmethod
+    def get_category_name(cls):
+        return cls.get_category().value
 
     @classmethod
     def get_display_name(cls, default=__name__):

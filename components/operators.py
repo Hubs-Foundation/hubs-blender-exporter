@@ -47,7 +47,7 @@ class AddHubsComponent(Operator):
 
         def sort_by_category(acc, cmp):
             (_, component_class) = cmp
-            category = component_class.get_category()
+            category = component_class.get_category_name()
             acc[category] = acc.get(category, [])
             acc[category].append(cmp)
             return acc
