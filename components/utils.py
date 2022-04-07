@@ -23,6 +23,16 @@ def remove_component(obj, component_name):
     items.remove(items.find(component_name))
     del obj[component_name]
 
+    component_class = components_registry.get_component_by_name(component_name)
+    if component_class:
+        for dep_id in component_class.get_deps():
+            dep_class = components_registry.get_component_by_id(dep_id)
+            if dep_class:
+                remove_component(obj, dep_class.get_name())
+            else:
+                print("Dependecy '%s' from module '%s' not registered" %
+                      (dep_id, component_name))
+
 
 def has_component(obj, component_name):
     items = obj.hubs_component_list.items

@@ -64,6 +64,9 @@ class AddHubsComponent(Operator):
                 column.label(text=category)
 
                 for (component_name, component_class) in cmps:
+                    if component_class.is_dep_only():
+                        continue
+
                     component_display_name = dash_to_title(
                         component_class.get_display_name(component_name))
 

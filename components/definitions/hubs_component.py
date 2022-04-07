@@ -22,7 +22,9 @@ class HubsComponent(PropertyGroup):
         # Id of the gizmo to show when this component is added
         'gizmo': 'gizmo',
         # Name of the icon to load
-        'icon': 'icon.png'
+        'icon': 'icon.png',
+        # Tag the component as dependecy only so it doens't whow up in the comonents list
+        'dep_only': False
     }
 
     @classmethod
@@ -74,6 +76,10 @@ class HubsComponent(PropertyGroup):
     @classmethod
     def get_icon(cls):
         return cls.__get_definition('icon', None)
+
+    @classmethod
+    def is_dep_only(cls):
+        return cls.__get_definition('dep_only', False)
 
     def __init__(self):
         if type(self) is HubsComponent:

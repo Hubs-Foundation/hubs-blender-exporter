@@ -27,14 +27,15 @@ def draw_component(panel, context, obj, row, component_item):
 
         top_row.label(text=display_name)
 
-        remove_component_operator = top_row.operator(
-            "wm.remove_hubs_component",
-            text="",
-            icon="X"
-        )
-        remove_component_operator.component_name = component_name
-        remove_component_operator.panel_type = panel.bl_context
-        remove_component_operator.gizmo = component_class.get_gizmo()
+        if not component_class.is_dep_only():
+            remove_component_operator = top_row.operator(
+                "wm.remove_hubs_component",
+                text="",
+                icon="X"
+            )
+            remove_component_operator.component_name = component_name
+            remove_component_operator.panel_type = panel.bl_context
+            remove_component_operator.gizmo = component_class.get_gizmo()
 
         if has_properties and component_item.expanded:
             component.draw(col)
