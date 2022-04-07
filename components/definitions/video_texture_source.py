@@ -5,7 +5,7 @@ from ..types import Category, PanelType, NodeType
 
 class hubs_component_video_texture_source(HubsComponent):
     _definition = {
-        'export_name': 'video-texture-source',
+        'id': 'video-texture-source',
         'display_name': 'Video Texture Source',
         'category': Category.SCENE,
         'node_type': NodeType.NODE,

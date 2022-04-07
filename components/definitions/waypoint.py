@@ -5,7 +5,7 @@ from ..types import Category, PanelType, NodeType
 
 class hubs_component_waypoint(HubsComponent):
     _definition = {
-        'export_name': 'waypoint',
+        'id': 'waypoint',
         'display_name': 'Waypoint',
         'category': Category.OBJECT,
         'node_type': NodeType.NODE,

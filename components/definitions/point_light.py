@@ -6,7 +6,7 @@ from ..types import Category, PanelType, NodeType
 
 class hubs_component_point_light(HubsComponent):
     _definition = {
-        'export_name': 'point-light',
+        'id': 'point-light',
         'display_name': 'Point Light',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

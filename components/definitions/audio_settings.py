@@ -8,7 +8,7 @@ from ..consts import DISTACE_MODELS
 
 class hubs_component_audio_settings(HubsComponent):
     _definition = {
-        'export_name': 'audio-settings',
+        'id': 'audio-settings',
         'display_name': 'Audio Settings',
         'category': Category.SCENE,
         'node_type': NodeType.SCENE,

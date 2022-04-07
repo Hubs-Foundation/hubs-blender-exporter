@@ -10,7 +10,7 @@ def update(self, context):
 
 class hubs_component_visible(HubsComponent):
     _definition = {
-        'export_name': 'visible',
+        'id': 'visible',
         'display_name': 'Visible',
         'category': Category.OBJECT,
         'node_type': NodeType.NODE,

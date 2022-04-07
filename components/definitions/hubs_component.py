@@ -6,7 +6,7 @@ from ..types import Category, PanelType, NodeType
 class HubsComponent(PropertyGroup):
     _definition = {
         # This is the name that it will be used when exporting the component.
-        'export_name': 'hubs-component',
+        'id': 'hubs-component',
         # Name to be used in the panels, if not set the component name will be used
         'display_name': 'Hubs Component',
         # Category that's is shown in the "Add Component" menu
@@ -36,8 +36,8 @@ class HubsComponent(PropertyGroup):
         return cls.__name__
 
     @classmethod
-    def get_export_name(cls):
-        return cls.__get_definition('export_name', cls.__name__.lower().replace('_', '-'))
+    def get_id(cls):
+        return cls.__get_definition('id', cls.__name__.lower().replace('_', '-'))
 
     @classmethod
     def get_node_type(cls):

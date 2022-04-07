@@ -13,7 +13,7 @@ AUDIO_TYPES = [("pannernode", "Positional audio (pannernode)",
 
 class hubs_component_audio_params(HubsComponent):
     _definition = {
-        'export_name': 'audio-params',
+        'id': 'audio-params',
         'display_name': 'Audio Params',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

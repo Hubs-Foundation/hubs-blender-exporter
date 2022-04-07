@@ -10,7 +10,7 @@ def update(self, context):
 
 class hubs_component_directional_light(HubsComponent):
     _definition = {
-        'export_name': 'directional-light',
+        'id': 'directional-light',
         'display_name': 'Directional Light',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

@@ -134,7 +134,7 @@ def render_probe(probe, camera_data, camera_object):
 
 class hubs_component_reflection_probe(HubsComponent):
     _definition = {
-        'export_name': 'reflection-probe',
+        'id': 'reflection-probe',
         'display_name': 'Reflection Probe',
         'category': Category.SCENE,
         'node_type': NodeType.NODE,

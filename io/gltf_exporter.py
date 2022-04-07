@@ -125,7 +125,7 @@ class glTF2ExportUserExtension:
                 component_name = component_item.name
                 component_class = registered_hubs_components[component_name]
                 component = getattr(blender_object, component_class.get_name())
-                component_data[component_class.get_export_name()] = component.gather(
+                component_data[component_class.get_id()] = component.gather(
                     export_settings, blender_object)
 
             # NAF-supported media require a network ID
