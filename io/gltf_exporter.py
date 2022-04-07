@@ -145,53 +145,6 @@ class glTF2ExportUserExtension:
             self.was_used = True
 
 
-class EXPORT_PT_hba_components(bpy.types.Panel):
-    bl_space_type = 'FILE_BROWSER'
-    bl_region_type = 'TOOL_PROPS'
-    bl_label = "Hubs Components"
-    bl_parent_id = "GLTF_PT_export_user_extensions"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        sfile = context.space_data
-        operator = sfile.active_operator
-        return operator.bl_idname == "EXPORT_SCENE_OT_gltf"
-
-    def draw_header(self, context):
-        props = bpy.context.scene.HubsComponentsExtensionProperties
-        self.layout.prop(props, 'enabled', text="")
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False  # No animation.
-
-        props = bpy.context.scene.HubsComponentsExtensionProperties
-        layout.active = props.enabled
-
-        box = layout.box()
-        box.label(text="No options yet")
-
-
-def register_panel():
-    try:
-        print("Register GLTF Exporter Panel")
-        bpy.utils.register_class(EXPORT_PT_hba_components)
-    except Exception:
-        pass
-    return unregister_export_panel
-
-
-def unregister_export_panel():
-    # Since panel is registered on demand, it is possible it is not registered
-    try:
-        print("Unregister GLTF Exporter Panel")
-        bpy.utils.unregister_class(EXPORT_PT_hba_components)
-    except Exception:
-        pass
-
-
 class HubsComponentsExtensionProperties(bpy.types.PropertyGroup):
     enabled: bpy.props.BoolProperty(
         name="Export Hubs Components",
