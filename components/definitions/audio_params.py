@@ -1,7 +1,7 @@
 from bpy.props import FloatProperty, EnumProperty
 from .hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
-from ..consts import DISTACE_MODELS
+from ..consts import DISTACE_MODELS, MAX_ANGLE
 
 # TODO Add this component in the scene by default?
 
@@ -45,10 +45,10 @@ class hubs_component_audio_params(HubsComponent):
         name="Max Distance", description="A double value representing the maximum distance between the audio source and the listener, after which the volume is not reduced any further. This value is used only by the linear distance model.", subtype="DISTANCE", unit="LENGTH", default=1000.0, min=0.0, soft_min=0.0)
 
     coneInnerAngle: FloatProperty(
-        name="Cone Inner Angle", description="A double value describing the angle, in degrees, of a cone inside of which there will be no volume reduction.", default=360.0, min=0.0, soft_min=0.0, max=360.0, soft_max=360.0)
+        name="Cone Inner Angle", description="A double value describing the angle, in degrees, of a cone inside of which there will be no volume reduction.", subtype="ANGLE", default=MAX_ANGLE, min=0.0, soft_min=0.0, max=MAX_ANGLE, soft_max=MAX_ANGLE)
 
     coneOuterAngle: FloatProperty(
-        name="Cone Outer Angle", description="A double value describing the angle, in degrees, of a cone outside of which the volume will be reduced by a constant value, defined by the coneOuterGain attribute.", default=0.0, min=0.0, soft_min=0.0, max=360.0, soft_max=360.0)
+        name="Cone Outer Angle", description="A double value describing the angle, in degrees, of a cone outside of which the volume will be reduced by a constant value, defined by the coneOuterGain attribute.", subtype="ANGLE", default=0.0, min=0.0, soft_min=0.0, max=MAX_ANGLE, soft_max=MAX_ANGLE)
 
     coneOuterGain: FloatProperty(
-        name="Cone Inner Angle", description="A double value describing the amount of volume reduction outside the cone defined by the coneOuterAngle attribute.", default=0.0, min=0.0, soft_min=0.0)
+        name="Cone Outer Gain", description="A double value describing the amount of volume reduction outside the cone defined by the coneOuterAngle attribute.", default=0.0, min=0.0, soft_min=0.0)
