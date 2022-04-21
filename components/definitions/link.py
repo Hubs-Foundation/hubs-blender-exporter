@@ -13,7 +13,7 @@ class Link(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': PanelType.OBJECT,
         'icon': 'link.png',
-        'networked': True
+        'deps': ['networked']
     }
 
     href: StringProperty(name="URL", description="URL", default="https://")

@@ -17,8 +17,6 @@ class HubsComponent(PropertyGroup):
         'node_type': NodeType.NODE,
         # Panel where to show this component
         'panel_type': PanelType.OBJECT,
-        # Wether or not this component is networked
-        "networked": False,
         # The dependencies of this component (by id). They will be added as a result of adding this component.
         'deps': [],
         # Id of the gizmo to show when this component is added
@@ -64,10 +62,6 @@ class HubsComponent(PropertyGroup):
         return cls.get_category().value
 
     @classmethod
-    def is_nerworked(cls):
-        return cls.__get_definition('networked', False)
-
-    @classmethod
     def get_gizmo(cls):
         return cls.__get_definition('gizmo', '')
 
@@ -99,7 +93,9 @@ class HubsComponent(PropertyGroup):
 
     @classmethod
     def get_properties(cls):
-        return cls.__annotations__.keys()
+        if hasattr(cls, '__annotations__'):
+            return cls.__annotations__.keys()
+        return {}
 
     @classmethod
     def poll(cls, context):
