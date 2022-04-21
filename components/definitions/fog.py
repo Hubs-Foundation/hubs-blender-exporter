@@ -5,9 +5,10 @@ from ..types import Category, PanelType, NodeType
 # TODO Add this component in the scene by default?
 
 
-class hubs_component_fog(HubsComponent):
+class Fog(HubsComponent):
     _definition = {
         'id': 'fog',
+        'name': 'hubs_component_fog',
         'display_name': 'fog',
         'category': Category.SCENE,
         'node_type': NodeType.SCENE,

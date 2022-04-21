@@ -8,9 +8,10 @@ def update(self, context):
     context.object.hide_viewport = not bpy.context.object.hubs_component_visible.visible
 
 
-class hubs_component_visible(HubsComponent):
+class Visible(HubsComponent):
     _definition = {
         'id': 'visible',
+        'name': 'hubs_component_visible',
         'display_name': 'Visible',
         'category': Category.OBJECT,
         'node_type': NodeType.NODE,

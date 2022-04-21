@@ -92,8 +92,9 @@ def load_components_registry():
     global __registry
     __registry = {}
     for module in get_component_definitions():
-        for name, obj in inspect.getmembers(module):
+        for _, obj in inspect.getmembers(module):
             if inspect.isclass(obj) and issubclass(obj, HubsComponent) and obj != HubsComponent:
+                name = obj.get_name()
                 register_component(name, obj)
                 __registry[name] = obj
 

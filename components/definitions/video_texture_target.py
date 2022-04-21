@@ -11,9 +11,10 @@ def filter_on_component(self, o):
     return has_components(o, required_components)
 
 
-class hubs_component_video_texture_target(HubsComponent):
+class VideoTextureTarget(HubsComponent):
     _definition = {
         'id': 'video-texture-target',
+        'name': 'hubs_component_video_texture_target',
         'display_name': 'Video Texture Target',
         'category': Category.AVATAR,
         'node_type': NodeType.MATERIAL,

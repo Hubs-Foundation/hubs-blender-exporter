@@ -83,7 +83,6 @@ class AddHubsComponent(Operator):
                                 AddHubsComponent.bl_idname, text=component_display_name, icon='ADD')
                         op.component_name = component_name
                         op.gizmo = component_class.get_gizmo()
-
                         op.panel_type = panel_type
 
                     added_comps += 1

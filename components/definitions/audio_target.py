@@ -11,9 +11,10 @@ def filter_on_component(self, o):
     return has_components(o, required_components)
 
 
-class hubs_component_audio_target(HubsComponent):
+class AudioTarget(HubsComponent):
     _definition = {
         'id': 'audio-target',
+        'name': 'hubs_component_audio_target',
         'display_name': 'Audio Target',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

@@ -5,10 +5,12 @@ from ..types import Category, PanelType, NodeType
 
 class HubsComponent(PropertyGroup):
     _definition = {
-        # This is the name that it will be used when exporting the component.
-        'id': 'hubs-component',
+        # The name that will be used in the GLTF file MOZ_hubs_components object when exporting the component.
+        'id': 'hubs-component-template',
+        # The component name to be used in the components registry (historically Hubs component follow the format [hubs_component_abc])
+        'name': 'hubs_component_template',
         # Name to be used in the panels, if not set the component name will be used
-        'display_name': 'Hubs Component',
+        'display_name': 'Hubs Component Template',
         # Category that's is shown in the "Add Component" menu
         'category': Category.MISC,
         # Node type to where the component with be registered
@@ -17,7 +19,7 @@ class HubsComponent(PropertyGroup):
         'panel_type': PanelType.OBJECT,
         # Wether or not this component is networked
         "networked": False,
-        # The dependencies will be added as a result of adding this component
+        # The dependencies of this component (by id). They will be added as a result of adding this component.
         'deps': [],
         # Id of the gizmo to show when this component is added
         'gizmo': 'gizmo',
@@ -34,12 +36,16 @@ class HubsComponent(PropertyGroup):
         return default
 
     @classmethod
-    def get_name(cls):
-        return cls.__name__
+    def get_id(cls):
+        return cls.__get_definition('id', cls.__name__)
 
     @classmethod
-    def get_id(cls):
-        return cls.__get_definition('id', cls.__name__.lower().replace('_', '-'))
+    def get_name(cls):
+        return cls.__get_definition('name', cls.get_id())
+
+    @classmethod
+    def get_display_name(cls, default=__name__):
+        return cls.__get_definition('display_name', default)
 
     @classmethod
     def get_node_type(cls):
@@ -56,10 +62,6 @@ class HubsComponent(PropertyGroup):
     @classmethod
     def get_category_name(cls):
         return cls.get_category().value
-
-    @classmethod
-    def get_display_name(cls, default=__name__):
-        return cls.__get_definition('display_name', default)
 
     @classmethod
     def is_nerworked(cls):
