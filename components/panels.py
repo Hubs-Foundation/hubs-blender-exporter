@@ -8,8 +8,7 @@ def draw_component(panel, context, obj, row, component_item):
     component_name = component_item.name
     component_class = components_registry[component_name]
     if component_class:
-        component_class_name = component_class.get_name()
-        component = getattr(obj, component_class_name)
+        component = getattr(obj, component_name)
 
         has_properties = len(component_class.get_properties()) > 0
 

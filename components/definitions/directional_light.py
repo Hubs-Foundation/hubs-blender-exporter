@@ -8,9 +8,10 @@ def update(self, context):
     context.object.hide_viewport = not bpy.context.object.hubs_component_directional_light.visible
 
 
-class hubs_component_directional_light(HubsComponent):
+class DirectionalLight(HubsComponent):
     _definition = {
         'id': 'directional-light',
+        'name': 'hubs_component_directional_light',
         'display_name': 'Directional Light',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

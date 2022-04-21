@@ -3,9 +3,10 @@ from .hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 
 
-class hubs_component_waypoint(HubsComponent):
+class Waypoint(HubsComponent):
     _definition = {
         'id': 'waypoint',
+        'name': 'hubs_component_waypoint',
         'display_name': 'Waypoint',
         'category': Category.OBJECT,
         'node_type': NodeType.NODE,

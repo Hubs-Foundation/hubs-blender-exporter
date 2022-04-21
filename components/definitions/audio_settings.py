@@ -6,9 +6,10 @@ from ..consts import DISTACE_MODELS, MAX_ANGLE
 # TODO Add this component in the scene by default?
 
 
-class hubs_component_audio_settings(HubsComponent):
+class AudioSettings(HubsComponent):
     _definition = {
         'id': 'audio-settings',
+        'name': 'hubs_component_audio_settings',
         'display_name': 'Audio Settings',
         'category': Category.SCENE,
         'node_type': NodeType.SCENE,

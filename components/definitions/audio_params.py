@@ -11,9 +11,10 @@ AUDIO_TYPES = [("pannernode", "Positional audio (pannernode)",
                 "Volume will be independent of the listener's position")]
 
 
-class hubs_component_audio_params(HubsComponent):
+class AudioParams(HubsComponent):
     _definition = {
         'id': 'audio-params',
+        'name': 'hubs_component_audio_params',
         'display_name': 'Audio Params',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

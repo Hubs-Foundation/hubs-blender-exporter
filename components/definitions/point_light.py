@@ -4,9 +4,10 @@ from .hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 
 
-class hubs_component_point_light(HubsComponent):
+class PointLight(HubsComponent):
     _definition = {
         'id': 'point-light',
+        'name': 'hubs_component_point_light',
         'display_name': 'Point Light',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

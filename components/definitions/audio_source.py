@@ -3,10 +3,11 @@ from .hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 
 
-class hubs_component_zone_audio_source(HubsComponent):
+class AudioSource(HubsComponent):
     _definition = {
         'id': 'zone-audio-source',
-        'display_name': 'Zone Audio Source',
+        'name': 'hubs_component_zone_audio_source',
+        'display_name': 'Audio Source',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
         'panel_type': PanelType.OBJECT,

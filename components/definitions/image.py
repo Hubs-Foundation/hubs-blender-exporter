@@ -15,9 +15,10 @@ PROJECTION_MODE = [("flat", "2D image (flat)", "Image will be shown on a 2D surf
                     "Spherical (360-equirectangular)", "Image will be shown on a sphere")]
 
 
-class hubs_component_image(HubsComponent):
+class Image(HubsComponent):
     _definition = {
         'id': 'image',
+        'name': 'hubs_component_image',
         'display_name': 'Image',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
