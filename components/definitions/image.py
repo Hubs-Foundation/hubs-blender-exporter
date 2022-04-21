@@ -23,8 +23,8 @@ class Image(HubsComponent):
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
         'panel_type': PanelType.OBJECT,
-        'networked': True,
-        'icon': 'image.png'
+        'icon': 'image.png',
+        'deps': ['networked']
     }
 
     src: StringProperty(

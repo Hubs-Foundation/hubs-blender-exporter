@@ -1,7 +1,6 @@
 from io_scene_gltf2.io.exp.gltf2_io_user_extensions import export_user_extensions
 from io_scene_gltf2.blender.exp import gltf2_blender_export
 import bpy
-import uuid
 from bpy.props import PointerProperty
 from ..components.components_registry import get_components_registry
 from .utils import gather_lightmap_texture_info
@@ -118,7 +117,6 @@ class glTF2ExportUserExtension:
 
         if component_list.items:
             extension_name = hubs_config["gltfExtensionName"]
-            is_networked = False
             component_data = {}
 
             for component_item in component_list.items:
@@ -127,12 +125,6 @@ class glTF2ExportUserExtension:
                 component = getattr(blender_object, component_class.get_name())
                 component_data[component_class.get_id()] = component.gather(
                     export_settings, blender_object)
-
-            # NAF-supported media require a network ID
-            if is_networked:
-                component_data["networked"] = {
-                    "id": str(uuid.uuid4()).upper()
-                }
 
             if gltf2_object.extensions is None:
                 gltf2_object.extensions = {}
