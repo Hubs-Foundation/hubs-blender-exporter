@@ -1,13 +1,18 @@
 import bpy
+from .types import PanelType
 from .components_registry import get_components_registry
 from .utils import get_object_source, dash_to_title
 
 
 def draw_component(panel, context, obj, row, component_item):
     components_registry = get_components_registry()
-    component_name = component_item.name
-    component_class = components_registry[component_name]
+    component_id = component_item.name
+    component_class = components_registry[component_id]
     if component_class:
+        if not component_class.get_panel_type() == PanelType(panel.bl_context) or not component_class.poll(context):
+            return
+
+        component_name = component_class.get_name()
         component = getattr(obj, component_name)
 
         has_properties = len(component_class.get_properties()) > 0
@@ -32,7 +37,7 @@ def draw_component(panel, context, obj, row, component_item):
                 text="",
                 icon="X"
             )
-            remove_component_operator.component_name = component_name
+            remove_component_operator.component_id = component_id
             remove_component_operator.panel_type = panel.bl_context
             remove_component_operator.gizmo = component_class.get_gizmo()
 
@@ -51,7 +56,7 @@ def draw_component(panel, context, obj, row, component_item):
             text="",
             icon="X"
         )
-        remove_component_operator.component_name = component_name
+        remove_component_operator.component_id = component_id
         remove_component_operator.panel_type = panel.bl_context
         remove_component_operator.gizmo = component_class.get_gizmo()
 

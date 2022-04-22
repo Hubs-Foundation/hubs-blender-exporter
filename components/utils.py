@@ -3,62 +3,61 @@ from ..gizmos.gizmo_group import update_gizmos
 from ..components import components_registry
 
 
-def add_component(obj, component_name):
+def add_component(obj, component_id):
     item = obj.hubs_component_list.items.add()
-    item.name = component_name
+    item.name = component_id
 
-    component_class = components_registry.get_component_by_name(component_name)
+    component_class = components_registry.get_component_by_name(component_id)
     if component_class:
         for dep_id in component_class.get_deps():
             dep_class = components_registry.get_component_by_id(dep_id)
-            dep_name = dep_class.get_name()
             if dep_class:
-                dep_exists = obj.hubs_component_list.items.find(dep_name) > -1
+                dep_exists = obj.hubs_component_list.items.find(dep_id) > -1
                 if not dep_exists:
-                    add_component(obj, dep_name)
+                    add_component(obj, dep_id)
             else:
                 print("Dependecy '%s' from module '%s' not registered" %
-                      (dep_id, component_name))
+                      (dep_id, component_id))
 
 
-def remove_component(obj, component_name):
+def remove_component(obj, component_id):
     items = obj.hubs_component_list.items
-    items.remove(items.find(component_name))
-    del obj[component_name]
+    items.remove(items.find(component_id))
+    component_class = components_registry.get_component_by_id(component_id)
+    del obj[component_class.get_name()]
 
-    component_class = components_registry.get_component_by_name(component_name)
+    component_class = components_registry.get_component_by_name(component_id)
     if component_class:
         for dep_id in component_class.get_deps():
             dep_class = components_registry.get_component_by_id(dep_id)
             dep_id = dep_class.get_id()
-            dep_name = dep_class.get_name()
             if dep_class:
-                if not is_dep_required(obj, component_name, dep_id):
-                    remove_component(obj, dep_name)
+                if not is_dep_required(obj, component_id, dep_id):
+                    remove_component(obj, dep_id)
             else:
                 print("Dependecy '%s' from module '%s' not registered" %
-                      (dep_id, component_name))
+                      (dep_id, component_id))
 
 
-def has_component(obj, component_name):
+def has_component(obj, component_id):
     items = obj.hubs_component_list.items
-    return component_name in items
+    return component_id in items
 
 
-def has_components(obj, component_names):
+def has_components(obj, component_ids):
     items = obj.hubs_component_list.items
-    for name in component_names:
+    for name in component_ids:
         if name not in items:
             return False
     return True
 
 
-def is_dep_required(obj, component_name, dep_id):
+def is_dep_required(obj, component_id, dep_id):
     '''Checks if there is any other component that requires this dependency'''
     is_required = False
     items = obj.hubs_component_list.items
     for cmp in items:
-        if cmp.name != component_name:
+        if cmp.name != component_id:
             dep_component_class = components_registry.get_component_by_name(
                 cmp.name)
             if dep_id in dep_component_class.get_deps():

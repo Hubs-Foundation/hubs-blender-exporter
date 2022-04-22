@@ -13,6 +13,7 @@ from .definitions.hubs_component import HubsComponent, NodeType
 
 
 class HubsComponentName(PropertyGroup):
+    # For backwards compatibility reasons this attribute is called "name" but it actually points to the component id
     name: StringProperty(name="name")
     expanded: BoolProperty(name="expanded", default=True)
 
@@ -38,10 +39,11 @@ def get_component_definitions():
     ]
 
 
-def register_component(component_name, component_class):
+def register_component(component_class):
     print("Registering component: " + component_class.get_id())
     bpy.utils.register_class(component_class)
 
+    component_name = component_class.get_name()
     if component_class.get_node_type() == NodeType.SCENE:
         setattr(
             bpy.types.Scene,
@@ -72,7 +74,8 @@ def register_component(component_name, component_class):
         )
 
 
-def unregister_component(component_name, component_class):
+def unregister_component(component_class):
+    component_name = component_class.get_name()
     if component_class.get_node_type() == NodeType.SCENE:
         delattr(bpy.types.Scene, component_name)
     elif component_class.get_node_type() == NodeType.NODE:
@@ -92,18 +95,17 @@ def load_components_registry():
     global __registry
     __registry = {}
     for module in get_component_definitions():
-        for _, obj in inspect.getmembers(module):
-            if inspect.isclass(obj) and issubclass(obj, HubsComponent) and obj != HubsComponent:
-                name = obj.get_name()
-                register_component(name, obj)
-                __registry[name] = obj
+        for _, member in inspect.getmembers(module):
+            if inspect.isclass(member) and issubclass(member, HubsComponent) and member != HubsComponent:
+                register_component(member)
+                __registry[member.get_id()] = member
 
 
 def unload_components_registry():
     """Recurse in the components directory to unload the registered components"""
     global __registry
-    for component_name, component_class in __registry.items():
-        unregister_component(component_name, component_class)
+    for _, component_class in __registry.items():
+        unregister_component(component_class)
 
 
 def load_icons():

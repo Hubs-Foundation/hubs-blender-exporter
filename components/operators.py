@@ -11,21 +11,21 @@ from .components_registry import get_components_registry, get_components_icons
 class AddHubsComponent(Operator):
     bl_idname = "wm.add_hubs_component"
     bl_label = "Add Hubs Component"
-    bl_property = "component_name"
+    bl_property = "component_id"
 
     panel_type: StringProperty(name="panel_type")
-    component_name: StringProperty(name="component_name")
+    component_id: StringProperty(name="component_id")
     gizmo: StringProperty(name="gizmo")
 
     def execute(self, context):
-        if self.component_name == '':
+        if self.component_id == '':
             return
 
         obj = get_object_source(context, self.panel_type)
 
         add_component(
             obj,
-            self.component_name
+            self.component_id
         )
         add_gizmo(obj, self.gizmo)
 
@@ -67,10 +67,11 @@ class AddHubsComponent(Operator):
                     if component_class.is_dep_only():
                         continue
 
+                    component_id = component_class.get_id()
                     component_display_name = dash_to_title(
                         component_class.get_display_name(component_name))
 
-                    if has_component(obj, component_name):
+                    if has_component(obj, component_id):
                         column.label(text=component_display_name)
                     else:
                         op = None
@@ -81,7 +82,7 @@ class AddHubsComponent(Operator):
                         else:
                             op = column.operator(
                                 AddHubsComponent.bl_idname, text=component_display_name, icon='ADD')
-                        op.component_name = component_name
+                        op.component_id = component_id
                         op.gizmo = component_class.get_gizmo()
                         op.panel_type = panel_type
 
@@ -102,14 +103,14 @@ class RemoveHubsComponent(Operator):
     bl_label = "Remove Hubs Component"
 
     panel_type: StringProperty(name="panel_type")
-    component_name: StringProperty(name="component_name")
+    component_id: StringProperty(name="component_id")
     gizmo: StringProperty(name="gizmo")
 
     def execute(self, context):
-        if self.component_name == '':
+        if self.component_id == '':
             return
         obj = get_object_source(context, self.panel_type)
-        remove_component(obj, self.component_name)
+        remove_component(obj, self.component_id)
         if self.gizmo:
             remove_gizmo(obj, self.gizmo)
         context.area.tag_redraw()
