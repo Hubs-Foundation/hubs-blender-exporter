@@ -19,8 +19,6 @@ class HubsComponent(PropertyGroup):
         'panel_type': PanelType.OBJECT,
         # The dependencies of this component (by id). They will be added as a result of adding this component.
         'deps': [],
-        # Id of the gizmo to show when this component is added
-        'gizmo': 'gizmo',
         # Name of the icon to load
         'icon': 'icon.png',
         # Tag the component as dependecy only so it doens't whow up in the comonents list
@@ -62,8 +60,8 @@ class HubsComponent(PropertyGroup):
         return cls.get_category().value
 
     @classmethod
-    def get_gizmo(cls):
-        return cls.__get_definition('gizmo', '')
+    def create_gizmo(cls):
+        return None
 
     @classmethod
     def get_deps(cls):

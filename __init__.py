@@ -1,5 +1,5 @@
 from .io import gltf_exporter
-from . import (nodes, components, gizmos)
+from . import (nodes, components)
 bl_info = {
     "name" : "Hubs Blender Exporter",
     "author" : "MozillaReality",
@@ -22,13 +22,11 @@ def register():
 
     gltf_exporter.register()
     nodes.register()
-    gizmos.register()
     components.register()
 
 
 def unregister():
     components.unregister()
-    gizmos.unregister()
     nodes.unregister()
     gltf_exporter.unregister()
 

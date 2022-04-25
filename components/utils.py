@@ -1,14 +1,14 @@
-import bpy
-from ..gizmos.gizmo_group import update_gizmos
-from ..components import components_registry
+from . import components_registry
+from .gizmos import update_gizmos
 
 
 def add_component(obj, component_id):
-    item = obj.hubs_component_list.items.add()
-    item.name = component_id
+    component_item = obj.hubs_component_list.items.add()
+    component_item.name = component_id
 
     component_class = components_registry.get_component_by_name(component_id)
     if component_class:
+        update_gizmos()
         for dep_id in component_class.get_deps():
             dep_class = components_registry.get_component_by_id(dep_id)
             if dep_class:
@@ -21,13 +21,14 @@ def add_component(obj, component_id):
 
 
 def remove_component(obj, component_id):
-    items = obj.hubs_component_list.items
-    items.remove(items.find(component_id))
+    component_items = obj.hubs_component_list.items
+    component_items.remove(component_items.find(component_id))
     component_class = components_registry.get_component_by_id(component_id)
     del obj[component_class.get_name()]
 
     component_class = components_registry.get_component_by_name(component_id)
     if component_class:
+        update_gizmos()
         for dep_id in component_class.get_deps():
             dep_class = components_registry.get_component_by_id(dep_id)
             dep_id = dep_class.get_id()
@@ -40,14 +41,14 @@ def remove_component(obj, component_id):
 
 
 def has_component(obj, component_id):
-    items = obj.hubs_component_list.items
-    return component_id in items
+    component_items = obj.hubs_component_list.items
+    return component_id in component_items
 
 
 def has_components(obj, component_ids):
-    items = obj.hubs_component_list.items
+    component_items = obj.hubs_component_list.items
     for name in component_ids:
-        if name not in items:
+        if name not in component_items:
             return False
     return True
 
@@ -64,20 +65,6 @@ def is_dep_required(obj, component_id, dep_id):
                 is_required = True
                 break
     return is_required
-
-
-def add_gizmo(obj, gizmo_id):
-    if not gizmo_id:
-        return
-    gizmo = obj.hubs_object_gizmos.add()
-    gizmo.name = gizmo_id
-    update_gizmos(None, bpy.context)
-
-
-def remove_gizmo(obj, gizmo_id):
-    gizmos = obj.hubs_object_gizmos
-    gizmos.remove(gizmos.find(gizmo_id))
-    update_gizmos(None, bpy.context)
 
 
 def get_object_source(context, panel_type):
