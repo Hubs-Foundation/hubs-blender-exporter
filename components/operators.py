@@ -4,7 +4,7 @@ from bpy.types import Operator
 from functools import reduce
 
 from .types import PanelType
-from .utils import add_gizmo, get_object_source, dash_to_title, has_component, add_component, remove_component, remove_gizmo
+from .utils import get_object_source, dash_to_title, has_component, add_component, remove_component
 from .components_registry import get_components_registry, get_components_icons
 
 
@@ -15,7 +15,6 @@ class AddHubsComponent(Operator):
 
     panel_type: StringProperty(name="panel_type")
     component_id: StringProperty(name="component_id")
-    gizmo: StringProperty(name="gizmo")
 
     def execute(self, context):
         if self.component_id == '':
@@ -27,7 +26,6 @@ class AddHubsComponent(Operator):
             obj,
             self.component_id
         )
-        add_gizmo(obj, self.gizmo)
 
         context.area.tag_redraw()
         return {'FINISHED'}
@@ -83,7 +81,6 @@ class AddHubsComponent(Operator):
                             op = column.operator(
                                 AddHubsComponent.bl_idname, text=component_display_name, icon='ADD')
                         op.component_id = component_id
-                        op.gizmo = component_class.get_gizmo()
                         op.panel_type = panel_type
 
                     added_comps += 1
@@ -104,15 +101,12 @@ class RemoveHubsComponent(Operator):
 
     panel_type: StringProperty(name="panel_type")
     component_id: StringProperty(name="component_id")
-    gizmo: StringProperty(name="gizmo")
 
     def execute(self, context):
         if self.component_id == '':
             return
         obj = get_object_source(context, self.panel_type)
         remove_component(obj, self.component_id)
-        if self.gizmo:
-            remove_gizmo(obj, self.gizmo)
         context.area.tag_redraw()
         return {'FINISHED'}
 

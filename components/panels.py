@@ -39,7 +39,6 @@ def draw_component(panel, context, obj, row, component_item):
             )
             remove_component_operator.component_id = component_id
             remove_component_operator.panel_type = panel.bl_context
-            remove_component_operator.gizmo = component_class.get_gizmo()
 
         if has_properties and component_item.expanded:
             component.draw(col)
@@ -58,7 +57,6 @@ def draw_component(panel, context, obj, row, component_item):
         )
         remove_component_operator.component_id = component_id
         remove_component_operator.panel_type = panel.bl_context
-        remove_component_operator.gizmo = component_class.get_gizmo()
 
 
 def draw_components_list(panel, context):

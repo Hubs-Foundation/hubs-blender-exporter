@@ -22,10 +22,6 @@ class HubsComponentList(PropertyGroup):
     items: CollectionProperty(type=HubsComponentName)
 
 
-class HubsGizmoType(PropertyGroup):
-    name: StringProperty(name="name")
-
-
 def get_component_definitions():
     component_module_names = []
     components_dir = join(dirname(realpath(__file__)), "definitions")
@@ -92,19 +88,19 @@ def unregister_component(component_class):
 
 def load_components_registry():
     """Recurse in the components directory to build the components registry"""
-    global __registry
-    __registry = {}
+    global __components_registry
+    __components_registry = {}
     for module in get_component_definitions():
         for _, member in inspect.getmembers(module):
             if inspect.isclass(member) and issubclass(member, HubsComponent) and member != HubsComponent:
                 register_component(member)
-                __registry[member.get_id()] = member
+                __components_registry[member.get_id()] = member
 
 
 def unload_components_registry():
     """Recurse in the components directory to unload the registered components"""
-    global __registry
-    for _, component_class in __registry.items():
+    global __components_registry
+    for _, component_class in __components_registry.items():
         unregister_component(component_class)
 
 
@@ -128,12 +124,12 @@ def unload_icons():
 
 
 __component_icons = {}
-__registry = {}
+__components_registry = {}
 
 
 def get_components_registry():
-    global __registry
-    return __registry
+    global __components_registry
+    return __components_registry
 
 
 def get_components_icons():
@@ -142,13 +138,13 @@ def get_components_icons():
 
 
 def get_component_by_name(component_id):
-    global __registry
-    return __registry.get(component_id, None)
+    global __components_registry
+    return __components_registry.get(component_id, None)
 
 
 def get_component_by_id(component_id):
-    global __registry
-    return next((component_class for _, component_class in __registry.items() if component_class.get_id() == component_id), None)
+    global __components_registry
+    return next((component_class for _, component_class in __components_registry.items() if component_class.get_id() == component_id), None)
 
 
 def register():
@@ -157,12 +153,9 @@ def register():
 
     bpy.utils.register_class(HubsComponentName)
     bpy.utils.register_class(HubsComponentList)
-    bpy.utils.register_class(HubsGizmoType)
 
     bpy.types.Object.hubs_component_list = PointerProperty(
         type=HubsComponentList)
-    bpy.types.Object.hubs_object_gizmos = CollectionProperty(
-        type=HubsGizmoType)
     bpy.types.Scene.hubs_component_list = PointerProperty(
         type=HubsComponentList)
     bpy.types.Material.hubs_component_list = PointerProperty(
@@ -175,7 +168,6 @@ def register():
 
 def unregister():
     del bpy.types.Object.hubs_component_list
-    del bpy.types.Object.hubs_object_gizmos
     del bpy.types.Scene.hubs_component_list
     del bpy.types.Material.hubs_component_list
     del bpy.types.Bone.hubs_component_list
@@ -183,10 +175,9 @@ def unregister():
 
     bpy.utils.unregister_class(HubsComponentName)
     bpy.utils.unregister_class(HubsComponentList)
-    bpy.utils.unregister_class(HubsGizmoType)
 
     unload_components_registry()
     unload_icons()
 
-    global __registry
-    del __registry
+    global __components_registry
+    del __components_registry
