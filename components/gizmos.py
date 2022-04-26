@@ -52,7 +52,8 @@ class HubsGizmoGroup(GizmoGroup):
         for component_id in self.widgets:
             for obj in self.widgets[component_id]:
                 gizmo, update = self.widgets[component_id][obj]
-                self.refresh_object_gizmos(obj, gizmo, update)
+                if gizmo:
+                    self.refresh_object_gizmos(obj, gizmo, update)
 
     def refresh_object_gizmos(self, obj, gizmo, update):
         gizmo.hide = not obj.visible_get()

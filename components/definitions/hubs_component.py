@@ -60,8 +60,8 @@ class HubsComponent(PropertyGroup):
         return cls.get_category().value
 
     @classmethod
-    def create_gizmo(cls):
-        return None
+    def create_gizmo(cls, obj, gizmo_group):
+        return None, None
 
     @classmethod
     def get_deps(cls):

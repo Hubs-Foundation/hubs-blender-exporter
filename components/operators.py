@@ -21,11 +21,7 @@ class AddHubsComponent(Operator):
             return
 
         obj = get_object_source(context, self.panel_type)
-
-        add_component(
-            obj,
-            self.component_id
-        )
+        add_component(obj, self.component_id)
 
         context.area.tag_redraw()
         return {'FINISHED'}
