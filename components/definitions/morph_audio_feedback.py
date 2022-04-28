@@ -127,7 +127,7 @@ class MorphAudioFeedback(HubsComponent):
                             description="Max Value",
                             default=1.0)
 
-    def draw(self, layout):
+    def draw(self, context, layout):
         layout.label(text='Shape keys to morph:')
 
         row = layout.row()

@@ -41,7 +41,7 @@ def draw_component(panel, context, obj, row, component_item):
             remove_component_operator.panel_type = panel.bl_context
 
         if has_properties and component_item.expanded:
-            component.draw(col)
+            component.draw(context, col)
 
     else:
         display_name = dash_to_title(component_name)

@@ -80,13 +80,13 @@ class HubsComponent(PropertyGroup):
             raise Exception(
                 'HubsComponent is an abstract class and cannot be instantiated directly')
 
-    def draw(self, col):
-        '''Draw method to be called by the panel. The base class method will print all the object properties'''
+    def draw(self, context, layout):
+        '''Draw method to be called by the panel. The base class method will print all the component properties'''
         for key in self.__annotations__.keys():
-            col.prop(data=self, property=key)
+            layout.prop(data=self, property=key)
 
     def gather(self, export_settings, object):
-        '''This is called by the exporter and will return the object defined properties by default'''
+        '''This is called by the exporter and will return the component properties by default'''
         return gather_properties(export_settings, object, self)
 
     @classmethod
