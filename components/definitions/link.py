@@ -12,7 +12,7 @@ class Link(HubsComponent):
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
         'panel_type': PanelType.OBJECT,
-        'icon': 'link.png',
+        'icon': 'LINKED',
         'deps': ['networked']
     }
 

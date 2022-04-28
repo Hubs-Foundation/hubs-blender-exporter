@@ -3,8 +3,6 @@ from .hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ..consts import DISTACE_MODELS, MAX_ANGLE
 
-# TODO Add this component in the scene by default?
-
 AUDIO_TYPES = [("pannernode", "Positional audio (pannernode)",
                 "Volume will change depending on the listener's position relative to the source"),
                ("stereo", "Background audio (stereo)",

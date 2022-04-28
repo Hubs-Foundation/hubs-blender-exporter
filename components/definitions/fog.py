@@ -2,8 +2,6 @@ from bpy.props import FloatProperty, EnumProperty, FloatVectorProperty
 from .hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 
-# TODO Add this component in the scene by default?
-
 
 class Fog(HubsComponent):
     _definition = {
