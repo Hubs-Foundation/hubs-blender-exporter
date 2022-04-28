@@ -11,7 +11,7 @@ class Audio(HubsComponent):
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
         'panel_type': PanelType.OBJECT,
-        'deps': ['audio-params'],
+        'deps': ['networked', 'audio-params'],
         'icon': 'OUTLINER_OB_SPEAKER'
     }
 

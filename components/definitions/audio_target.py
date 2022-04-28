@@ -19,7 +19,8 @@ class AudioTarget(HubsComponent):
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
         'panel_type': PanelType.OBJECT,
-        'deps': ['audio-params']
+        'deps': ['audio-params'],
+        'icon': 'SPEAKER'
     }
 
     srcNode: PointerProperty(

@@ -3,8 +3,6 @@ from .hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ..consts import DISTACE_MODELS, MAX_ANGLE
 
-# TODO Add this component in the scene by default?
-
 
 class AudioSettings(HubsComponent):
     _definition = {
