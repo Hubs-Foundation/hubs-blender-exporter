@@ -16,7 +16,7 @@ class DirectionalLight(HubsComponent):
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
         'panel_type': PanelType.OBJECT,
-        'icon': 'bolt.png'
+        'icon': 'LIGHT_SUN'
     }
 
     color: FloatVectorProperty(name="Color",
