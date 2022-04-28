@@ -161,10 +161,10 @@ class ReflectionProbe(HubsComponent):
         default='256x128'
     )
 
-    def draw(self, col):
-        HubsComponent.draw(self, col)
+    def draw(self, context, layout):
+        HubsComponent.draw(self, context, layout)
 
-        col.operator(
+        layout.operator(
             "render.hubs_render_reflection_probe",
             text="Bake"
         )
