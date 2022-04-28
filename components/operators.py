@@ -71,8 +71,12 @@ class AddHubsComponent(Operator):
                         op = None
                         if component_class.get_icon() is not None:
                             icon = component_class.get_icon()
-                            op = column.operator(
-                                AddHubsComponent.bl_idname, text=component_display_name, icon_value=components_icons[icon].icon_id)
+                            if icon.find('.') != -1:
+                                op = column.operator(
+                                    AddHubsComponent.bl_idname, text=component_display_name, icon_value=components_icons[icon].icon_id)
+                            else:
+                                op = column.operator(
+                                    AddHubsComponent.bl_idname, text=component_display_name, icon=icon)
                         else:
                             op = column.operator(
                                 AddHubsComponent.bl_idname, text=component_display_name, icon='ADD')

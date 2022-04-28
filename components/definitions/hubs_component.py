@@ -19,7 +19,7 @@ class HubsComponent(PropertyGroup):
         'panel_type': PanelType.OBJECT,
         # The dependencies of this component (by id). They will be added as a result of adding this component.
         'deps': [],
-        # Name of the icon to load
+        # Name of the icon to load. It can be a image file in the icons directory or one of the Blender builtin icons id
         'icon': 'icon.png',
         # Tag the component as dependecy only so it doens't whow up in the comonents list
         'dep_only': False
