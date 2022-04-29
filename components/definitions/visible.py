@@ -16,7 +16,7 @@ class Visible(HubsComponent):
         'category': Category.OBJECT,
         'node_type': NodeType.NODE,
         'panel_type': PanelType.OBJECT,
-        'icon': 'eye.png'
+        'icon': 'HIDE_OFF'
     }
 
     visible: BoolProperty(name="Visible", default=True, update=update)
