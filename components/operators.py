@@ -65,23 +65,35 @@ class AddHubsComponent(Operator):
                     component_display_name = dash_to_title(
                         component_class.get_display_name(component_name))
 
-                    if has_component(obj, component_id):
-                        column.label(text=component_display_name)
-                    else:
-                        op = None
-                        if component_class.get_icon() is not None:
-                            icon = component_class.get_icon()
-                            if icon.find('.') != -1:
+                    op = None
+                    if component_class.get_icon() is not None:
+                        icon = component_class.get_icon()
+                        if icon.find('.') != -1:
+                            if has_component(obj, component_id):
+                                op = column.label(
+                                    text=component_display_name, icon_value=components_icons[icon].icon_id)
+                            else:
                                 op = column.operator(
                                     AddHubsComponent.bl_idname, text=component_display_name, icon_value=components_icons[icon].icon_id)
+                                op.component_id = component_id
+                                op.panel_type = panel_type
+                        else:
+                            if has_component(obj, component_id):
+                                op = column.label(
+                                    text=component_display_name, icon=icon)
                             else:
                                 op = column.operator(
                                     AddHubsComponent.bl_idname, text=component_display_name, icon=icon)
+                                op.component_id = component_id
+                                op.panel_type = panel_type
+                    else:
+                        if has_component(obj, component_id):
+                            op = column.label(text=component_display_name)
                         else:
                             op = column.operator(
                                 AddHubsComponent.bl_idname, text=component_display_name, icon='ADD')
-                        op.component_id = component_id
-                        op.panel_type = panel_type
+                            op.component_id = component_id
+                            op.panel_type = panel_type
 
                     added_comps += 1
 
