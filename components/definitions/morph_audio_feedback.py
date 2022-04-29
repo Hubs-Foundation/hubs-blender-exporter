@@ -41,7 +41,7 @@ class AddShapeKeyOperator(Operator):
 
 class RemoveShapeKeyOperator(Operator):
     bl_idname = "hubs_morph_audio_feedback.remove_shape_key"
-    bl_label = "Add Shape Key"
+    bl_label = "Remove Action"
 
     @classmethod
     def poll(self, context):
@@ -144,6 +144,13 @@ class MorphAudioFeedback(HubsComponent):
 
         layout.prop(data=self, property='minValue')
         layout.prop(data=self, property='maxValue')
+
+    def gather(self, export_settings, object):
+        return {
+            'name': ",".join(self.shape_keys.keys()),
+            'minValue': self.minValue,
+            'maxValue': self.maxValue
+        }
 
     @classmethod
     def poll(cls, context):
