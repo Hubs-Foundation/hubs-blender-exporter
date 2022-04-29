@@ -1,8 +1,7 @@
 from bpy.props import EnumProperty, FloatVectorProperty, BoolProperty
 from .hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
-import mathutils
-import bpy
+from ..gizmos import gizmo_update
 
 
 class MediaFrame(HubsComponent):
@@ -56,9 +55,4 @@ class MediaFrame(HubsComponent):
         op.orient_type = 'LOCAL'
         op.release_confirm = True
 
-        def update(obj, gizmo):
-            mat_scale = mathutils.Matrix.Scale(2.0, 4)
-            gizmo.matrix_basis = obj.matrix_world @ mat_scale
-            bpy.context.view_layer.update()
-
-        return widget, update
+        return widget, gizmo_update
