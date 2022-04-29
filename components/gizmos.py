@@ -1,6 +1,14 @@
 import bpy
 from bpy.types import (Gizmo, GizmoGroup)
 from .components_registry import get_components_registry
+from mathutils import Matrix
+
+
+def gizmo_update(obj, gizmo):
+    loc, rot, _ = obj.matrix_world.decompose()
+    mat_out = Matrix.LocRotScale(loc, rot, obj.dimensions)
+    gizmo.matrix_basis = mat_out
+    bpy.context.view_layer.update()
 
 
 class HubsGizmo(Gizmo):
