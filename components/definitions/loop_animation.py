@@ -37,7 +37,7 @@ class LoopAnimation(HubsComponent):
         'category': Category.ANIMATION,
         'node_type': NodeType.NODE,
         'panel_type': PanelType.OBJECT,
-        'icon': 'TEXTURE_DATA'
+        'icon': 'LOOP_BACK'
     }
 
     clip: EnumProperty(

@@ -12,7 +12,7 @@ class AmbientLight(HubsComponent):
         'category': Category.AVATAR,
         'node_type': NodeType.NODE,
         'panel_type': PanelType.OBJECT,
-        'icon': 'LIGHT_HEMI'
+        'icon': 'MATSHADERBALL'
     }
 
     radius: FloatProperty(name="Radius",
