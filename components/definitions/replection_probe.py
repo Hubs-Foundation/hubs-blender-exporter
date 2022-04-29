@@ -162,7 +162,7 @@ class ReflectionProbe(HubsComponent):
     )
 
     def draw(self, context, layout):
-        HubsComponent.draw(self, context, layout)
+        super().draw(context, layout)
 
         layout.operator(
             "render.hubs_render_reflection_probe",
