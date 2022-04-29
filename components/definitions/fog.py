@@ -7,7 +7,7 @@ class Fog(HubsComponent):
     _definition = {
         'id': 'fog',
         'name': 'hubs_component_fog',
-        'display_name': 'fog',
+        'display_name': 'Fog',
         'category': Category.SCENE,
         'node_type': NodeType.SCENE,
         'panel_type': PanelType.SCENE,
