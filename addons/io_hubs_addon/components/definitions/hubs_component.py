@@ -11,11 +11,11 @@ class HubsComponent(PropertyGroup):
         'name': 'hubs_component_template',
         # Name to be used in the panels, if not set the component name will be used
         'display_name': 'Hubs Component Template',
-        # Category that's is shown in the "Add Component" menu
+        # Category that is shown in the "Add Component" menu
         'category': Category.MISC,
-        # Node type to where the component with be registered
+        # Node type to where the component will be registered
         'node_type': NodeType.NODE,
-        # Panel where to show this component
+        # Panel type where to show this component
         'panel_type': PanelType.OBJECT,
         # The dependencies of this component (by id). They will be added as a result of adding this component.
         'deps': [],
