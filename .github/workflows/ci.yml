@@ -51,7 +51,7 @@ jobs:
       run: |
         sudo ln -s /opt/blender/blender /usr/local/bin/blender
         blender --version
-        ADDON_DIR=/opt/blender/$BLENDER_MAJOR.$BLENDER_MINOR.$BLENDER_PATCH/scripts/addons
+        ADDON_DIR=/opt/blender/$BLENDER_MAJOR.$BLENDER_MINOR/scripts/addons
         rm -rf $ADDON_DIR/io_hubs_addon
         cp -r addons/io_hubs_addon $ADDON_DIR
         cd tests
