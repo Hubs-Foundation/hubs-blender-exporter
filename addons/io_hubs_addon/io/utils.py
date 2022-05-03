@@ -1,4 +1,3 @@
-from math import degrees
 import os
 import bpy
 from io_scene_gltf2.blender.com import gltf2_blender_extras
@@ -23,7 +22,7 @@ class HubsImageData(ImageData):
     def file_extension(self):
         if self._mime_type == "image/vnd.radiance":
             return ".hdr"
-        return super().file_extension()
+        return super().file_extension
 
 
 class HubsExportImage(ExportImage):
@@ -137,8 +136,6 @@ def gather_properties(export_settings, object, component):
     else:
         return {"__empty_component_dummy": None}
 
-    return value
-
 
 def gather_property(export_settings, blender_object, target, property_name):
     property_definition = target.bl_rna.properties[property_name]
@@ -151,9 +148,6 @@ def gather_property(export_settings, blender_object, target, property_name):
         else:
             return gather_vec_property(export_settings, blender_object, target, property_name)
 
-    elif (property_definition.bl_rna.identifier == 'FloatProperty'):
-        return gather_float_property(export_settings, blender_object, target, property_name)
-
     elif (property_definition.bl_rna.identifier == 'PointerProperty'):
         if type(property_value) == bpy.types.Object:
             return gather_node_property(export_settings, blender_object, target, property_name)
@@ -163,16 +157,6 @@ def gather_property(export_settings, blender_object, target, property_name):
             return gather_image_property(export_settings, blender_object, target, property_name)
         elif type(property_value) == bpy.types.Texture:
             return gather_texture_property(export_settings, blender_object, target, property_name)
-
-    return gltf2_blender_extras.__to_json_compatible(property_value)
-
-
-def gather_float_property(export_settings, blender_object, target, property_name):
-    property_value = getattr(target, property_name)
-    property_definition = target.bl_rna.properties[property_name]
-    subtype = getattr(property_definition, 'subtype', None)
-    if subtype and subtype == "ANGLE":
-        return gltf2_blender_extras.__to_json_compatible(degrees(property_value))
 
     return gltf2_blender_extras.__to_json_compatible(property_value)
 

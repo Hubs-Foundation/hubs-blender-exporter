@@ -70,25 +70,25 @@ class ParticleEmitter(HubsComponent):
         name="End Size", description="End Size", default=1.0)
 
     sizeRandomness: FloatProperty(
-        name="Size Randomness", description="Size Randomness", default=1.0)
+        name="Size Randomness", description="Size Randomness", default=0.0)
 
     ageRandomness: FloatProperty(
-        name="Age Randomness", description="Age Randomness", default=1.0)
+        name="Age Randomness", description="Age Randomness", default=0.0)
 
     lifetime: FloatProperty(
         name="Lifetime", description="Lifetime  ", unit="TIME", subtype="TIME", default=1.0)
 
     lifetimeRandomness: FloatProperty(
-        name="Lifetime Randomness", description="Lifetime Randomness", default=1.0)
+        name="Lifetime Randomness", description="Lifetime Randomness", default=0.0)
 
     particleCount: IntProperty(
         name="Lifetime Randomness", description="Lifetime Randomness", subtype="UNSIGNED", default=10)
 
     startVelocity: FloatVectorProperty(
-        name="Start Velocity", description="Start Velocity", unit="VELOCITY", subtype="XYZ", default=(0.0, 0.0, 1.0))
+        name="Start Velocity", description="Start Velocity", unit="VELOCITY", subtype="XYZ", default=(0.0, 0.0, 0.0))
 
     endVelocity: FloatVectorProperty(
-        name="End Velocity", description="End Velocity", unit="VELOCITY", subtype="XYZ", default=(0.0, 0.0, 1.0))
+        name="End Velocity", description="End Velocity", unit="VELOCITY", subtype="XYZ", default=(0.0, 0.0, 0.0))
 
     velocityCurve: EnumProperty(
         name="Velocity Curve",

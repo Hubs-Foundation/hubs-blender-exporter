@@ -1,4 +1,3 @@
-import bpy
 from bpy.props import FloatVectorProperty, FloatProperty, BoolProperty, IntVectorProperty
 from .hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType

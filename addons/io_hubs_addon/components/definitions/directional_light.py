@@ -4,10 +4,6 @@ from .hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 
 
-def update(self, context):
-    context.object.hide_viewport = not bpy.context.object.hubs_component_directional_light.visible
-
-
 class DirectionalLight(HubsComponent):
     _definition = {
         'id': 'directional-light',
@@ -31,7 +27,7 @@ class DirectionalLight(HubsComponent):
                              description="Intensity",
                              default=1.0)
 
-    visible: BoolProperty(name="Visible", default=True, update=update)
+    castShadow: BoolProperty(name="Cast Shadow", default=True)
 
     shadowMapResolution: IntVectorProperty(name="Shadow Map Resolution",
                                            description="Shadow Map Resolution",

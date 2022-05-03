@@ -10,7 +10,7 @@ class UVScroll(HubsComponent):
         'name': 'hubs_component_uv_scroll',
         'display_name': 'UV Scroll',
         'category': Category.ANIMATION,
-        'node_type': NodeType.MATERIAL,
+        'node_type': NodeType.NODE,
         'panel_type': PanelType.MATERIAL,
         'icon': 'TEXTURE_DATA'
     }
@@ -18,13 +18,11 @@ class UVScroll(HubsComponent):
     speed: FloatVectorProperty(name="Speed",
                                description="Speed",
                                size=2,
-                               subtype='COORDINATES',
                                default=[0, 0])
 
     increment: FloatVectorProperty(name="Increment",
                                    description="Increment",
                                    size=2,
-                                   subtype='COORDINATES',
                                    default=[0, 0])
 
     def draw(self, context, layout):

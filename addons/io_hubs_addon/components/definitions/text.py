@@ -32,16 +32,15 @@ class Text(HubsComponent):
                ("center", "Center align",
                 "Alignment will be with the center of the text"),
                ("bottom", "Bottom align", "Alignment will be with the bottom of the text")],
-        default="center")
+        default="top")
 
     side: EnumProperty(
         name="Display Side",
         description="Display Side",
-        items=[("top", "Top align", "Alignment will be with the top of the text"),
-               ("center", "Center align",
-                "Alignment will be with the center of the text"),
-               ("bottom", "Bottom align", "Alignment will be with the bottom of the text")],
-        default="center")
+        items=[("front", "Show on front", "Text will be shown on the front (-Y)"),
+               ("back", "Show on back", "Text will be shown on the back (+Y)"),
+               ("double", "Show on both", "Text will be shown on both sides")],
+        default="front")
 
     whiteSpace: EnumProperty(
         name="White Space",
@@ -66,13 +65,13 @@ class Text(HubsComponent):
         name="Wrap Count", description="Wrap Count", default=40.0)
 
     wrapPixels: FloatProperty(
-        name="Wrap Pixels", description="Wrap Pixels", default=1.0)
+        name="Wrap Pixels", description="Wrap Pixels", default=0.0)
 
     letterSpacing: FloatProperty(
         name="Letter Space", description="Letter Space", default=0.0)
 
     lineHeight: FloatProperty(
-        name="Line Height", description="Line Height", default=1.0)
+        name="Line Height", description="Line Height", default=0.0)
 
     opacity: FloatProperty(
         name="Opacity", description="Opacity", default=1.0)

@@ -16,7 +16,7 @@ class Video(HubsComponent):
         'icon': 'FILE_MOVIE'
     }
 
-    scr: StringProperty(
+    src: StringProperty(
         name="Video URL", description="Video URL", default='https://')
 
     projection: EnumProperty(

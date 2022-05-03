@@ -15,7 +15,7 @@ class Audio(HubsComponent):
         'icon': 'OUTLINER_OB_SPEAKER'
     }
 
-    scr: StringProperty(
+    src: StringProperty(
         name="Audio URL", description="Audio URL", default='https://')
 
     autoPlay: BoolProperty(name="Auto Play",
