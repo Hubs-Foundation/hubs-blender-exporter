@@ -61,10 +61,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext['link'], { href: 'https://hubs.mozilla.com' });
@@ -76,10 +76,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, { visible: { visible: true } });
@@ -90,10 +90,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, { 'nav-mesh': {} });
@@ -104,13 +104,13 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const camera = asset.nodes[1];
-        assert.strictEqual(utils.checkExtensionAdded(camera), true);
+        assert.strictEqual(utils.checkExtensionAdded(camera, 'MOZ_hubs_components'), true);
 
         const material = asset.materials[0];
-        assert.strictEqual(utils.checkExtensionAdded(material), true);
+        assert.strictEqual(utils.checkExtensionAdded(material, 'MOZ_hubs_components'), true);
 
         const videoTextureSourceExt = camera.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(videoTextureSourceExt, {
@@ -141,10 +141,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
@@ -174,10 +174,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
@@ -199,10 +199,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[3];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
@@ -221,10 +221,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
@@ -247,10 +247,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
@@ -275,10 +275,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
@@ -305,10 +305,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
@@ -324,10 +324,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
@@ -369,10 +369,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
@@ -414,10 +414,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
@@ -440,10 +440,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext["image"], {
@@ -460,10 +460,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext["audio"], {
@@ -491,10 +491,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext["video"], {
@@ -523,10 +523,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
@@ -541,10 +541,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
@@ -573,10 +573,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext['media-frame'], {
@@ -596,10 +596,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
@@ -617,13 +617,13 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const source = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(source), true);
+        assert.strictEqual(utils.checkExtensionAdded(source, 'MOZ_hubs_components'), true);
 
         const target = asset.nodes[1];
-        assert.strictEqual(utils.checkExtensionAdded(target), true);
+        assert.strictEqual(utils.checkExtensionAdded(target, 'MOZ_hubs_components'), true);
 
         const sourceExt = source.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(sourceExt, {
@@ -664,10 +664,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext["audio-zone"], {
@@ -693,10 +693,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
@@ -712,10 +712,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
@@ -737,10 +737,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
@@ -756,10 +756,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
@@ -776,10 +776,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
@@ -795,10 +795,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const node = asset.nodes[0];
-        assert.strictEqual(utils.checkExtensionAdded(node), true);
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
@@ -815,10 +815,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const scene = asset.scenes[0];
-        assert.strictEqual(utils.checkExtensionAdded(scene), true);
+        assert.strictEqual(utils.checkExtensionAdded(scene, 'MOZ_hubs_components'), true);
 
         const ext = scene.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
@@ -837,10 +837,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const scene = asset.scenes[0];
-        assert.strictEqual(utils.checkExtensionAdded(scene), true);
+        assert.strictEqual(utils.checkExtensionAdded(scene, 'MOZ_hubs_components'), true);
 
         const ext = scene.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
@@ -866,10 +866,10 @@ describe('Exporter', function () {
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
         assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
-        assert.strictEqual(utils.checkExtensionAdded(asset), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
         const scene = asset.scenes[0];
-        assert.strictEqual(utils.checkExtensionAdded(scene), true);
+        assert.strictEqual(utils.checkExtensionAdded(scene, 'MOZ_hubs_components'), true);
 
         const ext = scene.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
@@ -886,6 +886,22 @@ describe('Exporter', function () {
               "index": 1
             }
           }
+        });
+      });
+
+      it('can export lightmap', function () {
+        let gltfPath = path.resolve(outDirPath, 'lightmap.gltf');
+        const asset = JSON.parse(fs.readFileSync(gltfPath));
+
+        assert.strictEqual(asset.extensionsUsed.includes('MOZ_lightmap'), true);
+
+        const material = asset.materials[0];
+        assert.strictEqual(utils.checkExtensionAdded(material, 'MOZ_lightmap'), true);
+
+        const ext = material.extensions['MOZ_lightmap'];
+        assert.deepStrictEqual(ext, {
+          "intensity": 1,
+          "index": 0
         });
       });
     });

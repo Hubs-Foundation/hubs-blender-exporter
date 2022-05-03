@@ -67,8 +67,8 @@ function validateGltf(gltfPath, done) {
   });
 }
 
-function checkExtensionAdded(asset) {
-  return Object.prototype.hasOwnProperty.call(asset.extensions, 'MOZ_hubs_components');
+function checkExtensionAdded(asset, etxName) {
+  return Object.prototype.hasOwnProperty.call(asset.extensions, etxName);
 }
 
 exports.utils = {
