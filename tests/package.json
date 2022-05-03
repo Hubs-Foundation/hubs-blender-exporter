@@ -1,0 +1,21 @@
+{
+  "name": "io-hubs-addon-tests",
+  "version": "1.0.0",
+  "description": "Test suite for io-hubs-addon",
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "^6.8.0",
+    "gltf-validator": "^2.0.0-dev.3.2",
+    "mocha": "^7.1.1",
+    "mochawesome": "^6.1.0"
+  },
+  "scripts": {
+    "test": "mocha --reporter mochawesome",
+    "test-bail": "mocha -b --reporter mochawesome",
+    "lint": "eslint **/*.js",
+    "lint:fix": "eslint --fix **/*.js"
+  },
+  "mocha": {
+    "timeout": 60000
+  }
+}
