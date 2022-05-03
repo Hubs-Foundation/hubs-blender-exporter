@@ -27,12 +27,7 @@ jobs:
       id: blender_version
       run: |
         echo "Looking for Blender $BLENDER_MAJOR.$BLENDER_MINOR.${BLENDER_PATCH}"
-        BLENDER_URL="$(curl -s https://download.blender.org/release/Blender${BLENDER_MAJOR}.${BLENDER_MINOR}/blender-${BLENDER_MAJOR}.${BLENDER_MINOR}.${BLENDER_PATCH}-linux-x64.tar.xz)"
-        if [ -z "$BLENDER_URL" ]; then
-          echo "Not found! Download URL may have changed; CI may need update."
-          exit 1
-        fi
-        echo "Found: $BLENDER_URL"
+        BLENDER_URL="https://download.blender.org/release/Blender${BLENDER_MAJOR}.${BLENDER_MINOR}/blender-${BLENDER_MAJOR}.${BLENDER_MINOR}.${BLENDER_PATCH}-linux-x64.tar.xz"
         echo "::set-output name=blender-url::$BLENDER_URL"
     # Loads a cached build of Blender if available. If not available, this step
     # enqueues the /opt/blender directory to be cached after tests pass.
