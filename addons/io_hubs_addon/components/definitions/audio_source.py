@@ -21,4 +21,4 @@ class AudioSource(HubsComponent):
         name="Mute Self", description="Do not transmit your own audio to audio targets.", default=True)
 
     debug: BoolProperty(
-        name="Debug", description="Play white noise when no audio source is in the zone.", default=True)
+        name="Debug", description="Play white noise when no audio source is in the zone.", default=False)

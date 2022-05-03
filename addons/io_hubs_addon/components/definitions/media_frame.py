@@ -12,11 +12,12 @@ class MediaFrame(HubsComponent):
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
         'panel_type': PanelType.OBJECT,
-        'icon': 'OBJECT_DATA'
+        'icon': 'OBJECT_DATA',
+        'deps': ['networked']
     }
 
     bounds: FloatVectorProperty(
-        name="Only Mods", description="Bounding box to fit objects into when they are snapped into the media frame.", unit='LENGTH', subtype="XYZ_LENGTH", default=(1.0, 1.0, 1.0))
+        name="Bounds", description="Bounding box to fit objects into when they are snapped into the media frame.", unit='LENGTH', subtype="XYZ_LENGTH", default=(1.0, 1.0, 1.0))
 
     mediaType: EnumProperty(
         name="Media Type",

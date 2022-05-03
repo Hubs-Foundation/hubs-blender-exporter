@@ -1,5 +1,7 @@
 from bpy.props import FloatProperty, EnumProperty, FloatVectorProperty, PointerProperty
 from bpy.types import Image
+
+from ...io.utils import gather_texture_property, gather_color_property
 from .hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 
@@ -38,7 +40,7 @@ class EnvironmentSettings(HubsComponent):
     backgroundColor: FloatVectorProperty(name="Background Color",
                                          description="Background Color",
                                          subtype='COLOR',
-                                         default=(0.402, 0.402, 0.402, 1.0),
+                                         default=(1.0, 1.0, 1.0, 1.0),
                                          size=4,
                                          min=0,
                                          max=1)
@@ -53,3 +55,20 @@ class EnvironmentSettings(HubsComponent):
         description="An equirectangular image to use as the default environment map for all objects",
         type=Image
     )
+
+    def gather(self, export_settings, object):
+        return {
+            'toneMapping': self.toneMapping,
+            'toneMappingExposure': self.toneMappingExposure,
+            'backgroundColor': gather_color_property(export_settings, object, self, 'backgroundColor'),
+            'backgroundTexture': gather_texture_property(
+                export_settings,
+                object,
+                self,
+                'backgroundTexture'),
+            'envMapTexture': gather_texture_property(
+                export_settings,
+                object,
+                self,
+                'envMapTexture')
+        }

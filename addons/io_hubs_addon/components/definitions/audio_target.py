@@ -33,7 +33,7 @@ class AudioTarget(HubsComponent):
         name="Min Delay", description="Minimum random delay applied to the source audio", default=0.01, min=0.0, soft_min=0.0)
 
     maxDelay: FloatProperty(
-        name="Max Delay", description="Maximum random delay applied to the source audio", default=0.01, min=0.0, soft_min=0.0)
+        name="Max Delay", description="Maximum random delay applied to the source audio", default=0.03, min=0.0, soft_min=0.0)
 
-    avatarRefDistance: BoolProperty(
+    debug: BoolProperty(
         name="Debug", description="Show debug visuals", default=False)

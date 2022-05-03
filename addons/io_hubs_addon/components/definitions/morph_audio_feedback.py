@@ -1,6 +1,6 @@
 import atexit
 import bpy
-from bpy.props import FloatProperty, StringProperty, BoolProperty, CollectionProperty, IntProperty
+from bpy.props import FloatProperty, StringProperty, CollectionProperty, IntProperty
 from bpy.types import PropertyGroup, Menu, Operator
 from .hubs_component import HubsComponent
 from ..types import Category, NodeType, PanelType
@@ -31,8 +31,12 @@ class AddShapeKeyOperator(Operator):
 
     def execute(self, context):
         ob = context.object
-        shape_key = ob.hubs_component_morph_audio_feedback.shape_keys.add()
+        shape_key = ob.hubs_component_morph_audio_feedback.shape_keys_list.add()
         shape_key.name = self.shape_key_name
+
+        ob.hubs_component_morph_audio_feedback.name = ",".join(
+            ob.hubs_component_morph_audio_feedback.shape_keys_list.keys())
+
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -48,15 +52,21 @@ class RemoveShapeKeyOperator(Operator):
         return context.object.hubs_component_morph_audio_feedback.active_shape_key != -1
 
     def execute(self, context):
-        active_shape_key = context.object.hubs_component_morph_audio_feedback.active_shape_key
-        context.object.hubs_component_morph_audio_feedback.shape_keys.remove(
+        ob = context.object
+
+        active_shape_key = ob.hubs_component_morph_audio_feedback.active_shape_key
+        ob.hubs_component_morph_audio_feedback.shape_keys_list.remove(
             active_shape_key)
+
+        ob.hubs_component_morph_audio_feedback.name = ",".join(
+            ob.hubs_component_morph_audio_feedback.shape_keys_list.keys())
+
         return {'FINISHED'}
 
 
-def has_shape_key(shape_keys, shape_key):
+def has_shape_key(shape_keys_list, shape_key):
     exists = False
-    for item in shape_keys:
+    for item in shape_keys_list:
         if item.name == shape_key:
             exists = True
             break
@@ -74,7 +84,7 @@ class ShapeKeysContextMenu(Menu):
         no_shape_keys = True
         if hasattr(ob.data.shape_keys, 'key_blocks'):
             for k, _ in ob.data.shape_keys.key_blocks.items():
-                if not has_shape_key(context.object.hubs_component_morph_audio_feedback.shape_keys, k):
+                if not has_shape_key(context.object.hubs_component_morph_audio_feedback.shape_keys_list, k):
                     self.layout.operator(AddShapeKeyOperator.bl_idname, icon='SHAPEKEY_DATA',
                                          text=k).shape_key_name = k
                     no_shape_keys = False
@@ -109,9 +119,15 @@ class MorphAudioFeedback(HubsComponent):
         'panel_type': PanelType.OBJECT_DATA
     }
 
-    shape_keys: CollectionProperty(
+    shape_keys_list: CollectionProperty(
         type=ShapeKeyPropertyType,
         options={'HIDDEN', 'SKIP_SAVE'})
+
+    name: StringProperty(
+        name="Shape Keys",
+        description="Shape keys to morph",
+        default=""
+    )
 
     active_shape_key: IntProperty(
         name="Active action index",
@@ -132,7 +148,7 @@ class MorphAudioFeedback(HubsComponent):
 
         row = layout.row()
         row.template_list(ShapeKeysList.bl_idname, "", self,
-                          "shape_keys", self, "active_shape_key", rows=3)
+                          "shape_keys_list", self, "active_shape_key", rows=3)
 
         col = row.column(align=True)
 
@@ -147,7 +163,7 @@ class MorphAudioFeedback(HubsComponent):
 
     def gather(self, export_settings, object):
         return {
-            'name': ",".join(self.shape_keys.keys()),
+            'name': self.name,
             'minValue': self.minValue,
             'maxValue': self.maxValue
         }

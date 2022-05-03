@@ -20,7 +20,11 @@ class Waypoint(HubsComponent):
 
     canBeSpawnPoint: BoolProperty(
         name="canBeSpawnPoint",
-        description="After each use, this waypoint will be disabled until the previous user moves away from it",
+        description="Avatars may be teleported to this waypoint when entering the scene",
+        default=False)
+
+    isOccupied: BoolProperty(
+        name="isOccupied",
         default=False)
 
     canBeOccupied: BoolProperty(
@@ -51,6 +55,11 @@ class Waypoint(HubsComponent):
     snapToNavMesh: BoolProperty(
         name="snapToNavMesh",
         description="Avatars will move as close as they can to this waypoint but will not leave the ground",
+        default=False)
+
+    willMaintainWorldUp: BoolProperty(
+        name="willMaintainWorldUp",
+        description="Instead of rotating to face the same direction as the waypoint, users will maintain the orientation they started with before they teleported",
         default=False)
 
     @classmethod

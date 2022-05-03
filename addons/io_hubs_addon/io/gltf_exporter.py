@@ -119,11 +119,22 @@ class glTF2ExportUserExtension:
             extension_name = hubs_config["gltfExtensionName"]
             component_data = {}
 
+            is_networked = False
             for component_item in component_list.items:
                 component_name = component_item.name
                 component_class = registered_hubs_components[component_name]
                 component = getattr(blender_object, component_class.get_name())
                 component_data[component_class.get_id()] = component.gather(
+                    export_settings, blender_object)
+                from ..components.definitions.networked import Networked
+                is_networked = is_networked or Networked.get_id() in component_class.get_deps()
+
+            # Older versions of the addon added the networked component at export time so if we open a blend file saved using a older versions the
+            # component doesn't exist in the hubs_component_list and won't be exported. This patched version of gather_properties makes sure that
+            # if the component has the dependency but it doesn't exist in the object, it gets exported correctly.
+            if is_networked and Networked.get_id() not in component_data:
+                component = getattr(blender_object, Networked.get_name())
+                component_data[Networked.get_id()] = component.gather(
                     export_settings, blender_object)
 
             if gltf2_object.extensions is None:

@@ -19,3 +19,11 @@ class Spawner(HubsComponent):
 
     applyGravity: BoolProperty(
         name="Apply Gravity", description="Apply gravity to spawned object", default=False)
+
+    def gather(self, export_settings, object):
+        return {
+            'src': self.src,
+            'mediaOptions': {
+                'applyGravity': self.applyGravity
+            }
+        }
