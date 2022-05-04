@@ -61,9 +61,15 @@ jobs:
       run: |
         cd tests
         OUT_PREFIX=$GITHUB_WORKSPACE/tests/out yarn test-bail --reporter-options reportDir=out/mochawesome
-    - name: Upload artifacts
+    - name: Upload test artifacts
       uses: actions/upload-artifact@v2
       with:
         name: test-output
         path: tests/out/mochawesome
+        if-no-files-found: error
+    - name: Upload addon artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: io_hubs_addon
+        path: addons
         if-no-files-found: error
