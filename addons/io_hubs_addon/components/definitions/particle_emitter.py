@@ -8,7 +8,7 @@ class ParticleEmitter(HubsComponent):
     _definition = {
         'id': 'particle-emitter',
         'name': 'hubs_component_particle_emitter',
-        'display_name': 'Partcile Emitter',
+        'display_name': 'Particle Emitter',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
         'panel_type': PanelType.OBJECT,
