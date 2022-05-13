@@ -65,8 +65,14 @@ def patched_BlenderScene_create(gltf):
 def create_object_hubs_components(gltf):
     special_cases = {
         'networked': handle_networked,
-        'audio-target': handle_audio_target,
+        #'audio-target': handle_audio_target,
         'kit-alt-materials': handle_kit_alt_materials,
+        'spawn-point': handle_spawn_point,
+        'heightfield': handle_heightfield,
+        'box-collider': handle_box_collider,
+        'scene-preview-camera': handle_scene_preview_camera,
+        'trimesh': handle_trimesh,
+        'spawner': handle_spawner,
     }
 
     for vnode, node in stored_components['object'].values():
@@ -81,25 +87,7 @@ def create_object_hubs_components(gltf):
                     blender_component = add_hubs_component("object", glb_component_name, glb_component_value, vnode=vnode, node=node)
 
                     for property_name, property_value in glb_component_value.items():
-                        if isinstance(property_value, dict):
-                            blender_subcomponent = getattr(blender_component, property_name)
-                            for x, subproperty_value in enumerate(property_value.values()):
-                                print(f"{property_name}[{x}] = {subproperty_value}")
-                                blender_subcomponent[x] = subproperty_value
-
-                        else:
-                            if re.fullmatch("#[0-9a-fA-F]*", str(property_value)):
-                                hexcolor = property_value.lstrip('#')
-                                rgb_int = tuple(int(hexcolor[i:i+2], 16) for i in (0, 2, 4))
-                                rgb_float = tuple((i/255 for i in rgb_int))
-
-                                for x, value in enumerate(rgb_float):
-                                    print(f"{property_name}[{x}] = {value}")
-                                    getattr(blender_component, property_name)[x] = value
-
-                            else:
-                                print(f"{property_name} = {property_value}")
-                                setattr(blender_component, property_name, property_value)
+                       assign_property(gltf, blender_component, property_name, property_value)
 
             except Exception:
                 print("Error encountered while adding Hubs components:")
@@ -108,7 +96,7 @@ def create_object_hubs_components(gltf):
 
 def create_material_hubs_components(gltf):
     special_cases = {
-        'video-texture-target': handle_video_texture_target,
+        #'video-texture-target': handle_video_texture_target,
     }
 
     for glb_material in stored_components['material'].values():
@@ -124,8 +112,7 @@ def create_material_hubs_components(gltf):
                     blender_component = add_hubs_component("material", glb_component_name, glb_component_value, glb_material=glb_material)
 
                     for property_name, property_value in glb_component_value.items():
-                        print(f"{property_name} = {property_value}")
-                        setattr(blender_component, property_name, property_value)
+                        assign_property(gltf, blender_component, property_name, property_value)
 
 
             except Exception:
@@ -139,6 +126,7 @@ def create_scene_hubs_components(gltf):
 
     special_cases = {
         'environment-settings': handle_environment_settings,
+        'background': handle_background,
     }
 
     gltf_scene = gltf.data.scenes[gltf.data.scene]
@@ -155,23 +143,13 @@ def create_scene_hubs_components(gltf):
                     blender_component = add_hubs_component("scene", glb_component_name, glb_component_value, gltf=gltf)
 
                     for property_name, property_value in glb_component_value.items():
-                        if re.fullmatch("#[0-9a-fA-F]*", str(property_value)):
-                            hexcolor = property_value.lstrip('#')
-                            rgb_int = tuple(int(hexcolor[i:i+2], 16) for i in (0, 2, 4))
-                            rgb_float = tuple((i/255 for i in rgb_int))
-
-                            for x, value in enumerate(rgb_float):
-                                print(f"{property_name}[{x}] = {value}")
-                                getattr(blender_component, property_name)[x] = value
-
-                        else:
-                            print(f"{property_name} = {property_value}")
-                            setattr(blender_component, property_name, property_value)
+                        assign_property(gltf, blender_component, property_name, property_value)
 
                 except Exception:
                     print("Error encountered while adding Hubs components:")
                     traceback.print_exc()
                     print("Continuing on....\n")
+
 
 # OBJECT SPECIAL CASES
 def handle_networked(gltf, vnode, node, glb_component_name, glb_component_value):
@@ -215,6 +193,36 @@ def handle_kit_alt_materials(gltf, vnode, node, glb_component_name, glb_componen
         else:
             setattr(blender_component, property_name, property_value)
 
+def handle_spawn_point(gltf, vnode, node, glb_component_name, glb_component_value):
+    blender_component = add_hubs_component("object", "waypoint", glb_component_value, vnode=vnode, node=node)
+
+    blender_component.canBeSpawnPoint = True
+
+def handle_heightfield(gltf, vnode, node, glb_component_name, glb_component_value):
+    return
+
+def handle_box_collider(gltf, vnode, node, glb_component_name, glb_component_value):
+    blender_component = add_hubs_component("object", "ammo-shape", glb_component_value, vnode=vnode, node=node)
+
+    blender_component.type = "box"
+
+def handle_scene_preview_camera(gltf, vnode, node, glb_component_name, glb_component_value):
+    return
+
+def handle_trimesh(gltf, vnode, node, glb_component_name, glb_component_value):
+    return
+
+def handle_spawner(gltf, vnode, node, glb_component_name, glb_component_value):
+    blender_component = add_hubs_component("object", glb_component_name, glb_component_value, vnode=vnode, node=node)
+
+    for property_name, property_value in glb_component_value.items():
+        if property_name == 'mediaOptions':
+            setattr(getattr(blender_component, property_name), "applyGravity", property_value["applyGravity"])
+
+        else:
+            assign_property(gltf, blender_component, property_name, property_value)
+
+
 # MATERIAL SPECIAL CASES
 def handle_video_texture_target(gltf, glb_material, glb_component_name, glb_component_value):
     blender_component = add_hubs_component("material", glb_component_name, glb_component_value, glb_material=glb_material)
@@ -226,6 +234,7 @@ def handle_video_texture_target(gltf, glb_material, glb_component_name, glb_comp
         else:
             print(f"{property_name} = {property_value}")
             setattr(blender_component, property_name, property_value)
+
 
 # SCENE SPECIAL CASES
 def handle_environment_settings(gltf, glb_component_name, glb_component_value):
@@ -252,19 +261,17 @@ def handle_environment_settings(gltf, glb_component_name, glb_component_value):
             setattr(blender_component, property_name, blender_image)
 
         else:
-            if re.fullmatch("#[0-9a-fA-F]*", str(property_value)):
-                hexcolor = property_value.lstrip('#')
-                rgb_int = tuple(int(hexcolor[i:i+2], 16) for i in (0, 2, 4))
-                rgb_float = tuple((i/255 for i in rgb_int))
+            assign_property(gltf, blender_component, property_name, property_value)
 
-                for x, value in enumerate(rgb_float):
-                    print(f"{property_name}[{x}] = {value}")
-                    getattr(blender_component, property_name)[x] = value
+def handle_background(gltf, glb_component_name, glb_component_value):
+    blender_component = add_hubs_component("scene", "environment-settings", glb_component_value, gltf=gltf)
 
-            else:
-                print(f"{property_name} = {property_value}")
-                setattr(blender_component, property_name, property_value)
+    blender_component.toneMapping = "LinearToneMapping"
 
+    set_color_from_hex(blender_component, "backgroundColor", glb_component_value['color'])
+
+
+# UTILITIES
 def add_hubs_component(element_type, glb_component_name, glb_component_value, vnode=None, node=None, glb_material=None, gltf=None):
     # get element
     if element_type == "object":
@@ -296,6 +303,41 @@ def add_hubs_component(element_type, glb_component_name, glb_component_value, vn
     bpy.ops.wm.add_hubs_component(context_override, object_source=element_type, component_name=glb_component_name)
 
     return getattr(element, f"hubs_component_{glb_component_name.replace('-', '_')}")
+
+def set_color_from_hex(blender_component, property_name, hexcolor):
+    hexcolor = hexcolor.lstrip('#')
+    rgb_int = [int(hexcolor[i:i+2], 16) for i in (0, 2, 4)]
+
+    for x, value in enumerate(rgb_int):
+        rgb_float = value/255 if value > 0 else 0
+
+        # convert sRGB values to linear
+        if rgb_float < 0.04045:
+            rgb_float_linear = rgb_float * (1.0 / 12.92)
+
+        else:
+            rgb_float_linear = ((rgb_float + 0.055) * (1.0 / 1.055)) ** 2.4
+
+        print(f"{property_name}[{x}] = {rgb_float_linear}")
+        getattr(blender_component, property_name)[x] = rgb_float_linear
+
+def assign_property(gltf, blender_component, property_name, property_value):
+    if property_name == 'srcNode':
+        setattr(blender_component, property_name, gltf.vnodes[property_value['index']].blender_object)
+
+    elif isinstance(property_value, dict):
+        blender_subcomponent = getattr(blender_component, property_name)
+        for x, subproperty_value in enumerate(property_value.values()):
+            print(f"{property_name}[{x}] = {subproperty_value}")
+            blender_subcomponent[x] = subproperty_value
+
+    elif re.fullmatch("#[0-9a-fA-F]*", str(property_value)):
+        set_color_from_hex(blender_component, property_name, property_value)
+
+    else:
+        print(f"{property_name} = {property_value}")
+        setattr(blender_component, property_name, property_value)
+
 
 def register():
     BlenderNode.create_object = patched_BlenderNode_create_object
