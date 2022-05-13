@@ -30,12 +30,7 @@ def get_version_string():
 # ideally we can resolve this upstream somehow https://github.com/KhronosGroup/glTF-Blender-IO/issues/1009
 from io_scene_gltf2.blender.exp import gltf2_blender_export
 from io_scene_gltf2.io.exp.gltf2_io_user_extensions import export_user_extensions
-from io_scene_gltf2.blender.imp.gltf2_blender_node import BlenderNode
-from io_scene_gltf2.blender.imp.gltf2_blender_material import BlenderMaterial
-from io_scene_gltf2.blender.imp.gltf2_blender_scene import BlenderScene
-from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
 orig_gather_gltf = gltf2_blender_export.__gather_gltf
-
 def patched_gather_gltf(exporter, export_settings):
     orig_gather_gltf(exporter, export_settings)
     export_user_extensions('hubs_gather_gltf_hook', export_settings, exporter._GlTF2Exporter__gltf)
@@ -43,6 +38,7 @@ def patched_gather_gltf(exporter, export_settings):
 
 def register():
     gltf2_blender_export.__gather_gltf = patched_gather_gltf
+
 
     components.register()
     settings.register()
