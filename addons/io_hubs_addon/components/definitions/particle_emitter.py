@@ -82,7 +82,7 @@ class ParticleEmitter(HubsComponent):
         name="Lifetime Randomness", description="Lifetime Randomness", default=0.0)
 
     particleCount: IntProperty(
-        name="Lifetime Randomness", description="Lifetime Randomness", subtype="UNSIGNED", default=10)
+        name="Particle Count", description="Particle Count", subtype="UNSIGNED", default=10)
 
     startVelocity: FloatVectorProperty(
         name="Start Velocity", description="Start Velocity", unit="VELOCITY", subtype="XYZ", default=(0.0, 0.0, 0.0))
