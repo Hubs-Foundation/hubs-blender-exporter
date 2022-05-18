@@ -90,7 +90,7 @@ class ShapeKeysContextMenu(Menu):
                     no_shape_keys = False
 
         if no_shape_keys:
-            self.layout.label(text="No shape keys available")
+            self.layout.label(text="No shape keys found")
 
 
 class ShapeKeyPropertyType(PropertyGroup):
@@ -130,8 +130,8 @@ class MorphAudioFeedback(HubsComponent):
     )
 
     active_shape_key: IntProperty(
-        name="Active action index",
-        description="Active action index",
+        name="Active shape key index",
+        description="Active shape key index",
         default=-1
     )
 
