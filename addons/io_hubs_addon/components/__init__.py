@@ -1,7 +1,8 @@
-from . import (gizmos, components_registry, panels, operators)
+from . import (migrations, gizmos, components_registry, panels, operators)
 
 
 def register():
+    migrations.register()
     gizmos.register()
     components_registry.register()
     operators.register()
@@ -13,3 +14,4 @@ def unregister():
     operators.unregister()
     components_registry.unregister()
     gizmos.unregister()
+    migrations.unregister()

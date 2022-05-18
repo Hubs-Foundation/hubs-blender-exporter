@@ -96,6 +96,11 @@ class HubsComponent(PropertyGroup):
         return {}
 
     @classmethod
+    def migrate():
+        '''This is called when a new file is loaded to give the components a chance to migrate the data from previous add-on versions.'''
+        pass
+
+    @classmethod
     def poll(cls, context):
         return True
 

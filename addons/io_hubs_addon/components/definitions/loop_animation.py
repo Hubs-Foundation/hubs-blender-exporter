@@ -176,3 +176,13 @@ class LoopAnimation(HubsComponent):
         bpy.utils.unregister_class(ActionsContextMenu)
         bpy.utils.unregister_class(AddActionOperator)
         bpy.utils.unregister_class(RemoveActionOperator)
+
+    @classmethod
+    def migrate(cls):
+        for ob in bpy.data.objects:
+            if cls.get_id() in ob.hubs_component_list.items:
+                actions = ob.hubs_component_loop_animation.clip.split(",")
+                for action_name in actions:
+                    if not has_action(ob.hubs_component_loop_animation.actions_list, action_name):
+                        action = ob.hubs_component_loop_animation.actions_list.add()
+                        action.name = action_name.strip()
