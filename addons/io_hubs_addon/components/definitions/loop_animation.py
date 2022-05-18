@@ -82,7 +82,7 @@ class ActionsContextMenu(Menu):
     def draw(self, context):
         no_actions = True
         for a in bpy.data.actions:
-            if not has_action(context.object.hubs_component_loop_animation.actions_list, a):
+            if not has_action(context.object.hubs_component_loop_animation.actions_list, a.name):
                 self.layout.operator(AddActionOperator.bl_idname, icon='OBJECT_DATA',
                                      text=a.name).action_name = a.name
                 no_actions = False
