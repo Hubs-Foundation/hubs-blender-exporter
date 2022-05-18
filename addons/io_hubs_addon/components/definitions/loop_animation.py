@@ -59,3 +59,7 @@ class LoopAnimation(HubsComponent):
         else:
             layout.label(text='No clips available',
                          icon='ERROR')
+
+    @classmethod
+    def poll(cls, context):
+        return context.object.type == 'ARMATURE'
