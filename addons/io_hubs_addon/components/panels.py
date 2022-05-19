@@ -126,23 +126,11 @@ class HubsBonePanel(bpy.types.Panel):
         draw_components_list(self, context)
 
 
-class HubsDataPanel(bpy.types.Panel):
-    bl_label = "Hubs"
-    bl_idname = "DATA_PT_hubs"
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_context = "data"
-
-    def draw(self, context):
-        draw_components_list(self, context)
-
-
 def register():
     bpy.utils.register_class(HubsObjectPanel)
     bpy.utils.register_class(HubsScenePanel)
     bpy.utils.register_class(HubsMaterialPanel)
     bpy.utils.register_class(HubsBonePanel)
-    bpy.utils.register_class(HubsDataPanel)
 
 
 def unregister():
@@ -150,4 +138,3 @@ def unregister():
     bpy.utils.unregister_class(HubsScenePanel)
     bpy.utils.unregister_class(HubsMaterialPanel)
     bpy.utils.unregister_class(HubsBonePanel)
-    bpy.utils.unregister_class(HubsDataPanel)
