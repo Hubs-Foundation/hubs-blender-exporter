@@ -67,6 +67,7 @@ class AudioParams(HubsComponent):
         min=0.0,
         soft_min=0.0)
 
+    # TODO Add migration support for this
     # This should be subtype="ANGLE" but in the old addon we didn't enforce the subtype and if we do now we would have conversion issues
     # when opening blend files saved with the previous addon version. If we migrate to ANGLE at some point we should make sure that we
     # export as degrees as that's what the client expects.
@@ -79,6 +80,7 @@ class AudioParams(HubsComponent):
         max=MAX_ANGLE,
         soft_max=MAX_ANGLE)
 
+    # TODO Add migration support for this
     # This should be subtype="ANGLE" but in the old addon we didn't enforce the subtype and if we do now we would have conversion issues
     # when opening blend files saved with the previous addon version. If we migrate to ANGLE at some point we should make sure that we
     # export as degrees as that's what the client expects.
