@@ -117,7 +117,6 @@ def load_icons():
 
 
 def unload_icons():
-    print("Unloading all icons")
     global __component_icons
     __component_icons["hubs"].close()
     del __component_icons

@@ -18,8 +18,6 @@ bl_info = {
 
 
 def register():
-    print('Register Addon')
-
     gltf_exporter.register()
     nodes.register()
     components.register()
@@ -29,8 +27,6 @@ def unregister():
     components.unregister()
     nodes.unregister()
     gltf_exporter.unregister()
-
-    print('Addon unregistered')
 
 
 # called by gltf-blender-io after it has loaded

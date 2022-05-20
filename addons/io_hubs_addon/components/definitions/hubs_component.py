@@ -21,7 +21,7 @@ class HubsComponent(PropertyGroup):
         'deps': [],
         # Name of the icon to load. It can be a image file in the icons directory or one of the Blender builtin icons id
         'icon': 'icon.png',
-        # Tag the component as dependecy only so it doens't whow up in the comonents list
+        # Tag the component as dependecy only so it doens't show up in the comonents list
         'dep_only': False
     }
 
@@ -91,7 +91,7 @@ class HubsComponent(PropertyGroup):
             layout.prop(data=self, property=key)
 
     def gather(self, export_settings, object):
-        '''This is called by the exporter and will return the component properties by default'''
+        '''This is called by the exporter and will return all the component properties by default'''
         return gather_properties(export_settings, object, self)
 
     @classmethod
@@ -107,6 +107,8 @@ class HubsComponent(PropertyGroup):
 
     @classmethod
     def poll(cls, context):
+        '''This method will return true if this component's shown be shown or run.
+        This is currently called when checking if the component should be added to the components pop-up and when the components properties panel is drawn'''
         return True
 
     @staticmethod

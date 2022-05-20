@@ -22,5 +22,5 @@ class Networked(HubsComponent):
     )
 
     def draw(self, context, layout):
-        layout.label(text="Netowrk ID:")
+        layout.label(text="Network ID:")
         layout.label(text=self.id)
