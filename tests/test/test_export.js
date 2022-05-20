@@ -27,7 +27,6 @@ describe('Exporter', function () {
 
   blenderVersions.forEach(function (blenderVersion) {
     let variants = [
-      ['', ''],
       ['_glb', '--glb']
     ];
 
