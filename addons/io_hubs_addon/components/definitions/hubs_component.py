@@ -21,7 +21,7 @@ class HubsComponent(PropertyGroup):
         'deps': [],
         # Name of the icon to load. It can be a image file in the icons directory or one of the Blender builtin icons id
         'icon': 'icon.png',
-        # Tag the component as dependecy only so it doens't show up in the comonents list
+        # Tag the component as dependency only so it doens't show up in the comonents list
         'dep_only': False
     }
 
