@@ -24,6 +24,7 @@ class AmmoShape(HubsComponent):
                ("mesh", "Mesh Collider", "A shape made of the actual vertecies of the object. This can be expensive for large meshes.")],
         default="hull")
 
+    # TODO Add conditional UI to show only the required properties per type
     fit: EnumProperty(
         name="Shape Fitting Mode",
         description="Shape fitting mode",
