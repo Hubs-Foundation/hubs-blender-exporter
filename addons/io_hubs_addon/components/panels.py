@@ -64,10 +64,6 @@ def draw_components_list(panel, context):
 
     obj = get_object_source(context, panel.bl_context)
 
-    if obj is None:
-        layout.label(text="No object selected")
-        return
-
     add_component_operator = layout.operator(
         "wm.add_hubs_component",
         text="Add Component",
