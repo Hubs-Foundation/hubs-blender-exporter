@@ -38,7 +38,7 @@ class glTF2ExportUserExtension:
 
         self.Extension = Extension
         self.properties = bpy.context.scene.HubsComponentsExtensionProperties
-        self.was_used = True  # TODO change default to False
+        self.was_used = False
 
     def hubs_gather_gltf_hook(self, gltf2_object, export_settings):
         if not self.properties.enabled or not self.was_used:
