@@ -33,4 +33,4 @@ class Fog(HubsComponent):
         name="Far", description="Fog Far Distance (linear only)", default=100.0)
 
     density: FloatProperty(
-        name="Far", description="Fog Density (exponential only)", default=0.1)
+        name="Density", description="Fog Density (exponential only)", default=0.00025)
