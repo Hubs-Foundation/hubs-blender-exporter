@@ -35,10 +35,6 @@ class PointLight(HubsComponent):
                          description="Decay",
                          default=1.0)
 
-    decay: FloatProperty(name="Decay",
-                         description="Decay",
-                         default=1.0)
-
     castShadow: BoolProperty(
         name="Cast Shadow", description="Cast Shadow", default=True)
 
