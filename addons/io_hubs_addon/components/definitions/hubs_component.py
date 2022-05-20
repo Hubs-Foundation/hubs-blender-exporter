@@ -61,7 +61,12 @@ class HubsComponent(PropertyGroup):
 
     @classmethod
     def create_gizmo(cls, obj, gizmo_group):
-        return None, None
+        return None
+
+    @classmethod
+    def update_gizmo(cls, obj, gizmo):
+        from ..gizmos import gizmo_update
+        gizmo_update(obj, gizmo)
 
     @classmethod
     def get_deps(cls):

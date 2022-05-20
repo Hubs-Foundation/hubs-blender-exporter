@@ -1,6 +1,7 @@
 import bpy
 from bpy.types import (Gizmo, GizmoGroup)
-from .components_registry import get_components_registry
+from bpy.props import BoolProperty
+from .components_registry import get_component_by_id, get_components_registry
 from mathutils import Matrix
 
 
@@ -8,7 +9,6 @@ def gizmo_update(obj, gizmo):
     loc, rot, _ = obj.matrix_world.decompose()
     mat_out = Matrix.LocRotScale(loc, rot, obj.dimensions)
     gizmo.matrix_basis = mat_out
-    bpy.context.view_layer.update()
 
 
 class HubsGizmo(Gizmo):
@@ -25,11 +25,11 @@ class HubsGizmo(Gizmo):
         self.draw_custom_shape(self.custom_shape, select_id=select_id)
 
     def setup(self):
-        if hasattr(self, "hba_gizmo_shape"):
+        if hasattr(self, "hubs_gizmo_shape"):
             if not hasattr(self, "custom_shape"):
                 self.draw_options = ()
                 self.custom_shape = self.new_custom_shape(
-                    'TRIS', self.hba_gizmo_shape)
+                    'TRIS', self.hubs_gizmo_shape)
 
     def modal(self, context, event, tweak):
         return {'RUNNING_MODAL'}
@@ -45,27 +45,24 @@ class HubsGizmoGroup(GizmoGroup):
     def setup(self, context):
         self.widgets = {}
         components_registry = get_components_registry()
-        for obj in context.view_layer.objects:
-            for component_item in obj.hubs_component_list.items:
+        for ob in context.view_layer.objects:
+            for component_item in ob.hubs_component_list.items:
                 component_id = component_item.name
                 component_class = components_registry[component_id]
-                gizmo, update = component_class.create_gizmo(obj, self)
+                gizmo = component_class.create_gizmo(ob, self)
                 if not component_id in self.widgets:
                     self.widgets[component_id] = {}
-                self.widgets[component_id][obj] = (gizmo, update)
+                self.widgets[component_id][ob] = gizmo
 
         self.refresh(context)
 
-    def refresh(self, _):
+    def refresh(self, context):
         for component_id in self.widgets:
-            for obj in self.widgets[component_id]:
-                gizmo, update = self.widgets[component_id][obj]
+            for ob in self.widgets[component_id]:
+                gizmo = self.widgets[component_id][ob]
                 if gizmo:
-                    self.refresh_object_gizmos(obj, gizmo, update)
-
-    def refresh_object_gizmos(self, obj, gizmo, update):
-        gizmo.hide = not obj.visible_get()
-        update(obj, gizmo)
+                    component_class = get_component_by_id(component_id)
+                    component_class.update_gizmo(ob, gizmo)
 
 
 class delete_override(bpy.types.Operator):
@@ -90,8 +87,7 @@ class delete_override(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.window_manager
-        return wm.invoke_confirm(self, event)
+        return context.window_manager.invoke_confirm(self, event)
 
 
 class duplicate_override(bpy.types.Operator):
@@ -99,6 +95,8 @@ class duplicate_override(bpy.types.Operator):
     bl_idname = "object.duplicate"
     bl_label = "Duplicate"
     bl_options = {'REGISTER', 'UNDO'}
+
+    linked: BoolProperty(default=False)
 
     @classmethod
     def poll(cls, context):
@@ -112,6 +110,10 @@ class duplicate_override(bpy.types.Operator):
             bpy.data.collections[curr_collection].objects.link(copy)
             copies.append(copy)
             obj.select_set(False)
+            if not self.linked:
+                copy.data = obj.data.copy()
+                if obj.animation_data:
+                    copy.animation_data.action = obj.animation_data.action.copy()
 
         for obj in copies:
             obj.select_set(True)

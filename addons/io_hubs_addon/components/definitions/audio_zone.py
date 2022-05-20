@@ -44,4 +44,4 @@ class AudioZone(HubsComponent):
         op.orient_type = 'LOCAL'
         op.release_confirm = True
 
-        return widget, gizmo_update
+        return widget

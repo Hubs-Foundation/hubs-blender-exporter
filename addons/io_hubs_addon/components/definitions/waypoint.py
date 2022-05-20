@@ -63,9 +63,13 @@ class Waypoint(HubsComponent):
         default=False)
 
     @classmethod
+    def update_gizmo(cls, obj, gizmo):
+        gizmo.matrix_basis = obj.matrix_world.normalized()
+
+    @classmethod
     def create_gizmo(cls, obj, gizmo_group):
         widget = gizmo_group.gizmos.new(HubsGizmo.bl_idname)
-        setattr(widget, "hba_gizmo_shape", spawn_point.SHAPE)
+        setattr(widget, "hubs_gizmo_shape", spawn_point.SHAPE)
         widget.setup()
         widget.matrix_basis = obj.matrix_world.normalized()
         widget.line_width = 3
@@ -83,8 +87,4 @@ class Waypoint(HubsComponent):
         op.orient_type = 'LOCAL'
         op.release_confirm = True
 
-        def update(obj, gizmo):
-            gizmo.matrix_basis = obj.matrix_world.normalized()
-            bpy.context.view_layer.update()
-
-        return widget, update
+        return widget
