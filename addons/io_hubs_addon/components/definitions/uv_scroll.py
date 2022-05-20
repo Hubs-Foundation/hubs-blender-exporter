@@ -11,7 +11,7 @@ class UVScroll(HubsComponent):
         'display_name': 'UV Scroll',
         'category': Category.ANIMATION,
         'node_type': NodeType.NODE,
-        'panel_type': PanelType.MATERIAL,
+        'panel_type': PanelType.OBJECT,
         'icon': 'TEXTURE_DATA'
     }
 
