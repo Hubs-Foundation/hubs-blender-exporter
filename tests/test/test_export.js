@@ -419,19 +419,18 @@ describe('Exporter', function () {
         assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
-        assert.deepStrictEqual(ext, {
-          "waypoint": {
-            "canBeSpawnPoint": false,
-            "canBeOccupied": false,
-            "canBeClicked": false,
-            "willDisableMotion": false,
-            "willDisableTeleporting": false,
-            "snapToNavMesh": false,
-            "willMaintainInitialOrientation": false,
-            "willMaintainWorldUp": true,
-            "isOccupied": false
-          }
+        assert.deepStrictEqual(ext['waypoint'], {
+          "canBeSpawnPoint": false,
+          "canBeOccupied": false,
+          "canBeClicked": false,
+          "willDisableMotion": false,
+          "willDisableTeleporting": false,
+          "snapToNavMesh": false,
+          "willMaintainInitialOrientation": false,
+          "willMaintainWorldUp": true,
+          "isOccupied": false
         });
+        assert.strictEqual(utils.UUID_REGEX.test(ext['networked']['id']), true);
       });
 
       it('can export image', function () {

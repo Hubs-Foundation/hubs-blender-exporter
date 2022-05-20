@@ -15,7 +15,8 @@ class Waypoint(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': PanelType.OBJECT,
         'gizmo': 'waypoint',
-        'icon': 'spawn-point.png'
+        'icon': 'spawn-point.png',
+        'deps': ['networked']
     }
 
     canBeSpawnPoint: BoolProperty(
