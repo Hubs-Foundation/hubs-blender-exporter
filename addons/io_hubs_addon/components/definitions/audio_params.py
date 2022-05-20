@@ -40,6 +40,8 @@ class AudioParams(HubsComponent):
         min=0.0,
         soft_min=0.0)
 
+    # TODO Add conditional UI to show only the required properties per type
+
     refDistance: FloatProperty(
         name="Ref Distance",
         description="A double value representing the reference distance for reducing volume as the audio source moves further from the listener. For distances greater than this the volume will be reduced based on rolloffFactor and distanceModel.",
