@@ -34,9 +34,10 @@ class VideoTextureTarget(HubsComponent):
         type=Object,
         poll=filter_on_component)
 
-    @classmethod
-    def poll(cls, context):
-        return len(context.object.material_slots) > 0
-
-
-0
+    def draw(self, context, layout):
+        has_material = len(context.object.material_slots) > 0
+        if has_material:
+            super().draw(context, layout)
+        else:
+            layout.label(text='This component requires a material',
+                         icon='ERROR')
