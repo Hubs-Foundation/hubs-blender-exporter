@@ -17,7 +17,7 @@ class Image(HubsComponent):
     }
 
     src: StringProperty(
-        name="Image URL", description="Image URL", default="https://")
+        name="Image URL", description="Image URL", default="https://mozilla.org")
 
     controls: BoolProperty(name="Controls", default=True)
 

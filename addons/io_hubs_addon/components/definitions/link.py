@@ -16,4 +16,5 @@ class Link(HubsComponent):
         'deps': ['networked']
     }
 
-    href: StringProperty(name="URL", description="URL", default="https://")
+    href: StringProperty(name="URL", description="URL",
+                         default="https://mozilla.org")

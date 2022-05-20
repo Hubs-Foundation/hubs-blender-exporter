@@ -15,7 +15,7 @@ class Spawner(HubsComponent):
     }
 
     src: StringProperty(
-        name="URL", description="Source image URL", default="https://")
+        name="URL", description="Source image URL", default="https://mozilla.org")
 
     applyGravity: BoolProperty(
         name="Apply Gravity", description="Apply gravity to spawned object", default=False)
