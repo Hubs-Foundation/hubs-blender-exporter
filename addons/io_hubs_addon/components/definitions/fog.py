@@ -26,6 +26,7 @@ class Fog(HubsComponent):
                                subtype='COLOR',
                                default=[1.0, 1.0, 1.0])
 
+    # TODO Make these properties to be displayed dynamically based on the fog type
     near: FloatProperty(
         name="Near", description="Fog Near Distance (linear only)", default=1.0)
 
