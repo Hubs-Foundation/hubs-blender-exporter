@@ -1,7 +1,7 @@
 from bpy.props import EnumProperty, FloatVectorProperty, BoolProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
-from ..gizmos import gizmo_update
+from mathutils import Matrix
 
 
 class MediaFrame(HubsComponent):
@@ -40,7 +40,8 @@ class MediaFrame(HubsComponent):
     def create_gizmo(cls, obj, gizmo_group):
         widget = gizmo_group.gizmos.new('GIZMO_GT_cage_3d')
         widget.draw_style = ('BOX')
-        widget.matrix_basis = obj.matrix_world.normalized()
+        loc, rot, _ = obj.matrix_world.decompose()
+        widget.matrix_basis = Matrix.LocRotScale(loc, rot, obj.dimensions)
         widget.line_width = 3
         widget.color = (0.8, 0.8, 0.8)
         widget.alpha = 0.5

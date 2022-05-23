@@ -3,7 +3,7 @@ from ..gizmos import CustomModelGizmo
 from ..types import Category, PanelType, NodeType
 from ..hubs_component import HubsComponent
 from bpy.props import BoolProperty
-import bpy
+from mathutils import Matrix
 
 
 class Waypoint(HubsComponent):
@@ -72,7 +72,8 @@ class Waypoint(HubsComponent):
         widget = gizmo_group.gizmos.new(CustomModelGizmo.bl_idname)
         setattr(widget, "hubs_gizmo_shape", spawn_point.SHAPE)
         widget.setup()
-        widget.matrix_basis = obj.matrix_world.normalized()
+        loc, rot, _ = obj.matrix_world.decompose()
+        widget.matrix_basis = Matrix.LocRotScale(loc, rot, obj.dimensions)
         widget.line_width = 3
         widget.color = (0.8, 0.8, 0.8)
         widget.alpha = 0.5
