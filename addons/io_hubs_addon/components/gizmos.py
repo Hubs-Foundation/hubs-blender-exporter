@@ -47,6 +47,8 @@ class HubsGizmoGroup(GizmoGroup):
             for component_item in ob.hubs_component_list.items:
                 component_name = component_item.name
                 component_class = get_component_by_name(component_name)
+                if not component_class:
+                    continue
                 gizmo = component_class.create_gizmo(ob, self)
                 if not component_name in self.widgets:
                     self.widgets[component_name] = {}

@@ -43,12 +43,10 @@ def draw_component(panel, context, obj, row, component_item):
             component.draw(context, col)
 
     else:
-        display_name = dash_to_title(component_id)
-
         col = row.box().column()
         top_row = col.row()
         top_row.label(
-            text=f"Unknown component '{display_name}'", icon="ERROR")
+            text=f"Unknown component '{component_name}'", icon="ERROR")
         remove_component_operator = top_row.operator(
             "wm.remove_hubs_component",
             text="",
