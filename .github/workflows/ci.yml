@@ -10,7 +10,7 @@ env:
   CI: true
   BLENDER_MAJOR: 3
   BLENDER_MINOR: 1
-  BLENDER_PATCH: 0
+  BLENDER_PATCH: 2
 
 jobs:
   build:
