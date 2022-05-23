@@ -1,5 +1,5 @@
 from ..models import spawn_point
-from ..gizmos import HubsGizmo
+from ..gizmos import CustomModelGizmo
 from ..types import Category, PanelType, NodeType
 from ..hubs_component import HubsComponent
 from bpy.props import BoolProperty
@@ -69,7 +69,7 @@ class Waypoint(HubsComponent):
 
     @classmethod
     def create_gizmo(cls, obj, gizmo_group):
-        widget = gizmo_group.gizmos.new(HubsGizmo.bl_idname)
+        widget = gizmo_group.gizmos.new(CustomModelGizmo.bl_idname)
         setattr(widget, "hubs_gizmo_shape", spawn_point.SHAPE)
         widget.setup()
         widget.matrix_basis = obj.matrix_world.normalized()

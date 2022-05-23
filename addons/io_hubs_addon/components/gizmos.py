@@ -11,7 +11,7 @@ def gizmo_update(obj, gizmo):
     gizmo.matrix_basis = mat_out
 
 
-class HubsGizmo(Gizmo):
+class CustomModelGizmo(Gizmo):
     """Generic gizmo to render all Hubs custom gizmos"""
     bl_idname = "GIZMO_GT_hba_gizmo"
     bl_target_properties = (
@@ -26,10 +26,9 @@ class HubsGizmo(Gizmo):
 
     def setup(self):
         if hasattr(self, "hubs_gizmo_shape"):
-            if not hasattr(self, "custom_shape"):
-                self.draw_options = ()
-                self.custom_shape = self.new_custom_shape(
-                    'TRIS', self.hubs_gizmo_shape)
+            self.draw_options = ()
+            self.custom_shape = self.new_custom_shape(
+                'TRIS', self.hubs_gizmo_shape)
 
     def modal(self, context, event, tweak):
         return {'RUNNING_MODAL'}
@@ -125,13 +124,13 @@ class duplicate_override(bpy.types.Operator):
 
 
 def register_gizmo_classes():
-    bpy.utils.register_class(HubsGizmo)
+    bpy.utils.register_class(CustomModelGizmo)
     bpy.utils.register_class(HubsGizmoGroup)
 
 
 def unregister_gizmo_classes():
     bpy.utils.unregister_class(HubsGizmoGroup)
-    bpy.utils.unregister_class(HubsGizmo)
+    bpy.utils.unregister_class(CustomModelGizmo)
 
 
 def update_gizmos():
