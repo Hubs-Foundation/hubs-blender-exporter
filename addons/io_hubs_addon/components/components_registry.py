@@ -7,7 +7,7 @@ import importlib
 import inspect
 import os
 from os import listdir
-from os.path import join, isfile, dirname, realpath
+from os.path import join, isfile, isdir, dirname, realpath
 
 from .hubs_component import HubsComponent, NodeType
 
@@ -22,13 +22,21 @@ class HubsComponentList(PropertyGroup):
     items: CollectionProperty(type=HubsComponentName)
 
 
-def get_component_definitions():
-    component_module_names = []
-    components_dir = join(dirname(realpath(__file__)), "definitions")
-    for f in os.listdir(components_dir):
-        if isfile(join(components_dir, f)) and f.endswith(".py"):
-            component_module_names.append(f[:-3])
+def get_components_in_dir(dir):
+    components = []
+    for f in os.listdir(dir):
+        f_path = join(dir, f)
+        if isfile(f_path) and f.endswith(".py"):
+            components.append(f[:-3])
+        elif isdir(f_path) and f != "__pycache__":
+            comps = [f + '.' + name for name in get_components_in_dir(f_path)]
+            components = components + comps
+    return components
 
+
+def get_component_definitions():
+    components_dir = join(dirname(realpath(__file__)), "definitions")
+    component_module_names = get_components_in_dir(components_dir)
     return [
         importlib.import_module(".definitions." + name, package=__package__)
         for name in component_module_names
