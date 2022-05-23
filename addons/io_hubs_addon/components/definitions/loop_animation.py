@@ -35,9 +35,6 @@ class AddActionOperator(Operator):
         action = ob.hubs_component_loop_animation.actions_list.add()
         action.name = self.action_name
 
-        ob.hubs_component_loop_animation.name = ",".join(
-            ob.hubs_component_loop_animation.actions_list.keys())
-
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -58,9 +55,6 @@ class RemoveActionOperator(Operator):
         active_action_key = ob.hubs_component_loop_animation.active_action_key
         ob.hubs_component_loop_animation.actions_list.remove(
             active_action_key)
-
-        ob.hubs_component_loop_animation.name = ",".join(
-            ob.hubs_component_loop_animation.actions_list.keys())
 
         return {'FINISHED'}
 
@@ -119,13 +113,13 @@ class LoopAnimation(HubsComponent):
     }
 
     actions_list: CollectionProperty(
-        type=ActionPropertyType,
-        options={'HIDDEN', 'SKIP_SAVE'})
+        type=ActionPropertyType)
 
     clip: StringProperty(
         name="Animation Clip",
         description="Animation clip to use",
-        default=""
+        default="",
+        options={'HIDDEN', 'SKIP_SAVE'}
     )
 
     active_action_key: IntProperty(
@@ -159,7 +153,8 @@ class LoopAnimation(HubsComponent):
 
     def gather(self, export_settings, object):
         return {
-            'clip': self.clip,
+            'clip': ",".join(
+                object.hubs_component_loop_animation.actions_list.keys()),
             'paused': self.paused
         }
 

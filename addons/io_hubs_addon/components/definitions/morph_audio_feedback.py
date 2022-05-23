@@ -34,9 +34,6 @@ class AddShapeKeyOperator(Operator):
         shape_key = ob.hubs_component_morph_audio_feedback.shape_keys_list.add()
         shape_key.name = self.shape_key_name
 
-        ob.hubs_component_morph_audio_feedback.name = ",".join(
-            ob.hubs_component_morph_audio_feedback.shape_keys_list.keys())
-
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -57,9 +54,6 @@ class RemoveShapeKeyOperator(Operator):
         active_shape_key = ob.hubs_component_morph_audio_feedback.active_shape_key
         ob.hubs_component_morph_audio_feedback.shape_keys_list.remove(
             active_shape_key)
-
-        ob.hubs_component_morph_audio_feedback.name = ",".join(
-            ob.hubs_component_morph_audio_feedback.shape_keys_list.keys())
 
         return {'FINISHED'}
 
@@ -120,13 +114,13 @@ class MorphAudioFeedback(HubsComponent):
     }
 
     shape_keys_list: CollectionProperty(
-        type=ShapeKeyPropertyType,
-        options={'HIDDEN', 'SKIP_SAVE'})
+        type=ShapeKeyPropertyType)
 
     name: StringProperty(
         name="Shape Keys",
         description="Shape keys to morph",
-        default=""
+        default="",
+        options={'HIDDEN', 'SKIP_SAVE'}
     )
 
     active_shape_key: IntProperty(
@@ -163,7 +157,8 @@ class MorphAudioFeedback(HubsComponent):
 
     def gather(self, export_settings, object):
         return {
-            'name': self.name,
+            'name': ",".join(
+                object.hubs_component_morph_audio_feedback.shape_keys_list.keys()),
             'minValue': self.minValue,
             'maxValue': self.maxValue
         }
