@@ -1,6 +1,7 @@
 from bpy.props import BoolProperty, StringProperty
+from bpy.types import Node
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType, NodeType
+from ..types import Category, PanelType
 
 
 class Audio(HubsComponent):
@@ -8,7 +9,7 @@ class Audio(HubsComponent):
         'name': 'audio',
         'display_name': 'Audio',
         'category': Category.ELEMENTS,
-        'node_type': NodeType.NODE,
+        'node_type': Node,
         'panel_type': PanelType.OBJECT,
         'deps': ['networked', 'audio-params'],
         'icon': 'OUTLINER_OB_SPEAKER'

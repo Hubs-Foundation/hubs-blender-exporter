@@ -1,6 +1,7 @@
 from bpy.props import FloatProperty, EnumProperty, FloatVectorProperty
+from bpy.types import Scene
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType, NodeType
+from ..types import Category, PanelType
 
 
 class Fog(HubsComponent):
@@ -8,7 +9,7 @@ class Fog(HubsComponent):
         'name': 'fog',
         'display_name': 'Fog',
         'category': Category.SCENE,
-        'node_type': NodeType.SCENE,
+        'node_type': Scene,
         'panel_type': PanelType.SCENE,
         'icon': 'MOD_OCEAN'
     }

@@ -1,6 +1,7 @@
 from bpy.props import FloatProperty, EnumProperty, FloatVectorProperty, StringProperty
+from bpy.types import Node
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType, NodeType
+from ..types import Category, PanelType
 
 
 class Text(HubsComponent):
@@ -8,7 +9,7 @@ class Text(HubsComponent):
         'name': 'text',
         'display_name': 'Text',
         'category': Category.ELEMENTS,
-        'node_type': NodeType.NODE,
+        'node_type': Node,
         'panel_type': PanelType.OBJECT,
         'icon': 'FONT_DATA'
     }

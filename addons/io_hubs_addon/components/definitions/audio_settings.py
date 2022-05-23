@@ -1,6 +1,7 @@
 from bpy.props import FloatProperty, EnumProperty
+from bpy.types import Scene
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType, NodeType
+from ..types import Category, PanelType
 from ..consts import DISTACE_MODELS, MAX_ANGLE
 
 
@@ -9,7 +10,7 @@ class AudioSettings(HubsComponent):
         'name': 'audio-settings',
         'display_name': 'Audio Settings',
         'category': Category.SCENE,
-        'node_type': NodeType.SCENE,
+        'node_type': Scene,
         'panel_type': PanelType.SCENE,
         'icon': 'SPEAKER'
     }

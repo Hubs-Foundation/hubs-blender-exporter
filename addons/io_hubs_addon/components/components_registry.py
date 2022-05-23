@@ -1,7 +1,7 @@
 import bpy.utils.previews
 import bpy
 from bpy.props import BoolProperty, StringProperty, CollectionProperty, PointerProperty
-from bpy.types import PropertyGroup
+from bpy.types import PropertyGroup, Node, Scene, Material
 
 import importlib
 import inspect
@@ -9,7 +9,7 @@ import os
 from os import listdir
 from os.path import join, isfile, isdir, dirname, realpath
 
-from .hubs_component import HubsComponent, NodeType
+from .hubs_component import HubsComponent
 
 
 class HubsComponentName(PropertyGroup):
@@ -48,13 +48,13 @@ def register_component(component_class):
     bpy.utils.register_class(component_class)
 
     component_id = component_class.get_id()
-    if component_class.get_node_type() == NodeType.SCENE:
+    if component_class.get_node_type() == Scene:
         setattr(
             bpy.types.Scene,
             component_id,
             PointerProperty(type=component_class)
         )
-    elif component_class.get_node_type() == NodeType.NODE:
+    elif component_class.get_node_type() == Node:
         setattr(
             bpy.types.Object,
             component_id,
@@ -70,7 +70,7 @@ def register_component(component_class):
             component_id,
             PointerProperty(type=component_class)
         )
-    elif component_class.get_node_type() == NodeType.MATERIAL:
+    elif component_class.get_node_type() == Material:
         setattr(
             bpy.types.Material,
             component_id,
@@ -80,13 +80,13 @@ def register_component(component_class):
 
 def unregister_component(component_class):
     component_id = component_class.get_id()
-    if component_class.get_node_type() == NodeType.SCENE:
+    if component_class.get_node_type() == Scene:
         delattr(bpy.types.Scene, component_id)
-    elif component_class.get_node_type() == NodeType.NODE:
+    elif component_class.get_node_type() == Node:
         delattr(bpy.types.Object, component_id)
         delattr(bpy.types.Bone, component_id)
         delattr(bpy.types.EditBone, component_id)
-    elif component_class.get_node_type() == NodeType.MATERIAL:
+    elif component_class.get_node_type() == Material:
         delattr(bpy.types.Material, component_id)
 
     bpy.utils.unregister_class(component_class)

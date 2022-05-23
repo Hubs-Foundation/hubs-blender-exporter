@@ -1,6 +1,7 @@
 from ..hubs_component import HubsComponent
 from bpy.props import StringProperty
-from ..types import Category, PanelType, NodeType
+from bpy.types import Node
+from ..types import PanelType
 import uuid
 
 
@@ -8,7 +9,7 @@ class Networked(HubsComponent):
     _definition = {
         'name': 'networked',
         'display_name': 'Networked',
-        'node_type': NodeType.NODE,
+        'node_type': Node,
         'panel_type': PanelType.OBJECT
     }
 

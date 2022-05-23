@@ -1,7 +1,7 @@
-import bpy
-from bpy.props import FloatVectorProperty, FloatProperty
+from bpy.props import FloatVectorProperty
+from bpy.types import Node
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType, NodeType
+from ..types import Category, PanelType
 
 
 class UVScroll(HubsComponent):
@@ -9,7 +9,7 @@ class UVScroll(HubsComponent):
         'name': 'uv-scroll',
         'display_name': 'UV Scroll',
         'category': Category.ANIMATION,
-        'node_type': NodeType.NODE,
+        'node_type': Node,
         'panel_type': PanelType.OBJECT,
         'icon': 'TEXTURE_DATA'
     }

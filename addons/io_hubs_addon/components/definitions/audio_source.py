@@ -1,6 +1,7 @@
 from bpy.props import BoolProperty
+from bpy.types import Node
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType, NodeType
+from ..types import Category, PanelType
 
 
 class AudioSource(HubsComponent):
@@ -8,7 +9,7 @@ class AudioSource(HubsComponent):
         'name': 'zone-audio-source',
         'display_name': 'Audio Source',
         'category': Category.ELEMENTS,
-        'node_type': NodeType.NODE,
+        'node_type': Node,
         'panel_type': PanelType.OBJECT,
         'icon': 'MOD_WAVE'
     }

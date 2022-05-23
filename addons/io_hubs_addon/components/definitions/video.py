@@ -1,6 +1,7 @@
 from bpy.props import BoolProperty, EnumProperty, StringProperty
+from bpy.types import Node
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType, NodeType
+from ..types import Category, PanelType
 from ..consts import PROJECTION_MODE
 
 
@@ -9,7 +10,7 @@ class Video(HubsComponent):
         'name': 'video',
         'display_name': 'Video',
         'category': Category.ELEMENTS,
-        'node_type': NodeType.NODE,
+        'node_type': Node,
         'panel_type': PanelType.OBJECT,
         'deps': ['networked', 'audio-params'],
         'icon': 'FILE_MOVIE'

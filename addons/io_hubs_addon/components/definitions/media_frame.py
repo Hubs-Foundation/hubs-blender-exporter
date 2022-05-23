@@ -1,6 +1,7 @@
 from bpy.props import EnumProperty, FloatVectorProperty, BoolProperty
+from bpy.types import Node
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType, NodeType
+from ..types import Category, PanelType
 from mathutils import Matrix
 
 
@@ -9,7 +10,7 @@ class MediaFrame(HubsComponent):
         'name': 'media-frame',
         'display_name': 'Media Frame',
         'category': Category.ELEMENTS,
-        'node_type': NodeType.NODE,
+        'node_type': Node,
         'panel_type': PanelType.OBJECT,
         'icon': 'OBJECT_DATA',
         'deps': ['networked']

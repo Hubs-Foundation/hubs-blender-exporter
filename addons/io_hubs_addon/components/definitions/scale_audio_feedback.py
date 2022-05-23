@@ -1,6 +1,7 @@
 from bpy.props import FloatProperty
+from bpy.types import Node
 from ..hubs_component import HubsComponent
-from ..types import Category, NodeType, PanelType
+from ..types import Category, PanelType
 
 
 class ScaleAudioFeedback(HubsComponent):
@@ -8,7 +9,7 @@ class ScaleAudioFeedback(HubsComponent):
         'name': 'scale-audio-feedback',
         'display_name': 'Scale Audio Feedback',
         'category': Category.AVATAR,
-        'node_type': NodeType.NODE,
+        'node_type': Node,
         'panel_type': PanelType.OBJECT
     }
 

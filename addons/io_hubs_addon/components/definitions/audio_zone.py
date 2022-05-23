@@ -1,6 +1,7 @@
 from bpy.props import BoolProperty
+from bpy.types import Node
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType, NodeType
+from ..types import Category, PanelType
 from mathutils import Matrix
 
 
@@ -9,7 +10,7 @@ class AudioZone(HubsComponent):
         'name': 'audio-zone',
         'display_name': 'Audio Zone',
         'category': Category.ELEMENTS,
-        'node_type': NodeType.NODE,
+        'node_type': Node,
         'panel_type': PanelType.OBJECT,
         'deps': ['networked', 'audio-params'],
         'icon': 'MATCUBE'

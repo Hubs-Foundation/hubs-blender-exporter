@@ -1,10 +1,9 @@
 import atexit
 import bpy
 from bpy.props import StringProperty, CollectionProperty, IntProperty, BoolProperty
-from bpy.types import PropertyGroup, Menu, Operator
-from bpy.types import PropertyGroup
+from bpy.types import PropertyGroup, Menu, Operator, Node
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType, NodeType
+from ..types import Category, PanelType
 
 
 class ActionsList(bpy.types.UIList):
@@ -106,7 +105,7 @@ class LoopAnimation(HubsComponent):
         'name': 'loop-animation',
         'display_name': 'Loop Animation',
         'category': Category.ANIMATION,
-        'node_type': NodeType.NODE,
+        'node_type': Node,
         'panel_type': PanelType.OBJECT,
         'icon': 'LOOP_BACK'
     }

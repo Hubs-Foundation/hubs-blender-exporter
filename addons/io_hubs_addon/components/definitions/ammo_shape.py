@@ -1,6 +1,7 @@
 from bpy.props import FloatProperty, EnumProperty, FloatVectorProperty, BoolProperty
+from bpy.types import Node
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType, NodeType
+from ..types import Category, PanelType
 
 
 class AmmoShape(HubsComponent):
@@ -8,7 +9,7 @@ class AmmoShape(HubsComponent):
         'name': 'ammo-shape',
         'display_name': 'Ammo Shape',
         'category': Category.SCENE,
-        'node_type': NodeType.NODE,
+        'node_type': Node,
         'panel_type': PanelType.OBJECT,
         'icon': 'SCENE_DATA'
     }

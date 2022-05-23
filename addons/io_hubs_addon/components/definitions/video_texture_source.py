@@ -1,6 +1,7 @@
 from bpy.props import IntVectorProperty, IntProperty
+from bpy.types import Node
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType, NodeType
+from ..types import Category, PanelType
 
 
 class VideoTextureSource(HubsComponent):
@@ -8,7 +9,7 @@ class VideoTextureSource(HubsComponent):
         'name': 'video-texture-source',
         'display_name': 'Video Texture Source',
         'category': Category.SCENE,
-        'node_type': NodeType.NODE,
+        'node_type': Node,
         'panel_type': PanelType.OBJECT,
         'icon': 'VIEW_CAMERA'
     }

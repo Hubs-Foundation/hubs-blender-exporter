@@ -1,6 +1,7 @@
 from bpy.props import FloatProperty, EnumProperty
+from bpy.types import Node
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType, NodeType
+from ..types import PanelType
 from ..consts import DISTACE_MODELS, MAX_ANGLE
 
 AUDIO_TYPES = [("pannernode", "Positional audio (pannernode)",
@@ -13,7 +14,7 @@ class AudioParams(HubsComponent):
     _definition = {
         'name': 'audio-params',
         'display_name': 'Audio Params',
-        'node_type': NodeType.NODE,
+        'node_type': Node,
         'panel_type': PanelType.OBJECT
     }
 

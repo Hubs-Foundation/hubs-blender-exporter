@@ -1,8 +1,9 @@
 from ..models import spawn_point
 from ..gizmos import CustomModelGizmo
-from ..types import Category, PanelType, NodeType
+from ..types import Category, PanelType
 from ..hubs_component import HubsComponent
 from bpy.props import BoolProperty
+from bpy.types import Node
 from mathutils import Matrix
 
 
@@ -11,7 +12,7 @@ class Waypoint(HubsComponent):
         'name': 'waypoint',
         'display_name': 'Waypoint',
         'category': Category.OBJECT,
-        'node_type': NodeType.NODE,
+        'node_type': Node,
         'panel_type': PanelType.OBJECT,
         'gizmo': 'waypoint',
         'icon': 'spawn-point.png',
