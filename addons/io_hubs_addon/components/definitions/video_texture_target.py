@@ -13,8 +13,7 @@ def filter_on_component(self, o):
 
 class VideoTextureTarget(HubsComponent):
     _definition = {
-        'id': 'video-texture-target',
-        'name': 'hubs_component_video_texture_target',
+        'name': 'video-texture-target',
         'display_name': 'Video Texture Target',
         'category': Category.AVATAR,
         'node_type': NodeType.MATERIAL,

@@ -2,7 +2,6 @@ from bpy.props import FloatProperty, EnumProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ..consts import DISTACE_MODELS, MAX_ANGLE
-from math import degrees
 
 AUDIO_TYPES = [("pannernode", "Positional audio (pannernode)",
                 "Volume will change depending on the listener's position relative to the source"),
@@ -12,8 +11,7 @@ AUDIO_TYPES = [("pannernode", "Positional audio (pannernode)",
 
 class AudioParams(HubsComponent):
     _definition = {
-        'id': 'audio-params',
-        'name': 'hubs_component_audio_params',
+        'name': 'audio-params',
         'display_name': 'Audio Params',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

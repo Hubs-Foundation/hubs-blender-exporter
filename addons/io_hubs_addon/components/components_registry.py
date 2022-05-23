@@ -44,54 +44,54 @@ def get_component_definitions():
 
 
 def register_component(component_class):
-    print("Registering component: " + component_class.get_id())
+    print("Registering component: " + component_class.get_name())
     bpy.utils.register_class(component_class)
 
-    component_name = component_class.get_name()
+    component_id = component_class.get_id()
     if component_class.get_node_type() == NodeType.SCENE:
         setattr(
             bpy.types.Scene,
-            component_name,
+            component_id,
             PointerProperty(type=component_class)
         )
     elif component_class.get_node_type() == NodeType.NODE:
         setattr(
             bpy.types.Object,
-            component_name,
+            component_id,
             PointerProperty(type=component_class)
         )
         setattr(
             bpy.types.Bone,
-            component_name,
+            component_id,
             PointerProperty(type=component_class)
         )
         setattr(
             bpy.types.EditBone,
-            component_name,
+            component_id,
             PointerProperty(type=component_class)
         )
     elif component_class.get_node_type() == NodeType.MATERIAL:
         setattr(
             bpy.types.Material,
-            component_name,
+            component_id,
             PointerProperty(type=component_class)
         )
 
 
 def unregister_component(component_class):
-    component_name = component_class.get_name()
+    component_id = component_class.get_id()
     if component_class.get_node_type() == NodeType.SCENE:
-        delattr(bpy.types.Scene, component_name)
+        delattr(bpy.types.Scene, component_id)
     elif component_class.get_node_type() == NodeType.NODE:
-        delattr(bpy.types.Object, component_name)
-        delattr(bpy.types.Bone, component_name)
-        delattr(bpy.types.EditBone, component_name)
+        delattr(bpy.types.Object, component_id)
+        delattr(bpy.types.Bone, component_id)
+        delattr(bpy.types.EditBone, component_id)
     elif component_class.get_node_type() == NodeType.MATERIAL:
-        delattr(bpy.types.Material, component_name)
+        delattr(bpy.types.Material, component_id)
 
     bpy.utils.unregister_class(component_class)
 
-    print("Component unregistered: " + component_class.get_id())
+    print("Component unregistered: " + component_class.get_name())
 
 
 def load_components_registry():
@@ -102,7 +102,7 @@ def load_components_registry():
         for _, member in inspect.getmembers(module):
             if inspect.isclass(member) and issubclass(member, HubsComponent) and member != HubsComponent:
                 register_component(member)
-                __components_registry[member.get_id()] = member
+                __components_registry[member.get_name()] = member
 
 
 def unload_components_registry():
@@ -144,14 +144,9 @@ def get_components_icons():
     return __component_icons["hubs"]
 
 
-def get_component_by_name(component_id):
+def get_component_by_name(component_name):
     global __components_registry
-    return __components_registry.get(component_id, None)
-
-
-def get_component_by_id(component_id):
-    global __components_registry
-    return next((component_class for _, component_class in __components_registry.items() if component_class.get_id() == component_id), None)
+    return next((component_class for _, component_class in __components_registry.items() if component_class.get_name() == component_name), None)
 
 
 def register():

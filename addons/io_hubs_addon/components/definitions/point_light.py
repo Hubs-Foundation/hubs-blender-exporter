@@ -1,4 +1,3 @@
-import bpy
 from bpy.props import FloatVectorProperty, FloatProperty, BoolProperty, IntVectorProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
@@ -6,8 +5,7 @@ from ..types import Category, PanelType, NodeType
 
 class PointLight(HubsComponent):
     _definition = {
-        'id': 'point-light',
-        'name': 'hubs_component_point_light',
+        'name': 'point-light',
         'display_name': 'Point Light',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

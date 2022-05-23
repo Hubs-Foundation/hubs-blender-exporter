@@ -6,8 +6,7 @@ from ..types import Category, PanelType, NodeType
 
 class UVScroll(HubsComponent):
     _definition = {
-        'id': 'uv-scroll',
-        'name': 'hubs_component_uv_scroll',
+        'name': 'uv-scroll',
         'display_name': 'UV Scroll',
         'category': Category.ANIMATION,
         'node_type': NodeType.NODE,

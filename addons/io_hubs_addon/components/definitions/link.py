@@ -6,8 +6,7 @@ from ..types import Category, PanelType, NodeType
 
 class Link(HubsComponent):
     _definition = {
-        'id': 'link',
-        'name': 'hubs_component_link',
+        'name': 'link',
         'display_name': 'Link',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

@@ -5,8 +5,7 @@ from ..types import Category, PanelType, NodeType
 
 class Billboard(HubsComponent):
     _definition = {
-        'id': 'billboard',
-        'name': 'hubs_component_billboard',
+        'name': 'billboard',
         'display_name': 'Billboard',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

@@ -6,8 +6,7 @@ from ..consts import PROJECTION_MODE, TRANSPARENCY_MODE
 
 class Image(HubsComponent):
     _definition = {
-        'id': 'image',
-        'name': 'hubs_component_image',
+        'name': 'image',
         'display_name': 'Image',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

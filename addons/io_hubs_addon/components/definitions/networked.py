@@ -6,8 +6,7 @@ import uuid
 
 class Networked(HubsComponent):
     _definition = {
-        'id': 'networked',
-        'name': 'hubs_component_networked',
+        'name': 'networked',
         'display_name': 'Networked',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

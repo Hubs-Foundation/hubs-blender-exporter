@@ -103,8 +103,7 @@ def unregister():
 
 class LoopAnimation(HubsComponent):
     _definition = {
-        'id': 'loop-animation',
-        'name': 'hubs_component_loop_animation',
+        'name': 'loop-animation',
         'display_name': 'Loop Animation',
         'category': Category.ANIMATION,
         'node_type': NodeType.NODE,
@@ -175,7 +174,7 @@ class LoopAnimation(HubsComponent):
     @classmethod
     def migrate(cls):
         for ob in bpy.data.objects:
-            if cls.get_id() in ob.hubs_component_list.items:
+            if cls.get_name() in ob.hubs_component_list.items:
                 actions = ob.hubs_component_loop_animation.clip.split(",")
                 for action_name in actions:
                     if not has_action(ob.hubs_component_loop_animation.actions_list, action_name):

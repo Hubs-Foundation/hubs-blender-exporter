@@ -5,8 +5,7 @@ from ..types import Category, PanelType, NodeType
 
 class Fog(HubsComponent):
     _definition = {
-        'id': 'fog',
-        'name': 'hubs_component_fog',
+        'name': 'fog',
         'display_name': 'Fog',
         'category': Category.SCENE,
         'node_type': NodeType.SCENE,

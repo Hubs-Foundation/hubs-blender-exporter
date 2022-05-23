@@ -6,9 +6,7 @@ from .types import Category, PanelType, NodeType
 class HubsComponent(PropertyGroup):
     _definition = {
         # The name that will be used in the GLTF file MOZ_hubs_components object when exporting the component.
-        'id': 'hubs-component-template',
-        # The component name to be used in the components registry (historically Hubs component follow the format [hubs_component_abc])
-        'name': 'hubs_component_template',
+        'name': 'template',
         # Name to be used in the panels, if not set the component name will be used
         'display_name': 'Hubs Component Template',
         # Category that is shown in the "Add Component" menu
@@ -33,7 +31,8 @@ class HubsComponent(PropertyGroup):
 
     @classmethod
     def get_id(cls):
-        return cls.__get_definition('id', cls.__name__)
+        name = cls.__get_definition('name', cls.__name__)
+        return 'hubs_component_' + name.replace('-', '_')
 
     @classmethod
     def get_name(cls):

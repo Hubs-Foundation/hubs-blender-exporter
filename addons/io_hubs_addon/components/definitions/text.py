@@ -5,8 +5,7 @@ from ..types import Category, PanelType, NodeType
 
 class Text(HubsComponent):
     _definition = {
-        'id': 'text',
-        'name': 'hubs_component_text',
+        'name': 'text',
         'display_name': 'Text',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

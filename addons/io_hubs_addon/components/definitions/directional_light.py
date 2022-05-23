@@ -1,4 +1,3 @@
-import bpy
 from bpy.props import FloatVectorProperty, FloatProperty, BoolProperty, IntVectorProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
@@ -6,8 +5,7 @@ from ..types import Category, PanelType, NodeType
 
 class DirectionalLight(HubsComponent):
     _definition = {
-        'id': 'directional-light',
-        'name': 'hubs_component_directional_light',
+        'name': 'directional-light',
         'display_name': 'Directional Light',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

@@ -105,8 +105,7 @@ def unregister():
 
 class MorphAudioFeedback(HubsComponent):
     _definition = {
-        'id': 'morph-audio-feedback',
-        'name': 'hubs_component_morph_audio_feedback',
+        'name': 'morph-audio-feedback',
         'display_name': 'Morph Audio Feedback',
         'category': Category.AVATAR,
         'node_type': NodeType.NODE,
@@ -184,7 +183,7 @@ class MorphAudioFeedback(HubsComponent):
     @classmethod
     def migrate(cls):
         for ob in bpy.data.objects:
-            if cls.get_id() in ob.hubs_component_list.items:
+            if cls.get_name() in ob.hubs_component_list.items:
                 shape_keys = ob.hubs_component_morph_audio_feedback.name.split(
                     ",")
                 for shape_key_name in shape_keys:

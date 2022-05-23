@@ -1,19 +1,18 @@
 import bpy
 from .types import PanelType
-from .components_registry import get_components_registry
+from .components_registry import get_component_by_name
 from .utils import get_object_source, dash_to_title
 
 
 def draw_component(panel, context, obj, row, component_item):
-    components_registry = get_components_registry()
-    component_id = component_item.name
-    component_class = components_registry[component_id]
+    component_name = component_item.name
+    component_class = get_component_by_name(component_name)
     if component_class:
         if not component_class.get_panel_type() == PanelType(panel.bl_context) or not component_class.poll(context):
             return
 
-        component_name = component_class.get_name()
-        component = getattr(obj, component_name)
+        component_id = component_class.get_id()
+        component = getattr(obj, component_id)
 
         has_properties = len(component_class.get_properties()) > 0
 
@@ -27,7 +26,7 @@ def draw_component(panel, context, obj, row, component_item):
                          )
 
         display_name = component_class.get_display_name(
-            dash_to_title(component_name))
+            dash_to_title(component_id))
 
         top_row.label(text=display_name)
 
@@ -37,14 +36,14 @@ def draw_component(panel, context, obj, row, component_item):
                 text="",
                 icon="X"
             )
-            remove_component_operator.component_id = component_id
+            remove_component_operator.component_name = component_name
             remove_component_operator.panel_type = panel.bl_context
 
         if has_properties and component_item.expanded:
             component.draw(context, col)
 
     else:
-        display_name = dash_to_title(component_name)
+        display_name = dash_to_title(component_id)
 
         col = row.box().column()
         top_row = col.row()
@@ -55,7 +54,7 @@ def draw_component(panel, context, obj, row, component_item):
             text="",
             icon="X"
         )
-        remove_component_operator.component_id = component_id
+        remove_component_operator.component_name = component_name
         remove_component_operator.panel_type = panel.bl_context
 
 

@@ -1,4 +1,3 @@
-import bpy
 from bpy.props import FloatVectorProperty, FloatProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
@@ -6,8 +5,7 @@ from ..types import Category, PanelType, NodeType
 
 class AmbientLight(HubsComponent):
     _definition = {
-        'id': 'ambient-light',
-        'name': 'hubs_component_ambient_light',
+        'name': 'ambient-light',
         'display_name': 'Ambient Light',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

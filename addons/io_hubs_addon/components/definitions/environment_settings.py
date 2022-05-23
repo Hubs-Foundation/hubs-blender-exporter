@@ -1,6 +1,5 @@
 from bpy.props import FloatProperty, EnumProperty, FloatVectorProperty, PointerProperty
 from bpy.types import Image
-
 from ...io.utils import gather_texture_property, gather_color_property
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
@@ -19,8 +18,7 @@ TOME_MAPPING = [("NoToneMapping", "None", "No tone mapping."),
 
 class EnvironmentSettings(HubsComponent):
     _definition = {
-        'id': 'environment-settings',
-        'name': 'hubs_component_environment_settings',
+        'name': 'environment-settings',
         'display_name': 'Environment Settings',
         'category': Category.SCENE,
         'node_type': NodeType.SCENE,

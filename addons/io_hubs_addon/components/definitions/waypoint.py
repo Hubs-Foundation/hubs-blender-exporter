@@ -8,8 +8,7 @@ from mathutils import Matrix
 
 class Waypoint(HubsComponent):
     _definition = {
-        'id': 'waypoint',
-        'name': 'hubs_component_waypoint',
+        'name': 'waypoint',
         'display_name': 'Waypoint',
         'category': Category.OBJECT,
         'node_type': NodeType.NODE,

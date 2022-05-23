@@ -6,8 +6,7 @@ from mathutils import Matrix
 
 class MediaFrame(HubsComponent):
     _definition = {
-        'id': 'media-frame',
-        'name': 'hubs_component_media_frame',
+        'name': 'media-frame',
         'display_name': 'Media Frame',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

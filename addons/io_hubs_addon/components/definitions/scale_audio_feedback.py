@@ -5,8 +5,7 @@ from ..types import Category, NodeType, PanelType
 
 class ScaleAudioFeedback(HubsComponent):
     _definition = {
-        'id': 'scale-audio-feedback',
-        'name': 'hubs_component_scale_audio_feedback',
+        'name': 'scale-audio-feedback',
         'display_name': 'Scale Audio Feedback',
         'category': Category.AVATAR,
         'node_type': NodeType.NODE,

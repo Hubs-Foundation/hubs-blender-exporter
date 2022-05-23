@@ -5,8 +5,7 @@ from ..types import Category, PanelType, NodeType
 
 class AudioSource(HubsComponent):
     _definition = {
-        'id': 'zone-audio-source',
-        'name': 'hubs_component_zone_audio_source',
+        'name': 'zone-audio-source',
         'display_name': 'Audio Source',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

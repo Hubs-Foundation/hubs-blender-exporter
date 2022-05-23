@@ -5,8 +5,7 @@ from ..types import Category, PanelType, NodeType
 
 class Spawner(HubsComponent):
     _definition = {
-        'id': 'spawner',
-        'name': 'hubs_component_spawner',
+        'name': 'spawner',
         'display_name': 'Spawner',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

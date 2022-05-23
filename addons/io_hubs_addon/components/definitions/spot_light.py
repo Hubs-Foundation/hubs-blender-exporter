@@ -5,8 +5,7 @@ from ..types import Category, PanelType, NodeType
 
 class SpotLight(HubsComponent):
     _definition = {
-        'id': 'spot-light',
-        'name': 'hubs_component_spot_light',
+        'name': 'spot-light',
         'display_name': 'Spot Light',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

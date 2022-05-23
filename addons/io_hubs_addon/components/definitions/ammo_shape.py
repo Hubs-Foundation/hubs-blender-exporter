@@ -5,8 +5,7 @@ from ..types import Category, PanelType, NodeType
 
 class AmmoShape(HubsComponent):
     _definition = {
-        'id': 'ammo-shape',
-        'name': 'hubs_component_ammo_shape',
+        'name': 'ammo-shape',
         'display_name': 'Ammo Shape',
         'category': Category.SCENE,
         'node_type': NodeType.NODE,

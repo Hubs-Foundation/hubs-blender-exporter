@@ -6,8 +6,7 @@ from ..consts import PROJECTION_MODE
 
 class Video(HubsComponent):
     _definition = {
-        'id': 'video',
-        'name': 'hubs_component_video',
+        'name': 'video',
         'display_name': 'Video',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

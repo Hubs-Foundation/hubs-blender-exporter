@@ -6,8 +6,7 @@ from ..consts import DISTACE_MODELS, MAX_ANGLE
 
 class AudioSettings(HubsComponent):
     _definition = {
-        'id': 'audio-settings',
-        'name': 'hubs_component_audio_settings',
+        'name': 'audio-settings',
         'display_name': 'Audio Settings',
         'category': Category.SCENE,
         'node_type': NodeType.SCENE,

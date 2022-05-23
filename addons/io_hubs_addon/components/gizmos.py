@@ -1,7 +1,7 @@
 import bpy
 from bpy.types import (Gizmo, GizmoGroup)
 from bpy.props import BoolProperty
-from .components_registry import get_component_by_id, get_components_registry
+from .components_registry import get_component_by_name
 from mathutils import Matrix
 
 
@@ -43,24 +43,23 @@ class HubsGizmoGroup(GizmoGroup):
 
     def setup(self, context):
         self.widgets = {}
-        components_registry = get_components_registry()
         for ob in context.view_layer.objects:
             for component_item in ob.hubs_component_list.items:
-                component_id = component_item.name
-                component_class = components_registry[component_id]
+                component_name = component_item.name
+                component_class = get_component_by_name(component_name)
                 gizmo = component_class.create_gizmo(ob, self)
-                if not component_id in self.widgets:
-                    self.widgets[component_id] = {}
-                self.widgets[component_id][ob] = gizmo
+                if not component_name in self.widgets:
+                    self.widgets[component_name] = {}
+                self.widgets[component_name][ob] = gizmo
 
         self.refresh(context)
 
     def refresh(self, context):
-        for component_id in self.widgets:
-            for ob in self.widgets[component_id]:
-                gizmo = self.widgets[component_id][ob]
+        for component_name in self.widgets:
+            for ob in self.widgets[component_name]:
+                gizmo = self.widgets[component_name][ob]
                 if gizmo:
-                    component_class = get_component_by_id(component_id)
+                    component_class = get_component_by_name(component_name)
                     component_class.update_gizmo(ob, gizmo)
 
 

@@ -13,8 +13,7 @@ def filter_on_component(self, o):
 
 class AudioTarget(HubsComponent):
     _definition = {
-        'id': 'audio-target',
-        'name': 'hubs_component_audio_target',
+        'name': 'audio-target',
         'display_name': 'Audio Target',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

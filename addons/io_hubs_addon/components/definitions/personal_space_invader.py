@@ -1,4 +1,3 @@
-import bpy
 from bpy.props import BoolProperty, FloatProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
@@ -6,8 +5,7 @@ from ..types import Category, PanelType, NodeType
 
 class AmbientLight(HubsComponent):
     _definition = {
-        'id': 'personal-space-invader',
-        'name': 'hubs_component_personal_space_invader',
+        'name': 'personal-space-invader',
         'display_name': 'Personal Space Invader',
         'category': Category.AVATAR,
         'node_type': NodeType.NODE,

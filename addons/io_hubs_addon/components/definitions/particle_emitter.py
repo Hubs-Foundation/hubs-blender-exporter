@@ -1,4 +1,4 @@
-from bpy.props import FloatProperty, EnumProperty, FloatVectorProperty, BoolProperty, StringProperty, IntProperty
+from bpy.props import FloatProperty, EnumProperty, FloatVectorProperty, StringProperty, IntProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ..consts import INTERPOLATION_MODES
@@ -6,8 +6,7 @@ from ..consts import INTERPOLATION_MODES
 
 class ParticleEmitter(HubsComponent):
     _definition = {
-        'id': 'particle-emitter',
-        'name': 'hubs_component_particle_emitter',
+        'name': 'particle-emitter',
         'display_name': 'Particle Emitter',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,

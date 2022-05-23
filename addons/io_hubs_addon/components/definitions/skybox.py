@@ -1,13 +1,11 @@
-import bpy
-from bpy.props import FloatVectorProperty, FloatProperty, BoolProperty, IntVectorProperty
+from bpy.props import FloatProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 
 
 class Skybox(HubsComponent):
     _definition = {
-        'id': 'skybox',
-        'name': 'hubs_component_skybox',
+        'name': 'skybox',
         'display_name': 'Skybox',
         'category': Category.SCENE,
         'node_type': NodeType.NODE,

@@ -6,8 +6,7 @@ from mathutils import Matrix
 
 class AudioZone(HubsComponent):
     _definition = {
-        'id': 'audio-zone',
-        'name': 'hubs_component_audio_zone',
+        'name': 'audio-zone',
         'display_name': 'Audio Zone',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
