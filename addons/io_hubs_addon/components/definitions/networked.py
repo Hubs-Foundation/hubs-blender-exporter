@@ -8,10 +8,8 @@ class Networked(HubsComponent):
     _definition = {
         'name': 'networked',
         'display_name': 'Networked',
-        'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'panel_type': PanelType.OBJECT,
-        'dep_only': True
+        'panel_type': PanelType.OBJECT
     }
 
     id: StringProperty(

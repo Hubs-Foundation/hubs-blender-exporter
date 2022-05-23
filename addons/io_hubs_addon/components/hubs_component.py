@@ -18,9 +18,7 @@ class HubsComponent(PropertyGroup):
         # The dependencies of this component (by id). They will be added as a result of adding this component.
         'deps': [],
         # Name of the icon to load. It can be a image file in the icons directory or one of the Blender builtin icons id
-        'icon': 'icon.png',
-        # Tag the component as dependency only so it doens't show up in the comonents list
-        'dep_only': False
+        'icon': 'icon.png'
     }
 
     @classmethod
@@ -52,7 +50,7 @@ class HubsComponent(PropertyGroup):
 
     @classmethod
     def get_category(cls):
-        return cls.__get_definition('category', Category.MISC)
+        return cls.__get_definition('category', None)
 
     @classmethod
     def get_category_name(cls):
@@ -77,7 +75,7 @@ class HubsComponent(PropertyGroup):
 
     @classmethod
     def is_dep_only(cls):
-        return cls.__get_definition('dep_only', False)
+        return not cls.get_category()
 
     def __init__(self):
         if type(self) is HubsComponent:

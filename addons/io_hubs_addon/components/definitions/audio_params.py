@@ -13,10 +13,8 @@ class AudioParams(HubsComponent):
     _definition = {
         'name': 'audio-params',
         'display_name': 'Audio Params',
-        'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'panel_type': PanelType.OBJECT,
-        'dep_only': True
+        'panel_type': PanelType.OBJECT
     }
 
     audioType: EnumProperty(
