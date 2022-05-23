@@ -1,5 +1,5 @@
 from bpy.props import BoolProperty, PointerProperty
-from .hubs_component import HubsComponent
+from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ..utils import has_components
 from bpy.types import Object

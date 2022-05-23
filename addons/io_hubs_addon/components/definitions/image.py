@@ -1,5 +1,5 @@
 from bpy.props import EnumProperty, StringProperty, BoolProperty
-from .hubs_component import HubsComponent
+from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ..consts import PROJECTION_MODE, TRANSPARENCY_MODE
 

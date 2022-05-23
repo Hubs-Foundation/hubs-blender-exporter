@@ -2,7 +2,7 @@ from bpy.props import FloatProperty, EnumProperty, FloatVectorProperty, PointerP
 from bpy.types import Image
 
 from ...io.utils import gather_texture_property, gather_color_property
-from .hubs_component import HubsComponent
+from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 
 

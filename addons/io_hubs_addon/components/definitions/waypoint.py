@@ -1,7 +1,7 @@
 from ..models import spawn_point
 from ..gizmos import HubsGizmo
 from ..types import Category, PanelType, NodeType
-from .hubs_component import HubsComponent
+from ..hubs_component import HubsComponent
 from bpy.props import BoolProperty
 import bpy
 

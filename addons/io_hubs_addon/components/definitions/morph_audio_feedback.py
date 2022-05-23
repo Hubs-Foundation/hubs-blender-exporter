@@ -2,7 +2,7 @@ import atexit
 import bpy
 from bpy.props import FloatProperty, StringProperty, CollectionProperty, IntProperty
 from bpy.types import PropertyGroup, Menu, Operator
-from .hubs_component import HubsComponent
+from ..hubs_component import HubsComponent
 from ..types import Category, NodeType, PanelType
 
 

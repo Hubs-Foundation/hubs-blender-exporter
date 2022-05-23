@@ -1,6 +1,6 @@
 from bpy.types import PropertyGroup
-from ...io.utils import gather_properties
-from ..types import Category, PanelType, NodeType
+from ..io.utils import gather_properties
+from .types import Category, PanelType, NodeType
 
 
 class HubsComponent(PropertyGroup):
@@ -65,7 +65,7 @@ class HubsComponent(PropertyGroup):
 
     @classmethod
     def update_gizmo(cls, obj, gizmo):
-        from ..gizmos import gizmo_update
+        from .gizmos import gizmo_update
         gizmo_update(obj, gizmo)
 
     @classmethod

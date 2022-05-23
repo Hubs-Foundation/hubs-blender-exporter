@@ -3,7 +3,7 @@ import bpy
 from bpy.props import StringProperty, CollectionProperty, IntProperty, BoolProperty
 from bpy.types import PropertyGroup, Menu, Operator
 from bpy.types import PropertyGroup
-from .hubs_component import HubsComponent
+from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 
 

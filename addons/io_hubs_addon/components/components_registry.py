@@ -9,7 +9,7 @@ import os
 from os import listdir
 from os.path import join, isfile, dirname, realpath
 
-from .definitions.hubs_component import HubsComponent, NodeType
+from .hubs_component import HubsComponent, NodeType
 
 
 class HubsComponentName(PropertyGroup):

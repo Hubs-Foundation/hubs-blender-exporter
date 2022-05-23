@@ -1,7 +1,7 @@
 import bpy
 from bpy.props import PointerProperty, EnumProperty
 from bpy.types import Image
-from .hubs_component import HubsComponent
+from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ... import io
 import math

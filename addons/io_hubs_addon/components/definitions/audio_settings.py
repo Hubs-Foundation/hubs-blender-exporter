@@ -1,5 +1,5 @@
 from bpy.props import FloatProperty, EnumProperty
-from .hubs_component import HubsComponent
+from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ..consts import DISTACE_MODELS, MAX_ANGLE
 

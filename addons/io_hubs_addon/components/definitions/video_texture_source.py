@@ -1,5 +1,5 @@
 from bpy.props import IntVectorProperty, IntProperty
-from .hubs_component import HubsComponent
+from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 
 

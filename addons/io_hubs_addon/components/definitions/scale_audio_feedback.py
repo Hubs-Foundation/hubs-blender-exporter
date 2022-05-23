@@ -1,5 +1,5 @@
 from bpy.props import FloatProperty
-from .hubs_component import HubsComponent
+from ..hubs_component import HubsComponent
 from ..types import Category, NodeType, PanelType
 
 
