@@ -3,6 +3,7 @@ from bpy.types import (Gizmo, GizmoGroup)
 from bpy.props import BoolProperty
 from .components_registry import get_component_by_name
 from mathutils import Matrix
+from bpy.app.handlers import persistent
 
 
 def gizmo_update(obj, gizmo):
@@ -124,6 +125,16 @@ class duplicate_override(bpy.types.Operator):
         return {'FINISHED'}
 
 
+@persistent
+def undo_post(dummy):
+    update_gizmos()
+
+
+@persistent
+def redo_post(dummy):
+    update_gizmos()
+
+
 def register_gizmo_classes():
     bpy.utils.register_class(CustomModelGizmo)
     bpy.utils.register_class(HubsGizmoGroup)
@@ -147,11 +158,19 @@ def register_functions():
     def register():
         bpy.utils.register_class(delete_override)
         bpy.utils.register_class(duplicate_override)
+        if not undo_post in bpy.app.handlers.undo_post:
+            bpy.app.handlers.undo_post.append(undo_post)
+        if not redo_post in bpy.app.handlers.redo_post:
+            bpy.app.handlers.redo_post.append(redo_post)
         register_gizmo_classes()
 
     def unregister():
         bpy.utils.unregister_class(delete_override)
         bpy.utils.unregister_class(duplicate_override)
+        if not undo_post in bpy.app.handlers.undo_post:
+            bpy.app.handlers.undo_post.remove(undo_post)
+        if not redo_post in bpy.app.handlers.redo_post:
+            bpy.app.handlers.redo_post.remove(redo_post)
         unregister_gizmo_classes()
 
     return register, unregister
