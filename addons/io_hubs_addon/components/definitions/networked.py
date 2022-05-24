@@ -3,6 +3,8 @@ from bpy.props import StringProperty
 from bpy.types import Node
 from ..types import PanelType
 import uuid
+from ..utils import add_component
+import bpy
 
 
 class Networked(HubsComponent):
@@ -22,3 +24,10 @@ class Networked(HubsComponent):
     def draw(self, context, layout):
         layout.label(text="Network ID:")
         layout.label(text=self.id)
+
+
+def migrate_networked(component_name):
+    for ob in bpy.data.objects:
+        if component_name in ob.hubs_component_list.items:
+            if Networked.get_name() not in ob.hubs_component_list.items:
+                add_component(ob, Networked.get_name())

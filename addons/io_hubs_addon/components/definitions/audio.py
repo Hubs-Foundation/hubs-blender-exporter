@@ -2,6 +2,7 @@ from bpy.props import BoolProperty, StringProperty
 from bpy.types import Node
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType
+from .networked import migrate_networked
 
 
 class Audio(HubsComponent):
@@ -29,3 +30,7 @@ class Audio(HubsComponent):
     loop: BoolProperty(name="Loop",
                        description="Loop",
                        default=True)
+
+    @classmethod
+    def migrate(cls):
+        migrate_networked(cls.get_name())

@@ -5,6 +5,7 @@ from ..hubs_component import HubsComponent
 from bpy.props import BoolProperty
 from bpy.types import Node
 from mathutils import Matrix
+from .networked import migrate_networked
 
 
 class Waypoint(HubsComponent):
@@ -90,3 +91,7 @@ class Waypoint(HubsComponent):
         op.release_confirm = True
 
         return widget
+
+    @classmethod
+    def migrate(cls):
+        migrate_networked(cls.get_name())

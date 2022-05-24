@@ -3,6 +3,7 @@ from bpy.types import Node
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType
 from mathutils import Matrix
+from .networked import migrate_networked
 
 
 class MediaFrame(HubsComponent):
@@ -58,3 +59,7 @@ class MediaFrame(HubsComponent):
         op.release_confirm = True
 
         return widget
+
+    @classmethod
+    def migrate(cls):
+        migrate_networked(cls.get_name())

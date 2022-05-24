@@ -3,6 +3,7 @@ from bpy.types import Node
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType
 from ..consts import PROJECTION_MODE, TRANSPARENCY_MODE
+from .networked import migrate_networked
 
 
 class Image(HubsComponent):
@@ -32,3 +33,7 @@ class Image(HubsComponent):
         description="Projection",
         items=PROJECTION_MODE,
         default="flat")
+
+    @classmethod
+    def migrate(cls):
+        migrate_networked(cls.get_name())

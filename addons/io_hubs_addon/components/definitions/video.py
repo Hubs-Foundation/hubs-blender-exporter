@@ -3,6 +3,7 @@ from bpy.types import Node
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType
 from ..consts import PROJECTION_MODE
+from .networked import migrate_networked
 
 
 class Video(HubsComponent):
@@ -36,3 +37,7 @@ class Video(HubsComponent):
     loop: BoolProperty(name="Loop",
                        description="Loop",
                        default=True)
+
+    @classmethod
+    def migrate(cls):
+        migrate_networked(cls.get_name())

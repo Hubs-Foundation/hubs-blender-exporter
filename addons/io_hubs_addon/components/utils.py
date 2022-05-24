@@ -9,15 +9,15 @@ def add_component(obj, component_name):
     component_class = get_component_by_name(component_name)
     if component_class:
         update_gizmos()
-        for dep_id in component_class.get_deps():
-            dep_class = get_component_by_name(dep_id)
+        for dep_name in component_class.get_deps():
+            dep_class = get_component_by_name(dep_name)
             if dep_class:
-                dep_exists = obj.hubs_component_list.items.find(dep_id) > -1
+                dep_exists = obj.hubs_component_list.items.find(dep_name) > -1
                 if not dep_exists:
-                    add_component(obj, dep_id)
+                    add_component(obj, dep_name)
             else:
                 print("Dependecy '%s' from module '%s' not registered" %
-                      (dep_id, component_name))
+                      (dep_name, component_name))
 
 
 def remove_component(obj, component_name):
@@ -29,15 +29,15 @@ def remove_component(obj, component_name):
     component_class = get_component_by_name(component_name)
     if component_class:
         update_gizmos()
-        for dep_id in component_class.get_deps():
-            dep_class = get_component_by_name(dep_id)
-            dep_id = dep_class.get_name()
+        for dep_name in component_class.get_deps():
+            dep_class = get_component_by_name(dep_name)
+            dep_name = dep_class.get_name()
             if dep_class:
-                if not is_dep_required(obj, component_name, dep_id):
-                    remove_component(obj, dep_id)
+                if not is_dep_required(obj, component_name, dep_name):
+                    remove_component(obj, dep_name)
             else:
                 print("Dependecy '%s' from module '%s' not registered" %
-                      (dep_id, component_name))
+                      (dep_name, component_name))
 
 
 def has_component(obj, component_name):
