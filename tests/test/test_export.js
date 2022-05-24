@@ -887,19 +887,21 @@ describe('Exporter', function () {
         });
       });
 
-      it('can export lightmap', function () {
-        let gltfPath = path.resolve(outDirPath, 'lightmap.gltf');
+      it('can export frustrum', function () {
+        let gltfPath = path.resolve(outDirPath, 'frustrum.gltf');
         const asset = JSON.parse(fs.readFileSync(gltfPath));
 
-        assert.strictEqual(asset.extensionsUsed.includes('MOZ_lightmap'), true);
+        assert.strictEqual(asset.extensionsUsed.includes('MOZ_hubs_components'), true);
+        assert.strictEqual(utils.checkExtensionAdded(asset, 'MOZ_hubs_components'), true);
 
-        const material = asset.materials[0];
-        assert.strictEqual(utils.checkExtensionAdded(material, 'MOZ_lightmap'), true);
+        const node = asset.nodes[0];
+        assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
-        const ext = material.extensions['MOZ_lightmap'];
+        const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
-          "intensity": 1,
-          "index": 0
+          "frustrum": {
+            "culled": false
+          }
         });
       });
     });
