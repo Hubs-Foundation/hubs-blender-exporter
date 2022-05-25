@@ -67,6 +67,7 @@ class Waypoint(HubsComponent):
     @classmethod
     def update_gizmo(cls, obj, gizmo):
         gizmo.matrix_basis = obj.matrix_world.normalized()
+        gizmo.hide = not obj.visible_get()
 
     @classmethod
     def create_gizmo(cls, obj, gizmo_group):
@@ -75,13 +76,12 @@ class Waypoint(HubsComponent):
         widget.setup()
         loc, rot, _ = obj.matrix_world.decompose()
         widget.matrix_basis = Matrix.LocRotScale(loc, rot, obj.dimensions)
-        widget.line_width = 3
+        widget.use_draw_modal = True
         widget.color = (0.8, 0.8, 0.8)
         widget.alpha = 0.5
         widget.hide = not obj.visible_get()
-        widget.hide_select = True
         widget.scale_basis = 1.0
-        widget.use_draw_modal = True
+        widget.hide_select = False
         widget.color_highlight = (0.8, 0.8, 0.8)
         widget.alpha_highlight = 1.0
 
