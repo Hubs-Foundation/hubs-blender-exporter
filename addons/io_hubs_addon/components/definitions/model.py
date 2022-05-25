@@ -5,18 +5,18 @@ from ..types import Category, PanelType
 from .networked import migrate_networked
 
 
-class Link(HubsComponent):
+class Model(HubsComponent):
     _definition = {
-        'name': 'link',
-        'display_name': 'Link',
+        'name': 'model',
+        'display_name': 'Model',
         'category': Category.ELEMENTS,
         'node_type': Node,
         'panel_type': PanelType.OBJECT,
-        'icon': 'LINKED',
+        'icon': 'SCENE_DATA',
         'deps': ['networked']
     }
 
-    href: StringProperty(name="Link URL", description="Link URL",
+    src: StringProperty(name="Model URL", description="Model URL",
                          default="https://mozilla.org")
 
     @classmethod
