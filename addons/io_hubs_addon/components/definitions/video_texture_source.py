@@ -25,4 +25,5 @@ class VideoTextureSource(HubsComponent):
 
     @classmethod
     def poll(cls, context):
-        return context.object.type == 'CAMERA'
+        # TODO Should we listen to scene graph updates and remove the component if this is no longer satisfied to avoid dangling components?
+        return context.object.type == 'CAMERA' or [x for x in context.object.children_recursive if x.type == "CAMERA"]
