@@ -14,9 +14,6 @@ bl_info = {
     "category": "Generic"
 }
 
-# TODO Support architecture kit?
-
-
 def register():
     gltf_exporter.register()
     nodes.register()
