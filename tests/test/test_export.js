@@ -547,21 +547,32 @@ describe('Exporter', function () {
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
           "text": {
-            "value": "Hello World",
-            "align": "left",
-            "baseline": "top",
-            "side": "front",
-            "whiteSpace": "normal",
-            "font": "roboto",
+            "value": "Hello World!",
+            "fontSize": 0.07500000298023224,
+            "textAlign": "left",
+            "anchorX": "center",
+            "anchorY": "middle",
             "color": "#ffffff",
-            "width": 1,
-            "wrapCount": 40,
-            "wrapPixels": 0,
             "letterSpacing": 0,
             "lineHeight": 0,
+            "outlineWidth": "0",
+            "outlineColor": "#000000",
+            "outlineBlur": "0",
+            "outlineOffsetX": "0",
+            "outlineOffsetY": "0",
+            "outlineOpacity": 1,
+            "fillOpacity": 1,
+            "strokeWidth": "0",
+            "strokeColor": "#000000",
+            "strokeOpacity": 1,
+            "textIndent": 0,
+            "whiteSpace": "normal",
+            "overflowWrap": "normal",
             "opacity": 1,
-            "xOffset": 0,
-            "zOffset": 0.0010000000474974513
+            "side": "front",
+            "maxWidth": 1,
+            "curveRadius": 0,
+            "direction": "auto"
           }
         });
       });
