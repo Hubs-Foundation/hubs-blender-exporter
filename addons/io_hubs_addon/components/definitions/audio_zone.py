@@ -37,7 +37,9 @@ class AudioZone(HubsComponent):
     @classmethod
     def update_gizmo(cls, ob, gizmo):
         loc, rot, _ = ob.matrix_world.decompose()
-        mat_out = Matrix.LocRotScale(loc, rot, get_gizmo_scale(ob))
+        scale = get_gizmo_scale(ob)
+        mat_out = Matrix.Translation(
+            loc) @ rot.normalized().to_matrix().to_4x4() @ Matrix.Diagonal(scale).to_4x4()
         gizmo.matrix_basis = mat_out
         gizmo.hide = not ob.visible_get()
 
@@ -47,7 +49,10 @@ class AudioZone(HubsComponent):
         setattr(widget, "hubs_gizmo_shape", box.SHAPE)
         widget.setup()
         loc, rot, _ = ob.matrix_world.decompose()
-        widget.matrix_basis = Matrix.LocRotScale(loc, rot, get_gizmo_scale(ob))
+        scale = get_gizmo_scale(ob)
+        mat_out = Matrix.Translation(
+            loc) @ rot.normalized().to_matrix().to_4x4() @ Matrix.Diagonal(scale).to_4x4()
+        widget.matrix_basis = mat_out
         widget.use_draw_scale = False
         widget.use_draw_modal = True
         widget.line_width = 3

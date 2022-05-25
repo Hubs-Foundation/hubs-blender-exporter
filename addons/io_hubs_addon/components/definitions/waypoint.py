@@ -1,3 +1,4 @@
+from math import radians
 from ..models import spawn_point
 from ..gizmos import CustomModelGizmo
 from ..types import Category, PanelType
@@ -6,6 +7,20 @@ from bpy.props import BoolProperty
 from bpy.types import Node
 from mathutils import Matrix
 from .networked import migrate_networked
+
+
+def get_gizmo_scale(ob):
+    if ob.type == 'MESH':
+        return ob.dimensions.copy() / 2
+    else:
+        return ob.scale.copy() * ob.empty_display_size
+
+
+def get_gizmo_dimension(ob):
+    if ob.type == 'MESH':
+        return ob.dimensions.copy()
+    else:
+        return ob.scale.copy() * ob.empty_display_size * 2
 
 
 class Waypoint(HubsComponent):
@@ -65,21 +80,29 @@ class Waypoint(HubsComponent):
         default=False)
 
     @classmethod
-    def update_gizmo(cls, obj, gizmo):
-        gizmo.matrix_basis = obj.matrix_world.normalized()
-        gizmo.hide = not obj.visible_get()
+    def init(cls, ob):
+        ob.hubs_component_media_frame.bounds = get_gizmo_dimension(ob)
 
     @classmethod
-    def create_gizmo(cls, obj, gizmo_group):
+    def update_gizmo(cls, ob, gizmo):
+        loc, rot, scale = ob.matrix_world.decompose()
+        gizmo.matrix_basis = Matrix.Translation(
+            loc) @ rot.normalized().to_matrix().to_4x4() @ Matrix.Diagonal(scale).to_4x4()
+        gizmo.hide = not ob.visible_get()
+
+    @classmethod
+    def create_gizmo(cls, ob, gizmo_group):
         widget = gizmo_group.gizmos.new(CustomModelGizmo.bl_idname)
         setattr(widget, "hubs_gizmo_shape", spawn_point.SHAPE)
         widget.setup()
-        loc, rot, _ = obj.matrix_world.decompose()
-        widget.matrix_basis = Matrix.LocRotScale(loc, rot, obj.dimensions)
+        loc, rot, scale = ob.matrix_world.decompose()
+        widget.matrix_basis = Matrix.Translation(
+            loc) @ rot.normalized().to_matrix().to_4x4() @ Matrix.Diagonal(scale).to_4x4()
+        widget.use_draw_scale = False
         widget.use_draw_modal = True
         widget.color = (0.8, 0.8, 0.8)
         widget.alpha = 0.5
-        widget.hide = not obj.visible_get()
+        widget.hide = not ob.visible_get()
         widget.scale_basis = 1.0
         widget.hide_select = False
         widget.color_highlight = (0.8, 0.8, 0.8)
