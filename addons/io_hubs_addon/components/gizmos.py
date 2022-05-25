@@ -2,14 +2,11 @@ import bpy
 from bpy.types import (Gizmo, GizmoGroup)
 from bpy.props import BoolProperty
 from .components_registry import get_component_by_name
-from mathutils import Matrix
 from bpy.app.handlers import persistent
 
 
 def gizmo_update(obj, gizmo):
-    loc, rot, _ = obj.matrix_world.decompose()
-    mat_out = Matrix.LocRotScale(loc, rot, obj.dimensions)
-    gizmo.matrix_basis = mat_out
+    gizmo.matrix_basis = obj.matrix_world.normalized()
 
 
 class CustomModelGizmo(Gizmo):
@@ -51,19 +48,26 @@ class HubsGizmoGroup(GizmoGroup):
                 if not component_class:
                     continue
                 gizmo = component_class.create_gizmo(ob, self)
-                if not component_name in self.widgets:
-                    self.widgets[component_name] = {}
-                self.widgets[component_name][ob] = gizmo
+                if gizmo:
+                    if not component_name in self.widgets:
+                        self.widgets[component_name] = {}
+                    self.widgets[component_name][ob.name] = gizmo
 
         self.refresh(context)
 
     def refresh(self, context):
         for component_name in self.widgets:
-            for ob in self.widgets[component_name]:
-                gizmo = self.widgets[component_name][ob]
-                if gizmo:
-                    component_class = get_component_by_name(component_name)
-                    component_class.update_gizmo(ob, gizmo)
+            components_widgets = self.widgets[component_name].copy()
+            for ob_name in components_widgets:
+                gizmo = components_widgets[ob_name]
+                if gizmo and gizmo in self.gizmos.values():
+                    if ob_name in bpy.data.objects:
+                        component_class = get_component_by_name(component_name)
+                        component_class.update_gizmo(
+                            bpy.data.objects[ob_name], gizmo)
+                    else:
+                        self.gizmos.remove(gizmo)
+                        del self.widgets[component_name][ob_name]
 
 
 class delete_override(bpy.types.Operator):
@@ -111,7 +115,7 @@ class duplicate_override(bpy.types.Operator):
             bpy.data.collections[curr_collection].objects.link(copy)
             copies.append(copy)
             obj.select_set(False)
-            if not self.linked:
+            if obj.data and not self.linked:
                 copy.data = obj.data.copy()
                 if obj.animation_data:
                     copy.animation_data.action = obj.animation_data.action.copy()
