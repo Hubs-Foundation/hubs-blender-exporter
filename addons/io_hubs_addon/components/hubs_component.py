@@ -57,6 +57,11 @@ class HubsComponent(PropertyGroup):
         return cls.get_category().value
 
     @classmethod
+    def init(cls, obj):
+        '''Called right after the component is added to give the component a chance to initialize'''
+        pass
+
+    @classmethod
     def create_gizmo(cls, obj, gizmo_group):
         return None
 
