@@ -3,6 +3,9 @@
     "../fake_bpy_modules_3.0-20211212"
   ],
   "python.formatting.provider": "autopep8",
+  "python.formatting.autopep8Args": [
+    "--exclude **/models/**/*.py"
+  ],
   "python.analysis.extraPaths": [
     "../fake_bpy_modules_3.0-20211212"
   ],
