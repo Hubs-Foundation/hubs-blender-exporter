@@ -1,7 +1,6 @@
 from bpy.props import EnumProperty, StringProperty, BoolProperty
-from bpy.types import Node
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType
+from ..types import Category, PanelType, NodeType
 from ..consts import PROJECTION_MODE, TRANSPARENCY_MODE
 from .networked import migrate_networked
 
@@ -11,7 +10,7 @@ class Image(HubsComponent):
         'name': 'image',
         'display_name': 'Image',
         'category': Category.ELEMENTS,
-        'node_type': Node,
+        'node_type': NodeType.NODE,
         'panel_type': PanelType.OBJECT,
         'icon': 'FILE_IMAGE',
         'deps': ['networked']

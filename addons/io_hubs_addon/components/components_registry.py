@@ -1,7 +1,8 @@
+from .types import NodeType
 import bpy.utils.previews
 import bpy
 from bpy.props import BoolProperty, StringProperty, CollectionProperty, PointerProperty
-from bpy.types import PropertyGroup, Node, Scene, Material
+from bpy.types import PropertyGroup
 
 import importlib
 import inspect
@@ -48,13 +49,13 @@ def register_component(component_class):
     bpy.utils.register_class(component_class)
 
     component_id = component_class.get_id()
-    if component_class.get_node_type() == Scene:
+    if component_class.get_node_type() == NodeType.SCENE:
         setattr(
             bpy.types.Scene,
             component_id,
             PointerProperty(type=component_class)
         )
-    elif component_class.get_node_type() == Node:
+    elif component_class.get_node_type() == NodeType.NODE:
         setattr(
             bpy.types.Object,
             component_id,
@@ -70,7 +71,7 @@ def register_component(component_class):
             component_id,
             PointerProperty(type=component_class)
         )
-    elif component_class.get_node_type() == Material:
+    elif component_class.get_node_type() == NodeType.MATERIAL:
         setattr(
             bpy.types.Material,
             component_id,
@@ -80,13 +81,13 @@ def register_component(component_class):
 
 def unregister_component(component_class):
     component_id = component_class.get_id()
-    if component_class.get_node_type() == Scene:
+    if component_class.get_node_type() == NodeType.SCENE:
         delattr(bpy.types.Scene, component_id)
-    elif component_class.get_node_type() == Node:
+    elif component_class.get_node_type() == NodeType.NODE:
         delattr(bpy.types.Object, component_id)
         delattr(bpy.types.Bone, component_id)
         delattr(bpy.types.EditBone, component_id)
-    elif component_class.get_node_type() == Material:
+    elif component_class.get_node_type() == NodeType.MATERIAL:
         delattr(bpy.types.Material, component_id)
 
     bpy.utils.unregister_class(component_class)

@@ -1,6 +1,6 @@
-from bpy.types import PropertyGroup, Node
+from bpy.types import PropertyGroup
 from ..io.utils import gather_properties
-from .types import Category, PanelType
+from .types import Category, PanelType, NodeType
 
 
 class HubsComponent(PropertyGroup):
@@ -12,7 +12,7 @@ class HubsComponent(PropertyGroup):
         # Category that is shown in the "Add Component" menu
         'category': Category.MISC,
         # Node type to where the component will be registered
-        'node_type': Node,
+        'node_type': NodeType.NODE,
         # Panel type where to show this component
         'panel_type': PanelType.OBJECT,
         # The dependencies of this component (by id). They will be added as a result of adding this component.
@@ -42,7 +42,7 @@ class HubsComponent(PropertyGroup):
 
     @classmethod
     def get_node_type(cls):
-        return cls.__get_definition('node_type', Node)
+        return cls.__get_definition('node_type', NodeType.NODE)
 
     @classmethod
     def get_panel_type(cls):

@@ -1,7 +1,6 @@
 from bpy.props import FloatVectorProperty, FloatProperty
-from bpy.types import Node
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType
+from ..types import Category, NodeType, PanelType
 
 
 class SimpleWater(HubsComponent):
@@ -9,7 +8,7 @@ class SimpleWater(HubsComponent):
         'name': 'simple-water',
         'display_name': 'Simple Water',
         'category': Category.ELEMENTS,
-        'node_type': Node,
+        'node_type': NodeType.NODE,
         'panel_type': PanelType.OBJECT,
         'icon': 'MOD_FLUIDSIM'
     }
@@ -23,12 +22,12 @@ class SimpleWater(HubsComponent):
                                max=1)
 
     opacity: FloatProperty(name="Opacity",
-                               description="Opacity",
-                               default=1.0)
+                           description="Opacity",
+                           default=1.0)
 
     tideHeight: FloatProperty(name="Tide Height",
-                               description="Tide Height",
-                               default=0.01)
+                              description="Tide Height",
+                              default=0.01)
 
     tideScale: FloatVectorProperty(name="Tide Scale",
                                    description="Tide Scale",
@@ -54,7 +53,7 @@ class SimpleWater(HubsComponent):
                                    default=[0.05, 6.0])
 
     ripplesSpeed: FloatProperty(name="Ripples Speed",
-                                   default=0.25)
-                                
+                                default=0.25)
+
     ripplesScale: FloatProperty(name="Ripples Scale",
-                                   default=1.0)
+                                default=1.0)

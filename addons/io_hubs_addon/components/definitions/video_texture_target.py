@@ -1,8 +1,8 @@
 from bpy.props import BoolProperty, PointerProperty
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType
+from ..types import Category, PanelType, NodeType
 from ..utils import has_components
-from bpy.types import Object, Material
+from bpy.types import Object
 
 required_components = ['hubs_component_video_texture_source']
 
@@ -16,7 +16,7 @@ class VideoTextureTarget(HubsComponent):
         'name': 'video-texture-target',
         'display_name': 'Video Texture Target',
         'category': Category.AVATAR,
-        'node_type': Material,
+        'node_type': NodeType.MATERIAL,
         'panel_type': PanelType.MATERIAL,
         'icon': 'IMAGE_DATA'
     }

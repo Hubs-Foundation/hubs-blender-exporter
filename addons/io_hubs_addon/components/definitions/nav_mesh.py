@@ -1,6 +1,5 @@
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType
-from bpy.types import Node
+from ..types import Category, PanelType, NodeType
 
 
 class NavMesh(HubsComponent):
@@ -8,7 +7,7 @@ class NavMesh(HubsComponent):
         'name': 'nav-mesh',
         'display_name': 'Navigation Mesh',
         'category': Category.SCENE,
-        'node_type': Node,
+        'node_type': NodeType.NODE,
         'panel_type': PanelType.OBJECT,
         'icon': 'GRID'
     }

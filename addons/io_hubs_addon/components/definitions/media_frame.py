@@ -1,11 +1,10 @@
 import bpy
 from bpy.props import EnumProperty, FloatVectorProperty, BoolProperty
-from bpy.types import Node
 from ..gizmos import CustomModelGizmo
 from ..models import box
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType
-from mathutils import Matrix, Vector
+from ..types import Category, PanelType, NodeType
+from mathutils import Matrix
 from .networked import migrate_networked
 from bpy.app.handlers import persistent
 
@@ -44,7 +43,7 @@ class MediaFrame(HubsComponent):
         'name': 'media-frame',
         'display_name': 'Media Frame',
         'category': Category.ELEMENTS,
-        'node_type': Node,
+        'node_type': NodeType.NODE,
         'panel_type': PanelType.OBJECT,
         'icon': 'OBJECT_DATA',
         'deps': ['networked']

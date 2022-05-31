@@ -1,7 +1,6 @@
 from bpy.props import FloatVectorProperty, FloatProperty, BoolProperty, IntVectorProperty
-from bpy.types import Node
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType
+from ..types import Category, PanelType, NodeType
 
 
 class PointLight(HubsComponent):
@@ -9,7 +8,7 @@ class PointLight(HubsComponent):
         'name': 'point-light',
         'display_name': 'Point Light',
         'category': Category.ELEMENTS,
-        'node_type': Node,
+        'node_type': NodeType. NODE,
         'panel_type': PanelType.OBJECT,
         'icon': 'LIGHT_POINT'
     }

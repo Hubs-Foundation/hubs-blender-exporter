@@ -1,7 +1,6 @@
 from bpy.props import StringProperty
-from bpy.types import Node
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType
+from ..types import Category, PanelType, NodeType
 from .networked import migrate_networked
 
 
@@ -10,7 +9,7 @@ class Link(HubsComponent):
         'name': 'link',
         'display_name': 'Link',
         'category': Category.ELEMENTS,
-        'node_type': Node,
+        'node_type': NodeType.NODE,
         'panel_type': PanelType.OBJECT,
         'icon': 'LINKED',
         'deps': ['networked']

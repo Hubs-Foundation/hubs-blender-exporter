@@ -1,8 +1,8 @@
 from bpy.props import FloatProperty, BoolProperty, PointerProperty
 from ..hubs_component import HubsComponent
 from ..utils import has_components
-from ..types import Category, PanelType
-from bpy.types import Object, Node
+from ..types import Category, PanelType, NodeType
+from bpy.types import Object
 
 required_components = ['hubs_component_zone_audio_source']
 
@@ -16,7 +16,7 @@ class AudioTarget(HubsComponent):
         'name': 'audio-target',
         'display_name': 'Audio Target',
         'category': Category.ELEMENTS,
-        'node_type': Node,
+        'node_type': NodeType.NODE,
         'panel_type': PanelType.OBJECT,
         'deps': ['audio-params'],
         'icon': 'SPEAKER'

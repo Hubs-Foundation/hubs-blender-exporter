@@ -1,7 +1,6 @@
 from bpy.props import FloatProperty
-from bpy.types import Node
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType
+from ..types import Category, PanelType, NodeType
 
 
 class Skybox(HubsComponent):
@@ -9,7 +8,7 @@ class Skybox(HubsComponent):
         'name': 'skybox',
         'display_name': 'Skybox',
         'category': Category.SCENE,
-        'node_type': Node,
+        'node_type': NodeType.NODE,
         'panel_type': PanelType.OBJECT,
         'icon': 'MAT_SPHERE_SKY'
     }

@@ -1,9 +1,9 @@
 import atexit
 import bpy
 from bpy.props import FloatProperty, StringProperty, CollectionProperty, IntProperty
-from bpy.types import PropertyGroup, Menu, Operator, Node
+from bpy.types import PropertyGroup, Menu, Operator
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType
+from ..types import Category, PanelType, NodeType
 
 
 class ShapeKeysList(bpy.types.UIList):
@@ -108,7 +108,7 @@ class MorphAudioFeedback(HubsComponent):
         'name': 'morph-audio-feedback',
         'display_name': 'Morph Audio Feedback',
         'category': Category.AVATAR,
-        'node_type': Node,
+        'node_type': NodeType.NODE,
         'panel_type': PanelType.OBJECT
     }
 

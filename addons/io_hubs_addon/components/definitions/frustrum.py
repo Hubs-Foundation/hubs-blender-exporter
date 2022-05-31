@@ -1,7 +1,6 @@
 from bpy.props import BoolProperty
-from bpy.types import Node
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType
+from ..types import Category, PanelType, NodeType
 
 
 class Frustrum(HubsComponent):
@@ -9,7 +8,7 @@ class Frustrum(HubsComponent):
         'name': 'frustrum',
         'display_name': 'Frustrum',
         'category': Category.ELEMENTS,
-        'node_type': Node,
+        'node_type': NodeType.NODE,
         'panel_type': PanelType.OBJECT,
         'icon': 'IMAGE_PLANE'
     }
