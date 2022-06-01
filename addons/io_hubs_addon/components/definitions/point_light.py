@@ -39,7 +39,6 @@ class PointLight(HubsComponent):
     shadowMapResolution: IntVectorProperty(name="Shadow Map Resolution",
                                            description="Shadow Map Resolution",
                                            size=2,
-                                           subtype='COORDINATES',
                                            default=[512, 512])
 
     shadowBias: FloatProperty(name="Shadow Bias",

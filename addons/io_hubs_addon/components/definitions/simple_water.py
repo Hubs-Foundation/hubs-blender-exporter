@@ -32,11 +32,15 @@ class SimpleWater(HubsComponent):
     tideScale: FloatVectorProperty(name="Tide Scale",
                                    description="Tide Scale",
                                    size=2,
+                                   unit="LENGTH",
+                                   subtype="XYZ",
                                    default=[1.0, 1.0])
 
     tideSpeed: FloatVectorProperty(name="Tide Speed",
                                    description="Tide Speed",
                                    size=2,
+                                   unit="VELOCITY",
+                                   subtype="XYZ",
                                    default=[0.5, 0.5])
 
     waveHeight: FloatProperty(name="Wave Height",
@@ -45,11 +49,15 @@ class SimpleWater(HubsComponent):
     waveScale: FloatVectorProperty(name="Wave Scale",
                                    description="Wave Scale",
                                    size=2,
+                                   unit="LENGTH",
+                                   subtype="XYZ",
                                    default=[1.0, 20.0])
 
     waveSpeed: FloatVectorProperty(name="Wave Speed",
                                    description="Wave Speed",
                                    size=2,
+                                   unit="VELOCITY",
+                                   subtype="XYZ",
                                    default=[0.05, 6.0])
 
     ripplesSpeed: FloatProperty(name="Ripples Speed",

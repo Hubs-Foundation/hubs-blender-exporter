@@ -32,19 +32,37 @@ class AmmoShape(HubsComponent):
         default="all")
 
     halfExtents: FloatVectorProperty(
-        name="Half Extents", description="Half dimensions of the collider. (Only used when fit is set to \"manual\" and type is set ot \"box\").", unit='LENGTH', subtype="XYZ_LENGTH", default=(0.5, 0.5, 0.5))
+        name="Half Extents",
+        description="Half dimensions of the collider. (Only used when fit is set to \"manual\" and type is set ot \"box\").",
+        unit='LENGTH',
+        subtype="XYZ",
+        default=(0.5, 0.5, 0.5))
 
     minHalfExtent: FloatProperty(
-        name="Min Half Extent", description="The minimum size to use when automatically generating half extents. (Only used when fit is set to \"all\" and type is set ot \"box\")", unit="LENGTH", default=0.0)
+        name="Min Half Extent",
+        description="The minimum size to use when automatically generating half extents. (Only used when fit is set to \"all\" and type is set ot \"box\")",
+        unit="LENGTH",
+        default=0.0)
 
     maxHalfExtent: FloatProperty(
-        name="Max Half Extent", description="The maximum size to use when automatically generating half extents. (Only used when fit is set to \"all\" and type is set ot \"box\")", unit="LENGTH", default=1000.0)
+        name="Max Half Extent",
+        description="The maximum size to use when automatically generating half extents. (Only used when fit is set to \"all\" and type is set ot \"box\")",
+        unit="LENGTH",
+        default=1000.0)
 
     sphereRadius: FloatProperty(
-        name="Sphere Radius", description="Radius of the sphere collider. (Only used when fit is set to \"manual\" and type is set ot \"sphere\")", unit="LENGTH", default=0.5)
+        name="Sphere Radius",
+        description="Radius of the sphere collider. (Only used when fit is set to \"manual\" and type is set ot \"sphere\")",
+        unit="LENGTH",
+        default=0.5)
 
     offset: FloatVectorProperty(
-        name="Offset", description="An offset to apply to the collider relative to the object's origin.", unit='LENGTH', subtype="XYZ", default=(0.0, 0.0, 0.0))
+        name="Offset", description="An offset to apply to the collider relative to the object's origin.",
+        unit='LENGTH',
+        subtype="XYZ",
+        default=(0.0, 0.0, 0.0))
 
     includeInvisible: BoolProperty(
-        name="Include Invisible", description="Include invisible objects when generating a collider. (Only used if \"fit\" is set to \"all\")", default=False)
+        name="Include Invisible",
+        description="Include invisible objects when generating a collider. (Only used if \"fit\" is set to \"all\")",
+        default=False)

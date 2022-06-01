@@ -208,9 +208,14 @@ def gather_vec_property(export_settings, blender_object, target, property_name):
     vec = getattr(target, property_name)
 
     property_definition = target.bl_rna.properties[property_name]
-    subtype = getattr(property_definition, 'subtype', None)
-    if subtype and subtype == "COORDS":
-        out = [vec[0], vec[1]]
+    unit = getattr(property_definition, 'unit', None)
+
+    # We export vectors with no unit as arrays. This is not ideal, we should find a way to tag properties
+    # as Array/Object to decouple the Blender type from the export type.
+    if unit == 'NONE':
+        out = []
+        for value in vec:
+            out.append(value)
     else:
         out = {
             "x": vec[0],

@@ -16,11 +16,13 @@ class UVScroll(HubsComponent):
     speed: FloatVectorProperty(name="Speed",
                                description="Speed",
                                size=2,
+                               subtype="XYZ",
                                default=[0, 0])
 
     increment: FloatVectorProperty(name="Increment",
                                    description="Increment",
                                    size=2,
+                                   subtype="XYZ",
                                    default=[0, 0])
 
     def draw(self, context, layout):

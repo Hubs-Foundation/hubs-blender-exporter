@@ -8,68 +8,23 @@ on:
 
 env:
   CI: true
-  BLENDER_MAJOR: 3
-  BLENDER_MINOR: 1
-  BLENDER_PATCH: 2
 
 jobs:
-  build:
-
+  test:
+    uses: ./.github/workflows/test.yml
+    with:
+      versions: >-
+        ["3.1.2", "2.93.9"]
+        
+  publish:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-
+    needs: test
     steps:
-
-    - uses: actions/checkout@v2
-
-    # Finds latest Blender build, and outputs the hosted build's download URL.
-    - name: Find latest Blender build
-      id: blender_version
-      run: |
-        echo "Looking for Blender $BLENDER_MAJOR.$BLENDER_MINOR.${BLENDER_PATCH}"
-        BLENDER_URL="https://download.blender.org/release/Blender${BLENDER_MAJOR}.${BLENDER_MINOR}/blender-${BLENDER_MAJOR}.${BLENDER_MINOR}.${BLENDER_PATCH}-linux-x64.tar.xz"
-        echo "::set-output name=blender-url::$BLENDER_URL"
-    # Loads a cached build of Blender if available. If not available, this step
-    # enqueues the /opt/blender directory to be cached after tests pass.
-    - id: blender_cache
-      uses: actions/cache@v2
-      env:
-        cache-name: cache-blender
-      with:
-        path: /opt/blender
-        key: ${{ steps.blender_version.outputs.blender-url }}
-
-    # Downloads a build from blender.org, if a cached version was not available.
-    - name: Download Blender
-      if: ${{ !steps.blender_cache.outputs.cache-hit }}
-      run: |
-        mkdir /opt/blender
-        echo "Downloading: ${{ steps.blender_version.outputs.blender-url }}"
-        curl -SL "${{ steps.blender_version.outputs.blender-url }}" | \
-          tar -Jx -C /opt/blender --strip-components=1
-    - name: Set up workspace
-      run: |
-        sudo ln -s /opt/blender/blender /usr/local/bin/blender
-        blender --version
-        ADDON_DIR=/opt/blender/$BLENDER_MAJOR.$BLENDER_MINOR/scripts/addons
-        rm -rf $ADDON_DIR/io_hubs_addon
-        cp -r addons/io_hubs_addon $ADDON_DIR
-        cd tests
-        yarn install
-        mkdir -p out
-    - name: Run tests
-      run: |
-        cd tests
-        OUT_PREFIX=$GITHUB_WORKSPACE/tests/out yarn test-bail --reporter-options reportDir=out/mochawesome
-    - name: Upload test artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: test-output
-        path: tests/out/mochawesome
-        if-no-files-found: error
-    - name: Upload addon artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: io_hubs_addon
-        path: addons
-        if-no-files-found: error
+      - uses: actions/checkout@v2
+      - name: Upload addon artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: io_hubs_addon
+          path: addons
+          if-no-files-found: error

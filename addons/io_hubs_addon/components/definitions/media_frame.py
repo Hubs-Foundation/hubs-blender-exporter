@@ -53,7 +53,7 @@ class MediaFrame(HubsComponent):
         name="Bounds",
         description="Bounding box to fit objects into when they are snapped into the media frame.",
         unit='LENGTH',
-        subtype="XYZ_LENGTH",
+        subtype="XYZ",
         default=(2.0, 2.0, 2.0),
         update=update_object_bounds)
 

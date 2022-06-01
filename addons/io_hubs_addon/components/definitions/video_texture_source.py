@@ -1,3 +1,4 @@
+from ..utils import children_recursive
 from bpy.props import IntVectorProperty, IntProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
@@ -16,7 +17,6 @@ class VideoTextureSource(HubsComponent):
     resolution: IntVectorProperty(name="Resolution",
                                   description="Resolution",
                                   size=2,
-                                  subtype='COORDINATES',
                                   default=[1280, 720])
 
     fps: IntProperty(
@@ -25,4 +25,4 @@ class VideoTextureSource(HubsComponent):
     @classmethod
     def poll(cls, context):
         # TODO Should we listen to scene graph updates and remove the component if this is no longer satisfied to avoid dangling components?
-        return context.object.type == 'CAMERA' or [x for x in context.object.children_recursive if x.type == "CAMERA"]
+        return context.object.type == 'CAMERA' or [x for x in children_recursive(context.object) if x.type == "CAMERA"]
