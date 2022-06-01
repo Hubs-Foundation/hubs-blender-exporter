@@ -209,10 +209,11 @@ def gather_vec_property(export_settings, blender_object, target, property_name):
 
     property_definition = target.bl_rna.properties[property_name]
     unit = getattr(property_definition, 'unit', None)
+    subtype = getattr(property_definition, 'subtype', None)
 
-    # We export vectors with no unit as arrays. This is not ideal, we should find a way to tag properties
-    # as Array/Object to decouple the Blender type from the export type.
-    if unit == 'NONE':
+    # We export vectors with no unit and no subtype as arrays. This is not ideal, we should find a way
+    # to tag properties as Array/Object to decouple the Blender type from the export type.
+    if unit == 'NONE' and subtype == 'NONE':
         out = []
         for value in vec:
             out.append(value)
