@@ -12,6 +12,7 @@ class AddHubsComponent(Operator):
     bl_idname = "wm.add_hubs_component"
     bl_label = "Add Hubs Component"
     bl_property = "component_name"
+    bl_options = {'REGISTER', 'UNDO'}
 
     panel_type: StringProperty(name="panel_type")
     component_name: StringProperty(name="component_name")
@@ -110,6 +111,7 @@ class AddHubsComponent(Operator):
 class RemoveHubsComponent(Operator):
     bl_idname = "wm.remove_hubs_component"
     bl_label = "Remove Hubs Component"
+    bl_options = {'REGISTER', 'UNDO'}
 
     panel_type: StringProperty(name="panel_type")
     component_name: StringProperty(name="component_name")
