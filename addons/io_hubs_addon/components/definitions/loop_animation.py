@@ -6,8 +6,8 @@ from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 
 
-class ActionsList(bpy.types.UIList):
-    bl_idname = "HUBS_UL_ACTIONS_list"
+class TracksList(bpy.types.UIList):
+    bl_idname = "HUBS_UL_TRACKS_list"
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         key_block = item
@@ -15,6 +15,7 @@ class ActionsList(bpy.types.UIList):
             split = layout.split(factor=0.90, align=False)
             split.prop(key_block, "name", text="",
                        emboss=False, icon_value=icon)
+            split.enabled = False
             row = split.row(align=True)
             row.emboss = 'NONE_OR_STATUS'
         elif self.layout_type == 'GRID':
@@ -22,17 +23,17 @@ class ActionsList(bpy.types.UIList):
             layout.label(text="", icon_value=icon)
 
 
-class AddActionOperator(Operator):
-    bl_idname = "hubs_loop_animation.add_action"
-    bl_label = "Add Action"
+class AddTrackOperator(Operator):
+    bl_idname = "hubs_loop_animation.add_track"
+    bl_label = "Add Track"
 
-    action_name: StringProperty(
-        name="Action Name", description="Action Name", default="")
+    track_name: StringProperty(
+        name="Track Name", description="Track Name", default="")
 
     def execute(self, context):
         ob = context.object
-        action = ob.hubs_component_loop_animation.actions_list.add()
-        action.name = self.action_name
+        track = ob.hubs_component_loop_animation.tracks_list.add()
+        track.name = self.track_name
 
         return {'FINISHED'}
 
@@ -40,64 +41,66 @@ class AddActionOperator(Operator):
         return self.execute(context)
 
 
-class RemoveActionOperator(Operator):
-    bl_idname = "hubs_loop_animation.remove_action"
-    bl_label = "Remove Action"
+class RemoveTrackOperator(Operator):
+    bl_idname = "hubs_loop_animation.remove_track"
+    bl_label = "Remove Track"
 
     @classmethod
     def poll(self, context):
-        return context.object.hubs_component_loop_animation.active_action_key != -1
+        return context.object.hubs_component_loop_animation.active_track_key != -1
 
     def execute(self, context):
         ob = context.object
 
-        active_action_key = ob.hubs_component_loop_animation.active_action_key
-        ob.hubs_component_loop_animation.actions_list.remove(
-            active_action_key)
+        active_track_key = ob.hubs_component_loop_animation.active_track_key
+        ob.hubs_component_loop_animation.tracks_list.remove(
+            active_track_key)
 
         return {'FINISHED'}
 
 
-def has_action(actions_list, action):
+def has_track(tracks_list, track):
     exists = False
-    for item in actions_list:
-        if item.name == action:
+    for item in tracks_list:
+        if item.name == track:
             exists = True
             break
 
     return exists
 
 
-class ActionsContextMenu(Menu):
-    bl_idname = "HUBS_MT_ACTIONS_context_menu"
-    bl_label = "Actions Specials"
+class TracksContextMenu(Menu):
+    bl_idname = "HUBS_MT_TRACKS_context_menu"
+    bl_label = "Tracks Specials"
 
     def draw(self, context):
-        no_actions = True
-        for a in bpy.data.actions:
-            if not has_action(context.object.hubs_component_loop_animation.actions_list, a.name):
-                self.layout.operator(AddActionOperator.bl_idname, icon='OBJECT_DATA',
-                                     text=a.name).action_name = a.name
-                no_actions = False
+        no_tracks = True
+        ob = context.object
+        if ob.animation_data:
+            for _, a in enumerate(ob.animation_data.nla_tracks):
+                if not has_track(context.object.hubs_component_loop_animation.tracks_list, a.name):
+                    self.layout.operator(AddTrackOperator.bl_idname, icon='OBJECT_DATA',
+                                         text=a.name).track_name = a.name
+                    no_tracks = False
 
-        if no_actions:
-            self.layout.label(text="No actions found")
+        if no_tracks:
+            self.layout.label(text="No tracks found")
 
 
-class ActionPropertyType(PropertyGroup):
+class TrackPropertyType(PropertyGroup):
     name: StringProperty(
-        name="Action name",
-        description="Action Name",
+        name="Track name",
+        description="Track Name",
         default=""
     )
 
 
-bpy.utils.register_class(ActionPropertyType)
+bpy.utils.register_class(TrackPropertyType)
 
 
 @atexit.register
 def unregister():
-    bpy.utils.unregister_class(ActionPropertyType)
+    bpy.utils.unregister_class(TrackPropertyType)
 
 
 class LoopAnimation(HubsComponent):
@@ -110,8 +113,8 @@ class LoopAnimation(HubsComponent):
         'icon': 'LOOP_BACK'
     }
 
-    actions_list: CollectionProperty(
-        type=ActionPropertyType)
+    tracks_list: CollectionProperty(
+        type=TrackPropertyType)
 
     clip: StringProperty(
         name="Animation Clip",
@@ -120,9 +123,9 @@ class LoopAnimation(HubsComponent):
         options={'HIDDEN', 'SKIP_SAVE'}
     )
 
-    active_action_key: IntProperty(
-        name="Active action index",
-        description="Active action index",
+    active_track_key: IntProperty(
+        name="Active track index",
+        description="Active track index",
         default=-1
     )
 
@@ -136,13 +139,13 @@ class LoopAnimation(HubsComponent):
         layout.label(text='Animations to play:')
 
         row = layout.row()
-        row.template_list(ActionsList.bl_idname, "", self,
-                          "actions_list", self, "active_action_key", rows=3)
+        row.template_list(TracksList.bl_idname, "", self,
+                          "tracks_list", self, "active_track_key", rows=3)
 
         col = row.column(align=True)
 
-        col.menu(ActionsContextMenu.bl_idname, icon='ADD', text="")
-        col.operator(RemoveActionOperator.bl_idname,
+        col.menu(TracksContextMenu.bl_idname, icon='ADD', text="")
+        col.operator(RemoveTrackOperator.bl_idname,
                      icon='REMOVE', text="")
 
         layout.separator()
@@ -152,30 +155,30 @@ class LoopAnimation(HubsComponent):
     def gather(self, export_settings, object):
         return {
             'clip': ",".join(
-                object.hubs_component_loop_animation.actions_list.keys()),
+                object.hubs_component_loop_animation.tracks_list.keys()),
             'paused': self.paused
         }
 
     @staticmethod
     def register():
-        bpy.utils.register_class(ActionsList)
-        bpy.utils.register_class(ActionsContextMenu)
-        bpy.utils.register_class(AddActionOperator)
-        bpy.utils.register_class(RemoveActionOperator)
+        bpy.utils.register_class(TracksList)
+        bpy.utils.register_class(TracksContextMenu)
+        bpy.utils.register_class(AddTrackOperator)
+        bpy.utils.register_class(RemoveTrackOperator)
 
     @staticmethod
     def unregister():
-        bpy.utils.unregister_class(ActionsList)
-        bpy.utils.unregister_class(ActionsContextMenu)
-        bpy.utils.unregister_class(AddActionOperator)
-        bpy.utils.unregister_class(RemoveActionOperator)
+        bpy.utils.unregister_class(TracksList)
+        bpy.utils.unregister_class(TracksContextMenu)
+        bpy.utils.unregister_class(AddTrackOperator)
+        bpy.utils.unregister_class(RemoveTrackOperator)
 
     @classmethod
     def migrate(cls):
         for ob in bpy.data.objects:
             if cls.get_name() in ob.hubs_component_list.items:
-                actions = ob.hubs_component_loop_animation.clip.split(",")
-                for action_name in actions:
-                    if not has_action(ob.hubs_component_loop_animation.actions_list, action_name):
-                        action = ob.hubs_component_loop_animation.actions_list.add()
-                        action.name = action_name.strip()
+                tracks = ob.hubs_component_loop_animation.clip.split(",")
+                for track_name in tracks:
+                    if not has_track(ob.hubs_component_loop_animation.tracks_list, track_name):
+                        track = ob.hubs_component_loop_animation.tracks_list.add()
+                        track.name = track_name.strip()
