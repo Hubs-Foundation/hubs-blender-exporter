@@ -92,6 +92,7 @@ class Waypoint(HubsComponent):
     @classmethod
     def create_gizmo(cls, ob, gizmo_group):
         widget = gizmo_group.gizmos.new(CustomModelGizmo.bl_idname)
+        widget.object = ob
         setattr(widget, "hubs_gizmo_shape", spawn_point.SHAPE)
         widget.setup()
         loc, rot, scale = ob.matrix_world.decompose()

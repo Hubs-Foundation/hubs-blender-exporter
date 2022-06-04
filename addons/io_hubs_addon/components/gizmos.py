@@ -3,18 +3,41 @@ from bpy.types import (Gizmo, GizmoGroup)
 from bpy.props import BoolProperty
 from .components_registry import get_component_by_name
 from bpy.app.handlers import persistent
+from mathutils import Vector
 
 
 def gizmo_update(obj, gizmo):
     gizmo.matrix_basis = obj.matrix_world.normalized()
 
 
+def process_input_axis(event, out_value, delta, axis_state):
+    if event.value == 'PRESS':
+        if event.type in ['X', 'Y', 'Z']:
+            axis = event.type.lower()
+            if not event.shift:
+                axis_state.xyz = (
+                    not getattr(axis_state, 'x') if axis == 'x' else False,
+                    not getattr(axis_state, 'y') if axis == 'y' else False,
+                    not getattr(axis_state, 'z') if axis == 'z' else False)
+            else:
+                axis_state.xyz = (False if axis == 'x' else not axis_state.x,
+                                  False if axis == 'y' else not axis_state.y,
+                                  False if axis == 'z' else not axis_state.z)
+
+    if not axis_state.x and not axis_state.y and not axis_state.z:
+        out_value += Vector((delta, delta, delta))
+    else:
+        if axis_state.x:
+            out_value.x += delta
+        if axis_state.y:
+            out_value.y += delta
+        if axis_state.z:
+            out_value.z += delta
+
+
 class CustomModelGizmo(Gizmo):
     """Generic gizmo to render all Hubs custom gizmos"""
     bl_idname = "GIZMO_GT_hba_gizmo"
-    bl_target_properties = (
-        {"id": "location", "type": 'FLOAT', "array_length": 3},
-    )
 
     def draw(self, context):
         self.draw_custom_shape(self.custom_shape)
@@ -27,6 +50,14 @@ class CustomModelGizmo(Gizmo):
             self.draw_options = ()
             self.custom_shape = self.new_custom_shape(
                 'TRIS', self.hubs_gizmo_shape)
+
+    def invoke(self, context, event):
+        if hasattr(self, "object"):
+            if not event.shift:
+                bpy.ops.object.select_all(action='DESELECT')
+            self.object.select_set(True)
+            bpy.context.view_layer.objects.active = self.object
+        return {'RUNNING_MODAL'}
 
     def modal(self, context, event, tweak):
         return {'RUNNING_MODAL'}

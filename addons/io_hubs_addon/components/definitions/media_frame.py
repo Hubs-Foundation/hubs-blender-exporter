@@ -1,41 +1,77 @@
 import bpy
 from bpy.props import EnumProperty, FloatVectorProperty, BoolProperty
-from ..gizmos import CustomModelGizmo
+from ..gizmos import CustomModelGizmo, process_input_axis
 from ..models import box
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
-from mathutils import Matrix
+from ..utils import flatten_mat
 from .networked import migrate_networked
-from bpy.app.handlers import persistent
+from mathutils import Matrix, Vector
 
 
-def get_gizmo_scale(ob):
-    if ob.type == 'MESH':
-        return ob.dimensions.copy() / 2
-    else:
-        return ob.scale.copy() * ob.empty_display_size
+class MediaFrameGizmo(CustomModelGizmo):
+    """MediaFrame gizmo"""
+    bl_idname = "GIZMO_GT_hba_mediaframe_gizmo"
+    bl_target_properties = (
+        {"id": "bounds", "type": 'FLOAT', "array_length": 3},
+    )
 
+    __slots__ = (
+        "init_mouse_y",
+        "init_value",
+        "out_value",
+        "axis_state"
+    )
 
-def get_gizmo_dimension(ob):
-    if ob.type == 'MESH':
-        return ob.dimensions.copy()
-    else:
-        return ob.scale.copy() * ob.empty_display_size * 2
+    def _update_offset_matrix(self):
+        loc, rot, _ = self.matrix_basis.decompose()
+        scale = self.target_get_value("bounds")
+        mat_out = Matrix.Translation(
+            loc) @ rot.normalized().to_matrix().to_4x4() @ Matrix.Diagonal(scale).to_4x4()
+        self.matrix_basis = mat_out
 
+    def draw(self, context):
+        self._update_offset_matrix()
+        self.draw_custom_shape(self.custom_shape)
 
-def update_object_bounds(self, context):
-    ob = context.object
-    if ob.type == 'MESH':
-        ob.dimensions = self.bounds.copy()
-    else:
-        ob.scale = self.bounds.copy() / ob.empty_display_size / 2
+    def draw_select(self, context, select_id):
+        self._update_offset_matrix()
+        self.draw_custom_shape(self.custom_shape, select_id=select_id)
 
+    def invoke(self, context, event):
+        self.init_mouse_y = event.mouse_y
+        self.init_value = Vector(self.target_get_value("bounds"))
+        self.out_value = Vector(self.target_get_value("bounds"))
+        self.axis_state = Vector((False, False, False))
+        return super().invoke(context, event)
 
-@persistent
-def update_bounds_handler(dummy):
-    ob = bpy.context.object
-    if ob and MediaFrame.get_name() in ob.hubs_component_list.items:
-        ob.hubs_component_media_frame.bounds = get_gizmo_dimension(ob)
+    def exit(self, context, cancel):
+        context.area.header_text_set(None)
+        if cancel:
+            self.target_set_value("bounds", self.init_value)
+
+    def modal(self, context, event, tweak):
+        if event.type == 'ESC':
+            return {'FINISHED'}
+
+        delta = (event.mouse_y - self.init_mouse_y) / 100.0
+        if 'SNAP' in tweak:
+            delta = round(delta)
+        if 'PRECISE' in tweak:
+            delta /= 10.0
+
+        self.out_value.xyz = self.init_value.xyz
+        process_input_axis(event,
+                           self.out_value,
+                           delta,
+                           self.axis_state)
+
+        self.target_set_value("bounds", self.out_value)
+
+        context.area.header_text_set(
+            "Bounds %.4f %.4f %.4f" % self.out_value.to_tuple())
+
+        return {'RUNNING_MODAL'}
 
 
 class MediaFrame(HubsComponent):
@@ -54,8 +90,7 @@ class MediaFrame(HubsComponent):
         description="Bounding box to fit objects into when they are snapped into the media frame.",
         unit='LENGTH',
         subtype="XYZ",
-        default=(2.0, 2.0, 2.0),
-        update=update_object_bounds)
+        default=(1.0, 1.0, 1.0))
 
     mediaType: EnumProperty(
         name="Media Type",
@@ -74,14 +109,17 @@ class MediaFrame(HubsComponent):
         default=True
     )
 
-    @classmethod
-    def init(cls, ob):
-        ob.hubs_component_media_frame.bounds = get_gizmo_dimension(ob)
+    pre_scale_matrix: FloatVectorProperty(
+        name="Pre Scale",
+        description="Pre export scale",
+        options={'HIDDEN', 'SKIP_SAVE'},
+        subtype="MATRIX",
+        size=16)
 
     @classmethod
     def update_gizmo(cls, ob, gizmo):
         loc, rot, _ = ob.matrix_world.decompose()
-        scale = get_gizmo_scale(ob)
+        scale = gizmo.target_get_value("bounds")
         mat_out = Matrix.Translation(
             loc) @ rot.normalized().to_matrix().to_4x4() @ Matrix.Diagonal(scale).to_4x4()
         gizmo.matrix_basis = mat_out
@@ -89,14 +127,10 @@ class MediaFrame(HubsComponent):
 
     @classmethod
     def create_gizmo(cls, ob, gizmo_group):
-        widget = gizmo_group.gizmos.new(CustomModelGizmo.bl_idname)
+        widget = gizmo_group.gizmos.new(MediaFrameGizmo.bl_idname)
+        widget.object = ob
         setattr(widget, "hubs_gizmo_shape", box.SHAPE)
         widget.setup()
-        loc, rot, _ = ob.matrix_world.decompose()
-        scale = get_gizmo_scale(ob)
-        mat_out = Matrix.Translation(
-            loc) @ rot.normalized().to_matrix().to_4x4() @ Matrix.Diagonal(scale).to_4x4()
-        widget.matrix_basis = mat_out
         widget.use_draw_scale = False
         widget.use_draw_modal = True
         widget.color = (0.0, 0.0, 0.8)
@@ -107,10 +141,8 @@ class MediaFrame(HubsComponent):
         widget.color_highlight = (0.0, 0.0, 0.8)
         widget.alpha_highlight = 0.5
 
-        op = widget.target_set_operator("transform.resize")
-        op.constraint_axis = False, False, False
-        op.orient_type = 'LOCAL'
-        op.release_confirm = True
+        widget.target_set_prop(
+            "bounds", ob.hubs_component_media_frame, "bounds")
 
         return widget
 
@@ -120,25 +152,59 @@ class MediaFrame(HubsComponent):
 
     @staticmethod
     def register():
-        if not update_bounds_handler in bpy.app.handlers.depsgraph_update_post:
-            bpy.app.handlers.depsgraph_update_post.append(
-                update_bounds_handler)
+        bpy.utils.register_class(MediaFrameGizmo)
 
     @staticmethod
     def unregister():
-        if update_bounds_handler in bpy.app.handlers.depsgraph_update_post:
-            bpy.app.handlers.depsgraph_update_post.remove(
-                update_bounds_handler)
+        bpy.utils.unregister_class(MediaFrameGizmo)
+
+    def pre_export(self, export_settings, object):
+        ob = object
+
+        loc, rot, scale = ob.matrix_basis.decompose()
+
+        T = Matrix.Translation(loc)
+        R = rot.to_matrix().to_4x4()
+        S = Matrix.Diagonal(scale).to_4x4()
+
+        self.pre_scale_matrix = flatten_mat(S)
+
+        if hasattr(ob.data, "transform"):
+            ob.data.transform(S)
+
+        for c in ob.children:
+            c.matrix_local = S @ c.matrix_local
+
+        ob.matrix_basis = T @ R
+
+    def post_export(self, export_settings, object):
+        ob = object
+
+        loc, rot, _ = ob.matrix_basis.decompose()
+
+        T = Matrix.Translation(loc)
+        R = rot.to_matrix().to_4x4()
+        S = self.pre_scale_matrix
+
+        if hasattr(ob.data, "transform"):
+            S_inv = S.copy()
+            S_inv.invert()
+            ob.data.transform(S_inv)
+
+        for c in ob.children:
+            c.matrix_local = S @ c.matrix_local
+
+        ob.matrix_basis = T @ R @ S
 
     def gather(self, export_settings, object):
         bounds = {
-            'x': self.bounds.x / object.scale.x,
-            'y': self.bounds.y / object.scale.y,
-            'z': self.bounds.z / object.scale.z
+            'x': self.bounds.x * 2,
+            'y': self.bounds.y * 2,
+            'z': self.bounds.z * 2
         }
         if export_settings['gltf_yup']:
-            bounds['y'] = self.bounds.z / object.scale.z
-            bounds['z'] = self.bounds.y / object.scale.y
+            bounds['y'] = self.bounds.z * 2
+            bounds['z'] = self.bounds.y * 2
 
         return {
             'bounds': bounds,

@@ -30,6 +30,8 @@ def unregister():
 
 
 glTF2ExportUserExtension = gltf_exporter.glTF2ExportUserExtension
+glTF2_pre_export_callback = gltf_exporter.glTF2_pre_export_callback
+glTF2_post_export_callback = gltf_exporter.glTF2_post_export_callback
 
 
 def register_panel():

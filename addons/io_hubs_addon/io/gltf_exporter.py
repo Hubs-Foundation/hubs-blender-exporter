@@ -21,6 +21,34 @@ def get_version_string():
 orig_gather_gltf = gltf2_blender_export.__gather_gltf
 
 
+def glTF2_pre_export_callback(export_settings):
+    for ob in bpy.context.view_layer.objects:
+        component_list = ob.hubs_component_list
+
+        registered_hubs_components = get_components_registry()
+
+        if component_list.items:
+            for component_item in component_list.items:
+                component_name = component_item.name
+                component_class = registered_hubs_components[component_name]
+                component = getattr(ob, component_class.get_id())
+                component.pre_export(export_settings, ob)
+
+
+def glTF2_post_export_callback(export_settings):
+    for ob in bpy.context.view_layer.objects:
+        component_list = ob.hubs_component_list
+
+        registered_hubs_components = get_components_registry()
+
+        if component_list.items:
+            for component_item in component_list.items:
+                component_name = component_item.name
+                component_class = registered_hubs_components[component_name]
+                component = getattr(ob, component_class.get_id())
+                component.post_export(export_settings, ob)
+
+
 def patched_gather_gltf(exporter, export_settings):
     orig_gather_gltf(exporter, export_settings)
     export_user_extensions('hubs_gather_gltf_hook',
