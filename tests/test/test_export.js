@@ -590,9 +590,9 @@ describe('Exporter', function () {
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext['media-frame'], {
           "bounds": {
-            "x": 2,
-            "y": 2,
-            "z": 2
+            "x": 1,
+            "y": 1,
+            "z": 1
           },
           "mediaType": "all-2d",
           "snapToCenter": true
