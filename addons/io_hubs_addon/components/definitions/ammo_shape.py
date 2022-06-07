@@ -9,7 +9,7 @@ class AmmoShape(HubsComponent):
         'display_name': 'Ammo Shape',
         'category': Category.SCENE,
         'node_type': NodeType.NODE,
-        'panel_type': PanelType.OBJECT,
+        'panel_type': [PanelType.OBJECT],
         'icon': 'SCENE_DATA'
     }
 

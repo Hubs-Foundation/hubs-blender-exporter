@@ -9,7 +9,7 @@ class AmbientLight(HubsComponent):
         'display_name': 'Personal Space Invader',
         'category': Category.AVATAR,
         'node_type': NodeType.NODE,
-        'panel_type': PanelType.OBJECT,
+        'panel_type': [PanelType.OBJECT],
         'icon': 'MATSHADERBALL'
     }
 

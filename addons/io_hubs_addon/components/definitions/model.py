@@ -10,7 +10,7 @@ class Model(HubsComponent):
         'display_name': 'Model',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'panel_type': PanelType.OBJECT,
+        'panel_type': [PanelType.OBJECT],
         'icon': 'SCENE_DATA',
         'deps': ['networked']
     }

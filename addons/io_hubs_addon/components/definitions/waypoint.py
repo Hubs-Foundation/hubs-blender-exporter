@@ -28,7 +28,7 @@ class Waypoint(HubsComponent):
         'display_name': 'Waypoint',
         'category': Category.OBJECT,
         'node_type': NodeType.NODE,
-        'panel_type': PanelType.OBJECT,
+        'panel_type': [PanelType.OBJECT],
         'gizmo': 'waypoint',
         'icon': 'spawn-point.png',
         'deps': ['networked']

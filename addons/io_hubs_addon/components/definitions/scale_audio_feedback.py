@@ -9,7 +9,8 @@ class ScaleAudioFeedback(HubsComponent):
         'display_name': 'Scale Audio Feedback',
         'category': Category.AVATAR,
         'node_type': NodeType.NODE,
-        'panel_type': PanelType.BONE
+        'panel_type': [PanelType.OBJECT, PanelType.BONE],
+        'icon': 'GRAPH'
     }
 
     minScale: FloatProperty(name="Min Scale",

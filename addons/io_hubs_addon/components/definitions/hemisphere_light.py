@@ -9,7 +9,7 @@ class HemisphereLight(HubsComponent):
         'display_name': 'Hemisphere Light',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'panel_type': PanelType.OBJECT,
+        'panel_type': [PanelType.OBJECT],
         'icon': 'LIGHT_AREA'
     }
 

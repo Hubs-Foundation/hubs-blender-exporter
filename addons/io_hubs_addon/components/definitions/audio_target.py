@@ -17,7 +17,7 @@ class AudioTarget(HubsComponent):
         'display_name': 'Audio Target',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'panel_type': PanelType.OBJECT,
+        'panel_type': [PanelType.OBJECT],
         'deps': ['audio-params'],
         'icon': 'SPEAKER'
     }

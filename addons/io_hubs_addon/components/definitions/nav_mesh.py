@@ -8,7 +8,7 @@ class NavMesh(HubsComponent):
         'display_name': 'Navigation Mesh',
         'category': Category.SCENE,
         'node_type': NodeType.NODE,
-        'panel_type': PanelType.OBJECT,
+        'panel_type': [PanelType.OBJECT],
         'icon': 'GRID'
     }
 

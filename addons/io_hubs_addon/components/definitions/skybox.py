@@ -9,7 +9,7 @@ class Skybox(HubsComponent):
         'display_name': 'Skybox',
         'category': Category.SCENE,
         'node_type': NodeType.NODE,
-        'panel_type': PanelType.OBJECT,
+        'panel_type': [PanelType.OBJECT],
         'icon': 'MAT_SPHERE_SKY'
     }
 

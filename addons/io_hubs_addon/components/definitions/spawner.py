@@ -9,7 +9,7 @@ class Spawner(HubsComponent):
         'display_name': 'Spawner',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'panel_type': PanelType.OBJECT,
+        'panel_type': [PanelType.OBJECT],
         'icon': 'MOD_PARTICLE_INSTANCE'
     }
 

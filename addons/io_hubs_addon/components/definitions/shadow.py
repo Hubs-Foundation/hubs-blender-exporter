@@ -9,7 +9,7 @@ class Shadow(HubsComponent):
         'display_name': 'Shadow',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'panel_type': PanelType.OBJECT,
+        'panel_type': [PanelType.OBJECT],
         'icon': 'MOD_MASK'
     }
 

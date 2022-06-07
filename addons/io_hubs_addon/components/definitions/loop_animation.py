@@ -109,7 +109,7 @@ class LoopAnimation(HubsComponent):
         'display_name': 'Loop Animation',
         'category': Category.ANIMATION,
         'node_type': NodeType.NODE,
-        'panel_type': PanelType.OBJECT,
+        'panel_type': [PanelType.OBJECT],
         'icon': 'LOOP_BACK'
     }
 

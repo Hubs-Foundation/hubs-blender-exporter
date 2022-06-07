@@ -10,7 +10,7 @@ class VideoTextureSource(HubsComponent):
         'display_name': 'Video Texture Source',
         'category': Category.SCENE,
         'node_type': NodeType.NODE,
-        'panel_type': PanelType.OBJECT,
+        'panel_type': [PanelType.OBJECT],
         'icon': 'VIEW_CAMERA'
     }
 

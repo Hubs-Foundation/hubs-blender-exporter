@@ -33,7 +33,7 @@ class AddHubsComponent(Operator):
         # Filter components that are not targeted to this object type or their poll method call returns False
         def filter_source_type(cmp):
             (_, component_class) = cmp
-            return not component_class.is_dep_only() and component_class.get_panel_type() == PanelType(panel_type) and component_class.poll(context)
+            return not component_class.is_dep_only() and PanelType(panel_type) in component_class.get_panel_type() and component_class.poll(context)
 
         components_registry = get_components_registry()
         components_icons = get_components_icons()

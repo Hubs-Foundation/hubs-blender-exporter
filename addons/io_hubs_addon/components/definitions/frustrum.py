@@ -9,7 +9,7 @@ class Frustrum(HubsComponent):
         'display_name': 'Frustrum',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'panel_type': PanelType.OBJECT,
+        'panel_type': [PanelType.OBJECT],
         'icon': 'IMAGE_PLANE'
     }
 

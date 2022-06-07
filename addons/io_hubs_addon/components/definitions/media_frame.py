@@ -80,7 +80,7 @@ class MediaFrame(HubsComponent):
         'display_name': 'Media Frame',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'panel_type': PanelType.OBJECT,
+        'panel_type': [PanelType.OBJECT],
         'icon': 'OBJECT_DATA',
         'deps': ['networked']
     }

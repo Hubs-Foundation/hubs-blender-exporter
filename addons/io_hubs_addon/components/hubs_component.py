@@ -13,8 +13,8 @@ class HubsComponent(PropertyGroup):
         'category': Category.MISC,
         # Node type to where the component will be registered
         'node_type': NodeType.NODE,
-        # Panel type where to show this component
-        'panel_type': PanelType.OBJECT,
+        # Panel types where this component will be shown
+        'panel_type': [PanelType.OBJECT],
         # The dependencies of this component (by id). They will be added as a result of adding this component.
         'deps': [],
         # Name of the icon to load. It can be a image file in the icons directory or one of the Blender builtin icons id
@@ -46,7 +46,7 @@ class HubsComponent(PropertyGroup):
 
     @classmethod
     def get_panel_type(cls):
-        return cls.__get_definition('panel_type', PanelType.OBJECT)
+        return cls.__get_definition('panel_type', [PanelType.OBJECT])
 
     @classmethod
     def get_category(cls):

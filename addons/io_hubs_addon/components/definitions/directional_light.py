@@ -9,7 +9,7 @@ class DirectionalLight(HubsComponent):
         'display_name': 'Directional Light',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'panel_type': PanelType.OBJECT,
+        'panel_type': [PanelType.OBJECT],
         'icon': 'LIGHT_SUN'
     }
 

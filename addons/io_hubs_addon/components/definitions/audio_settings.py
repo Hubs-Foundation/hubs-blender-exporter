@@ -10,7 +10,7 @@ class AudioSettings(HubsComponent):
         'display_name': 'Audio Settings',
         'category': Category.SCENE,
         'node_type': NodeType.SCENE,
-        'panel_type': PanelType.SCENE,
+        'panel_type': [PanelType.SCENE],
         'icon': 'SPEAKER'
     }
 

@@ -9,7 +9,7 @@ class Text(HubsComponent):
         'display_name': 'Text',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'panel_type': PanelType.OBJECT,
+        'panel_type': [PanelType.OBJECT],
         'icon': 'FONT_DATA'
     }
 
