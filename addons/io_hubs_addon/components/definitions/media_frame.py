@@ -4,7 +4,7 @@ from ..gizmos import CustomModelGizmo, process_input_axis
 from ..models import box
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
-from ..utils import flatten_mat
+from ..utils import V_S1
 from .networked import migrate_networked
 from mathutils import Matrix, Vector
 
@@ -158,56 +158,25 @@ class MediaFrame(HubsComponent):
     def unregister():
         bpy.utils.unregister_class(MediaFrameGizmo)
 
-    def pre_export(self, export_settings, object):
-        ob = object
-
-        loc, rot, scale = ob.matrix_basis.decompose()
-
-        T = Matrix.Translation(loc)
-        R = rot.to_matrix().to_4x4()
-        S = Matrix.Diagonal(scale).to_4x4()
-
-        self.pre_scale_matrix = flatten_mat(S)
-
-        if hasattr(ob.data, "transform"):
-            ob.data.transform(S)
-
-        for c in ob.children:
-            c.matrix_local = S @ c.matrix_local
-
-        ob.matrix_basis = T @ R
-
-    def post_export(self, export_settings, object):
-        ob = object
-
-        loc, rot, _ = ob.matrix_basis.decompose()
-
-        T = Matrix.Translation(loc)
-        R = rot.to_matrix().to_4x4()
-        S = self.pre_scale_matrix
-
-        if hasattr(ob.data, "transform"):
-            S_inv = S.copy()
-            S_inv.invert()
-            ob.data.transform(S_inv)
-
-        for c in ob.children:
-            c.matrix_local = S @ c.matrix_local
-
-        ob.matrix_basis = T @ R @ S
-
     def gather(self, export_settings, object):
         bounds = {
-            'x': self.bounds.x * 2,
-            'y': self.bounds.y * 2,
-            'z': self.bounds.z * 2
+            'x': self.bounds.x,
+            'y': self.bounds.y,
+            'z': self.bounds.z
         }
         if export_settings['gltf_yup']:
-            bounds['y'] = self.bounds.z * 2
-            bounds['z'] = self.bounds.y * 2
+            bounds['y'] = self.bounds.z
+            bounds['z'] = self.bounds.y
 
         return {
             'bounds': bounds,
             'mediaType': self.mediaType,
             'snapToCenter': self.snapToCenter
         }
+
+    def draw(self, context, layout):
+        super().draw(context, layout)
+
+        if context.object.scale != V_S1:
+            layout.label(
+                text="The media-frame object scale needs to be [1,1,1]", icon='ERROR')

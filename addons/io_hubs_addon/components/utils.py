@@ -1,6 +1,9 @@
 import bpy
 from .components_registry import get_component_by_name
 from .gizmos import update_gizmos
+from mathutils import Vector
+
+V_S1 = Vector((1.0, 1.0, 1.0))
 
 
 def add_component(obj, component_name):
@@ -98,9 +101,3 @@ def children_recursive(ob):
         return ret
     else:
         return ob.children_recursive
-
-
-def flatten_mat(mat):
-    dim = len(mat)
-    return [mat[j][i] for i in range(dim)
-            for j in range(dim)]

@@ -90,7 +90,8 @@ class HubsComponent(PropertyGroup):
     def draw(self, context, layout):
         '''Draw method to be called by the panel. The base class method will print all the component properties'''
         for key in self.__annotations__.keys():
-            layout.prop(data=self, property=key)
+            if not self.bl_rna.properties[key].is_hidden:
+                layout.prop(data=self, property=key)
 
     def pre_export(self, export_settings, object):
         '''This is called by the exporter before starting the export process'''
