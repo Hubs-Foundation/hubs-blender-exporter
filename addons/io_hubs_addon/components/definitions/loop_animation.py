@@ -174,7 +174,7 @@ class LoopAnimation(HubsComponent):
         bpy.utils.unregister_class(RemoveTrackOperator)
 
     @classmethod
-    def migrate(cls):
+    def migrate(cls, version):
         for ob in bpy.data.objects:
             if cls.get_name() in ob.hubs_component_list.items:
                 tracks = ob.hubs_component_loop_animation.clip.split(",")

@@ -182,7 +182,7 @@ class MorphAudioFeedback(HubsComponent):
         bpy.utils.unregister_class(RemoveShapeKeyOperator)
 
     @classmethod
-    def migrate(cls):
+    def migrate(cls, version):
         for ob in bpy.data.objects:
             if cls.get_name() in ob.hubs_component_list.items:
                 shape_keys = ob.hubs_component_morph_audio_feedback.name.split(

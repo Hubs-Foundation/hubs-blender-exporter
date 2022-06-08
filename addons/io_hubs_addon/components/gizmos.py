@@ -39,6 +39,12 @@ class CustomModelGizmo(Gizmo):
     """Generic gizmo to render all Hubs custom gizmos"""
     bl_idname = "GIZMO_GT_hba_gizmo"
 
+    __slots__ = (
+        "object",
+        "hubs_gizmo_shape",
+        "custom_shape",
+    )
+
     def draw(self, context):
         self.draw_custom_shape(self.custom_shape)
 
@@ -47,7 +53,6 @@ class CustomModelGizmo(Gizmo):
 
     def setup(self):
         if hasattr(self, "hubs_gizmo_shape"):
-            self.draw_options = ()
             self.custom_shape = self.new_custom_shape(
                 'TRIS', self.hubs_gizmo_shape)
 

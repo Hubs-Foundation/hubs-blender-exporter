@@ -19,5 +19,5 @@ class Model(HubsComponent):
                         default="https://mozilla.org")
 
     @classmethod
-    def migrate(cls):
+    def migrate(cls, version):
         migrate_networked(cls.get_name())

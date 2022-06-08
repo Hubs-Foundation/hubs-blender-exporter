@@ -112,8 +112,10 @@ class HubsComponent(PropertyGroup):
         return {}
 
     @classmethod
-    def migrate(cls):
-        '''This is called when a new file is loaded to give the components a chance to migrate the data from previous add-on versions.'''
+    def migrate(cls, version):
+        '''This is called when a new file is loaded to give the components a chance to migrate the data from previous add-on versions.
+        The addon version used when the blend was last saved, as a tuple.
+        '''
         pass
 
     @classmethod

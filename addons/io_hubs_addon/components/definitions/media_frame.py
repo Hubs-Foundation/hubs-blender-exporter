@@ -1,6 +1,7 @@
 import bpy
 from bpy.props import EnumProperty, FloatVectorProperty, BoolProperty
-from ..gizmos import CustomModelGizmo, process_input_axis
+from bpy.types import (Gizmo)
+from ..gizmos import process_input_axis
 from ..models import box
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
@@ -9,7 +10,7 @@ from .networked import migrate_networked
 from mathutils import Matrix, Vector
 
 
-class MediaFrameGizmo(CustomModelGizmo):
+class MediaFrameGizmo(Gizmo):
     """MediaFrame gizmo"""
     bl_idname = "GIZMO_GT_hba_mediaframe_gizmo"
     bl_target_properties = (
@@ -17,10 +18,13 @@ class MediaFrameGizmo(CustomModelGizmo):
     )
 
     __slots__ = (
+        "object",
+        "hubs_gizmo_shape",
+        "custom_shape",
         "init_mouse_y",
         "init_value",
         "out_value",
-        "axis_state"
+        "axis_state",
     )
 
     def _update_offset_matrix(self):
@@ -43,7 +47,14 @@ class MediaFrameGizmo(CustomModelGizmo):
         self.init_value = Vector(self.target_get_value("bounds"))
         self.out_value = Vector(self.target_get_value("bounds"))
         self.axis_state = Vector((False, False, False))
-        return super().invoke(context, event)
+
+        if hasattr(self, "object"):
+            if not event.shift:
+                bpy.ops.object.select_all(action='DESELECT')
+            self.object.select_set(True)
+            bpy.context.view_layer.objects.active = self.object
+
+        return {'RUNNING_MODAL'}
 
     def exit(self, context, cancel):
         context.area.header_text_set(None)
@@ -72,6 +83,11 @@ class MediaFrameGizmo(CustomModelGizmo):
             "Bounds %.4f %.4f %.4f" % self.out_value.to_tuple())
 
         return {'RUNNING_MODAL'}
+
+    def setup(self):
+        if hasattr(self, "hubs_gizmo_shape"):
+            self.custom_shape = self.new_custom_shape(
+                'TRIS', self.hubs_gizmo_shape)
 
 
 class MediaFrame(HubsComponent):
@@ -140,8 +156,15 @@ class MediaFrame(HubsComponent):
         return widget
 
     @classmethod
-    def migrate(cls):
+    def migrate(cls, version):
         migrate_networked(cls.get_name())
+
+        if version[1] < 1:
+            for ob in bpy.data.objects:
+                if cls.get_name() in ob.hubs_component_list.items:
+                    bounds = ob.hubs_component_media_frame.bounds.copy()
+                    bounds = Vector((bounds.x, bounds.z, bounds.y))
+                    ob.hubs_component_media_frame.bounds = bounds
 
     @staticmethod
     def register():

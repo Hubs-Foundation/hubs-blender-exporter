@@ -116,5 +116,5 @@ class Waypoint(HubsComponent):
         return widget
 
     @classmethod
-    def migrate(cls):
+    def migrate(cls, version):
         migrate_networked(cls.get_name())

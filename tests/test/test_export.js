@@ -592,7 +592,7 @@ describe('Exporter', function () {
           "bounds": {
             "x": 1,
             "y": 1,
-            "z": 1
+            "z": 4
           },
           "mediaType": "all-2d",
           "snapToCenter": true

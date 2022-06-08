@@ -1,7 +1,7 @@
 from io_scene_gltf2.io.exp.gltf2_io_user_extensions import export_user_extensions
 from io_scene_gltf2.blender.exp import gltf2_blender_export
 import bpy
-from bpy.props import PointerProperty
+from bpy.props import PointerProperty, IntVectorProperty
 from ..components.components_registry import get_components_registry
 from .utils import gather_lightmap_texture_info
 
@@ -171,6 +171,7 @@ class HubsComponentsExtensionProperties(bpy.types.PropertyGroup):
         description='Include this extension in the exported glTF file.',
         default=True
     )
+    version: IntVectorProperty(size=3)
 
 
 class HubsGLTFExportPanel(bpy.types.Panel):
