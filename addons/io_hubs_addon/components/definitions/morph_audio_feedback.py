@@ -109,7 +109,8 @@ class MorphAudioFeedback(HubsComponent):
         'display_name': 'Morph Audio Feedback',
         'category': Category.AVATAR,
         'node_type': NodeType.NODE,
-        'panel_type': [PanelType.OBJECT]
+        'panel_type': [PanelType.OBJECT],
+        'icon': 'MOD_SMOOTH'
     }
 
     shape_keys_list: CollectionProperty(
