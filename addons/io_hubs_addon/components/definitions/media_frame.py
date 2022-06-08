@@ -109,13 +109,6 @@ class MediaFrame(HubsComponent):
         default=True
     )
 
-    pre_scale_matrix: FloatVectorProperty(
-        name="Pre Scale",
-        description="Pre export scale",
-        options={'HIDDEN', 'SKIP_SAVE'},
-        subtype="MATRIX",
-        size=16)
-
     @classmethod
     def update_gizmo(cls, ob, gizmo):
         loc, rot, _ = ob.matrix_world.decompose()
