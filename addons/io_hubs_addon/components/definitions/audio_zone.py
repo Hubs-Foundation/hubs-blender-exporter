@@ -7,13 +7,6 @@ from mathutils import Matrix
 from .networked import migrate_networked
 
 
-def get_gizmo_scale(ob):
-    if ob.type == 'MESH':
-        return ob.dimensions.copy() / 2
-    else:
-        return ob.scale.copy() * ob.empty_display_size
-
-
 class AudioZone(HubsComponent):
     _definition = {
         'name': 'audio-zone',
@@ -36,7 +29,7 @@ class AudioZone(HubsComponent):
     @classmethod
     def update_gizmo(cls, ob, gizmo):
         loc, rot, _ = ob.matrix_world.decompose()
-        scale = get_gizmo_scale(ob)
+        scale = ob.scale.copy()
         mat_out = Matrix.Translation(
             loc) @ rot.normalized().to_matrix().to_4x4() @ Matrix.Diagonal(scale).to_4x4()
         gizmo.matrix_basis = mat_out
@@ -49,7 +42,7 @@ class AudioZone(HubsComponent):
         setattr(widget, "hubs_gizmo_shape", box.SHAPE)
         widget.setup()
         loc, rot, _ = ob.matrix_world.decompose()
-        scale = get_gizmo_scale(ob)
+        scale = ob.scale.copy()
         mat_out = Matrix.Translation(
             loc) @ rot.normalized().to_matrix().to_4x4() @ Matrix.Diagonal(scale).to_4x4()
         widget.matrix_basis = mat_out
