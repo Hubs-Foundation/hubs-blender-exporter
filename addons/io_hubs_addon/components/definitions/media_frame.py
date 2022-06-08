@@ -170,6 +170,17 @@ class MediaFrame(HubsComponent):
     def draw(self, context, layout):
         super().draw(context, layout)
 
-        if context.object.scale != V_S1:
-            layout.label(
-                text="The media-frame object scale needs to be [1,1,1]", icon='ERROR')
+        parents = [context.object]
+        while parents:
+            parent = parents.pop()
+            if parent.scale != V_S1:
+                layout.label(
+                    text="The media-frame object, and it's parents, scale needs to be [1,1,1]", icon='ERROR')
+
+                break
+
+            if parent.parent:
+                parents.insert(0, parent.parent)
+
+            if parent.parent_bone:
+                parents.insert(0, parent.parent_bone)
