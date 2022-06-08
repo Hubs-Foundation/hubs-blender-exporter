@@ -1,14 +1,12 @@
 from bpy.props import FloatProperty, BoolProperty, PointerProperty
 from ..hubs_component import HubsComponent
-from ..utils import has_components
+from ..utils import has_component
 from ..types import Category, PanelType, NodeType
 from bpy.types import Object
 
-required_components = ['hubs_component_zone_audio_source']
-
 
 def filter_on_component(self, o):
-    return has_components(o, required_components)
+    return has_component(o, 'zone-audio-source')
 
 
 class AudioTarget(HubsComponent):
