@@ -65,13 +65,22 @@ def gather_node_property(export_settings, blender_object, target, property_name,
     blender_object = getattr(target, property_name)
 
     if blender_object:
-        node = gltf2_blender_gather_nodes.gather_node(
-            blender_object,
-            blender_object.library.name if blender_object.library else None,
-            blender_object.users_scene[0],
-            None,
-            export_settings
-        )
+        if bpy.app.version < (3, 2, 0):
+            node = gltf2_blender_gather_nodes.gather_node(
+                blender_object,
+                blender_object.library.name if blender_object.library else None,
+                blender_object.users_scene[0],
+                None,
+                export_settings
+            )
+        else:
+            vtree = export_settings['vtree']
+            vnode = vtree.nodes[next((uuid for uuid in vtree.nodes if (
+                vtree.nodes[uuid].blender_object == blender_object)), None)]
+            node = gltf2_blender_gather_nodes.gather_node(
+                vnode,
+                export_settings
+            )
 
         return {
             "__mhc_link_type": "node",
@@ -166,7 +175,12 @@ def gather_lightmap_texture_info(blender_material, export_settings):
     # TODO this assumes a single image directly connected to the socket
     blender_image = texture_socket.links[0].from_node.image
     texture = gather_texture(blender_image, export_settings)
-    tex_transform, tex_coord = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(texture_socket, export_settings)
+    if bpy.app.version < (3, 2, 0):
+        tex_transform, tex_coord = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
+            texture_socket, export_settings)
+    else:
+        tex_transform, tex_coord, _ = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
+            texture_socket, export_settings)
     texture_info = TextureInfo(
         extensions=gltf2_blender_gather_texture_info.__gather_extensions(tex_transform, export_settings),
         extras=None,
