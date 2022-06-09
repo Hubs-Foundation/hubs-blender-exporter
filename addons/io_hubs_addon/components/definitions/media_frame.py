@@ -197,7 +197,9 @@ class MediaFrame(HubsComponent):
         while parents:
             parent = parents.pop()
             if parent.scale != V_S1:
-                layout.label(
+                col = layout.column()
+                col.alert = True
+                col.label(
                     text="The media-frame object, and it's parents, scale needs to be [1,1,1]", icon='ERROR')
 
                 break
