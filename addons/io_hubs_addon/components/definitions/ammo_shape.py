@@ -1,6 +1,7 @@
 from bpy.props import FloatProperty, EnumProperty, FloatVectorProperty, BoolProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
+from ..utils import V_S1
 
 
 class AmmoShape(HubsComponent):
@@ -66,3 +67,23 @@ class AmmoShape(HubsComponent):
         name="Include Invisible",
         description="Include invisible objects when generating a collider. (Only used if \"fit\" is set to \"all\")",
         default=False)
+
+    def draw(self, context, layout):
+        super().draw(context, layout)
+
+        parents = [context.object]
+        while parents:
+            parent = parents.pop()
+            if parent.scale != V_S1:
+                col = layout.column()
+                col.alert = True
+                col.label(
+                    text="The ammo-shape object, and it's parents, scale needs to be [1,1,1]", icon='ERROR')
+
+                break
+
+            if parent.parent:
+                parents.insert(0, parent.parent)
+
+            if parent.parent_bone:
+                parents.insert(0, parent.parent_bone)
