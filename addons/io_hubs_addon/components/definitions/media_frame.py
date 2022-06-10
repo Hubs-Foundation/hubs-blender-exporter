@@ -48,11 +48,13 @@ class MediaFrameGizmo(Gizmo):
         self.out_value = Vector(self.target_get_value("bounds"))
         self.axis_state = Vector((False, False, False))
 
-        if hasattr(self, "object"):
-            if not event.shift:
-                bpy.ops.object.select_all(action='DESELECT')
-            self.object.select_set(True)
-            bpy.context.view_layer.objects.active = self.object
+        if not hasattr(self, "object") or not context.mode == 'OBJECT':
+            return {'CANCELLED'}
+
+        if not event.shift:
+            bpy.ops.object.select_all(action='DESELECT')
+        self.object.select_set(True)
+        bpy.context.view_layer.objects.active = self.object
 
         return {'RUNNING_MODAL'}
 
