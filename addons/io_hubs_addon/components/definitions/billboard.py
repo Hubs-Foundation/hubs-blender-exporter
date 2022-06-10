@@ -9,7 +9,7 @@ class Billboard(HubsComponent):
         'display_name': 'Billboard',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'panel_type': [PanelType.OBJECT],
+        'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'IMAGE_PLANE'
     }
 
