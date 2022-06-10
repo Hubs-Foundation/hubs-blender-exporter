@@ -85,5 +85,5 @@ class AmmoShape(HubsComponent):
             if parent.parent:
                 parents.insert(0, parent.parent)
 
-            if parent.parent_bone:
-                parents.insert(0, parent.parent_bone)
+            if hasattr(parent, 'parent_bone') and parent.parent_bone:
+                parents.insert(0, parent.parent.pose.bones[parent.parent_bone])
