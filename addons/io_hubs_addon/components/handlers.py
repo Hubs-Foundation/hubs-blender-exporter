@@ -7,8 +7,8 @@ from .components_registry import get_components_registry
 def migrate_components(dummy):
     components_registry = get_components_registry()
     for _, component_class in components_registry.items():
-        component_class.migrate(
-            bpy.context.scene.HubsComponentsExtensionProperties.version)
+        component_class.migrate(tuple(
+            bpy.context.scene.HubsComponentsExtensionProperties.version))
 
 
 @persistent

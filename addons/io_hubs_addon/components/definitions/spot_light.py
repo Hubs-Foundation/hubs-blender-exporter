@@ -1,6 +1,7 @@
 from bpy.props import FloatVectorProperty, FloatProperty, BoolProperty, IntVectorProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
+from math import pi
 
 
 class SpotLight(HubsComponent):
@@ -40,18 +41,18 @@ class SpotLight(HubsComponent):
         default=0.0,
         min=0.0,
         soft_min=0.0,
-        max=1.57079632679,
-        soft_max=1.57079632679)
+        max=pi / 2,
+        soft_max=pi / 2)
 
     outerConeAngle: FloatProperty(
         name="Cone Outer Angle",
         description="A double value describing the angle, in degrees, of a cone outside of which the volume will be reduced by a constant value, defined by the coneOuterGain attribute.",
         subtype="ANGLE",
-        default=0.78539816339,
-        min=0.0005729577951408,
-        soft_min=0.0005729577951408,
-        max=1.57079632679,
-        soft_max=1.57079632679)
+        default=pi / 4,
+        min=0.0,
+        soft_min=0.0,
+        max=pi / 2,
+        soft_max=pi / 2)
 
     decay: FloatProperty(name="Decay",
                          description="Decay",

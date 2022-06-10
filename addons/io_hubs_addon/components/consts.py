@@ -1,3 +1,5 @@
+from math import pi
+
 DISTACE_MODELS = [("inverse", "Inverse drop off (inverse)",
                   "Volume will decrease inversely with distance"),
                   ("linear", "Linear drop off (linear)",
@@ -5,7 +7,8 @@ DISTACE_MODELS = [("inverse", "Inverse drop off (inverse)",
                   ("exponential", "Exponential drop off (exponential)",
                   "Volume will decrease expoentially with distance")]
 
-MAX_ANGLE = 360.0
+
+MAX_ANGLE = 2 * pi
 
 PROJECTION_MODE = [("flat", "2D image (flat)", "Image will be shown on a 2D surface"),
                    ("360-equirectangular",

@@ -161,7 +161,7 @@ class MediaFrame(HubsComponent):
     def migrate(cls, version):
         migrate_networked(cls.get_name())
 
-        if version[1] < 1:
+        if version < (0, 1, 0):
             for ob in bpy.data.objects:
                 if cls.get_name() in ob.hubs_component_list.items:
                     bounds = ob.hubs_component_media_frame.bounds.copy()

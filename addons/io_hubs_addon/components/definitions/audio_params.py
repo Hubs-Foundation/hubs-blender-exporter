@@ -1,7 +1,9 @@
+import bpy
 from bpy.props import FloatProperty, EnumProperty
 from ..hubs_component import HubsComponent
 from ..types import PanelType, NodeType
 from ..consts import DISTACE_MODELS, MAX_ANGLE
+from math import degrees, radians
 
 AUDIO_TYPES = [("pannernode", "Positional audio (pannernode)",
                 "Volume will change depending on the listener's position relative to the source"),
@@ -65,31 +67,27 @@ class AudioParams(HubsComponent):
         min=0.0,
         soft_min=0.0)
 
-    # TODO Add migration support for this
-    # This should be subtype="ANGLE" but in the old addon we didn't enforce the subtype and if we do now we would have conversion issues
-    # when opening blend files saved with the previous addon version. If we migrate to ANGLE at some point we should make sure that we
-    # export as degrees as that's what the client expects.
     coneInnerAngle: FloatProperty(
         name="Cone Inner Angle",
         description="A double value describing the angle, in degrees, of a cone inside of which there will be no volume reduction.",
+        subtype="ANGLE",
         default=MAX_ANGLE,
         min=0.0,
         soft_min=0.0,
         max=MAX_ANGLE,
-        soft_max=MAX_ANGLE)
+        soft_max=MAX_ANGLE,
+        precision=2)
 
-    # TODO Add migration support for this
-    # This should be subtype="ANGLE" but in the old addon we didn't enforce the subtype and if we do now we would have conversion issues
-    # when opening blend files saved with the previous addon version. If we migrate to ANGLE at some point we should make sure that we
-    # export as degrees as that's what the client expects.
     coneOuterAngle: FloatProperty(
         name="Cone Outer Angle",
         description="A double value describing the angle, in degrees, of a cone outside of which the volume will be reduced by a constant value, defined by the coneOuterGain attribute.",
+        subtype="ANGLE",
         default=0.0,
         min=0.0,
         soft_min=0.0,
         max=MAX_ANGLE,
-        soft_max=MAX_ANGLE)
+        soft_max=MAX_ANGLE,
+        precision=2)
 
     coneOuterGain: FloatProperty(
         name="Cone Outer Gain",
@@ -97,3 +95,24 @@ class AudioParams(HubsComponent):
         default=0.0,
         min=0.0,
         soft_min=0.0)
+
+    def gather(self, export_settings, object):
+        return {
+            'audioType': self.audioType,
+            'distanceModel': self.distanceModel,
+            'gain': self.gain,
+            'refDistance': self.refDistance,
+            'rolloffFactor': self.rolloffFactor,
+            'maxDistance': self.maxDistance,
+            'coneInnerAngle': round(degrees(self.coneInnerAngle), 2),
+            'coneOuterAngle': round(degrees(self.coneOuterAngle), 2),
+            'coneOuterGain': self.coneOuterGain
+        }
+
+    @classmethod
+    def migrate(cls, version):
+        if version < (0, 1, 0):
+            for ob in bpy.data.objects:
+                if cls.get_name() in ob.hubs_component_list.items:
+                    ob.hubs_component_audio_params.coneInnerAngle = radians(
+                        ob.hubs_component_audio_params.coneInnerAngle)
