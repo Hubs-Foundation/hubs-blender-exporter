@@ -426,9 +426,7 @@ describe('Exporter', function () {
           "willDisableMotion": false,
           "willDisableTeleporting": false,
           "snapToNavMesh": false,
-          "willMaintainInitialOrientation": false,
-          "willMaintainWorldUp": true,
-          "isOccupied": false
+          "willMaintainInitialOrientation": false
         });
         assert.strictEqual(utils.UUID_REGEX.test(ext['networked']['id']), true);
       });
