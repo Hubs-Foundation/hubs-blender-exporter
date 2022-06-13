@@ -35,47 +35,38 @@ class Waypoint(HubsComponent):
     }
 
     canBeSpawnPoint: BoolProperty(
-        name="canBeSpawnPoint",
+        name="Use As Spawn Point",
         description="Avatars may be teleported to this waypoint when entering the scene",
         default=False)
 
-    isOccupied: BoolProperty(
-        name="isOccupied",
-        default=False)
-
     canBeOccupied: BoolProperty(
-        name="canBeOccupied",
+        name="Can Be Occupied",
         description="After each use, this waypoint will be disabled until the previous user moves away from it",
         default=False)
 
     canBeClicked: BoolProperty(
-        name="canBeClicked",
+        name="Clickable",
         description="This waypoint will be visible in pause mode and clicking on it will teleport you to it",
         default=False)
 
     willDisableMotion: BoolProperty(
-        name="willDisableMotion",
+        name="Disable Motion",
         description="Avatars will not be able to move while occupying his waypoint",
         default=False)
 
     willDisableTeleporting: BoolProperty(
-        name="willDisableTeleporting",
+        name="Disable Teleporting",
         description="Avatars will not be able to teleport while occupying this waypoint",
         default=False)
 
     willMaintainInitialOrientation: BoolProperty(
-        name="willMaintainInitialOrientation",
+        name="Maintain Initial Orientation",
         description="Instead of rotating to face the same direction as the waypoint, avatars will maintain the orientation they started with before they teleported",
         default=False)
 
     snapToNavMesh: BoolProperty(
-        name="snapToNavMesh",
+        name="Snap To NavMesh",
         description="Avatars will move as close as they can to this waypoint but will not leave the ground",
-        default=False)
-
-    willMaintainWorldUp: BoolProperty(
-        name="willMaintainWorldUp",
-        description="Instead of rotating to face the same direction as the waypoint, users will maintain the orientation they started with before they teleported",
         default=False)
 
     @classmethod
