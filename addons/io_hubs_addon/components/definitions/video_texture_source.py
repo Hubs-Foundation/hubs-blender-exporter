@@ -22,7 +22,11 @@ class VideoTextureSource(HubsComponent):
     fps: IntProperty(
         name="FPS", description="FPS", default=15)
 
-    @classmethod
-    def poll(cls, context):
-        # TODO Should we listen to scene graph updates and remove the component if this is no longer satisfied to avoid dangling components?
-        return context.object.type == 'CAMERA' or [x for x in children_recursive(context.object) if x.type == "CAMERA"]
+    def draw(self, context, layout):
+        if context.object.type == 'CAMERA' or [x for x in children_recursive(context.object) if x.type == "CAMERA"]:
+            super().draw(context, layout)
+        else:
+            col = layout.column()
+            col.alert = True
+            col.label(text='No camera found in the object hierarchy',
+                      icon='ERROR')
