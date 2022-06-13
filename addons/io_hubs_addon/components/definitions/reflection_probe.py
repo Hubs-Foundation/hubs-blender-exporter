@@ -137,7 +137,7 @@ class ReflectionProbe(HubsComponent):
         'name': 'reflection-probe',
         'display_name': 'Reflection Probe',
         'category': Category.SCENE,
-        'node_type': NodeType. NODE,
+        'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT]
     }
 
