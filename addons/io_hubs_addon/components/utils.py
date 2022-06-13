@@ -29,10 +29,10 @@ def remove_component(obj, component_name):
     component_items = obj.hubs_component_list.items
     component_items.remove(component_items.find(component_name))
     component_class = get_component_by_name(component_name)
-    del obj[component_class.get_id()]
 
     component_class = get_component_by_name(component_name)
     if component_class:
+        del obj[component_class.get_id()]
         update_gizmos()
         for dep_name in component_class.get_deps():
             dep_class = get_component_by_name(dep_name)
