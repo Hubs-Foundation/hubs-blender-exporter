@@ -119,8 +119,7 @@ class LoopAnimation(HubsComponent):
     clip: StringProperty(
         name="Animation Clip",
         description="Animation clip to use",
-        default="",
-        options={'HIDDEN', 'SKIP_SAVE'}
+        default=""
     )
 
     active_track_key: IntProperty(
@@ -175,10 +174,11 @@ class LoopAnimation(HubsComponent):
 
     @classmethod
     def migrate(cls, version):
-        for ob in bpy.data.objects:
-            if cls.get_name() in ob.hubs_component_list.items:
-                tracks = ob.hubs_component_loop_animation.clip.split(",")
-                for track_name in tracks:
-                    if not has_track(ob.hubs_component_loop_animation.tracks_list, track_name):
-                        track = ob.hubs_component_loop_animation.tracks_list.add()
-                        track.name = track_name.strip()
+        if version < (0, 1, 0):
+            for ob in bpy.data.objects:
+                if cls.get_name() in ob.hubs_component_list.items:
+                    tracks = ob.hubs_component_loop_animation.clip.split(",")
+                    for track_name in tracks:
+                        if not has_track(ob.hubs_component_loop_animation.tracks_list, track_name):
+                            track = ob.hubs_component_loop_animation.tracks_list.add()
+                            track.name = track_name.strip()
