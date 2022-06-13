@@ -23,8 +23,10 @@ class Fog(HubsComponent):
 
     color: FloatVectorProperty(name="Color",
                                subtype='COLOR',
-                               default=(1.0, 1.0, 1.0),
-                               size=3)
+                               default=(1.0, 1.0, 1.0, 1.0),
+                               size=4,
+                               min=0,
+                               max=1)
 
     # TODO Make these properties to be displayed dynamically based on the fog type
     near: FloatProperty(
