@@ -30,9 +30,10 @@ def glTF2_pre_export_callback(export_settings):
         if component_list.items:
             for component_item in component_list.items:
                 component_name = component_item.name
-                component_class = registered_hubs_components[component_name]
-                component = getattr(ob, component_class.get_id())
-                component.pre_export(export_settings, ob)
+                if component_name in registered_hubs_components:
+                    component_class = registered_hubs_components[component_name]
+                    component = getattr(ob, component_class.get_id())
+                    component.pre_export(export_settings, ob)
 
 
 def glTF2_post_export_callback(export_settings):
@@ -44,9 +45,10 @@ def glTF2_post_export_callback(export_settings):
         if component_list.items:
             for component_item in component_list.items:
                 component_name = component_item.name
-                component_class = registered_hubs_components[component_name]
-                component = getattr(ob, component_class.get_id())
-                component.post_export(export_settings, ob)
+                if component_name in registered_hubs_components:
+                    component_class = registered_hubs_components[component_name]
+                    component = getattr(ob, component_class.get_id())
+                    component.post_export(export_settings, ob)
 
 
 def patched_gather_gltf(exporter, export_settings):
@@ -149,10 +151,15 @@ class glTF2ExportUserExtension:
 
             for component_item in component_list.items:
                 component_name = component_item.name
-                component_class = registered_hubs_components[component_name]
-                component = getattr(blender_object, component_class.get_id())
-                component_data[component_class.get_name()] = component.gather(
-                    export_settings, blender_object)
+                if component_name in registered_hubs_components:
+                    component_class = registered_hubs_components[component_name]
+                    component = getattr(
+                        blender_object, component_class.get_id())
+                    component_data[component_class.get_name()] = component.gather(
+                        export_settings, blender_object)
+                else:
+                    print('Could not export unsupported component "%s"' %
+                          (component_name))
 
             if gltf2_object.extensions is None:
                 gltf2_object.extensions = {}
