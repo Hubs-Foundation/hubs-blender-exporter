@@ -116,3 +116,5 @@ class AudioParams(HubsComponent):
                 if cls.get_name() in ob.hubs_component_list.items:
                     ob.hubs_component_audio_params.coneInnerAngle = radians(
                         ob.hubs_component_audio_params.coneInnerAngle)
+                    ob.hubs_component_audio_params.coneOuterAngle = radians(
+                        ob.hubs_component_audio_params.coneOuterAngle)
