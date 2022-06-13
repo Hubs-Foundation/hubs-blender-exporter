@@ -62,6 +62,8 @@ class MediaFrameGizmo(Gizmo):
         context.area.header_text_set(None)
         if cancel:
             self.target_set_value("bounds", self.init_value)
+            return
+        bpy.ops.ed.undo_push()
 
     def modal(self, context, event, tweak):
         if event.type == 'ESC':
