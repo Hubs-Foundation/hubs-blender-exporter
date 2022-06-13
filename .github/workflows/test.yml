@@ -35,7 +35,7 @@ jobs:
           cache-name: cache-blender
         with:
           path: /opt/blender
-          key: ${{ steps.blender_version.outputs.blender-url }}-1655119482
+          key: ${{ steps.blender_version.outputs.blender-url }}
       # Downloads a build from blender.org, if a cached version was not available.
       - name: Download Blender
         if: ${{ !steps.blender_cache.outputs.cache-hit }}
