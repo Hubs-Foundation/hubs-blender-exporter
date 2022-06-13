@@ -52,8 +52,6 @@ class AudioParams(HubsComponent):
     rolloffFactor: FloatProperty(
         name="Rolloff Factor",
         description="A double value describing how quickly the volume is reduced as the source moves away from the listener. This value is used by all distance models.",
-        subtype="DISTANCE",
-        unit="LENGTH",
         default=1.0,
         min=0.0,
         soft_min=0.0)
