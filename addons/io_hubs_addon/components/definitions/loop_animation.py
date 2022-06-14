@@ -13,9 +13,13 @@ class TracksList(bpy.types.UIList):
         key_block = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             split = layout.split(factor=0.90, align=False)
-            split.prop(key_block, "name", text="",
+            if context.object.animation_data and item.name in context.object.animation_data.nla_tracks:
+                split.prop(key_block, "name", text="",
                        emboss=False, icon_value=icon)
-            split.enabled = False
+                split.enabled = False
+            else:
+                split.prop(key_block, "name", text="",
+                       emboss=False, icon='ERROR')
             row = split.row(align=True)
             row.emboss = 'NONE_OR_STATUS'
         elif self.layout_type == 'GRID':
