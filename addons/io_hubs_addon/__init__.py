@@ -5,7 +5,7 @@ bl_info = {
     "author": "Mozilla Hubs",
     "description": "Tools for developing GLTF assets for Mozilla Hubs",
     "blender": (3, 1, 2),
-    "version": (0, 1, 0),
+    "version": (1, 0, 0),
     "location": "",
     "wiki_url": "https://github.com/MozillaReality/hubs-blender-exporter",
     "tracker_url": "https://github.com/MozillaReality/hubs-blender-exporter/issues",
@@ -13,6 +13,7 @@ bl_info = {
     "warning": "",
     "category": "Generic"
 }
+
 
 def register():
     gltf_exporter.register()

@@ -125,7 +125,7 @@ class AudioSettings(HubsComponent):
 
     @classmethod
     def migrate(cls, version):
-        if version < (0, 1, 0):
+        if version < (1, 0, 0):
             for scene in bpy.data.scenes:
                 if cls.get_name() in scene.hubs_component_list.items:
                     scene.hubs_component_audio_settings.mediaConeInnerAngle = radians(

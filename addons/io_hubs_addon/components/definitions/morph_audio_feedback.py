@@ -80,7 +80,7 @@ class MorphAudioFeedback(HubsComponent):
 
     @classmethod
     def migrate(cls, version):
-        if version < (0, 1, 0):
+        if version < (1, 0, 0):
             for ob in bpy.data.objects:
                 if cls.get_name() in ob.hubs_component_list.items:
                     component = ob.hubs_component_morph_audio_feedback
