@@ -9,7 +9,7 @@ class SimpleWater(HubsComponent):
         'display_name': 'Simple Water',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'panel_type': [PanelType.OBJECT],
+        'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'MOD_FLUIDSIM'
     }
 

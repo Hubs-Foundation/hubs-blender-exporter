@@ -3,36 +3,10 @@ from bpy.types import (Gizmo, GizmoGroup)
 from bpy.props import BoolProperty
 from .components_registry import get_component_by_name
 from bpy.app.handlers import persistent
-from mathutils import Vector
 
 
 def gizmo_update(obj, gizmo):
     gizmo.matrix_basis = obj.matrix_world.normalized()
-
-
-def process_input_axis(event, out_value, delta, axis_state):
-    if event.value == 'PRESS':
-        if event.type in ['X', 'Y', 'Z']:
-            axis = event.type.lower()
-            if not event.shift:
-                axis_state.xyz = (
-                    not getattr(axis_state, 'x') if axis == 'x' else False,
-                    not getattr(axis_state, 'y') if axis == 'y' else False,
-                    not getattr(axis_state, 'z') if axis == 'z' else False)
-            else:
-                axis_state.xyz = (False if axis == 'x' else not axis_state.x,
-                                  False if axis == 'y' else not axis_state.y,
-                                  False if axis == 'z' else not axis_state.z)
-
-    if not axis_state.x and not axis_state.y and not axis_state.z:
-        out_value += Vector((delta, delta, delta))
-    else:
-        if axis_state.x:
-            out_value.x += delta
-        if axis_state.y:
-            out_value.y += delta
-        if axis_state.z:
-            out_value.z += delta
 
 
 class CustomModelGizmo(Gizmo):
@@ -57,11 +31,12 @@ class CustomModelGizmo(Gizmo):
                 'TRIS', self.hubs_gizmo_shape)
 
     def invoke(self, context, event):
-        if hasattr(self, "object"):
+        if hasattr(self, "object") and context.mode == 'OBJECT':
             if not event.shift:
                 bpy.ops.object.select_all(action='DESELECT')
             self.object.select_set(True)
             bpy.context.view_layer.objects.active = self.object
+
         return {'RUNNING_MODAL'}
 
     def modal(self, context, event, tweak):
@@ -75,35 +50,85 @@ class HubsGizmoGroup(GizmoGroup):
     bl_region_type = 'WINDOW'
     bl_options = {'3D', 'PERSISTENT', 'SHOW_MODAL_ALL', 'SELECT'}
 
+    def add_gizmo(self, ob, name):
+        for component_item in ob.hubs_component_list.items:
+            component_name = component_item.name
+            component_class = get_component_by_name(component_name)
+            if not component_class:
+                continue
+            gizmo = component_class.create_gizmo(ob, self)
+            if gizmo:
+                if not component_name in self.widgets:
+                    self.widgets[component_name] = {}
+                if name not in self.widgets[component_name]:
+                    self.widgets[component_name][name] = gizmo
+
     def setup(self, context):
         self.widgets = {}
-        for ob in context.view_layer.objects:
-            for component_item in ob.hubs_component_list.items:
-                component_name = component_item.name
-                component_class = get_component_by_name(component_name)
-                if not component_class:
-                    continue
-                gizmo = component_class.create_gizmo(ob, self)
-                if gizmo:
-                    if not component_name in self.widgets:
-                        self.widgets[component_name] = {}
-                    self.widgets[component_name][ob.name] = gizmo
+
+        for ob in bpy.data.objects:
+            self.add_gizmo(ob, ob.name)
+            if ob.type == 'ARMATURE':
+                for bone in ob.data.bones:
+                    self.add_gizmo(bone, bone.name)
+                for edit_bone in ob.data.edit_bones:
+                    self.add_gizmo(edit_bone, edit_bone.name)
 
         self.refresh(context)
+
+    def remove_gizmo(self, component_name, ob_name):
+        gizmo = self.widgets[component_name][ob_name]
+        if gizmo:
+            self.gizmos.remove(gizmo)
+        del self.widgets[component_name][ob_name]
+
+    def update_gizmo(self, component_name, ob, bone, target, gizmo):
+        component_class = get_component_by_name(component_name)
+        component_class.update_gizmo(ob, bone, target, gizmo)
+
+    def update_object_gizmo(self, component_name, ob, gizmo):
+        if component_name not in ob.hubs_component_list.items:
+            self.remove_gizmo(component_name, ob.name)
+        else:
+            self.update_gizmo(component_name, ob, None, ob, gizmo)
+
+    def update_bone_gizmo(self, component_name, ob, bone, pose_bone, gizmo):
+        if component_name not in bone.hubs_component_list.items:
+            self.remove_gizmo(component_name, bone.name)
+        else:
+            self.update_gizmo(component_name, ob, pose_bone, bone, gizmo)
 
     def refresh(self, context):
         for component_name in self.widgets:
             components_widgets = self.widgets[component_name].copy()
-            for ob_name in components_widgets:
-                gizmo = components_widgets[ob_name]
+            for name in components_widgets:
+                gizmo = components_widgets[name]
                 if gizmo and gizmo in self.gizmos.values():
-                    if ob_name in bpy.data.objects:
-                        component_class = get_component_by_name(component_name)
-                        component_class.update_gizmo(
-                            bpy.data.objects[ob_name], gizmo)
-                    else:
+                    found = False
+                    for ob in bpy.data.objects:
+                        if ob.type == 'ARMATURE':
+                            # https://docs.blender.org/api/blender_python_api_2_71_release/info_gotcha.html#editbones-posebones-bone-bones
+                            if context.mode == 'EDIT_ARMATURE':
+                                if name in ob.data.edit_bones:
+                                    bone = ob.data.edit_bones[name]
+                                    self.update_bone_gizmo(
+                                        component_name, ob, bone, bone, gizmo)
+                                    found = True
+                            else:
+                                if name in ob.data.bones:
+                                    bone = ob.data.bones[name]
+                                    pose_bone = ob.pose.bones[name]
+                                    self.update_bone_gizmo(
+                                        component_name, ob, bone, pose_bone, gizmo)
+                                    found = True
+
+                        if name == ob.name:
+                            self.update_object_gizmo(
+                                component_name, ob, gizmo)
+                            found = True
+
+                    if not found:
                         self.gizmos.remove(gizmo)
-                        del self.widgets[component_name][ob_name]
 
 
 class delete_override(bpy.types.Operator):

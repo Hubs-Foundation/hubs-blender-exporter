@@ -1,13 +1,16 @@
 import bpy
 from bpy.props import EnumProperty, FloatVectorProperty, BoolProperty
-from bpy.types import (Gizmo)
-from ..gizmos import process_input_axis
+from bpy.types import (Gizmo, Bone, EditBone)
 from ..models import box
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ..utils import V_S1
 from .networked import migrate_networked
 from mathutils import Matrix, Vector
+
+
+def is_bone(ob):
+    return type(ob) == EditBone or type(ob) == Bone
 
 
 class MediaFrameGizmo(Gizmo):
@@ -18,13 +21,8 @@ class MediaFrameGizmo(Gizmo):
     )
 
     __slots__ = (
-        "object",
         "hubs_gizmo_shape",
         "custom_shape",
-        "init_mouse_y",
-        "init_value",
-        "out_value",
-        "axis_state",
     )
 
     def _update_offset_matrix(self):
@@ -42,52 +40,6 @@ class MediaFrameGizmo(Gizmo):
         self._update_offset_matrix()
         self.draw_custom_shape(self.custom_shape, select_id=select_id)
 
-    def invoke(self, context, event):
-        self.init_mouse_y = event.mouse_y
-        self.init_value = Vector(self.target_get_value("bounds"))
-        self.out_value = Vector(self.target_get_value("bounds"))
-        self.axis_state = Vector((False, False, False))
-
-        if not hasattr(self, "object") or not context.mode == 'OBJECT':
-            return {'CANCELLED'}
-
-        if not event.shift:
-            bpy.ops.object.select_all(action='DESELECT')
-        self.object.select_set(True)
-        bpy.context.view_layer.objects.active = self.object
-
-        return {'RUNNING_MODAL'}
-
-    def exit(self, context, cancel):
-        context.area.header_text_set(None)
-        if cancel:
-            self.target_set_value("bounds", self.init_value)
-            return
-        bpy.ops.ed.undo_push()
-
-    def modal(self, context, event, tweak):
-        if event.type == 'ESC':
-            return {'FINISHED'}
-
-        delta = (event.mouse_y - self.init_mouse_y) / 100.0
-        if 'SNAP' in tweak:
-            delta = round(delta)
-        if 'PRECISE' in tweak:
-            delta /= 10.0
-
-        self.out_value.xyz = self.init_value.xyz
-        process_input_axis(event,
-                           self.out_value,
-                           delta,
-                           self.axis_state)
-
-        self.target_set_value("bounds", self.out_value)
-
-        context.area.header_text_set(
-            "Bounds %.4f %.4f %.4f" % self.out_value.to_tuple())
-
-        return {'RUNNING_MODAL'}
-
     def setup(self):
         if hasattr(self, "hubs_gizmo_shape"):
             self.custom_shape = self.new_custom_shape(
@@ -100,7 +52,7 @@ class MediaFrame(HubsComponent):
         'display_name': 'Media Frame',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'panel_type': [PanelType.OBJECT],
+        'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'OBJECT_DATA',
         'deps': ['networked']
     }
@@ -130,34 +82,40 @@ class MediaFrame(HubsComponent):
     )
 
     @classmethod
-    def update_gizmo(cls, ob, gizmo):
-        loc, rot, _ = ob.matrix_world.decompose()
+    def update_gizmo(cls, ob, bone, target, gizmo):
+        gizmo.target_set_prop(
+            "bounds", target.hubs_component_media_frame, "bounds")
+
+        if bone:
+            mat = ob.matrix_world @ bone.matrix.to_4x4()
+            _, rot, _ = mat.decompose()
+            loc = bone.tail
+        else:
+            loc, rot, _ = ob.matrix_world.decompose()
+
         scale = gizmo.target_get_value("bounds")
         mat_out = Matrix.Translation(
             loc) @ rot.normalized().to_matrix().to_4x4() @ Matrix.Diagonal(scale).to_4x4()
         gizmo.matrix_basis = mat_out
-        gizmo.hide = not ob.visible_get()
 
     @classmethod
     def create_gizmo(cls, ob, gizmo_group):
-        widget = gizmo_group.gizmos.new(MediaFrameGizmo.bl_idname)
-        widget.object = ob
-        setattr(widget, "hubs_gizmo_shape", box.SHAPE)
-        widget.setup()
-        widget.use_draw_scale = False
-        widget.use_draw_modal = True
-        widget.color = (0.0, 0.0, 0.8)
-        widget.alpha = 1.0
-        widget.hide = not ob.visible_get()
-        widget.scale_basis = 1.0
-        widget.hide_select = False
-        widget.color_highlight = (0.0, 0.0, 0.8)
-        widget.alpha_highlight = 0.5
+        gizmo = gizmo_group.gizmos.new(MediaFrameGizmo.bl_idname)
+        setattr(gizmo, "hubs_gizmo_shape", box.SHAPE)
+        gizmo.setup()
+        gizmo.use_draw_scale = False
+        gizmo.use_draw_modal = False
+        gizmo.color = (0.0, 0.0, 0.8)
+        gizmo.alpha = 1.0
+        gizmo.scale_basis = 1.0
+        gizmo.hide_select = True
+        gizmo.color_highlight = (0.0, 0.0, 0.8)
+        gizmo.alpha_highlight = 0.5
 
-        widget.target_set_prop(
+        gizmo.target_set_prop(
             "bounds", ob.hubs_component_media_frame, "bounds")
 
-        return widget
+        return gizmo
 
     @classmethod
     def migrate(cls, version):

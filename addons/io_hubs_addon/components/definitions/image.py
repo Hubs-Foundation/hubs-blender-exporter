@@ -11,7 +11,7 @@ class Image(HubsComponent):
         'display_name': 'Image',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'panel_type': [PanelType.OBJECT],
+        'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'FILE_IMAGE',
         'deps': ['networked']
     }

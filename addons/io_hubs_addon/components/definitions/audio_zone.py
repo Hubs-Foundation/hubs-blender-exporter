@@ -13,7 +13,7 @@ class AudioZone(HubsComponent):
         'display_name': 'Audio Zone',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'panel_type': [PanelType.OBJECT],
+        'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'deps': ['networked', 'audio-params'],
         'icon': 'MATCUBE'
     }
@@ -27,42 +27,39 @@ class AudioZone(HubsComponent):
                         default=True)
 
     @classmethod
-    def update_gizmo(cls, ob, gizmo):
-        loc, rot, _ = ob.matrix_world.decompose()
-        scale = ob.scale.copy()
-        mat_out = Matrix.Translation(
-            loc) @ rot.normalized().to_matrix().to_4x4() @ Matrix.Diagonal(scale).to_4x4()
-        gizmo.matrix_basis = mat_out
+    def update_gizmo(cls, ob, bone, target, gizmo):
+        if bone:
+            _, _, wScale = ob.matrix_world.decompose()
+            scaleMat = Matrix.Diagonal(bone.bbone_scaleout).to_4x4(
+            ) @ Matrix.Diagonal(wScale).to_4x4()
+            mat = ob.matrix_world @ bone.matrix.to_4x4()
+            _, rot, _ = mat.decompose()
+            loc = bone.tail
+        else:
+            loc, rot, scale = ob.matrix_world.decompose()
+            scaleMat = Matrix.Diagonal(scale).to_4x4()
+
         gizmo.hide = not ob.visible_get()
+        gizmo.matrix_basis = Matrix.Translation(
+            loc) @ rot.normalized().to_matrix().to_4x4() @ scaleMat
 
     @classmethod
     def create_gizmo(cls, ob, gizmo_group):
-        widget = gizmo_group.gizmos.new(CustomModelGizmo.bl_idname)
-        widget.object = ob
-        setattr(widget, "hubs_gizmo_shape", box.SHAPE)
-        widget.setup()
-        loc, rot, _ = ob.matrix_world.decompose()
-        scale = ob.scale.copy()
-        mat_out = Matrix.Translation(
-            loc) @ rot.normalized().to_matrix().to_4x4() @ Matrix.Diagonal(scale).to_4x4()
-        widget.matrix_basis = mat_out
-        widget.use_draw_scale = False
-        widget.use_draw_modal = True
-        widget.line_width = 3
-        widget.color = (0.0, 0.8, 0.0)
-        widget.alpha = 1.0
-        widget.hide = not ob.visible_get()
-        widget.hide_select = False
-        widget.scale_basis = 1.0
-        widget.color_highlight = (0.0, 0.8, 0.0)
-        widget.alpha_highlight = 0.5
+        gizmo = gizmo_group.gizmos.new(CustomModelGizmo.bl_idname)
+        gizmo.object = ob
+        setattr(gizmo, "hubs_gizmo_shape", box.SHAPE)
+        gizmo.setup()
+        gizmo.use_draw_scale = False
+        gizmo.use_draw_modal = False
+        gizmo.line_width = 3
+        gizmo.color = (0.0, 0.8, 0.0)
+        gizmo.alpha = 1.0
+        gizmo.hide_select = True
+        gizmo.scale_basis = 1.0
+        gizmo.color_highlight = (0.0, 0.8, 0.0)
+        gizmo.alpha_highlight = 0.5
 
-        op = widget.target_set_operator("transform.resize")
-        op.constraint_axis = False, False, False
-        op.orient_type = 'LOCAL'
-        op.release_confirm = True
-
-        return widget
+        return gizmo
 
     @classmethod
     def migrate(cls, version):

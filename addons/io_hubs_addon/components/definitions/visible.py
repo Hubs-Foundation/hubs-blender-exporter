@@ -14,7 +14,7 @@ class Visible(HubsComponent):
         'display_name': 'Visible',
         'category': Category.OBJECT,
         'node_type': NodeType.NODE,
-        'panel_type': [PanelType.OBJECT],
+        'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'HIDE_OFF'
     }
 

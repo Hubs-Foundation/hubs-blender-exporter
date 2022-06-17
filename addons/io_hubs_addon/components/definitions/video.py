@@ -11,7 +11,7 @@ class Video(HubsComponent):
         'display_name': 'Video',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'panel_type': [PanelType.OBJECT],
+        'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'deps': ['networked', 'audio-params'],
         'icon': 'FILE_MOVIE'
     }

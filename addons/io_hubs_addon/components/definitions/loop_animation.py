@@ -15,11 +15,11 @@ class TracksList(bpy.types.UIList):
             split = layout.split(factor=0.90, align=False)
             if context.object.animation_data and item.name in context.object.animation_data.nla_tracks:
                 split.prop(key_block, "name", text="",
-                       emboss=False, icon_value=icon)
+                           emboss=False, icon_value=icon)
                 split.enabled = False
             else:
                 split.prop(key_block, "name", text="",
-                       emboss=False, icon='ERROR')
+                           emboss=False, icon='ERROR')
             row = split.row(align=True)
             row.emboss = 'NONE_OR_STATUS'
         elif self.layout_type == 'GRID':
@@ -36,6 +36,9 @@ class AddTrackOperator(Operator):
 
     def execute(self, context):
         ob = context.object
+        if context.mode == 'POSE' or context.mode == 'EDIT_ARMATURE':
+            ob = context.active_bone
+
         track = ob.hubs_component_loop_animation.tracks_list.add()
         track.name = self.track_name
 
@@ -55,6 +58,8 @@ class RemoveTrackOperator(Operator):
 
     def execute(self, context):
         ob = context.object
+        if context.mode == 'POSE' or context.mode == 'EDIT_ARMATURE':
+            ob = context.active_bone
 
         active_track_key = ob.hubs_component_loop_animation.active_track_key
         ob.hubs_component_loop_animation.tracks_list.remove(
@@ -113,7 +118,7 @@ class LoopAnimation(HubsComponent):
         'display_name': 'Loop Animation',
         'category': Category.ANIMATION,
         'node_type': NodeType.NODE,
-        'panel_type': [PanelType.OBJECT],
+        'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'LOOP_BACK'
     }
 

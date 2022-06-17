@@ -10,7 +10,7 @@ class ParticleEmitter(HubsComponent):
         'display_name': 'Particle Emitter',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'panel_type': [PanelType.OBJECT],
+        'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'PARTICLES'
     }
 

@@ -11,7 +11,7 @@ class Networked(HubsComponent):
         'name': 'networked',
         'display_name': 'Networked',
         'node_type': NodeType.NODE,
-        'panel_type': [PanelType.OBJECT]
+        'panel_type': [PanelType.OBJECT, PanelType.BONE]
     }
 
     id: StringProperty(

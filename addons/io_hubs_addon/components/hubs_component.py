@@ -66,7 +66,7 @@ class HubsComponent(PropertyGroup):
         return None
 
     @classmethod
-    def update_gizmo(cls, obj, gizmo):
+    def update_gizmo(cls, obj, bone, target, gizmo):
         from .gizmos import gizmo_update
         gizmo_update(obj, gizmo)
 
