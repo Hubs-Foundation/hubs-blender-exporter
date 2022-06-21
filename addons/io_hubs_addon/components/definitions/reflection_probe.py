@@ -138,7 +138,8 @@ class ReflectionProbe(HubsComponent):
         'display_name': 'Reflection Probe',
         'category': Category.SCENE,
         'node_type': NodeType.NODE,
-        'panel_type': [PanelType.OBJECT]
+        'panel_type': [PanelType.OBJECT],
+        'icon': 'MATERIAL'
     }
 
     envMapTexture: PointerProperty(
@@ -160,8 +161,8 @@ class ReflectionProbe(HubsComponent):
         default='256x128'
     )
 
-    def draw(self, context, layout):
-        super().draw(context, layout)
+    def draw(self, context, layout, panel_type):
+        super().draw(context, layout, panel_type)
 
         layout.operator(
             "render.hubs_render_reflection_probe",
@@ -178,7 +179,7 @@ class ReflectionProbe(HubsComponent):
         }
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, context, panel_type):
         return context.object.type == 'LIGHT_PROBE'
 
     @staticmethod
