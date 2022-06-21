@@ -1,4 +1,3 @@
-import atexit
 import bpy
 from bpy.props import FloatProperty, StringProperty, EnumProperty
 from ..hubs_component import HubsComponent
@@ -11,17 +10,13 @@ def get_shape_keys(self, context):
     global shape_keys
     shape_keys = []
     count = 0
-    if self.name:
-        shape_keys.append((self.name, self.name,
-                          "No matching shape key found", 'ERROR', count))
-        count += 1
+
+    shape_keys.append(("NONE", "None", "None", "BLANK", count))
+    count += 1
+
     if context.object.data.shape_keys:
         for item in context.object.data.shape_keys.key_blocks:
-            if ' ' in item.name or ',' in item.name:
-                shape_keys.append((item.name, item.name,
-                                  "Shape key names can't have spaces or commas", 'ERROR', count))
-                count += 1
-            elif item == item.relative_key:
+            if item == item.relative_key:
                 pass
             else:
                 shape_keys.append(
@@ -31,16 +26,20 @@ def get_shape_keys(self, context):
 
 
 def get_shape_key(self):
-    return self["shape_key"]
+    global shape_keys
+    list_ids = list(map(lambda x: x[0], shape_keys))
+    if self.shape_key_id in list_ids:
+        return list_ids.index(self.shape_key_id)
+    return 0
 
 
 def set_shape_key(self, value):
     global shape_keys
-    if self.name and self.name != shape_keys[value][0]:
-        self.name = ''
-        self["shape_key"] = value - 1
+    list_indexes = list(map(lambda x: x[4], shape_keys))
+    if value in list_indexes:
+        self.shape_key_id = shape_keys[value][0]
     else:
-        self["shape_key"] = value
+        self.shape_key_id = "NONE"
 
 
 class MorphAudioFeedback(HubsComponent):
@@ -66,6 +65,10 @@ class MorphAudioFeedback(HubsComponent):
         set=set_shape_key
     )
 
+    shape_key_id: StringProperty(
+        name="shape_key_id",
+        options={'HIDDEN'})
+
     minValue: FloatProperty(name="Min Value",
                             description="Min Value",
                             default=0.0,)
@@ -75,7 +78,7 @@ class MorphAudioFeedback(HubsComponent):
                             default=1.0)
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, context, panel_type):
         return context.object.type == 'MESH'
 
     @classmethod
@@ -84,36 +87,27 @@ class MorphAudioFeedback(HubsComponent):
             for ob in bpy.data.objects:
                 if cls.get_name() in ob.hubs_component_list.items:
                     component = ob.hubs_component_morph_audio_feedback
-                    if component.name in get_shape_keys(component, bpy.context):
+                    shape_keys = get_shape_keys(component, bpy.context)
+                    list_ids = list(map(lambda x: x[0], shape_keys))
+                    if component.name in list_ids:
                         component.shape_key = (component.name)
-                        component.name = ''
                     else:
-                        component.shape_key = (component.name)
+                        component.shape_key = "NONE"
 
-    def draw(self, context, layout):
-        if get_shape_keys(self, context):
-            layout.prop(data=self, property="shape_key")
-            if self.shape_key not in context.object.data.shape_keys.key_blocks:
-                col = layout.column()
-                col.alert = True
-                col.label(text="No matching shape key found",
-                          icon='ERROR')
-            elif ' ' in self.shape_key or ',' in self.shape_key:
-                col = layout.column()
-                col.alert = True
-                col.label(text="Shape key names can't have spaces or commas",
-                          icon='ERROR')
-            layout.prop(data=self, property="minValue")
-            layout.prop(data=self, property="maxValue")
-        else:
+    def draw(self, context, layout, panel_type):
+        layout.prop(data=self, property="shape_key")
+        shape_keys = context.object.data.shape_keys
+        if not shape_keys or self.shape_key not in shape_keys.key_blocks:
             col = layout.column()
             col.alert = True
-            col.label(text='No shape keys available',
+            col.label(text="No matching shape key found",
                       icon='ERROR')
+        layout.prop(data=self, property="minValue")
+        layout.prop(data=self, property="maxValue")
 
     def gather(self, export_settings, object):
         return {
-            'name': object.hubs_component_morph_audio_feedback.shape_key,
-            'minValue': object.hubs_component_morph_audio_feedback.minValue,
-            'maxValue': object.hubs_component_morph_audio_feedback.maxValue
+            'name': self.shape_key if self.shape_key != "NONE" else "",
+            'minValue': self.minValue,
+            'maxValue': self.maxValue
         }
