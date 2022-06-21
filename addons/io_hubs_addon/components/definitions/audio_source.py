@@ -9,7 +9,7 @@ class AudioSource(HubsComponent):
         'display_name': 'Audio Source',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'panel_type': [PanelType.OBJECT],
+        'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'MOD_WAVE'
     }
 

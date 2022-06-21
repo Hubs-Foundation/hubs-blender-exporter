@@ -152,8 +152,8 @@ class MediaFrame(HubsComponent):
             'snapToCenter': self.snapToCenter
         }
 
-    def draw(self, context, layout):
-        super().draw(context, layout)
+    def draw(self, context, layout, panel_type):
+        super().draw(context, layout, panel_type)
 
         parents = [context.object]
         while parents:

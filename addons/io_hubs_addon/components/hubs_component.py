@@ -87,7 +87,7 @@ class HubsComponent(PropertyGroup):
             raise Exception(
                 'HubsComponent is an abstract class and cannot be instantiated directly')
 
-    def draw(self, context, layout):
+    def draw(self, context, layout, panel_type):
         '''Draw method to be called by the panel. The base class method will print all the component properties'''
         for key in self.__annotations__.keys():
             if not self.bl_rna.properties[key].is_hidden:
@@ -119,7 +119,7 @@ class HubsComponent(PropertyGroup):
         pass
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, context, panel_type):
         '''This method will return true if this component's shown be shown or run.
         This is currently called when checking if the component should be added to the components pop-up and when the components properties panel is drawn'''
         return True

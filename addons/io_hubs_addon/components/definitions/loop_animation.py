@@ -143,7 +143,7 @@ class LoopAnimation(HubsComponent):
         default=False
     )
 
-    def draw(self, context, layout):
+    def draw(self, context, layout, panel_type):
         layout.label(text='Animations to play:')
 
         row = layout.row()

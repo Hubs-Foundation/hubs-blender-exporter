@@ -1,7 +1,7 @@
 import os
 import bpy
 from io_scene_gltf2.blender.com import gltf2_blender_extras
-from io_scene_gltf2.blender.exp import gltf2_blender_gather_materials, gltf2_blender_gather_nodes
+from io_scene_gltf2.blender.exp import gltf2_blender_gather_materials, gltf2_blender_gather_nodes, gltf2_blender_gather_joints
 from io_scene_gltf2.blender.exp import gltf2_blender_gather_texture_info, gltf2_blender_export_keys
 from io_scene_gltf2.blender.exp.gltf2_blender_gather_cache import cached
 from io_scene_gltf2.io.com.gltf2_io_extensions import Extension
@@ -190,6 +190,36 @@ def gather_node_property(export_settings, blender_object, target, property_name)
             vnode = vtree.nodes[next((uuid for uuid in vtree.nodes if (
                 vtree.nodes[uuid].blender_object == blender_object)), None)]
             node = gltf2_blender_gather_nodes.gather_node(
+                vnode,
+                export_settings
+            )
+
+        return {
+            "__mhc_link_type": "node",
+            "index": node
+        }
+    else:
+        return None
+
+# PointerProperty doesn't support bones so for now we have to call this manually where using an object pointer
+
+
+def gather_joint_property(export_settings, blender_object, target, property_name):
+    joint_name = getattr(target, property_name)
+    joint = blender_object.pose.bones[joint_name]
+
+    if joint:
+        if bpy.app.version < (3, 2, 0):
+            node = gltf2_blender_gather_joints.gather_joint(
+                blender_object,
+                joint,
+                export_settings
+            )
+        else:
+            vtree = export_settings['vtree']
+            vnode = vtree.nodes[next((uuid for uuid in vtree.nodes if (
+                vtree.nodes[uuid].joint == joint)), None)]
+            node = gltf2_blender_gather_joints.gather_joint_vnode(
                 vnode,
                 export_settings
             )

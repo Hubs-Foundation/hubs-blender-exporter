@@ -68,8 +68,8 @@ class AmmoShape(HubsComponent):
         description="Include invisible objects when generating a collider. (Only used if \"fit\" is set to \"all\")",
         default=False)
 
-    def draw(self, context, layout):
-        super().draw(context, layout)
+    def draw(self, context, layout, panel_type):
+        super().draw(context, layout, panel_type)
 
         parents = [context.object]
         while parents:
