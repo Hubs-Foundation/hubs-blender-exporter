@@ -5,13 +5,15 @@ from ..types import Category, PanelType, NodeType
 
 shape_keys = []
 
+NONE = "cKsdi5pSEUGvSg8"
+
 
 def get_object_shape_keys(ob):
     global shape_keys
     shape_keys = []
     count = 0
 
-    shape_keys.append(("NONE", "None", "None", "BLANK", count))
+    shape_keys.append((NONE, "No shape key selected", "None", "BLANK", count))
     count += 1
 
     if ob.data.shape_keys:
@@ -43,7 +45,7 @@ def set_shape_key(self, value):
     if value in list_indexes:
         self.name = shape_keys[value][0]
     else:
-        self.name = "NONE"
+        self.name = NONE
 
 
 class MorphAudioFeedback(HubsComponent):
@@ -90,7 +92,7 @@ class MorphAudioFeedback(HubsComponent):
                     shape_keys = get_object_shape_keys(ob)
                     list_ids = list(map(lambda x: x[0], shape_keys))
                     if not component.name in list_ids:
-                        component.shape_key = "NONE"
+                        component.shape_key = NONE
 
     def draw(self, context, layout, panel_type):
         layout.prop(data=self, property="shape_key")
@@ -105,7 +107,7 @@ class MorphAudioFeedback(HubsComponent):
 
     def gather(self, export_settings, object):
         return {
-            'name': self.name if self.name != "NONE" else "",
+            'name': self.name if self.name != NONE else "",
             'minValue': self.minValue,
             'maxValue': self.maxValue
         }

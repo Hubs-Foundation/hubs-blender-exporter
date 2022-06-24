@@ -5,6 +5,8 @@ from ..utils import has_component
 from bpy.types import Object
 from ...io.utils import gather_joint_property, gather_node_property
 
+NONE = "pXph8WBzMu9fung"
+
 
 def filter_on_component(self, ob):
     from .video_texture_source import VideoTextureSource
@@ -25,7 +27,7 @@ def get_bones(self, context):
     count = 0
     from .video_texture_source import VideoTextureSource
     dep_name = VideoTextureSource.get_name()
-    bones.append(("NONE", "None", "None", "BLANK", count))
+    bones.append((NONE, "No bone selected", "None", "BLANK", count))
     count += 1
 
     if self.srcNode and self.srcNode.type == 'ARMATURE':
@@ -50,7 +52,7 @@ def set_bone(self, value):
     if value in list_indexes:
         self.bone_id = bones[value][0]
     else:
-        self.bone_id = "NONE"
+        self.bone_id = NONE
 
 
 class VideoTextureTarget(HubsComponent):
@@ -95,16 +97,16 @@ class VideoTextureTarget(HubsComponent):
         if hasattr(self.srcNode, 'type') and self.srcNode.type == 'ARMATURE':
             layout.prop(data=self, property="bone")
 
-        has_bone_component = self.bone != "NONE" and has_component(
+        has_bone_component = self.bone != NONE and has_component(
             self.srcNode.data.bones[self.bone], dep_name)
         has_obj_component = self.srcNode and has_component(
             self.srcNode, dep_name)
-        if self.srcNode and self.bone == "NONE" and not has_obj_component:
+        if self.srcNode and self.bone == NONE and not has_obj_component:
             col = layout.column()
             col.alert = True
             col.label(
                 text=f'The selected source doesn\'t have a {VideoTextureSource.get_display_name()} component', icon='ERROR')
-        elif self.srcNode and self.bone != "NONE" and not has_bone_component:
+        elif self.srcNode and self.bone != NONE and not has_bone_component:
             col = layout.column()
             col.alert = True
             col.label(
@@ -125,6 +127,6 @@ class VideoTextureTarget(HubsComponent):
         return {
             'targetBaseColorMap': self.targetBaseColorMap,
             'targetEmissiveMap': self.targetEmissiveMap,
-            'srcNode': gather_joint_property(export_settings, self.srcNode, self, 'bone') if self.bone != "NONE" else gather_node_property(
+            'srcNode': gather_joint_property(export_settings, self.srcNode, self, 'bone') if self.bone != NONE else gather_node_property(
                 export_settings, object, self, 'srcNode'),
         }
