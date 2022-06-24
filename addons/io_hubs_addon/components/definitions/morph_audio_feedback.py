@@ -8,7 +8,7 @@ shape_keys = []
 NONE = "cKsdi5pSEUGvSg8"
 
 
-def get_object_shape_keys(ob):
+def get_object_shape_keys(cmp, ob):
     global shape_keys
     shape_keys = []
     count = 0
@@ -16,6 +16,7 @@ def get_object_shape_keys(ob):
     shape_keys.append((NONE, "No shape key selected", "None", "BLANK", count))
     count += 1
 
+    found = False
     if ob.data.shape_keys:
         for item in ob.data.shape_keys.key_blocks:
             if item == item.relative_key:
@@ -24,11 +25,19 @@ def get_object_shape_keys(ob):
                 shape_keys.append(
                     (item.name, item.name, "", 'SHAPEKEY_DATA', count))
                 count += 1
+                if item.name == cmp.name:
+                    found = True
+
+    if cmp.name != NONE and not found:
+        shape_keys.append(
+            (cmp.name, cmp.name, "", "ERROR", count))
+        count += 1
+
     return shape_keys
 
 
 def get_shape_keys(self, context):
-    return get_object_shape_keys(context.object)
+    return get_object_shape_keys(self, context.object)
 
 
 def get_shape_key(self):
@@ -89,15 +98,15 @@ class MorphAudioFeedback(HubsComponent):
             for ob in bpy.data.objects:
                 if cls.get_name() in ob.hubs_component_list.items:
                     component = ob.hubs_component_morph_audio_feedback
-                    shape_keys = get_object_shape_keys(ob)
+                    shape_keys = get_object_shape_keys(component, ob)
                     list_ids = list(map(lambda x: x[0], shape_keys))
                     if not component.name in list_ids:
-                        component.shape_key = NONE
+                        component.name = component.name
 
     def draw(self, context, layout, panel_type):
         layout.prop(data=self, property="shape_key")
         shape_keys = context.object.data.shape_keys
-        if not shape_keys or self.shape_key not in shape_keys.key_blocks:
+        if self.shape_key not in shape_keys.key_blocks and self.shape_key != NONE:
             col = layout.column()
             col.alert = True
             col.label(text="No matching shape key found",

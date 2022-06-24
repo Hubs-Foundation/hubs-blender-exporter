@@ -30,11 +30,20 @@ def get_bones(self, context):
     bones.append((NONE, "No bone selected", "None", "BLANK", count))
     count += 1
 
+    found = False
     if self.srcNode and self.srcNode.type == 'ARMATURE':
         for bone in self.srcNode.data.bones:
             if has_component(bone, dep_name):
                 bones.append((bone.name, bone.name, "", 'BONE_DATA', count))
                 count += 1
+                if bone.name == self.bone_id:
+                    found = True
+
+    if self.bone_id != NONE and not found:
+        bones.append(
+            (self.bone_id, self.bone_id, "", "ERROR", count))
+        count += 1
+
     return bones
 
 
