@@ -6,7 +6,7 @@ from ..types import Category, PanelType, NodeType
 shape_keys = []
 
 
-def get_shape_keys(self, context):
+def get_object_shape_keys(ob):
     global shape_keys
     shape_keys = []
     count = 0
@@ -14,8 +14,8 @@ def get_shape_keys(self, context):
     shape_keys.append(("NONE", "None", "None", "BLANK", count))
     count += 1
 
-    if context.object.data.shape_keys:
-        for item in context.object.data.shape_keys.key_blocks:
+    if ob.data.shape_keys:
+        for item in ob.data.shape_keys.key_blocks:
             if item == item.relative_key:
                 pass
             else:
@@ -25,11 +25,15 @@ def get_shape_keys(self, context):
     return shape_keys
 
 
+def get_shape_keys(self, context):
+    return get_object_shape_keys(context.object)
+
+
 def get_shape_key(self):
     global shape_keys
     list_ids = list(map(lambda x: x[0], shape_keys))
-    if self.shape_key_id in list_ids:
-        return list_ids.index(self.shape_key_id)
+    if self.name in list_ids:
+        return list_ids.index(self.name)
     return 0
 
 
@@ -37,9 +41,9 @@ def set_shape_key(self, value):
     global shape_keys
     list_indexes = list(map(lambda x: x[4], shape_keys))
     if value in list_indexes:
-        self.shape_key_id = shape_keys[value][0]
+        self.name = shape_keys[value][0]
     else:
-        self.shape_key_id = "NONE"
+        self.name = "NONE"
 
 
 class MorphAudioFeedback(HubsComponent):
@@ -65,10 +69,6 @@ class MorphAudioFeedback(HubsComponent):
         set=set_shape_key
     )
 
-    shape_key_id: StringProperty(
-        name="shape_key_id",
-        options={'HIDDEN'})
-
     minValue: FloatProperty(name="Min Value",
                             description="Min Value",
                             default=0.0,)
@@ -87,11 +87,9 @@ class MorphAudioFeedback(HubsComponent):
             for ob in bpy.data.objects:
                 if cls.get_name() in ob.hubs_component_list.items:
                     component = ob.hubs_component_morph_audio_feedback
-                    shape_keys = get_shape_keys(component, bpy.context)
+                    shape_keys = get_object_shape_keys(ob)
                     list_ids = list(map(lambda x: x[0], shape_keys))
-                    if component.name in list_ids:
-                        component.shape_key = (component.name)
-                    else:
+                    if not component.name in list_ids:
                         component.shape_key = "NONE"
 
     def draw(self, context, layout, panel_type):
@@ -107,7 +105,7 @@ class MorphAudioFeedback(HubsComponent):
 
     def gather(self, export_settings, object):
         return {
-            'name': self.shape_key if self.shape_key != "NONE" else "",
+            'name': self.name if self.name != "NONE" else "",
             'minValue': self.minValue,
             'maxValue': self.maxValue
         }
