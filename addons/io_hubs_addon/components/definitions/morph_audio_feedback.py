@@ -5,7 +5,7 @@ from ..types import Category, PanelType, NodeType
 
 shape_keys = []
 
-NONE = "cKsdi5pSEUGvSg8"
+BLANK_ID = "cKsdi5pSEUGvSg8"
 
 
 def get_object_shape_keys(cmp, ob):
@@ -13,7 +13,8 @@ def get_object_shape_keys(cmp, ob):
     shape_keys = []
     count = 0
 
-    shape_keys.append((NONE, "No shape key selected", "None", "BLANK", count))
+    shape_keys.append(
+        (BLANK_ID, "Select a shape key", "None", "BLANK", count))
     count += 1
 
     found = False
@@ -28,7 +29,7 @@ def get_object_shape_keys(cmp, ob):
                 if item.name == cmp.name:
                     found = True
 
-    if cmp.name != NONE and not found:
+    if cmp.name != BLANK_ID and not found:
         shape_keys.append(
             (cmp.name, cmp.name, "", "ERROR", count))
         count += 1
@@ -54,7 +55,7 @@ def set_shape_key(self, value):
     if value in list_indexes:
         self.name = shape_keys[value][0]
     else:
-        self.name = NONE
+        self.name = BLANK_ID
 
 
 class MorphAudioFeedback(HubsComponent):
@@ -106,7 +107,7 @@ class MorphAudioFeedback(HubsComponent):
     def draw(self, context, layout, panel_type):
         layout.prop(data=self, property="shape_key")
         shape_keys = context.object.data.shape_keys
-        if self.shape_key not in shape_keys.key_blocks and self.shape_key != NONE:
+        if self.shape_key != BLANK_ID and shape_keys and self.shape_key not in shape_keys.key_blocks:
             col = layout.column()
             col.alert = True
             col.label(text="No matching shape key found",
@@ -116,7 +117,7 @@ class MorphAudioFeedback(HubsComponent):
 
     def gather(self, export_settings, object):
         return {
-            'name': self.name if self.name != NONE else "",
+            'name': self.name if self.name != BLANK_ID else "",
             'minValue': self.minValue,
             'maxValue': self.maxValue
         }

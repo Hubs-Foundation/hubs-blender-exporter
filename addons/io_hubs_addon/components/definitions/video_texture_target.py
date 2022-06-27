@@ -5,13 +5,16 @@ from ..utils import has_component
 from bpy.types import Object
 from ...io.utils import gather_joint_property, gather_node_property
 
-NONE = "pXph8WBzMu9fung"
+BLANK_ID = "pXph8WBzMu9fung"
 
 
 def filter_on_component(self, ob):
     from .video_texture_source import VideoTextureSource
     dep_name = VideoTextureSource.get_name()
     if hasattr(ob, 'type') and ob.type == 'ARMATURE':
+        if ob.mode == 'EDIT':
+            ob.update_from_editmode()
+
         for bone in ob.data.bones:
             if has_component(bone, dep_name):
                 return True
@@ -27,8 +30,11 @@ def get_bones(self, context):
     count = 0
     from .video_texture_source import VideoTextureSource
     dep_name = VideoTextureSource.get_name()
-    bones.append((NONE, "No bone selected", "None", "BLANK", count))
+    bones.append((BLANK_ID, "Select a bone", "None", "BLANK", count))
     count += 1
+
+    if self.srcNode.mode == 'EDIT':
+        self.srcNode.update_from_editmode()
 
     found = False
     if self.srcNode and self.srcNode.type == 'ARMATURE':
@@ -39,7 +45,7 @@ def get_bones(self, context):
                 if bone.name == self.bone_id:
                     found = True
 
-    if self.bone_id != NONE and not found:
+    if self.bone_id != BLANK_ID and not found:
         bones.append(
             (self.bone_id, self.bone_id, "", "ERROR", count))
         count += 1
@@ -61,7 +67,7 @@ def set_bone(self, value):
     if value in list_indexes:
         self.bone_id = bones[value][0]
     else:
-        self.bone_id = NONE
+        self.bone_id = BLANK_ID
 
 
 class VideoTextureTarget(HubsComponent):
@@ -96,26 +102,30 @@ class VideoTextureTarget(HubsComponent):
 
     bone_id: StringProperty(
         name="bone_id",
+        default=BLANK_ID,
         options={'HIDDEN'})
 
     def draw(self, context, layout, panel_type):
         from .video_texture_source import VideoTextureSource
         dep_name = VideoTextureSource.get_name()
 
+        has_obj_component = False
+        has_bone_component = False
         layout.prop(data=self, property="srcNode")
-        if hasattr(self.srcNode, 'type') and self.srcNode.type == 'ARMATURE':
-            layout.prop(data=self, property="bone")
+        if hasattr(self.srcNode, 'type'):
+            has_obj_component = has_component(self.srcNode, dep_name)
+            if self.srcNode.type == 'ARMATURE':
+                layout.prop(data=self, property="bone")
+                if self.bone_id != BLANK_ID and self.bone in self.srcNode.data.bones:
+                    has_bone_component = has_component(
+                        self.srcNode.data.bones[self.bone], dep_name)
 
-        has_bone_component = self.bone != NONE and has_component(
-            self.srcNode.data.bones[self.bone], dep_name)
-        has_obj_component = self.srcNode and has_component(
-            self.srcNode, dep_name)
-        if self.srcNode and self.bone == NONE and not has_obj_component:
+        if self.srcNode and self.bone_id == BLANK_ID and not has_obj_component:
             col = layout.column()
             col.alert = True
             col.label(
                 text=f'The selected source doesn\'t have a {VideoTextureSource.get_display_name()} component', icon='ERROR')
-        elif self.srcNode and self.bone != NONE and not has_bone_component:
+        elif self.srcNode and self.bone_id != BLANK_ID and not has_bone_component:
             col = layout.column()
             col.alert = True
             col.label(
@@ -136,6 +146,6 @@ class VideoTextureTarget(HubsComponent):
         return {
             'targetBaseColorMap': self.targetBaseColorMap,
             'targetEmissiveMap': self.targetEmissiveMap,
-            'srcNode': gather_joint_property(export_settings, self.srcNode, self, 'bone') if self.bone != NONE else gather_node_property(
+            'srcNode': gather_joint_property(export_settings, self.srcNode, self, 'bone') if self.bone_id != BLANK_ID else gather_node_property(
                 export_settings, object, self, 'srcNode'),
         }
