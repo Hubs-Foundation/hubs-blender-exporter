@@ -4,8 +4,8 @@ This addon extends the glTF 2.0 exporter to support the `MOZ_hubs_components` an
 
 
 # To Install
-Find the latest [release](https://github.com/MozillaReality/hubs-blender-exporter/releases) and download the source zip file.   
-<img alt="select source file zip" src="https://user-images.githubusercontent.com/4493657/102955067-e8179500-4489-11eb-9f26-c764dfa1e4dc.png" width=400px height=300px />  
+Find the latest [release](https://github.com/MozillaReality/hubs-blender-exporter/releases) and download the add-on zip file.   
+<img alt="select add-on zip file" src="https://user-images.githubusercontent.com/837184/175947969-f175f40b-b07f-4cc7-8f9d-dc4aab50df55.png" width=400px height=300px />  
 
 In Blender: `Edit > Preferences > Add-ons`  
 Click install and select the zip file of the latest release.  
