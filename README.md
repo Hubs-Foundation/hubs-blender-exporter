@@ -49,3 +49,46 @@ This will bring up the Publish Scene From Blender dialog where you can upload yo
 <img width="826" alt="Screenshot 2021-10-31 at 14 31 44" src="https://user-images.githubusercontent.com/303516/139588871-ca440552-a270-4feb-9208-65b65ee02b4a.png">
 
 It is also possible to use the GLB file to replace the scene for an existing Hubs room directly by going to Room Settings > Change Scene > Custom Scene and entering the URL of the GLB file. This assumes the file has been already uploaded to an online storage provider.
+
+# Development
+
+## Code Completion
+To enable code completion for the Blender Python API you can install the [Fake Blender Python API module collection]([](https://github.com/nutti/fake-bpy-module/)). You can download the modules using the `setup.sh` script from the repository root or using [pip]([](https://github.com/nutti/fake-bpy-module/#install-via-pip-package)).
+
+## Addon development
+It might be useful while developing to be able to load the addon directly from the checkout folder without needing to install it. You can do it in two ways:
+
+- ### Overriding the Blender user scripts directory
+You can override the Blender user scripts directory from the console to point to the addon repo directory.
+
+**MacOS**
+
+`BLENDER_USER_SCRIPTS=full_path_to_/hubs-blender-exporter /Applications/Blender.app/Contents/MacOS/Blender`
+
+**Linux**
+
+`BLENDER_USER_SCRIPTS=full_path_to_/hubs-blender-exporter blender`
+
+- ### Symlinking you addon to the Blender user scripts directory
+You can create a symbolic link pointing to `full_path_to_/hubs-blender-exporter/addons/io_hubs_addon` in your current Python scripts directory in Blender. This way you will also load any other addons that you have in that directory.
+
+**MacOS and Linux**
+
+`ln -s full_path_to/hubs-blender-exporter/addons/io_hubs_addon full_path_to/blender_user_scrips_dir`
+
+You can set or see the current Blender user scripts in the Preferences -> File Paths -> Scripts
+
+
+# Debugging
+
+You can debug the addon code with PyCharm or VSCode:
+
+- [Debug with PyCharm](https://code.blender.org/2015/10/debugging-python-code-with-pycharm) **NOTE:** If you are using Blender 2.80+, you need the [updated debugger script](https://github.com/ux3d/random-blender-addons/blob/master/remote_debugger.py)
+- [Debug with VSCode](DEBUGGING.md)
+
+# Continuous Integration Tests
+To run the tests locally, your system should have a blender executable in the path that launches the desired version of Blender.
+
+The latest version of [Yarn](https://yarnpkg.com/en/) should also be installed.
+
+Then, in the tests folder of this repository, run yarn install, followed by yarn run test.
