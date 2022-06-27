@@ -131,63 +131,7 @@ class HubsGizmoGroup(GizmoGroup):
                         self.gizmos.remove(gizmo)
 
 
-class delete_override(bpy.types.Operator):
-    """Override object delete operator to update gizmos after deletion"""
-    bl_idname = "object.delete"
-    bl_label = "Delete"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    use_global: bpy.props.BoolProperty(default=True)
-    confirm: bpy.props.BoolProperty(default=False)
-
-    @classmethod
-    def poll(cls, context):
-        return context.active_object is not None
-
-    def execute(self, context):
-        for obj in context.selected_objects:
-            bpy.data.objects.remove(obj, do_unlink=True)
-
-        update_gizmos()
-
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        return context.window_manager.invoke_confirm(self, event)
-
-
-class duplicate_override(bpy.types.Operator):
-    """Override object duplicate operator to update gizmos after a duplicate"""
-    bl_idname = "object.duplicate"
-    bl_label = "Duplicate"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    linked: BoolProperty(default=False)
-
-    @classmethod
-    def poll(cls, context):
-        return context.active_object is not None
-
-    def execute(self, context):
-        copies = []
-        for obj in context.selected_objects:
-            copy = obj.copy()
-            curr_collection = context.view_layer.active_layer_collection.name
-            bpy.data.collections[curr_collection].objects.link(copy)
-            copies.append(copy)
-            obj.select_set(False)
-            if obj.data and not self.linked:
-                copy.data = obj.data.copy()
-                if obj.animation_data:
-                    copy.animation_data.action = obj.animation_data.action.copy()
-
-        for obj in copies:
-            obj.select_set(True)
-            bpy.context.view_layer.objects.active = obj
-
-        update_gizmos()
-
-        return {'FINISHED'}
+global objects_count
 
 
 @persistent
@@ -197,6 +141,21 @@ def undo_post(dummy):
 
 @persistent
 def redo_post(dummy):
+    update_gizmos()
+
+
+@persistent
+def depsgraph_update_post(dummy):
+    global objects_count
+    if len(bpy.data.objects) != objects_count:
+        update_gizmos()
+    objects_count = len(bpy.data.objects)
+
+
+@persistent
+def load_post(dummy):
+    global objects_count
+    objects_count = len(bpy.data.objects)
     update_gizmos()
 
 
@@ -221,21 +180,19 @@ def update_gizmos():
 
 def register_functions():
     def register():
-        bpy.utils.register_class(delete_override)
-        bpy.utils.register_class(duplicate_override)
-        if not undo_post in bpy.app.handlers.undo_post:
-            bpy.app.handlers.undo_post.append(undo_post)
-        if not redo_post in bpy.app.handlers.redo_post:
-            bpy.app.handlers.redo_post.append(redo_post)
+        if not load_post in bpy.app.handlers.load_post:
+            bpy.app.handlers.load_post.append(load_post)
+        if not depsgraph_update_post in bpy.app.handlers.depsgraph_update_post:
+            bpy.app.handlers.depsgraph_update_post.append(
+                depsgraph_update_post)
         register_gizmo_classes()
 
     def unregister():
-        bpy.utils.unregister_class(delete_override)
-        bpy.utils.unregister_class(duplicate_override)
-        if not undo_post in bpy.app.handlers.undo_post:
-            bpy.app.handlers.undo_post.remove(undo_post)
-        if not redo_post in bpy.app.handlers.redo_post:
-            bpy.app.handlers.redo_post.remove(redo_post)
+        if load_post in bpy.app.handlers.load_post:
+            bpy.app.handlers.load_post.remove(load_post)
+        if depsgraph_update_post in bpy.app.handlers.depsgraph_update_post:
+            bpy.app.handlers.depsgraph_update_post.remove(
+                depsgraph_update_post)
         unregister_gizmo_classes()
 
     return register, unregister
