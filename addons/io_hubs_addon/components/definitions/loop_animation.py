@@ -184,10 +184,17 @@ class LoopAnimation(HubsComponent):
     @classmethod
     def migrate(cls, version):
         if version < (1, 0, 0):
-            for ob in bpy.data.objects:
+            def migrate_data(ob):
                 if cls.get_name() in ob.hubs_component_list.items:
                     tracks = ob.hubs_component_loop_animation.clip.split(",")
                     for track_name in tracks:
                         if not has_track(ob.hubs_component_loop_animation.tracks_list, track_name):
                             track = ob.hubs_component_loop_animation.tracks_list.add()
                             track.name = track_name.strip()
+
+            for ob in bpy.data.objects:
+                migrate_data(ob)
+
+                if ob.type == 'ARMATURE':
+                    for bone in ob.data.bones:
+                        migrate_data(bone)

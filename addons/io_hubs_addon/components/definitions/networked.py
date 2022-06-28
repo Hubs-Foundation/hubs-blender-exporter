@@ -26,7 +26,14 @@ class Networked(HubsComponent):
 
 
 def migrate_networked(component_name):
-    for ob in bpy.data.objects:
+    def migrate_data(ob):
         if component_name in ob.hubs_component_list.items:
             if Networked.get_name() not in ob.hubs_component_list.items:
                 add_component(ob, Networked.get_name())
+
+    for ob in bpy.data.objects:
+        migrate_data(ob)
+
+        if ob.type == 'ARMATURE':
+            for bone in ob.data.bones:
+                migrate_data(bone)

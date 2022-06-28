@@ -122,11 +122,18 @@ class MediaFrame(HubsComponent):
         migrate_networked(cls.get_name())
 
         if version < (1, 0, 0):
-            for ob in bpy.data.objects:
+            def migrate_data(ob):
                 if cls.get_name() in ob.hubs_component_list.items:
                     bounds = ob.hubs_component_media_frame.bounds.copy()
                     bounds = Vector((bounds.x, bounds.z, bounds.y))
                     ob.hubs_component_media_frame.bounds = bounds
+
+            for ob in bpy.data.objects:
+                migrate_data(ob)
+
+                if ob.type == 'ARMATURE':
+                    for bone in ob.data.bones:
+                        migrate_data(bone)
 
     @staticmethod
     def register():
