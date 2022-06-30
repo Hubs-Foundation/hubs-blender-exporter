@@ -86,17 +86,19 @@ class MediaFrame(HubsComponent):
         gizmo.target_set_prop(
             "bounds", target.hubs_component_media_frame, "bounds")
 
+        scale = gizmo.target_get_value("bounds")
         if bone:
-            mat = ob.matrix_world @ bone.matrix.to_4x4()
-            _, rot, _ = mat.decompose()
-            loc = bone.tail
+            loc, rot, _ = bone.matrix.to_4x4().decompose()
+            mat_offset = Matrix.Translation(bone.tail - bone.head)
+            mat = ob.matrix_world @ mat_offset @ Matrix.Translation(
+                loc) @ rot.normalized().to_matrix().to_4x4() @ Matrix.Diagonal(scale).to_4x4()
         else:
             loc, rot, _ = ob.matrix_world.decompose()
+            mat = Matrix.Translation(
+                loc) @ rot.normalized().to_matrix().to_4x4() @ Matrix.Diagonal(scale).to_4x4()
 
-        scale = gizmo.target_get_value("bounds")
-        mat_out = Matrix.Translation(
-            loc) @ rot.normalized().to_matrix().to_4x4() @ Matrix.Diagonal(scale).to_4x4()
-        gizmo.matrix_basis = mat_out
+        gizmo.hide = not ob.visible_get()
+        gizmo.matrix_basis = mat
 
     @classmethod
     def create_gizmo(cls, ob, gizmo_group):

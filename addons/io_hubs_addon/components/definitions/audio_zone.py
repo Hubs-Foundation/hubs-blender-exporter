@@ -30,18 +30,20 @@ class AudioZone(HubsComponent):
     def update_gizmo(cls, ob, bone, target, gizmo):
         if bone:
             _, _, wScale = ob.matrix_world.decompose()
+            loc, rot, _ = bone.matrix.to_4x4().decompose()
             scaleMat = Matrix.Diagonal(bone.bbone_scaleout).to_4x4(
             ) @ Matrix.Diagonal(wScale).to_4x4()
-            mat = ob.matrix_world @ bone.matrix.to_4x4()
-            _, rot, _ = mat.decompose()
-            loc = bone.tail
+            mat_offset = Matrix.Translation(bone.tail - bone.head)
+            mat = ob.matrix_world @ mat_offset @ Matrix.Translation(
+                loc) @ rot.normalized().to_matrix().to_4x4() @ scaleMat
         else:
             loc, rot, scale = ob.matrix_world.decompose()
             scaleMat = Matrix.Diagonal(scale).to_4x4()
+            mat = Matrix.Translation(
+                loc) @ rot.normalized().to_matrix().to_4x4() @ scaleMat
 
         gizmo.hide = not ob.visible_get()
-        gizmo.matrix_basis = Matrix.Translation(
-            loc) @ rot.normalized().to_matrix().to_4x4() @ scaleMat
+        gizmo.matrix_basis = mat
 
     @classmethod
     def create_gizmo(cls, ob, gizmo_group):

@@ -57,15 +57,13 @@ class Waypoint(HubsComponent):
     @classmethod
     def update_gizmo(cls, ob, bone, target, gizmo):
         if bone:
-            mat = ob.matrix_world @ bone.matrix.to_4x4()
-            _, rot, scale = mat.decompose()
-            loc = bone.tail
+            mat_offset = Matrix.Translation(bone.tail - bone.head)
+            mat = ob.matrix_world @ mat_offset @ bone.matrix.to_4x4()
         else:
-            loc, rot, scale = ob.matrix_world.decompose()
+            mat = ob.matrix_world.copy()
 
         gizmo.hide = not ob.visible_get()
-        gizmo.matrix_basis = Matrix.Translation(
-            loc) @ rot.normalized().to_matrix().to_4x4() @ Matrix.Diagonal(scale).to_4x4()
+        gizmo.matrix_basis = mat
 
     @classmethod
     def create_gizmo(cls, ob, gizmo_group):
