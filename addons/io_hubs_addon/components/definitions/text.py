@@ -73,7 +73,7 @@ class Text(HubsComponent):
         default=0.0)
 
     outlineWidth: StringProperty(
-        name="Outline Widtht",
+        name="Outline Width",
         description="The width of an outline/halo to be drawn around each text glyph using the outlineColor and outlineOpacity. This can help improve readability when the text is displayed against a background of low or varying contrast.\n\n The width can be specified as either an absolute number in local units, or as a percentage string e.g. \"10%\" which is interpreted as a percentage of the fontSize.",
         default="0")
 
