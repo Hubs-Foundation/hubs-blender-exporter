@@ -1,9 +1,8 @@
 from ..models import spawn_point
-from ..gizmos import CustomModelGizmo
+from ..gizmos import CustomModelGizmo, bone_matrix_world
 from ..types import Category, PanelType, NodeType
 from ..hubs_component import HubsComponent
 from bpy.props import BoolProperty
-from mathutils import Matrix
 from .networked import migrate_networked
 
 
@@ -57,8 +56,7 @@ class Waypoint(HubsComponent):
     @classmethod
     def update_gizmo(cls, ob, bone, target, gizmo):
         if bone:
-            mat_offset = Matrix.Translation(bone.tail - bone.head)
-            mat = ob.matrix_world @ mat_offset @ bone.matrix.to_4x4()
+            mat = bone_matrix_world(ob, bone)
         else:
             mat = ob.matrix_world.copy()
 

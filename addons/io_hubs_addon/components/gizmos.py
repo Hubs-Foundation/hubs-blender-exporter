@@ -1,12 +1,27 @@
 import bpy
 from bpy.types import (Gizmo, GizmoGroup)
-from bpy.props import BoolProperty
 from .components_registry import get_component_by_name
 from bpy.app.handlers import persistent
+from math import radians
+from mathutils import Matrix
 
 
 def gizmo_update(obj, gizmo):
     gizmo.matrix_basis = obj.matrix_world.normalized()
+
+
+def bone_matrix_world(ob, bone, scaleOverride=None):
+    loc, rot, scale = bone.matrix.to_4x4().decompose()
+    # Account for bones using Y up
+    rot_offset = Matrix.Rotation(radians(-90), 4, 'X').to_4x4()
+    if scaleOverride:
+        scale = scaleOverride
+    else:
+        scale = scale.xzy
+    final_loc = ob.matrix_world @ Matrix.Translation(loc)
+    final_rot = rot.normalized().to_matrix().to_4x4() @ rot_offset
+    final_scale = Matrix.Diagonal(scale).to_4x4()
+    return final_loc @ final_rot @ final_scale
 
 
 class CustomModelGizmo(Gizmo):

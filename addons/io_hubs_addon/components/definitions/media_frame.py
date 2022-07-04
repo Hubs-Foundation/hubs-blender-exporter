@@ -1,6 +1,7 @@
 import bpy
 from bpy.props import EnumProperty, FloatVectorProperty, BoolProperty
 from bpy.types import (Gizmo, Bone, EditBone)
+from ..gizmos import bone_matrix_world
 from ..models import box
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
@@ -88,10 +89,7 @@ class MediaFrame(HubsComponent):
 
         scale = gizmo.target_get_value("bounds")
         if bone:
-            loc, rot, _ = bone.matrix.to_4x4().decompose()
-            mat_offset = Matrix.Translation(bone.tail - bone.head)
-            mat = ob.matrix_world @ mat_offset @ Matrix.Translation(
-                loc) @ rot.normalized().to_matrix().to_4x4() @ Matrix.Diagonal(scale).to_4x4()
+            mat = bone_matrix_world(ob, bone, scale)
         else:
             loc, rot, _ = ob.matrix_world.decompose()
             mat = Matrix.Translation(
