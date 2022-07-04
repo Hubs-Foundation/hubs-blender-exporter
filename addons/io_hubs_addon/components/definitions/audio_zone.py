@@ -1,9 +1,18 @@
-from bpy.props import BoolProperty
-from ..gizmos import CustomModelGizmo, bone_matrix_world
-from ..models import box
+from bpy.props import BoolProperty, EnumProperty
+from ..gizmos import CustomModelGizmo, bone_matrix_world, update_gizmos
+from ..models import box, sphere
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from .networked import migrate_networked
+
+
+SHAPES = [("box", "Box", "Box Shape"),
+          ("spehere", "Sphere", "Spehere shape")]
+
+
+def update_shape(self, context):
+    update_gizmos()
+    return None
 
 
 class AudioZone(HubsComponent):
@@ -25,6 +34,13 @@ class AudioZone(HubsComponent):
                         description="The zone audio parameters affect the sources outside the zone when the listener is inside",
                         default=True)
 
+    shape: EnumProperty(name="Shape",
+                        description="Shape of the Audio Zone",
+                        items=SHAPES,
+                        default="box",
+                        update=update_shape
+                        )
+
     @classmethod
     def update_gizmo(cls, ob, bone, target, gizmo):
         if bone:
@@ -39,7 +55,8 @@ class AudioZone(HubsComponent):
     def create_gizmo(cls, ob, gizmo_group):
         gizmo = gizmo_group.gizmos.new(CustomModelGizmo.bl_idname)
         gizmo.object = ob
-        setattr(gizmo, "hubs_gizmo_shape", box.SHAPE)
+        shape = box.SHAPE if ob.hubs_component_audio_zone.shape == "box" else sphere.SHAPE
+        setattr(gizmo, "hubs_gizmo_shape", shape)
         gizmo.setup()
         gizmo.use_draw_scale = False
         gizmo.use_draw_modal = False
