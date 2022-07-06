@@ -6,8 +6,10 @@ from io_scene_gltf2.blender.imp.gltf2_blender_material import BlenderMaterial
 from io_scene_gltf2.blender.imp.gltf2_blender_scene import BlenderScene
 from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
 
-# import hooks are not present, make a custom hook for now
-# ideally we can resolve this upstream somehow https://github.com/KhronosGroup/glTF-Blender-IO
+from ..components.utils import has_component, add_component
+from ..components.definitions.loop_animation import has_track
+
+# import hooks were only recently added to the glTF exporter, so make a custom hook for now
 orig_BlenderNode_create_object = BlenderNode.create_object
 orig_BlenderMaterial_create = BlenderMaterial.create
 orig_BlenderScene_create = BlenderScene.create
@@ -66,13 +68,13 @@ def create_object_hubs_components(gltf):
     special_cases = {
         'networked': handle_networked,
         #'audio-target': handle_audio_target,
-        'kit-alt-materials': handle_kit_alt_materials,
         'spawn-point': handle_spawn_point,
         'heightfield': handle_heightfield,
         'box-collider': handle_box_collider,
         'scene-preview-camera': handle_scene_preview_camera,
         'trimesh': handle_trimesh,
         'spawner': handle_spawner,
+        'loop-animation': handle_loop_animation,
     }
 
     for vnode, node in stored_components['object'].values():
@@ -166,33 +168,6 @@ def handle_audio_target(gltf, vnode, node, glb_component_name, glb_component_val
             print(f"{property_name} = {property_value}")
             setattr(blender_component, property_name, property_value)
 
-def handle_kit_alt_materials(gltf, vnode, node, glb_component_name, glb_component_value):
-    blender_component = add_hubs_component("object", glb_component_name, glb_component_value, vnode=vnode, node=node)
-
-    for property_name, property_value in glb_component_value.items():
-        if property_name == 'defaultMaterials':
-            for x, glb_defaultMaterial in enumerate(property_value):
-                bpy.ops.wm.add_hubs_component_item(context_override, path="object.hubs_component_kit_alt_materials.defaultMaterials")
-
-                for subproperty_name, subproperty_value in glb_defaultMaterial.items():
-                    if subproperty_name == 'material':
-                        setattr(blender_component.defaultMaterials[x], 'material', bpy.data.materials[gltf.data.materials[subproperty_value].name])
-
-                    else:
-                        setattr(blender_component.defaultMaterials[x], subproperty_name, subproperty_value)
-
-        elif property_name == 'altMaterials':
-            for x, glb_altMaterial in enumerate(property_value):
-                bpy.ops.wm.add_hubs_component_item(context_override, path="object.hubs_component_kit_alt_materials.altMaterials")
-                altMaterial_component = blender_component.altMaterials[x]
-
-                for y, glb_sub_altMaterial_index in enumerate(glb_altMaterial):
-                    bpy.ops.wm.add_hubs_component_item(context_override, path=f"object.hubs_component_kit_alt_materials.altMaterials.0.value")
-                    altMaterial_component.value[y].value = bpy.data.materials[gltf.data.materials[glb_sub_altMaterial_index].name]
-
-        else:
-            setattr(blender_component, property_name, property_value)
-
 def handle_spawn_point(gltf, vnode, node, glb_component_name, glb_component_value):
     blender_component = add_hubs_component("object", "waypoint", glb_component_value, vnode=vnode, node=node)
 
@@ -218,6 +193,20 @@ def handle_spawner(gltf, vnode, node, glb_component_name, glb_component_value):
     for property_name, property_value in glb_component_value.items():
         if property_name == 'mediaOptions':
             setattr(getattr(blender_component, property_name), "applyGravity", property_value["applyGravity"])
+
+        else:
+            assign_property(gltf, blender_component, property_name, property_value)
+
+def handle_loop_animation(gltf, vnode, node, glb_component_name, glb_component_value):
+    blender_component = add_hubs_component("object", glb_component_name, glb_component_value, vnode=vnode, node=node)
+
+    for property_name, property_value in glb_component_value.items():
+        if property_name == 'clip':
+            tracks = property_value.split(",")
+            for track_name in tracks:
+                if not has_track(blender_component.tracks_list, track_name):
+                    track = blender_component.tracks_list.add()
+                    track.name = track_name.strip()
 
         else:
             assign_property(gltf, blender_component, property_name, property_value)
@@ -294,13 +283,9 @@ def add_hubs_component(element_type, glb_component_name, glb_component_value, vn
     print(f"Hubs Component Name: {glb_component_name}")
     print(f"Hubs Component Value: {glb_component_value}")
 
-
-    # override context
-    context_override = bpy.context.copy()
-    context_override[element_type] = element
-
     # create component
-    bpy.ops.wm.add_hubs_component(context_override, object_source=element_type, component_name=glb_component_name)
+    if not has_component(element, glb_component_name):
+        add_component(element, glb_component_name)
 
     return getattr(element, f"hubs_component_{glb_component_name.replace('-', '_')}")
 
