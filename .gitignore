@@ -2,3 +2,9 @@ fake_bpy_modules*
 __pycache__
 .DS_Store
 io_scene_gltf2
+
+# Tests
+node_modules/
+mochawesome-report
+tests_out/
+generated_cubemaps/
