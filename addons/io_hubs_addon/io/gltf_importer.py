@@ -312,14 +312,16 @@ def set_color_from_hex(blender_component, property_name, hexcolor):
         getattr(blender_component, property_name)[x] = rgb_float_linear
 
 def assign_property(gltf, blender_component, property_name, property_value):
-    if property_name == 'srcNode':
-        setattr(blender_component, property_name, gltf.vnodes[property_value['index']].blender_object)
+    if isinstance(property_value, dict):
+        if property_value.get('__mhc_link_type'):
+            if len(property_value) == 2:
+                setattr(blender_component, property_name, gltf.vnodes[property_value['index']].blender_object)
 
-    elif isinstance(property_value, dict):
-        blender_subcomponent = getattr(blender_component, property_name)
-        for x, subproperty_value in enumerate(property_value.values()):
-            print(f"{property_name}[{x}] = {subproperty_value}")
-            blender_subcomponent[x] = subproperty_value
+        else:
+            blender_subcomponent = getattr(blender_component, property_name)
+            for x, subproperty_value in enumerate(property_value.values()):
+                print(f"{property_name}[{x}] = {subproperty_value}")
+                blender_subcomponent[x] = subproperty_value
 
     elif re.fullmatch("#[0-9a-fA-F]*", str(property_value)):
         set_color_from_hex(blender_component, property_name, property_value)
