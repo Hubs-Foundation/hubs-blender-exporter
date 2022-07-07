@@ -197,7 +197,7 @@ def handle_spawner(gltf, vnode, node, glb_component_name, glb_component_value):
 
     for property_name, property_value in glb_component_value.items():
         if property_name == 'mediaOptions':
-            setattr(getattr(blender_component, property_name), "applyGravity", property_value["applyGravity"])
+            setattr(blender_component, "applyGravity", property_value["applyGravity"])
 
         else:
             assign_property(gltf, blender_component, property_name, property_value)
