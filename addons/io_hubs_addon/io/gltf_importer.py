@@ -57,11 +57,16 @@ def patched_BlenderMaterial_create(gltf, material_idx, vertex_color):
 
 @staticmethod
 def patched_BlenderScene_create(gltf):
+    global stored_components
     orig_BlenderScene_create(gltf)
 
     create_object_hubs_components(gltf)
     create_material_hubs_components(gltf)
     create_scene_hubs_components(gltf)
+
+    # clear stored components so as not to conflict with the next import
+    for key in stored_components.keys():
+        stored_components[key].clear()
 
 
 def create_object_hubs_components(gltf):
