@@ -8,7 +8,7 @@ class VideoTextureSource(HubsComponent):
     _definition = {
         'name': 'video-texture-source',
         'display_name': 'Video Texture Source',
-        'category': Category.SCENE,
+        'category': Category.AV,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'VIEW_CAMERA'

@@ -74,7 +74,7 @@ class VideoTextureTarget(HubsComponent):
     _definition = {
         'name': 'video-texture-target',
         'display_name': 'Video Texture Target',
-        'category': Category.AVATAR,
+        'category': Category.AV,
         'node_type': NodeType.MATERIAL,
         'panel_type': [PanelType.MATERIAL],
         'icon': 'IMAGE_DATA'

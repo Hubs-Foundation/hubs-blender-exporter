@@ -8,7 +8,7 @@ class Audio(HubsComponent):
     _definition = {
         'name': 'audio',
         'display_name': 'Audio',
-        'category': Category.ELEMENTS,
+        'category': Category.AV,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'deps': ['networked', 'audio-params'],

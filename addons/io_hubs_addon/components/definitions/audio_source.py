@@ -7,7 +7,7 @@ class AudioSource(HubsComponent):
     _definition = {
         'name': 'zone-audio-source',
         'display_name': 'Audio Source',
-        'category': Category.ELEMENTS,
+        'category': Category.AV,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'MOD_WAVE'
