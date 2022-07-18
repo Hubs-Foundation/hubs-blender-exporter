@@ -9,7 +9,7 @@ class Image(HubsComponent):
     _definition = {
         'name': 'image',
         'display_name': 'Image',
-        'category': Category.AV,
+        'category': Category.MEDIA,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'FILE_IMAGE',

@@ -10,7 +10,7 @@ class AudioZone(HubsComponent):
     _definition = {
         'name': 'audio-zone',
         'display_name': 'Audio Zone',
-        'category': Category.AV,
+        'category': Category.MEDIA,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'deps': ['networked', 'audio-params'],

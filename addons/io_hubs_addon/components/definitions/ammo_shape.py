@@ -8,7 +8,7 @@ class AmmoShape(HubsComponent):
     _definition = {
         'name': 'ammo-shape',
         'display_name': 'Ammo Shape',
-        'category': Category.SCENE,
+        'category': Category.OBJECT,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'SCENE_DATA'

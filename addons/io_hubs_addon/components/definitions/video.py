@@ -9,7 +9,7 @@ class Video(HubsComponent):
     _definition = {
         'name': 'video',
         'display_name': 'Video',
-        'category': Category.AV,
+        'category': Category.MEDIA,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'deps': ['networked', 'audio-params'],

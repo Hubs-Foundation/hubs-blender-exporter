@@ -23,4 +23,4 @@ class Category(Enum):
     AVATAR = 'Avatar'
     MISC = 'Misc'
     LIGHTS = 'Lights'
-    AV = 'A/V Elements'
+    MEDIA = 'Media'

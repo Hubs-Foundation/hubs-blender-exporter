@@ -75,7 +75,7 @@ class AudioTarget(HubsComponent):
     _definition = {
         'name': 'audio-target',
         'display_name': 'Audio Target',
-        'category': Category.AV,
+        'category': Category.MEDIA,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'deps': ['audio-params'],
