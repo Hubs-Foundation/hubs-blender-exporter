@@ -53,50 +53,99 @@ class AddHubsComponent(Operator):
 
         def draw(self, context):
             added_comps = 0
+            row_length = bpy.context.preferences.addons[__package__.split('.')[0]].preferences.row_length
             row = self.layout.row()
-            for category, cmps in components_by_category.items():
+
+            column_sorted_category_components = {}
+            row_max_cmp_len = {}
+
+            # sort components categories alphabetically and into columns and record the length of
+            # the longest category per row.  Number of columns == row_length
+            for cat_idx, category_cmps in enumerate(sorted(components_by_category.items())):
+                # add a tuple of the categories and components to the proper column index based on row length
+                try:
+                    column_sorted_category_components[cat_idx % row_length].append(category_cmps)
+                except KeyError:
+                    column_sorted_category_components[cat_idx % row_length] = [category_cmps]
+                # if the row length is zero, then just add a column for each category
+                except ZeroDivisionError:
+                    column_sorted_category_components[cat_idx] = [category_cmps]
+
+                # get the number of components in this category
+                cmp_len = len(category_cmps[1])
+
+                # get which row we're on
+                try:
+                    row_idx = len(column_sorted_category_components[cat_idx % row_length]) - 1
+                except ZeroDivisionError:
+                    row_idx = len(column_sorted_category_components[cat_idx]) - 1
+
+                # update the maximum number of components in a category for this row
+                try:
+                    row_max_cmp_len[row_idx] = cmp_len if cmp_len > row_max_cmp_len[row_idx] else row_max_cmp_len[row_idx]
+                except KeyError:
+                    row_max_cmp_len[row_idx] = cmp_len
+
+            # loop through the columns
+            for column_idx, category_cmps in column_sorted_category_components.items():
                 column = row.column()
-                column.label(text=category)
 
-                for (component_name, component_class) in cmps:
-                    if component_class.is_dep_only():
-                        continue
+                # loop through and add the categories for this column
+                for cat_idx, (category, cmps) in enumerate(category_cmps):
+                    column.label(text=category)
+                    column.separator()
 
-                    component_name = component_class.get_name()
-                    component_display_name = dash_to_title(
-                        component_class.get_display_name(component_name))
+                    # loop through and add the components in this category
+                    cmp_idx = 0
+                    for (component_name, component_class) in cmps:
+                        if component_class.is_dep_only():
+                            continue
 
-                    op = None
-                    if component_class.get_icon() is not None:
-                        icon = component_class.get_icon()
-                        if icon.find('.') != -1:
-                            if has_component(obj, component_name):
-                                op = column.label(
-                                    text=component_display_name, icon_value=components_icons[icon].icon_id)
+                        cmp_idx += 1
+                        component_name = component_class.get_name()
+                        component_display_name = dash_to_title(
+                            component_class.get_display_name(component_name))
+
+                        op = None
+                        if component_class.get_icon() is not None:
+                            icon = component_class.get_icon()
+                            if icon.find('.') != -1:
+                                if has_component(obj, component_name):
+                                    op = column.label(
+                                        text=component_display_name, icon_value=components_icons[icon].icon_id)
+                                else:
+                                    op = column.operator(
+                                        AddHubsComponent.bl_idname, text=component_display_name, icon_value=components_icons[icon].icon_id)
+                                    op.component_name = component_name
+                                    op.panel_type = panel_type
                             else:
-                                op = column.operator(
-                                    AddHubsComponent.bl_idname, text=component_display_name, icon_value=components_icons[icon].icon_id)
-                                op.component_name = component_name
-                                op.panel_type = panel_type
+                                if has_component(obj, component_name):
+                                    op = column.label(
+                                        text=component_display_name, icon=icon)
+                                else:
+                                    op = column.operator(
+                                        AddHubsComponent.bl_idname, text=component_display_name, icon=icon)
+                                    op.component_name = component_name
+                                    op.panel_type = panel_type
                         else:
                             if has_component(obj, component_name):
-                                op = column.label(
-                                    text=component_display_name, icon=icon)
+                                op = column.label(text=component_display_name)
                             else:
                                 op = column.operator(
-                                    AddHubsComponent.bl_idname, text=component_display_name, icon=icon)
+                                    AddHubsComponent.bl_idname, text=component_display_name, icon='ADD')
                                 op.component_name = component_name
                                 op.panel_type = panel_type
-                    else:
-                        if has_component(obj, component_name):
-                            op = column.label(text=component_display_name)
-                        else:
-                            op = column.operator(
-                                AddHubsComponent.bl_idname, text=component_display_name, icon='ADD')
-                            op.component_name = component_name
-                            op.panel_type = panel_type
 
-                    added_comps += 1
+                        added_comps += 1
+
+                    # add blank space padding to category so it will take up the same space as the category with the most components in that row (keeps rows aligned)
+                    while cmp_idx < row_max_cmp_len[cat_idx] and cat_idx + 1 < len(category_cmps):
+                        column.label(text="")
+                        cmp_idx += 1
+
+                    # add blank space between rows, but not after final row
+                    if cat_idx + 1 < len(column_sorted_category_components[column_idx]):
+                        column.label(text="")
 
             if added_comps == 0:
                 column = row.column()

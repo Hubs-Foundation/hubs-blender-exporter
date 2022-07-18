@@ -1,5 +1,6 @@
 from .io import gltf_exporter
 from . import (nodes, components)
+from . import preferences
 bl_info = {
     "name": "Hubs Blender Addon",
     "author": "Mozilla Hubs",
@@ -16,6 +17,7 @@ bl_info = {
 
 
 def register():
+    preferences.register()
     gltf_exporter.register()
     nodes.register()
     components.register()
@@ -25,6 +27,7 @@ def unregister():
     components.unregister()
     nodes.unregister()
     gltf_exporter.unregister()
+    preferences.unregister()
 
 
 # called by gltf-blender-io after it has loaded

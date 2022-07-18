@@ -7,7 +7,7 @@ class DirectionalLight(HubsComponent):
     _definition = {
         'name': 'directional-light',
         'display_name': 'Directional Light',
-        'category': Category.ELEMENTS,
+        'category': Category.LIGHTS,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'LIGHT_SUN'

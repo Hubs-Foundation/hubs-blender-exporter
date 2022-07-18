@@ -7,7 +7,7 @@ class AmbientLight(HubsComponent):
     _definition = {
         'name': 'ambient-light',
         'display_name': 'Ambient Light',
-        'category': Category.ELEMENTS,
+        'category': Category.LIGHTS,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'LIGHT_HEMI'

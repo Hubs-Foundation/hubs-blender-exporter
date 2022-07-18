@@ -7,7 +7,7 @@ class Shadow(HubsComponent):
     _definition = {
         'name': 'shadow',
         'display_name': 'Shadow',
-        'category': Category.ELEMENTS,
+        'category': Category.OBJECT,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT],
         'icon': 'MOD_MASK'

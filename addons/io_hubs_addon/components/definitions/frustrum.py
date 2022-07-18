@@ -7,7 +7,7 @@ class Frustrum(HubsComponent):
     _definition = {
         'name': 'frustrum',
         'display_name': 'Frustrum',
-        'category': Category.ELEMENTS,
+        'category': Category.OBJECT,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT],
         'icon': 'IMAGE_PLANE'

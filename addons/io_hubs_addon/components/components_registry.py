@@ -32,7 +32,7 @@ def get_components_in_dir(dir):
         elif isdir(f_path) and f != "__pycache__":
             comps = [f + '.' + name for name in get_components_in_dir(f_path)]
             components = components + comps
-    return components
+    return sorted(components)
 
 
 def get_component_definitions():
