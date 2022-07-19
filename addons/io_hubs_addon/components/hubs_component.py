@@ -106,6 +106,10 @@ class HubsComponent(PropertyGroup):
         pass
 
     @classmethod
+    def draw_global(cls, context, layout, panel_type):
+        '''Draw method to be called by the panel. This can be used to draw global component properties in a panel before the component properties.'''
+
+    @classmethod
     def get_properties(cls):
         if hasattr(cls, '__annotations__'):
             return cls.__annotations__.keys()

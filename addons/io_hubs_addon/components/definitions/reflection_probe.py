@@ -1,13 +1,17 @@
 import bpy
-from bpy.props import PointerProperty, EnumProperty
-from bpy.types import Image
+from bpy.props import PointerProperty, EnumProperty, StringProperty
+from bpy.types import Image, PropertyGroup
+
+from ...preferences import Preference, get_addon_pref
+
+from ..components_registry import get_components_registry
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ... import io
 import math
 
 
-resolutions = [
+RESOLUTIONS = [
     (128, 64),
     (256, 128),
     (512, 256),
@@ -15,7 +19,49 @@ resolutions = [
     (2048, 1024)
 ]
 
+RESOLUTION_ITEMS = [
+    ('128x64', '128x64',
+     '128 x 64', '', 0),
+    ('256x128', '256x128',
+     '256 x 128', '', 1),
+    ('512x256', '512x256',
+     '512 x 256', '', 2),
+    ('1024x512', '1024x512',
+     '1024 x 512', '', 3),
+    ('2048x1024', '2048x1024',
+     '2048 x 1024', '', 4),
+]
+
 probe_baking = False
+
+
+def get_probes():
+    probes = []
+    for ob in bpy.context.view_layer.objects:
+        component_list = ob.hubs_component_list
+
+        registered_hubs_components = get_components_registry()
+
+        if component_list.items:
+            for component_item in component_list.items:
+                component_name = component_item.name
+                if component_name in registered_hubs_components:
+                    if component_name == 'reflection-probe':
+                        probes.append(ob)
+
+    return probes
+
+
+class ReflectionProbeSceneProps(PropertyGroup):
+    resolution: EnumProperty(name='Resolution',
+                             description='Reflection Probe Selected Environment Map Resolution',
+                             items=RESOLUTION_ITEMS,
+                             default='256x128')
+
+    render_resolution: StringProperty(name='Last Bake Resolution',
+                                      description='Reflection Probe Last Bake Environment Map Resolution',
+                                      options={'HIDDEN'},
+                                      default='256x128')
 
 
 class BakeProbeOperator(bpy.types.Operator):
@@ -24,24 +70,29 @@ class BakeProbeOperator(bpy.types.Operator):
 
     _timer = None
     done = False
+    rendering = False
     cancelled = False
-    probe = None
+    probes = []
 
-    @classmethod
+    @ classmethod
     def poll(cls, context):
         return not probe_baking
 
     def render_post(self, scene, depsgraph):
         print("Finished render")
-        self.done = True
+
+        self.rendering = False
+
+        if len(self.probes) == 0:
+            self.done = True
+        else:
+            self.probe = self.probes.pop(-1)
 
     def render_cancelled(self, scene, depsgraph):
         print("Render canceled")
         self.cancelled = True
 
     def execute(self, context):
-        global probe_baking
-
         bpy.app.handlers.render_post.append(self.render_post)
         bpy.app.handlers.render_cancel.append(self.render_cancelled)
 
@@ -49,87 +100,129 @@ class BakeProbeOperator(bpy.types.Operator):
             0.5, window=context.window)
         context.window_manager.modal_handler_add(self)
 
+        global probe_baking
         probe_baking = True
-        self.probe = context.object
 
         self.camera_data = bpy.data.cameras.new(name='Temp EnvMap Camera')
-        camera_object = bpy.data.objects.new(
+        self.camera_object = bpy.data.objects.new(
             'Temp EnvMap Camera', self.camera_data)
-        bpy.context.scene.collection.objects.link(camera_object)
+        bpy.context.scene.collection.objects.link(self.camera_object)
 
-        return render_probe(self.probe, self.camera_data, camera_object)
+        self.prev_render_camera = bpy.context.scene.camera
+        self.prev_render_engine = bpy.context.scene.render.engine
+        self.prev_render_rex_x = bpy.context.scene.render.resolution_x
+        self.prev_render_res_y = bpy.context.scene.render.resolution_y
+        self.prev_render_file_format = bpy.context.scene.render.image_settings.file_format
+        self.prev_render_file_path = bpy.context.scene.render.filepath
+
+        self.probes = get_probes()
+        self.cancelled = False
+        self.done = False
+        self.rendering = False
+        self.probe = self.probes.pop(-1)
+
+        return {"RUNNING_MODAL"}
 
     def modal(self, context, event):
         global probe_baking
 
         # print("ev: %s" % event.type)
-        if event.type == 'TIMER' and (self.cancelled or self.done):
-            bpy.app.handlers.render_post.remove(self.render_post)
-            bpy.app.handlers.render_cancel.remove(self.render_cancelled)
-            context.window_manager.event_timer_remove(self._timer)
+        if event.type == 'TIMER':
+            if self.cancelled or self.done:
+                bpy.app.handlers.render_post.remove(self.render_post)
+                bpy.app.handlers.render_cancel.remove(self.render_cancelled)
+                context.window_manager.event_timer_remove(self._timer)
 
-            bpy.data.cameras.remove(self.camera_data)
+                bpy.context.scene.collection.objects.unlink(self.camera_object)
+                bpy.data.cameras.remove(self.camera_data)
 
-            probe_baking = False
+                self.restore_render_props()
+                self.rendering = False
+                probe_baking = False
 
-            if self.cancelled:
-                return {"CANCELLED"}
+                if self.cancelled:
+                    self.report(
+                        {'WARNING'}, 'Reflection probe baking cancelled')
+                    self.restore_render_props()
+                    return {"CANCELLED"}
 
-            image_name = "generated_cubemap-%s" % self.probe.name
-            img = bpy.data.images.get(image_name)
-            if not img:
-                img = bpy.data.images.load(
-                    filepath=bpy.context.scene.render.filepath)
-                img.name = image_name
-            else:
-                img.reload()
+                probes = get_probes()
+                for probe in probes:
+                    image_name = "generated_cubemap-%s" % probe.name
+                    img = bpy.data.images.get(image_name)
+                    img_path = "%s/%s.hdr" % (get_addon_pref(
+                        Preference.TMP_PATH), probe.name)
+                    if not img:
+                        img = bpy.data.images.load(filepath=img_path)
+                        img.name = image_name
+                    else:
+                        img.reload()
+                    self.report(
+                        {'INFO'}, 'Reflection probe environment map saved at %s' % img_path)
 
-            self.probe.hubs_component_reflection_probe['envMapTexture'] = img
+                    probe.hubs_component_reflection_probe['envMapTexture'] = img
 
-            return {"FINISHED"}
+                props = context.scene.hubs_scene_reflection_probe_properties
+                props.render_resolution = props.resolution
+
+                self.report({'INFO'}, 'Reflection probe baking finished')
+                self.restore_render_props()
+                return {"FINISHED"}
+
+            elif not self.rendering:
+                try:
+                    self.rendering = True
+                    self.render_probe(context)
+                except Exception as e:
+                    print(e)
+                    self.cancelled = True
+                    self.report(
+                        {'ERROR'}, 'Reflection probe baking error %s' % e)
 
         return {"PASS_THROUGH"}
 
+    def restore_render_props(self):
+        bpy.context.scene.camera = self.prev_render_camera
+        bpy.context.scene.render.engine = self.prev_render_engine
+        bpy.context.scene.render.resolution_x = self.prev_render_rex_x
+        bpy.context.scene.render.resolution_y = self.prev_render_res_y
+        bpy.context.scene.render.image_settings.file_format = self.prev_render_file_format
+        bpy.context.scene.render.filepath = self.prev_render_file_path
 
-def render_probe(probe, camera_data, camera_object):
-    try:
-        camera_data.type = "PANO"
-        camera_data.cycles.panorama_type = "EQUIRECTANGULAR"
+    def render_probe(self, context):
+        self.camera_data.type = "PANO"
+        self.camera_data.cycles.panorama_type = "EQUIRECTANGULAR"
 
-        camera_data.cycles.longitude_min = -math.pi
-        camera_data.cycles.longitude_max = math.pi
-        camera_data.cycles.latitude_min = -math.pi/2
-        camera_data.cycles.latitude_max = math.pi/2
+        self.camera_data.cycles.longitude_min = -math.pi
+        self.camera_data.cycles.longitude_max = math.pi
+        self.camera_data.cycles.latitude_min = -math.pi/2
+        self.camera_data.cycles.latitude_max = math.pi/2
 
-        camera_data.clip_start = probe.data.clip_start
-        camera_data.clip_end = probe.data.clip_end
+        self.camera_data.clip_start = self.probe.data.clip_start
+        self.camera_data.clip_end = self.probe.data.clip_end
 
-        camera_object.matrix_world = probe.matrix_world.copy()
-        camera_object.rotation_euler.x += math.pi/2
-        camera_object.rotation_euler.z += -math.pi/2
+        self.camera_object.matrix_world = self.probe.matrix_world.copy()
+        self.camera_object.rotation_euler.x += math.pi/2
+        self.camera_object.rotation_euler.z += -math.pi/2
 
-        bpy.context.scene.camera = camera_object
+        bpy.context.scene.camera = self.camera_object
         bpy.context.scene.render.engine = "CYCLES"
-        (x, y) = resolutions[probe.hubs_component_reflection_probe.get(
+        (x, y) = RESOLUTIONS[context.scene.hubs_scene_reflection_probe_properties.get(
             'resolution', 1)]
         bpy.context.scene.render.resolution_x = x
         bpy.context.scene.render.resolution_y = y
         bpy.context.scene.render.image_settings.file_format = "HDR"
-        bpy.context.scene.render.filepath = "//generated_cubemaps/%s.hdr" % probe.name
+        bpy.context.scene.render.filepath = "%s/%s.hdr" % (
+            get_addon_pref(Preference.TMP_PATH), self.probe.name)
 
         # TODO don't clobber renderer properties
         # TODO handle skipping compositor
 
         tmp_pref = bpy.context.preferences.view.render_display_type
         bpy.context.preferences.view.render_display_type = "NONE"
+        self.report({'INFO'}, 'Baking probe %s' % self.probe.name)
         bpy.ops.render.render("INVOKE_DEFAULT", write_still=True)
         bpy.context.preferences.view.render_display_type = tmp_pref
-
-        return {"RUNNING_MODAL"}
-
-    except Exception as e:
-        print(e)
-        return {"CANCELLED"}
 
 
 class ReflectionProbe(HubsComponent):
@@ -148,26 +241,8 @@ class ReflectionProbe(HubsComponent):
         type=Image
     )
 
-    resolution: EnumProperty(
-        name='Resolution',
-        description='Resolution for the environment map',
-        items=[
-            ('128x64', '128x64', '128 x 64'),
-            ('256x128', '256x128', '256 x 128'),
-            ('512x256', '512x256', '512 x 256'),
-            ('1024x512', '1024x512', '1024 x 512'),
-            ('2048x1024', '2048x1024', '2048 x 1024'),
-        ],
-        default='256x128'
-    )
-
     def draw(self, context, layout, panel_type):
         super().draw(context, layout, panel_type)
-
-        layout.operator(
-            "render.hubs_render_reflection_probe",
-            text="Bake"
-        )
 
     def gather(self, export_settings, object):
         return {
@@ -179,15 +254,43 @@ class ReflectionProbe(HubsComponent):
         }
 
     @classmethod
+    def draw_global(cls, context, layout, panel_type):
+        probes = get_probes()
+        if len(probes) > 0 and panel_type == PanelType.SCENE:
+            row = layout.row()
+            col = row.box().column()
+            row = col.row()
+            row.label(text="Reflection Probes Resolution:")
+            row = col.row()
+            row.prop(context.scene.hubs_scene_reflection_probe_properties,
+                     "resolution", text="")
+
+            props = context.scene.hubs_scene_reflection_probe_properties
+            if props.resolution != props.render_resolution:
+                row = col.row()
+                row.alert = True
+                row.label(text="Reflection probe resolution has changed. Bake again to apply the new resolution.",
+                          icon='ERROR')
+
+            bake_msg = "Baking..." if probe_baking else "Bake All"
+            layout.operator(
+                "render.hubs_render_reflection_probe",
+                text=bake_msg
+            )
+
+    @classmethod
     def poll(cls, context, panel_type):
         return context.object.type == 'LIGHT_PROBE'
 
     @staticmethod
     def register():
         bpy.utils.register_class(BakeProbeOperator)
-        pass
+        bpy.utils.register_class(ReflectionProbeSceneProps)
+        bpy.types.Scene.hubs_scene_reflection_probe_properties = PointerProperty(
+            type=ReflectionProbeSceneProps)
 
     @staticmethod
     def unregister():
         bpy.utils.unregister_class(BakeProbeOperator)
-        pass
+        bpy.utils.unregister_class(ReflectionProbeSceneProps)
+        del bpy.types.Scene.hubs_scene_reflection_probe_properties
