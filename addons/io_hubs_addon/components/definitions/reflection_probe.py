@@ -74,6 +74,7 @@ class BakeProbeOperator(bpy.types.Operator):
     rendering = False
     cancelled = False
     probes = []
+    post_render_wait = 0
 
     @ classmethod
     def poll(cls, context):
@@ -120,6 +121,7 @@ class BakeProbeOperator(bpy.types.Operator):
         self.cancelled = False
         self.done = False
         self.rendering = False
+        self.post_render_wait = 500
         self.probe = self.probes.pop(-1)
 
         return {"RUNNING_MODAL"}
@@ -171,6 +173,13 @@ class BakeProbeOperator(bpy.types.Operator):
                 return {"FINISHED"}
 
             elif not self.rendering:
+                # There seems to be some sort of deadlock if we don't wait some time time between renders.
+                # It would be nice to get to the bottom of this.
+                if self.post_render_wait < 500:
+                    self.post_render_wait += 500
+                    return {"PASS_THROUGH"}
+                else:
+                    self.post_render_wait = 0
                 try:
                     self.rendering = True
                     self.render_probe(context)
