@@ -2,6 +2,8 @@ import bpy
 from bpy.props import PointerProperty, EnumProperty, StringProperty
 from bpy.types import Image, PropertyGroup
 
+from ...components.utils import is_gpu_available
+
 from ...preferences import Preference, get_addon_pref
 
 from ..components_registry import get_components_registry
@@ -112,6 +114,7 @@ class BakeProbeOperator(bpy.types.Operator):
 
         self.prev_render_camera = bpy.context.scene.camera
         self.prev_render_engine = bpy.context.scene.render.engine
+        self.prev_cycles_device = bpy.context.scene.cycles.device
         self.prev_render_rex_x = bpy.context.scene.render.resolution_x
         self.prev_render_res_y = bpy.context.scene.render.resolution_y
         self.prev_render_file_format = bpy.context.scene.render.image_settings.file_format
@@ -194,6 +197,7 @@ class BakeProbeOperator(bpy.types.Operator):
     def restore_render_props(self):
         bpy.context.scene.camera = self.prev_render_camera
         bpy.context.scene.render.engine = self.prev_render_engine
+        bpy.context.scene.cycles.device = self.prev_cycles_device
         bpy.context.scene.render.resolution_x = self.prev_render_rex_x
         bpy.context.scene.render.resolution_y = self.prev_render_res_y
         bpy.context.scene.render.image_settings.file_format = self.prev_render_file_format
@@ -219,6 +223,8 @@ class BakeProbeOperator(bpy.types.Operator):
         bpy.context.scene.render.engine = "CYCLES"
         (x, y) = RESOLUTIONS[context.scene.hubs_scene_reflection_probe_properties.get(
             'resolution', 1)]
+        bpy.context.scene.cycles.device = "GPU" if is_gpu_available(
+            context) else "CPU"
         bpy.context.scene.render.resolution_x = x
         bpy.context.scene.render.resolution_y = y
         bpy.context.scene.render.image_settings.file_format = "HDR"
