@@ -3,15 +3,24 @@ from bpy.types import AddonPreferences
 from bpy.props import IntProperty, StringProperty
 from enum import Enum
 
+from .utils import get_addon_package
+
 
 class HubsPreference(Enum):
     ROW_LENGTH = 'row_length'
     TMP_PATH = 'tmp_path'
 
 
+HUBS_PREFERENCES_DEFAULTS = {
+    HubsPreference.ROW_LENGTH.value: 4,
+    HubsPreference.TMP_PATH.value: "//generated_cubemaps/"
+}
+
+
 def get_addon_pref(pref):
-    return bpy.context.preferences.addons[__package__.split('.')[
-        0]].preferences[pref.value]
+    addon_package = get_addon_package()
+    addon_prefs = bpy.context.preferences.addons[addon_package].preferences
+    return pref.value if pref.value in addon_prefs else HUBS_PREFERENCES_DEFAULTS[pref.value]
 
 
 class HubsPreferences(AddonPreferences):
@@ -20,7 +29,7 @@ class HubsPreferences(AddonPreferences):
     row_length: IntProperty(
         name="Add Component Menu Row Length",
         description="Allows you to control how many categories are added to a row before it starts on the next row. Set to 0 to have it all on one row",
-        default=4,
+        default=HUBS_PREFERENCES_DEFAULTS[HubsPreference.ROW_LENGTH.value],
         min=0,
     )
 
@@ -28,7 +37,7 @@ class HubsPreferences(AddonPreferences):
         name="Temporary files path",
         description="Path where temporary files will be stored.",
         subtype="DIR_PATH",
-        default="//generated_cubemaps/"
+        default=HUBS_PREFERENCES_DEFAULTS[HubsPreference.TMP_PATH.value]
     )
 
     def draw(self, context):
