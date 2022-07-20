@@ -4,7 +4,7 @@ from bpy.props import IntProperty, StringProperty
 from enum import Enum
 
 
-class Preference(Enum):
+class HubsPreference(Enum):
     ROW_LENGTH = 'row_length'
     TMP_PATH = 'tmp_path'
 

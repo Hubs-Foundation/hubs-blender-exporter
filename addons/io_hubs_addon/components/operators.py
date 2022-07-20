@@ -6,7 +6,7 @@ from functools import reduce
 from .types import PanelType
 from .utils import get_object_source, dash_to_title, has_component, add_component, remove_component
 from .components_registry import get_components_registry, get_components_icons
-from ..preferences import Preference, get_addon_pref
+from ..preferences import HubsPreference, get_addon_pref
 
 
 class AddHubsComponent(Operator):
@@ -54,7 +54,7 @@ class AddHubsComponent(Operator):
 
         def draw(self, context):
             added_comps = 0
-            row_length = get_addon_pref(Preference.ROW_LENGTH)
+            row_length = get_addon_pref(HubsPreference.ROW_LENGTH)
             row = self.layout.row()
 
             column_sorted_category_components = {}
