@@ -1,5 +1,5 @@
 import bpy
-from bpy.props import PointerProperty, EnumProperty, StringProperty
+from bpy.props import PointerProperty, EnumProperty, StringProperty, StringProperty
 from bpy.types import Image, PropertyGroup
 
 from ...components.utils import is_gpu_available
@@ -38,6 +38,34 @@ probe_baking = False
 show_warning = False
 
 
+def get_resolutions(self, context):
+    env_map = context.scene.hubs_component_environment_settings.envMapTexture
+    if env_map:
+        x = env_map.size[0]
+        y = env_map.size[1]
+        return [(f'{x}x{y}', f'{x}x{y}', f'{x} x {y}', '', 0)]
+    else:
+        return RESOLUTION_ITEMS
+
+
+def get_resolution(self):
+    env_map = bpy.context.scene.hubs_component_environment_settings.envMapTexture
+    if env_map:
+        return 0
+    else:
+        list_ids = list(map(lambda x: x[0], RESOLUTION_ITEMS))
+        return list_ids.index(self.resolution_id) if self.resolution_id in list_ids else 0
+
+
+def set_resolution(self, value):
+    env_map = bpy.context.scene.hubs_component_environment_settings.envMapTexture
+    if env_map:
+        self.resolution_id = f'{env_map.size[0]}x{env_map.size[1]}'
+    else:
+        list_ids = list(map(lambda x: x[4], RESOLUTION_ITEMS))
+        self.resolution_id = RESOLUTION_ITEMS[value][0] if value in list_ids else 0
+
+
 def get_probes():
     probes = []
     for ob in bpy.context.view_layer.objects:
@@ -58,13 +86,17 @@ def get_probes():
 class ReflectionProbeSceneProps(PropertyGroup):
     resolution: EnumProperty(name='Resolution',
                              description='Reflection Probe Selected Environment Map Resolution',
-                             items=RESOLUTION_ITEMS,
-                             default='256x128')
+                             items=get_resolutions,
+                             get=get_resolution,
+                             set=set_resolution)
 
     render_resolution: StringProperty(name='Last Bake Resolution',
                                       description='Reflection Probe Last Bake Environment Map Resolution',
                                       options={'HIDDEN'},
                                       default='256x128')
+
+    resolution_id: StringProperty(name='Current Resolution Id',
+                                  options={'HIDDEN'})
 
 
 class BakeProbeOperator(bpy.types.Operator):
