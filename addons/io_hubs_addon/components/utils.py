@@ -7,14 +7,10 @@ V_S1 = Vector((1.0, 1.0, 1.0))
 
 
 def add_component(obj, component_name):
-    print('def add_component')
-    print('obj:', obj)
-    print('component_name:', component_name)
     component_item = obj.hubs_component_list.items.add()
     component_item.name = component_name
 
     component_class = get_component_by_name(component_name)
-    print('component_class:', component_class)
     if component_class:
         update_gizmos()
         component_class.init(obj)

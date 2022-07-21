@@ -1,5 +1,4 @@
 import bpy
-import bpy_types
 from bpy.types import (Gizmo, GizmoGroup)
 from bpy.props import (IntProperty)
 from .components_registry import get_component_by_name
@@ -68,33 +67,24 @@ class HubsGizmoGroup(GizmoGroup):
     bl_options = {'3D', 'PERSISTENT', 'SHOW_MODAL_ALL', 'SELECT'}
 
     def add_gizmo(self, ob, host, host_type):
-        print('def add_gizmo')
         for component_item in host.hubs_component_list.items:
-            print('component_item:', component_item)
             component_name = component_item.name
             component_class = get_component_by_name(component_name)
-            print('component_name:', component_name)
-            print('component_class:', component_class)
             if not component_class:
                 continue
             gizmo = component_class.create_gizmo(host, self)
-            print('gizmo:', gizmo)
             if gizmo:
                 if not component_name in self.widgets:
-                    print('add component to widgets')
                     self.widgets[component_name] = {}
 
                 host_key = ob.name+host.name
-                print('host_key:', host_key)
                 if host_key not in self.widgets[component_name]:
-                    print('creating new widget')
                     self.widgets[component_name][host_key] = {
                         'ob': ob,
                         'host_name': host.name,
                         'host_type': host_type,
                         'gizmo': gizmo
                         }
-                    print('widget:', self.widgets[component_name][host_key])
 
                     if host_type == 'OBJECT':
                         owner = object()
@@ -126,50 +116,24 @@ class HubsGizmoGroup(GizmoGroup):
 
         self.refresh(context)
 
-    #def remove_gizmo(self, component_name, host_key):
-        #print('def remove_gizmo')
-        #print('component_name:', component_name)
-        #print('host_key:', host_key)
-        #gizmo = self.widgets[component_name][host_key]['gizmo']
-        #if gizmo:
-            #self.gizmos.remove(gizmo)
-        #del self.widgets[component_name][host_key]
-        #if not self.widget[component_name]:
-            #del self.widget[component_name]
-
     def update_gizmo(self, component_name, ob, bone, target, gizmo):
-        print('def update_gizmo')
         component_class = get_component_by_name(component_name)
         component_class.update_gizmo(ob, bone, target, gizmo)
 
     def update_object_gizmo(self, component_name, ob, gizmo):
-        print('update_object_gizmo')
-        #if component_name not in ob.hubs_component_list.items:
-            #self.remove_gizmo(component_name, ob.name+ob.name)
-        #else:
-            #self.update_gizmo(component_name, ob, None, ob, gizmo)
         self.update_gizmo(component_name, ob, None, ob, gizmo)
 
     def update_bone_gizmo(self, component_name, ob, bone, pose_bone, gizmo):
-        print('def update_bone_gizmo')
-        #if component_name not in bone.hubs_component_list.items:
-            #self.remove_gizmo(component_name, ob.name+bone.name)
-        #else:
-            #self.update_gizmo(component_name, ob, pose_bone, bone, gizmo)
         self.update_gizmo(component_name, ob, pose_bone, bone, gizmo)
 
     def refresh(self, context):
-        print('def refresh')
         for component_name in self.widgets:
-            print('component_name:', component_name)
             components_widgets = self.widgets[component_name].copy()
             for widget in components_widgets.values():
-                print('widget:', widget)
                 gizmo = widget['gizmo']
                 ob = widget['ob']
                 host_name = widget['host_name']
-                host_type = widget['host_type']
-                if host_type == 'BONE':
+                if widget['host_type'] == 'BONE':
                     # https://docs.blender.org/api/current/info_gotcha.html#editbones-posebones-bone-bones
                     if ob.mode == 'EDIT':
                         edit_bone = ob.data.edit_bones[host_name]
@@ -190,25 +154,21 @@ gizmo_system_registered = False
 msgbus_owners = []
 
 def msgbus_callback(*args):
-    print('def msgbus_callback')
     update_gizmos()
 
 
 @persistent
 def undo_post(dummy):
-    print('def undo_post')
     update_gizmos()
 
 
 @persistent
 def redo_post(dummy):
-    print('def redo_post')
     update_gizmos()
 
 
 @persistent
 def depsgraph_update_post(dummy):
-    print('def depsgraph_update_post')
     global objects_count
     if bpy.context.mode == 'OBJECT':
         if len(bpy.data.objects) != objects_count:
