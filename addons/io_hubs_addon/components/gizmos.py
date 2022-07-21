@@ -264,6 +264,8 @@ def register_functions():
 
         bpy.types.Armature.hubs_old_bones_length = IntProperty(options={'HIDDEN', 'SKIP_SAVE'})
 
+        register_gizmo_system()
+
     def unregister():
         if load_post in bpy.app.handlers.load_post:
             bpy.app.handlers.load_post.remove(load_post)
