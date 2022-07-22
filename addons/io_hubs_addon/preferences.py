@@ -20,7 +20,7 @@ HUBS_PREFERENCES_DEFAULTS = {
 def get_addon_pref(pref):
     addon_package = get_addon_package()
     addon_prefs = bpy.context.preferences.addons[addon_package].preferences
-    return pref.value if pref.value in addon_prefs else HUBS_PREFERENCES_DEFAULTS[pref.value]
+    return addon_prefs[pref.value] if pref.value in addon_prefs else HUBS_PREFERENCES_DEFAULTS[pref.value]
 
 
 class HubsPreferences(AddonPreferences):
