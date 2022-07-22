@@ -1,5 +1,5 @@
 import bpy
-from bpy.props import PointerProperty, EnumProperty, StringProperty, StringProperty
+from bpy.props import PointerProperty, EnumProperty, StringProperty, StringProperty, BoolProperty
 from bpy.types import Image, PropertyGroup
 
 from ...components.utils import is_gpu_available
@@ -108,7 +108,10 @@ class BakeProbeOperator(bpy.types.Operator):
     rendering = False
     cancelled = False
     probes = []
+    probe_index = 0
     post_render_wait = 0
+
+    bake_selected: BoolProperty(name="bake_selected", default=False)
 
     @ classmethod
     def poll(cls, context):
@@ -119,10 +122,10 @@ class BakeProbeOperator(bpy.types.Operator):
 
         self.rendering = False
 
-        if len(self.probes) == 0:
+        if self.probe_index == 0:
             self.done = True
         else:
-            self.probe = self.probes.pop(-1)
+            self.probe_index -= 1
 
     def render_cancelled(self, scene, depsgraph):
         print("Render canceled")
@@ -152,12 +155,17 @@ class BakeProbeOperator(bpy.types.Operator):
         self.prev_render_file_format = bpy.context.scene.render.image_settings.file_format
         self.prev_render_file_path = bpy.context.scene.render.filepath
 
-        self.probes = get_probes()
+        if self.bake_selected:
+            self.probes = [
+                ob for ob in get_probes() if ob in context.selected_objects and ob.type == 'LIGHT_PROBE']
+        else:
+            self.probes = get_probes()
+
         self.cancelled = False
         self.done = False
         self.rendering = False
         self.post_render_wait = 500
-        self.probe = self.probes.pop(-1)
+        self.probe_index = len(self.probes) - 1
 
         return {"RUNNING_MODAL"}
 
@@ -184,8 +192,7 @@ class BakeProbeOperator(bpy.types.Operator):
                     self.restore_render_props()
                     return {"CANCELLED"}
 
-                probes = get_probes()
-                for probe in probes:
+                for probe in self.probes:
                     image_name = "generated_cubemap-%s" % probe.name
                     img = bpy.data.images.get(image_name)
                     img_path = "%s/%s.hdr" % (get_addon_pref(
@@ -236,6 +243,8 @@ class BakeProbeOperator(bpy.types.Operator):
         bpy.context.scene.render.filepath = self.prev_render_file_path
 
     def render_probe(self, context):
+        probe = self.probes[self.probe_index]
+
         self.camera_data.type = "PANO"
         self.camera_data.cycles.panorama_type = "EQUIRECTANGULAR"
 
@@ -244,10 +253,10 @@ class BakeProbeOperator(bpy.types.Operator):
         self.camera_data.cycles.latitude_min = -math.pi/2
         self.camera_data.cycles.latitude_max = math.pi/2
 
-        self.camera_data.clip_start = self.probe.data.clip_start
-        self.camera_data.clip_end = self.probe.data.clip_end
+        self.camera_data.clip_start = probe.data.clip_start
+        self.camera_data.clip_end = probe.data.clip_end
 
-        self.camera_object.matrix_world = self.probe.matrix_world.copy()
+        self.camera_object.matrix_world = probe.matrix_world.copy()
         self.camera_object.rotation_euler.x += math.pi/2
         self.camera_object.rotation_euler.z += -math.pi/2
 
@@ -261,14 +270,14 @@ class BakeProbeOperator(bpy.types.Operator):
         bpy.context.scene.render.resolution_y = y
         bpy.context.scene.render.image_settings.file_format = "HDR"
         bpy.context.scene.render.filepath = "%s/%s.hdr" % (
-            get_addon_pref(HubsPreference.TMP_PATH), self.probe.name)
+            get_addon_pref(HubsPreference.TMP_PATH), probe.name)
 
         # TODO don't clobber renderer properties
         # TODO handle skipping compositor
 
         tmp_pref = bpy.context.preferences.view.render_display_type
         bpy.context.preferences.view.render_display_type = "NONE"
-        self.report({'INFO'}, 'Baking probe %s' % self.probe.name)
+        self.report({'INFO'}, 'Baking probe %s' % probe.name)
         bpy.ops.render.render("INVOKE_DEFAULT", write_still=True)
         bpy.context.preferences.view.render_display_type = tmp_pref
 
@@ -292,9 +301,18 @@ class ReflectionProbe(HubsComponent):
     def draw(self, context, layout, panel_type):
         if show_warning:
             row = layout.row()
-            row.label(text="Reflection probes resolution is now set globally in scene settings.",
+            row.label(text="You can bake all reflection probes at once from the scene settings.",
                       icon='INFO')
         super().draw(context, layout, panel_type)
+
+        layout.separator()
+
+        bake_msg = "Baking..." if probe_baking else "Bake"
+        bake_op = layout.operator(
+            "render.hubs_render_reflection_probe",
+            text=bake_msg
+        )
+        bake_op.bake_selected = True
 
     def gather(self, export_settings, object):
         return {
@@ -307,8 +325,7 @@ class ReflectionProbe(HubsComponent):
 
     @classmethod
     def draw_global(cls, context, layout, panel_type):
-        probes = get_probes()
-        if len(probes) > 0 and panel_type == PanelType.SCENE:
+        if len(get_probes()) > 0 and panel_type == PanelType.SCENE:
             row = layout.row()
             col = row.box().column()
             row = col.row()
@@ -331,10 +348,11 @@ class ReflectionProbe(HubsComponent):
                           icon='ERROR')
 
             bake_msg = "Baking..." if probe_baking else "Bake All"
-            layout.operator(
+            bake_op = layout.operator(
                 "render.hubs_render_reflection_probe",
                 text=bake_msg
             )
+            bake_op.bake_selected = False
 
     @classmethod
     def poll(cls, context, panel_type):
