@@ -112,7 +112,7 @@ class BakeProbeOperator(bpy.types.Operator):
 
     @ classmethod
     def poll(cls, context):
-        return not probe_baking
+        return not probe_baking and hasattr(bpy.context.scene, "cycles")
 
     def render_post(self, scene, depsgraph):
         print("Finished render")
@@ -322,6 +322,12 @@ class ReflectionProbe(HubsComponent):
                 row = col.row()
                 row.alert = True
                 row.label(text="Reflection probe resolution has changed. Bake again to apply the new resolution.",
+                          icon='ERROR')
+
+            if not hasattr(bpy.context.scene, "cycles"):
+                row = col.row()
+                row.alert = True
+                row.label(text="Baking requires Cycles addon to be enabled.",
                           icon='ERROR')
 
             bake_msg = "Baking..." if probe_baking else "Bake All"
