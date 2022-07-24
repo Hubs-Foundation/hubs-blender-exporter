@@ -104,7 +104,7 @@ class MorphAudioFeedback(HubsComponent):
                     if not component.name in list_ids:
                         component.name = component.name
 
-    def draw(self, context, layout, panel_type):
+    def draw(self, context, layout, panel):
         layout.prop(data=self, property="shape_key")
         shape_keys = context.object.data.shape_keys
         if self.shape_key != BLANK_ID and shape_keys and self.shape_key not in shape_keys.key_blocks:

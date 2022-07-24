@@ -49,7 +49,7 @@ def draw_component(panel, context, obj, row, component_item):
             remove_component_operator.panel_type = panel.bl_context
 
         if has_properties and component_item.expanded:
-            component.draw(context, col, panel_type)
+            component.draw(context, col, panel)
 
     else:
         col = row.box().column()

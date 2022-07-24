@@ -32,9 +32,9 @@ class VideoTextureSource(HubsComponent):
             return [x for x in children_recursive(ob) if x.type == "CAMERA" and x.parent_bone == bone.name]
         return False
 
-    def draw(self, context, layout, panel_type):
-        super().draw(context, layout, panel_type)
-        if not VideoTextureSource.poll(context, panel_type):
+    def draw(self, context, layout, panel):
+        super().draw(context, layout, panel)
+        if not VideoTextureSource.poll(context, PanelType(panel.bl_context)):
             col = layout.column()
             col.alert = True
             col.label(text='No camera found in the object hierarchy',

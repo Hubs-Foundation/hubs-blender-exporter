@@ -105,7 +105,7 @@ class VideoTextureTarget(HubsComponent):
         default=BLANK_ID,
         options={'HIDDEN'})
 
-    def draw(self, context, layout, panel_type):
+    def draw(self, context, layout, panel):
         from .video_texture_source import VideoTextureSource
         dep_name = VideoTextureSource.get_name()
 
