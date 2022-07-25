@@ -11,9 +11,14 @@ class TracksList(bpy.types.UIList):
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         key_block = item
+        ob = context.object
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             split = layout.split(factor=0.90, align=False)
-            if context.object.animation_data and item.name in context.object.animation_data.nla_tracks:
+            if ob.animation_data and item.name in ob.animation_data.nla_tracks:
+                split.prop(key_block, "name", text="",
+                           emboss=False, icon_value=icon)
+                split.enabled = False
+            elif hasattr(ob.data, 'shape_keys') and ob.data.shape_keys and ob.data.shape_keys.animation_data  and item.name in ob.data.shape_keys.animation_data.nla_tracks:
                 split.prop(key_block, "name", text="",
                            emboss=False, icon_value=icon)
                 split.enabled = False
@@ -21,7 +26,7 @@ class TracksList(bpy.types.UIList):
                 split.prop(key_block, "name", text="",
                            emboss=False, icon='ERROR')
             row = split.row(align=True)
-            row.emboss = 'NONE_OR_STATUS'
+            row.emboss = 'UI_EMBOSS_NONE_OR_STATUS' if bpy.app.version < (3, 0, 0) else 'NONE_OR_STATUS'
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.label(text="", icon_value=icon)
@@ -87,6 +92,13 @@ class TracksContextMenu(Menu):
         ob = context.object
         if ob.animation_data:
             for _, a in enumerate(ob.animation_data.nla_tracks):
+                if not has_track(context.object.hubs_component_loop_animation.tracks_list, a.name):
+                    self.layout.operator(AddTrackOperator.bl_idname, icon='OBJECT_DATA',
+                                         text=a.name).track_name = a.name
+                    no_tracks = False
+
+        if hasattr(ob.data, 'shape_keys') and ob.data.shape_keys and ob.data.shape_keys.animation_data:
+            for _, a in enumerate(ob.data.shape_keys.animation_data.nla_tracks):
                 if not has_track(context.object.hubs_component_loop_animation.tracks_list, a.name):
                     self.layout.operator(AddTrackOperator.bl_idname, icon='OBJECT_DATA',
                                          text=a.name).track_name = a.name
