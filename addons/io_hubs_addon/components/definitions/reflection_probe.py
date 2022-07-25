@@ -1,5 +1,5 @@
 import bpy
-from bpy.props import PointerProperty, EnumProperty, StringProperty, StringProperty, BoolProperty
+from bpy.props import PointerProperty, EnumProperty, StringProperty, StringProperty
 from bpy.types import Image, PropertyGroup
 
 from ...components.utils import is_gpu_available
@@ -35,6 +35,7 @@ RESOLUTION_ITEMS = [
 ]
 
 probe_baking = False
+bake_mode = None
 
 
 def get_resolutions(self, context):
@@ -110,7 +111,12 @@ class BakeProbeOperator(bpy.types.Operator):
     probe_index = 0
     post_render_wait = 0
 
-    bake_selected: BoolProperty(name="bake_selected", default=False)
+    bake_mode: EnumProperty(
+        name="bake_mode",
+        items=[('ACTIVE', 'Bake Active', 'Bake Active'),
+               ('SELECTED', 'Bake Selected', 'Bake Selected'),
+               ('ALL', 'Bake All', 'Bake All')],
+        default='ACTIVE')
 
     @ classmethod
     def poll(cls, context):
@@ -131,6 +137,14 @@ class BakeProbeOperator(bpy.types.Operator):
         self.cancelled = True
 
     def execute(self, context):
+        if self.bake_mode == 'SELECTED' and len(context.selected_objects) == 0:
+            def draw(self, context):
+                self.layout.label(
+                    text="No objects selected to bake. Please select some objects first.")
+            bpy.context.window_manager.popup_menu(
+                draw, title="No object selected", icon='ERROR')
+            return {"FINISHED"}
+
         bpy.app.handlers.render_post.append(self.render_post)
         bpy.app.handlers.render_cancel.append(self.render_cancelled)
 
@@ -138,8 +152,9 @@ class BakeProbeOperator(bpy.types.Operator):
             0.5, window=context.window)
         context.window_manager.modal_handler_add(self)
 
-        global probe_baking
+        global probe_baking, bake_mode
         probe_baking = True
+        bake_mode = self.bake_mode
 
         self.camera_data = bpy.data.cameras.new(name='Temp EnvMap Camera')
         self.camera_object = bpy.data.objects.new(
@@ -154,11 +169,14 @@ class BakeProbeOperator(bpy.types.Operator):
         self.prev_render_file_format = bpy.context.scene.render.image_settings.file_format
         self.prev_render_file_path = bpy.context.scene.render.filepath
 
-        if self.bake_selected:
-            self.probes = [
-                ob for ob in get_probes() if ob in context.selected_objects and ob.type == 'LIGHT_PROBE']
-        else:
-            self.probes = get_probes()
+        modes = {
+            'ACTIVE': lambda: [
+                ob for ob in get_probes() if ob == context.active_object and ob.type == 'LIGHT_PROBE'],
+            'SELECTED': lambda: [
+                ob for ob in get_probes() if ob in context.selected_objects and ob.type == 'LIGHT_PROBE'],
+            'ALL': lambda: get_probes(),
+        }
+        self.probes = modes.get(self.bake_mode, [])()
 
         self.cancelled = False
         self.done = False
@@ -303,12 +321,13 @@ class ReflectionProbe(HubsComponent):
                   icon='INFO')
         super().draw(context, layout, panel_type)
 
-        bake_msg = "Baking..." if probe_baking else "Bake"
+        global bake_mode
+        bake_msg = "Baking..." if probe_baking and bake_mode == 'ACTIVE' else "Bake"
         bake_op = layout.operator(
             "render.hubs_render_reflection_probe",
             text=bake_msg
         )
-        bake_op.bake_selected = True
+        bake_op.bake_mode = 'ACTIVE'
 
         if not hasattr(bpy.context.scene, "cycles"):
             row = layout.row()
@@ -325,7 +344,7 @@ class ReflectionProbe(HubsComponent):
             }
         }
 
-    @classmethod
+    @ classmethod
     def draw_global(cls, context, layout, panel_type):
         if len(get_probes()) > 0 and panel_type == PanelType.SCENE:
             row = layout.row()
@@ -343,12 +362,21 @@ class ReflectionProbe(HubsComponent):
                 row.label(text="Reflection probe resolution has changed. Bake again to apply the new resolution.",
                           icon='ERROR')
 
-            bake_msg = "Baking..." if probe_baking else "Bake All"
-            bake_op = col.operator(
+            global bake_mode
+
+            row = col.row()
+            bake_msg = "Baking..." if probe_baking and bake_mode == 'ALL' else "Bake All"
+            bake_op = row.operator(
                 "render.hubs_render_reflection_probe",
                 text=bake_msg
             )
-            bake_op.bake_selected = False
+            bake_op.bake_mode = 'ALL'
+            bake_msg = "Baking..." if probe_baking and bake_mode == 'SELECTED' else "Bake Selected"
+            bake_op = row.operator(
+                "render.hubs_render_reflection_probe",
+                text=bake_msg
+            )
+            bake_op.bake_mode = 'SELECTED'
 
             if not hasattr(bpy.context.scene, "cycles"):
                 row = col.row()
@@ -356,18 +384,18 @@ class ReflectionProbe(HubsComponent):
                 row.label(text="Baking requires Cycles addon to be enabled.",
                           icon='ERROR')
 
-    @classmethod
+    @ classmethod
     def poll(cls, context, panel_type):
         return context.object.type == 'LIGHT_PROBE'
 
-    @staticmethod
+    @ staticmethod
     def register():
         bpy.utils.register_class(BakeProbeOperator)
         bpy.utils.register_class(ReflectionProbeSceneProps)
         bpy.types.Scene.hubs_scene_reflection_probe_properties = PointerProperty(
             type=ReflectionProbeSceneProps)
 
-    @staticmethod
+    @ staticmethod
     def unregister():
         bpy.utils.unregister_class(BakeProbeOperator)
         bpy.utils.unregister_class(ReflectionProbeSceneProps)
