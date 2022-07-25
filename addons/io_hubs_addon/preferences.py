@@ -6,15 +6,9 @@ from enum import Enum
 from .utils import get_addon_package
 
 
-class HubsPreference(Enum):
-    ROW_LENGTH = 'row_length'
-    TMP_PATH = 'tmp_path'
-
-
-def get_addon_pref(pref):
+def get_addon_pref(context):
     addon_package = get_addon_package()
-    addon_prefs = bpy.context.preferences.addons[addon_package].preferences
-    return getattr(addon_prefs, pref.value)
+    return context.preferences.addons[addon_package].preferences
 
 
 class HubsPreferences(AddonPreferences):

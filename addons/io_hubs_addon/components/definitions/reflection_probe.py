@@ -4,7 +4,7 @@ from bpy.types import Image, PropertyGroup
 
 from ...components.utils import is_gpu_available
 
-from ...preferences import HubsPreference, get_addon_pref
+from ...preferences import get_addon_pref
 
 from ..components_registry import get_components_registry
 from ..hubs_component import HubsComponent
@@ -195,8 +195,8 @@ class BakeProbeOperator(bpy.types.Operator):
                 for probe in self.probes:
                     image_name = "generated_cubemap-%s" % probe.name
                     img = bpy.data.images.get(image_name)
-                    img_path = "%s/%s.hdr" % (get_addon_pref(
-                        HubsPreference.TMP_PATH), probe.name)
+                    img_path = "%s/%s.hdr" % (get_addon_pref(context).tmp_path,
+                                              probe.name)
                     if not img:
                         img = bpy.data.images.load(filepath=img_path)
                         img.name = image_name
@@ -270,7 +270,7 @@ class BakeProbeOperator(bpy.types.Operator):
         bpy.context.scene.render.resolution_y = y
         bpy.context.scene.render.image_settings.file_format = "HDR"
         bpy.context.scene.render.filepath = "%s/%s.hdr" % (
-            get_addon_pref(HubsPreference.TMP_PATH), probe.name)
+            get_addon_pref(context).tmp_path, probe.name)
 
         # TODO don't clobber renderer properties
         # TODO handle skipping compositor
