@@ -35,7 +35,6 @@ RESOLUTION_ITEMS = [
 ]
 
 probe_baking = False
-show_warning = False
 
 
 def get_resolutions(self, context):
@@ -299,10 +298,10 @@ class ReflectionProbe(HubsComponent):
     )
 
     def draw(self, context, layout, panel_type):
-        if show_warning:
-            row = layout.row()
-            row.label(text="You can bake all reflection probes at once from the scene settings.",
-                      icon='INFO')
+        row = layout.row()
+        row.label(text="You can bake all reflection probes at once from the scene settings.",
+                  icon='INFO')
+        layout.separator()
         super().draw(context, layout, panel_type)
 
         layout.separator()
@@ -357,12 +356,6 @@ class ReflectionProbe(HubsComponent):
     @classmethod
     def poll(cls, context, panel_type):
         return context.object.type == 'LIGHT_PROBE'
-
-    @classmethod
-    def migrate(cls, version):
-        if version < (1, 0, 0):
-            global show_warning
-            show_warning = True
 
     @staticmethod
     def register():
