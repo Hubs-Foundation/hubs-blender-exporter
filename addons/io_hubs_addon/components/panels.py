@@ -1,7 +1,15 @@
 import bpy
 from .types import PanelType
-from .components_registry import get_component_by_name
+from .components_registry import get_component_by_name, get_components_registry
 from .utils import get_object_source, dash_to_title
+
+
+def draw_component_global(panel, context):
+    layout = panel.layout
+    panel_type = PanelType(panel.bl_context)
+    components_registry = get_components_registry()
+    for _, component_class in components_registry.items():
+        component_class.draw_global(context, layout, panel_type)
 
 
 def draw_component(panel, context, obj, row, component_item):
@@ -98,6 +106,9 @@ class HubsScenePanel(bpy.types.Panel):
     bl_context = 'scene'
 
     def draw(self, context):
+        draw_component_global(self, context)
+        layout = self.layout
+        layout.separator()
         draw_components_list(self, context)
 
 

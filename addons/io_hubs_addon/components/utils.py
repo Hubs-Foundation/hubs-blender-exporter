@@ -100,3 +100,8 @@ def children_recursive(ob):
         return ret
     else:
         return ob.children_recursive
+
+
+def is_gpu_available(context):
+    cycles_addon = context.preferences.addons["cycles"]
+    return cycles_addon and cycles_addon.preferences.has_active_device()

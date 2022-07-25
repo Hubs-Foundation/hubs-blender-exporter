@@ -6,6 +6,7 @@ from functools import reduce
 from .types import PanelType
 from .utils import get_object_source, dash_to_title, has_component, add_component, remove_component
 from .components_registry import get_components_registry, get_components_icons
+from ..preferences import get_addon_pref
 
 
 class AddHubsComponent(Operator):
@@ -53,7 +54,7 @@ class AddHubsComponent(Operator):
 
         def draw(self, context):
             added_comps = 0
-            row_length = bpy.context.preferences.addons[__package__.split('.')[0]].preferences.row_length
+            row_length = get_addon_pref(context).row_length
             row = self.layout.row()
 
             column_sorted_category_components = {}
@@ -64,21 +65,26 @@ class AddHubsComponent(Operator):
             for cat_idx, category_cmps in enumerate(sorted(components_by_category.items())):
                 # add a tuple of the categories and components to the proper column index based on row length
                 try:
-                    column_sorted_category_components[cat_idx % row_length].append(category_cmps)
+                    column_sorted_category_components[cat_idx % row_length].append(
+                        category_cmps)
                 except KeyError:
-                    column_sorted_category_components[cat_idx % row_length] = [category_cmps]
+                    column_sorted_category_components[cat_idx % row_length] = [
+                        category_cmps]
                 # if the row length is zero, then just add a column for each category
                 except ZeroDivisionError:
-                    column_sorted_category_components[cat_idx] = [category_cmps]
+                    column_sorted_category_components[cat_idx] = [
+                        category_cmps]
 
                 # get the number of components in this category
                 cmp_len = len(category_cmps[1])
 
                 # get which row we're on
                 try:
-                    row_idx = len(column_sorted_category_components[cat_idx % row_length]) - 1
+                    row_idx = len(
+                        column_sorted_category_components[cat_idx % row_length]) - 1
                 except ZeroDivisionError:
-                    row_idx = len(column_sorted_category_components[cat_idx]) - 1
+                    row_idx = len(
+                        column_sorted_category_components[cat_idx]) - 1
 
                 # update the maximum number of components in a category for this row
                 try:
