@@ -301,10 +301,7 @@ class ReflectionProbe(HubsComponent):
         row = layout.row()
         row.label(text="You can bake all reflection probes at once from the scene settings.",
                   icon='INFO')
-        layout.separator()
         super().draw(context, layout, panel_type)
-
-        layout.separator()
 
         bake_msg = "Baking..." if probe_baking else "Bake"
         bake_op = layout.operator(
@@ -312,6 +309,12 @@ class ReflectionProbe(HubsComponent):
             text=bake_msg
         )
         bake_op.bake_selected = True
+
+        if not hasattr(bpy.context.scene, "cycles"):
+            row = layout.row()
+            row.alert = True
+            row.label(text="Baking requires Cycles addon to be enabled.",
+                      icon='ERROR')
 
     def gather(self, export_settings, object):
         return {
@@ -340,18 +343,18 @@ class ReflectionProbe(HubsComponent):
                 row.label(text="Reflection probe resolution has changed. Bake again to apply the new resolution.",
                           icon='ERROR')
 
+            bake_msg = "Baking..." if probe_baking else "Bake All"
+            bake_op = col.operator(
+                "render.hubs_render_reflection_probe",
+                text=bake_msg
+            )
+            bake_op.bake_selected = False
+
             if not hasattr(bpy.context.scene, "cycles"):
                 row = col.row()
                 row.alert = True
                 row.label(text="Baking requires Cycles addon to be enabled.",
                           icon='ERROR')
-
-            bake_msg = "Baking..." if probe_baking else "Bake All"
-            bake_op = layout.operator(
-                "render.hubs_render_reflection_probe",
-                text=bake_msg
-            )
-            bake_op.bake_selected = False
 
     @classmethod
     def poll(cls, context, panel_type):
