@@ -1,5 +1,5 @@
 import bpy
-from bpy.props import PointerProperty, EnumProperty, StringProperty, StringProperty
+from bpy.props import PointerProperty, EnumProperty, StringProperty
 from bpy.types import Image, PropertyGroup
 
 from ...components.utils import is_gpu_available
@@ -13,15 +13,7 @@ from ... import io
 import math
 
 
-RESOLUTIONS = [
-    (128, 64),
-    (256, 128),
-    (512, 256),
-    (1024, 512),
-    (2048, 1024)
-]
-
-RESOLUTION_ITEMS = [
+DEFAULT_RESOLUTION_ITEMS = [
     ('128x64', '128x64',
      '128 x 64', '', 0),
     ('256x128', '256x128',
@@ -34,36 +26,35 @@ RESOLUTION_ITEMS = [
      '2048 x 1024', '', 4),
 ]
 
+RESOLUTION_ITEMS = DEFAULT_RESOLUTION_ITEMS[:]
+
 probe_baking = False
 bake_mode = None
 
 
 def get_resolutions(self, context):
+    global RESOLUTION_ITEMS
     env_map = context.scene.hubs_component_environment_settings.envMapTexture
     if env_map:
         x = env_map.size[0]
         y = env_map.size[1]
-        return [(f'{x}x{y}', f'{x}x{y}', f'{x} x {y}', '', 0)]
+        RESOLUTION_ITEMS = [(f'{x}x{y}', f'{x}x{y}', f'{x} x {y}', '', 0)]
     else:
-        return RESOLUTION_ITEMS
+        RESOLUTION_ITEMS = DEFAULT_RESOLUTION_ITEMS
+
+    return RESOLUTION_ITEMS
 
 
 def get_resolution(self):
     env_map = bpy.context.scene.hubs_component_environment_settings.envMapTexture
-    if env_map:
-        return 0
-    else:
-        list_ids = list(map(lambda x: x[0], RESOLUTION_ITEMS))
-        return list_ids.index(self.resolution_id) if self.resolution_id in list_ids else 0
+    list_ids = [x[0] for x in RESOLUTION_ITEMS]
+    return 0 if env_map else list_ids.index(self.resolution_id)
 
 
 def set_resolution(self, value):
     env_map = bpy.context.scene.hubs_component_environment_settings.envMapTexture
-    if env_map:
-        self.resolution_id = f'{env_map.size[0]}x{env_map.size[1]}'
-    else:
-        list_ids = list(map(lambda x: x[4], RESOLUTION_ITEMS))
-        self.resolution_id = RESOLUTION_ITEMS[value][0] if value in list_ids else 0
+    if not env_map:
+        self.resolution_id = RESOLUTION_ITEMS[value][0]
 
 
 def get_probes():
@@ -96,7 +87,7 @@ class ReflectionProbeSceneProps(PropertyGroup):
                                       default='256x128')
 
     resolution_id: StringProperty(name='Current Resolution Id',
-                                  options={'HIDDEN'})
+                                  default='256x128', options={'HIDDEN'})
 
 
 class BakeProbeOperator(bpy.types.Operator):
@@ -166,17 +157,16 @@ class BakeProbeOperator(bpy.types.Operator):
         self.prev_cycles_device = bpy.context.scene.cycles.device
         self.prev_render_rex_x = bpy.context.scene.render.resolution_x
         self.prev_render_res_y = bpy.context.scene.render.resolution_y
+        self.prev_render_res_percent = bpy.context.scene.render.resolution_percentage
         self.prev_render_file_format = bpy.context.scene.render.image_settings.file_format
         self.prev_render_file_path = bpy.context.scene.render.filepath
 
         modes = {
-            'ACTIVE': lambda: [
-                ob for ob in get_probes() if ob == context.active_object and ob.type == 'LIGHT_PROBE'],
-            'SELECTED': lambda: [
-                ob for ob in get_probes() if ob in context.selected_objects and ob.type == 'LIGHT_PROBE'],
+            'ACTIVE': lambda: [context.active_object],
+            'SELECTED': lambda: [ob for ob in get_probes() if ob in context.selected_objects],
             'ALL': lambda: get_probes(),
         }
-        self.probes = modes.get(self.bake_mode, [])()
+        self.probes = modes[self.bake_mode]()
 
         self.cancelled = False
         self.done = False
@@ -256,6 +246,7 @@ class BakeProbeOperator(bpy.types.Operator):
         bpy.context.scene.cycles.device = self.prev_cycles_device
         bpy.context.scene.render.resolution_x = self.prev_render_rex_x
         bpy.context.scene.render.resolution_y = self.prev_render_res_y
+        bpy.context.scene.render.resolution_percentage = self.prev_render_res_percent
         bpy.context.scene.render.image_settings.file_format = self.prev_render_file_format
         bpy.context.scene.render.filepath = self.prev_render_file_path
 
@@ -279,12 +270,13 @@ class BakeProbeOperator(bpy.types.Operator):
 
         bpy.context.scene.camera = self.camera_object
         bpy.context.scene.render.engine = "CYCLES"
-        (x, y) = RESOLUTIONS[context.scene.hubs_scene_reflection_probe_properties.get(
-            'resolution', 1)]
+        resolution = context.scene.hubs_scene_reflection_probe_properties.resolution
+        (x, y) = [int(i) for i in resolution.split('x')]
         bpy.context.scene.cycles.device = "GPU" if is_gpu_available(
             context) else "CPU"
         bpy.context.scene.render.resolution_x = x
         bpy.context.scene.render.resolution_y = y
+        bpy.context.scene.render.resolution_percentage = 100
         bpy.context.scene.render.image_settings.file_format = "HDR"
         bpy.context.scene.render.filepath = "%s/%s.hdr" % (
             get_addon_pref(context).tmp_path, probe.name)
@@ -317,7 +309,7 @@ class ReflectionProbe(HubsComponent):
 
     def draw(self, context, layout, panel_type):
         row = layout.row()
-        row.label(text="You can bake all reflection probes at once from the scene settings.",
+        row.label(text="Resolution settings, as well as the option to bake all reflection probes at once, can be accessed from the scene settings.",
                   icon='INFO')
         super().draw(context, layout, panel_type)
 
