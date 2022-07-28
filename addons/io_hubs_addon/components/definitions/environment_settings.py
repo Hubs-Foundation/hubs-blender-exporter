@@ -1,8 +1,10 @@
 from bpy.props import FloatProperty, EnumProperty, FloatVectorProperty, PointerProperty
 from bpy.types import Image
-from ...io.utils import gather_texture_property, gather_color_property
+from ...io.utils import add_hubs_import_component, assign_property, gather_texture_property, gather_color_property
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
+import bpy
+from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
 
 
 TOME_MAPPING = [("NoToneMapping", "None", "No tone mapping."),
@@ -70,3 +72,36 @@ class EnvironmentSettings(HubsComponent):
                 self,
                 'envMapTexture')
         }
+
+    @classmethod
+    def gather_import(cls, import_settings, blender_object, component_name, component_value):
+        blender_component = add_hubs_import_component(
+            component_name, blender_object)
+
+        images = {}
+        for gltf_texture in import_settings.data.textures:
+            extensions = gltf_texture.extensions
+            source = None
+            if extensions:
+                MOZ_texture_rgbe = extensions.get('MOZ_texture_rgbe')
+                if MOZ_texture_rgbe:
+                    source = MOZ_texture_rgbe['source']
+            else:
+                source = gltf_texture.source
+
+            if source is not None and source not in import_settings.data.images:
+                BlenderImage.create(
+                    import_settings, source)
+                pyimg = import_settings.data.images[source]
+                blender_image_name = pyimg.blender_image_name
+                images[source] = blender_image_name
+
+        for property_name, property_value in component_value.items():
+            if isinstance(property_value, dict) and property_value['__mhc_link_type'] == "texture":
+                blender_image_name = images[property_value['index']]
+                blender_image = bpy.data.images[blender_image_name]
+                setattr(blender_component, property_name, blender_image)
+
+            else:
+                assign_property(import_settings.vnodes, blender_component,
+                                property_name, property_value)

@@ -13,6 +13,12 @@ from io_scene_gltf2.blender.exp.gltf2_blender_gather_cache import cached
 from io_scene_gltf2.blender.exp import gltf2_blender_export_keys
 from typing import Optional
 from ..nodes.lightmap import MozLightmapNode
+import re
+
+HUBS_CONFIG = {
+    "gltfExtensionName": "MOZ_hubs_components",
+    "gltfExtensionVersion": 4,
+}
 
 # gather_texture/image with HDR support via MOZ_texture_rgbe
 
@@ -340,3 +346,83 @@ def gather_lightmap_texture_info(blender_material, export_settings):
         "index": texture_info.index,
         "texCoord": texture_info.tex_coord
     }
+
+
+def add_hubs_import_component(component_name, blender_object):
+    from ..components.utils import add_component, has_component
+    from ..components.components_registry import get_component_by_name
+    component_class = get_component_by_name(component_name)
+    if component_class:
+        if not has_component(blender_object, component_name):
+            add_component(blender_object, component_name)
+
+    return getattr(blender_object, component_class.get_id())
+
+
+def add_hubs_component(element_type, glb_component_name, glb_component_value, vnode=None, node=None, glb_material=None, gltf=None):
+    # get element
+    if element_type == "object":
+        element = vnode.blender_object
+
+    elif element_type == "material":
+        element = bpy.data.materials[glb_material.blender_material[None]]
+
+    elif element_type == "scene":
+        element = bpy.data.scenes[gltf.blender_scene]
+
+    else:
+        element = None
+
+    # print debug info
+    if element_type == "object":
+        print(f"Node Name: {node.name}")
+        print(f"Object: {element}")
+
+    print(f"Hubs Component Name: {glb_component_name}")
+    print(f"Hubs Component Value: {glb_component_value}")
+
+    # create component
+    from ..components.utils import add_component, has_component
+    if not has_component(element, glb_component_name):
+        add_component(element, glb_component_name)
+
+    return getattr(element, f"hubs_component_{glb_component_name.replace('-', '_')}")
+
+
+def set_color_from_hex(blender_component, property_name, hexcolor):
+    hexcolor = hexcolor.lstrip('#')
+    rgb_int = [int(hexcolor[i:i+2], 16) for i in (0, 2, 4)]
+
+    for x, value in enumerate(rgb_int):
+        rgb_float = value/255 if value > 0 else 0
+
+        # convert sRGB values to linear
+        if rgb_float < 0.04045:
+            rgb_float_linear = rgb_float * (1.0 / 12.92)
+
+        else:
+            rgb_float_linear = ((rgb_float + 0.055) * (1.0 / 1.055)) ** 2.4
+
+        print(f"{property_name}[{x}] = {rgb_float_linear}")
+        getattr(blender_component, property_name)[x] = rgb_float_linear
+
+
+def assign_property(vnodes, blender_component, property_name, property_value):
+    if isinstance(property_value, dict):
+        if property_value.get('__mhc_link_type'):
+            if len(property_value) == 2:
+                setattr(blender_component, property_name,
+                        vnodes[property_value['index']].blender_object)
+
+        else:
+            blender_subcomponent = getattr(blender_component, property_name)
+            for x, subproperty_value in enumerate(property_value.values()):
+                print(f"{property_name}[{x}] = {subproperty_value}")
+                blender_subcomponent[x] = subproperty_value
+
+    elif re.fullmatch("#[0-9a-fA-F]*", str(property_value)):
+        set_color_from_hex(blender_component, property_name, property_value)
+
+    else:
+        print(f"{property_name} = {property_value}")
+        setattr(blender_component, property_name, property_value)

@@ -1,6 +1,7 @@
 from bpy.types import PropertyGroup
 from ..io.utils import gather_properties
 from .types import Category, PanelType, NodeType
+from ..io.utils import add_hubs_import_component, assign_property
 
 
 class HubsComponent(PropertyGroup):
@@ -97,9 +98,16 @@ class HubsComponent(PropertyGroup):
         '''This is called by the exporter before starting the export process'''
         pass
 
-    def gather(self, export_settings, object):
+    def gather(self, export_settings, blender_object):
         '''This is called by the exporter and will return all the component properties by default'''
-        return gather_properties(export_settings, object, self)
+        return gather_properties(export_settings, blender_object, self)
+
+    @classmethod
+    def gather_import(cls, import_settings, blender_object, component_name, component_value):
+        component = add_hubs_import_component(component_name, blender_object)
+        for property_name, property_value in component_value.items():
+            assign_property(import_settings.vnodes, component,
+                            property_name, property_value)
 
     def post_export(self, export_settings, object):
         '''This is called by the exporter after the export process has finished'''
