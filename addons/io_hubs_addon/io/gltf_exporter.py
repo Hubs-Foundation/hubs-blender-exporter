@@ -89,6 +89,7 @@ class glTF2ExportUserExtension:
             gltf2_object.asset.extras = {}
         gltf2_object.asset.extras["HUBS_blenderExporterVersion"] = get_version_string(
         )
+        gltf2_object.asset.extras["gltf_yup"] = export_settings['gltf_yup']
 
     def gather_gltf_extensions_hook(self, gltf2_plan, export_settings):
         self.hubs_gather_gltf_hook(gltf2_plan, export_settings)
