@@ -1,10 +1,6 @@
 from . import (nodes, components)
-from .io import gltf_exporter, panels
+from .io import gltf_exporter, gltf_importer, panels
 import bpy
-if bpy.app.version < (3, 0, 0):
-    from .io import gltf_importer_compat as gltf_importer
-else:
-    from .io import gltf_importer
 
 bl_info = {
     "name": "Hubs Blender Addon",
@@ -39,11 +35,9 @@ def unregister():
 
 # called by gltf-blender-io after it has loaded
 
-
 glTF2ExportUserExtension = gltf_exporter.glTF2ExportUserExtension
 glTF2_pre_export_callback = gltf_exporter.glTF2_pre_export_callback
 glTF2_post_export_callback = gltf_exporter.glTF2_post_export_callback
-
 if bpy.app.version > (3, 0, 0):
     glTF2ImportUserExtension = gltf_importer.glTF2ImportUserExtension
 
