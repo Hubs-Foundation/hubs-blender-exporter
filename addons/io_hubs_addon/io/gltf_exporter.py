@@ -18,6 +18,10 @@ def patched_gather_gltf(exporter, export_settings):
     exporter._GlTF2Exporter__traverse(exporter._GlTF2Exporter__gltf.extensions)
 
 
+EXTENSION_NAME = HUBS_CONFIG["gltfExtensionName"]
+EXTENSION_VERSION = HUBS_CONFIG["gltfExtensionVersion"]
+
+
 def get_version_string():
     from .. import (bl_info)
     return str(bl_info['version'][0]) + '.' + str(bl_info['version'][1]) + '.' + str(bl_info['version'][2])
@@ -71,11 +75,11 @@ class glTF2ExportUserExtension:
         if not self.properties.enabled or not self.was_used:
             return
 
-        extension_name = HUBS_CONFIG["gltfExtensionName"]
+        extension_name = EXTENSION_NAME
         gltf2_object.extensions[extension_name] = self.Extension(
             name=extension_name,
             extension={
-                "version": HUBS_CONFIG["gltfExtensionVersion"],
+                "version": EXTENSION_VERSION,
                 "exporterVersion": get_version_string()
             },
             required=False
@@ -153,7 +157,7 @@ class glTF2ExportUserExtension:
         registered_hubs_components = get_components_registry()
 
         if component_list.items:
-            extension_name = HUBS_CONFIG["gltfExtensionName"]
+            extension_name = EXTENSION_NAME
             component_data = {}
 
             for component_item in component_list.items:
