@@ -171,5 +171,4 @@ class AudioTarget(HubsComponent):
                         import_settings.vnodes[property_value['index']].blender_object)
 
             else:
-                print(f"{property_name} = {property_value}")
                 setattr(blender_component, property_name, property_value)
