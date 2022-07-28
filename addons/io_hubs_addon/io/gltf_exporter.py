@@ -86,6 +86,7 @@ class glTF2ExportUserExtension:
             gltf2_object.asset.extras = {}
         gltf2_object.asset.extras["HUBS_blenderExporterVersion"] = get_version_string(
         )
+        gltf2_object.asset.extras["gltf_yup"] = export_settings['gltf_yup']
 
     def gather_scene_hook(self, gltf2_object, blender_scene, export_settings):
         if not self.properties.enabled:

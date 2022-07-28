@@ -32,6 +32,15 @@ class glTF2ImportUserExtension:
             Extension(name=EXTENSION_NAME, extension={}, required=True)]
         self.properties = bpy.context.scene.hubs_import_properties
 
+    def gather_import_scene_before_hook(self, gltf_scene, blender_scene, import_settings):
+        if not self.properties.enabled:
+            return
+
+        if import_settings.data.asset and import_settings.data.asset.extras:
+            if 'gltf_yup' in import_settings.data.asset.extras:
+                import_settings.import_settings['gltf_yup'] = import_settings.data.asset.extras[
+                    'gltf_yup']
+
     def gather_import_scene_after_nodes_hook(self, gltf_scene, blender_scene, import_settings):
         if not self.properties.enabled:
             return
