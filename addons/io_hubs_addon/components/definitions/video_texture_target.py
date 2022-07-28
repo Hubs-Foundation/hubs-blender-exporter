@@ -3,7 +3,7 @@ from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ..utils import has_component
 from bpy.types import Object
-from ...io.utils import gather_joint_property, gather_node_property, add_hubs_import_component
+from ...io.utils import gather_joint_property, gather_node_property, import_component
 
 
 BLANK_ID = "pXph8WBzMu9fung"
@@ -153,7 +153,7 @@ class VideoTextureTarget(HubsComponent):
 
     @classmethod
     def gather_import(cls, import_settings, blender_object, component_name, component_value):
-        blender_component = add_hubs_import_component(
+        blender_component = import_component(
             component_name, blender_object)
 
         for property_name, property_value in component_value.items():
