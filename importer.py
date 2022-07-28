@@ -1,5 +1,5 @@
-from io_scene_gltf2.io.com.gltf2_io_extensions import Extension
 import bpy
+from io_scene_gltf2.io.com.gltf2_io_extensions import Extension
 from .utils import HUBS_CONFIG
 
 

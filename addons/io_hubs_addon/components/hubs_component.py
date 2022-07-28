@@ -1,7 +1,7 @@
 from bpy.types import PropertyGroup
 from ..io.utils import gather_properties
 from .types import Category, PanelType, NodeType
-from ..io.utils import add_hubs_import_component, assign_property
+from ..io.utils import import_component, assign_property
 
 
 class HubsComponent(PropertyGroup):
@@ -104,7 +104,7 @@ class HubsComponent(PropertyGroup):
 
     @classmethod
     def gather_import(cls, import_settings, blender_object, component_name, component_value):
-        component = add_hubs_import_component(component_name, blender_object)
+        component = import_component(component_name, blender_object)
         for property_name, property_value in component_value.items():
             assign_property(import_settings.vnodes, component,
                             property_name, property_value)
