@@ -337,7 +337,8 @@ class ReflectionProbe(HubsComponent):
         }
 
     @ classmethod
-    def draw_global(cls, context, layout, panel_type):
+    def draw_global(cls, context, layout, panel):
+        panel_type = PanelType(panel.bl_context)
         if len(get_probes()) > 0 and panel_type == PanelType.SCENE:
             row = layout.row()
             col = row.box().column()
