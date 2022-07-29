@@ -143,12 +143,11 @@ class EnvironmentSettings(HubsComponent):
             else:
                 source = gltf_texture.source
 
-            if source is not None and source not in import_settings.data.images:
-                BlenderImage.create(
-                    import_settings, source)
-                pyimg = import_settings.data.images[source]
-                blender_image_name = pyimg.blender_image_name
-                images[source] = blender_image_name
+            BlenderImage.create(
+                import_settings, source)
+            pyimg = import_settings.data.images[source]
+            blender_image_name = pyimg.blender_image_name
+            images[source] = blender_image_name
 
         for property_name, property_value in component_value.items():
             if isinstance(property_value, dict) and property_value['__mhc_link_type'] == "texture":
