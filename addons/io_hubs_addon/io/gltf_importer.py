@@ -3,6 +3,7 @@ from io_scene_gltf2.io.com.gltf2_io_extensions import Extension
 from io_scene_gltf2.blender.imp.gltf2_blender_node import BlenderNode
 from io_scene_gltf2.blender.imp.gltf2_blender_material import BlenderMaterial
 from io_scene_gltf2.blender.imp.gltf2_blender_scene import BlenderScene
+from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
 from .utils import HUBS_CONFIG
 
 EXTENSION_NAME = HUBS_CONFIG["gltfExtensionName"]
@@ -23,6 +24,32 @@ def add_hubs_components(gltf2_object, blender_object, import_settings):
         else:
             print('Could not import unsupported component "%s"' %
                   (component_name))
+
+
+def add_lightmap(gltf_material, blender_mat, import_settings):
+    if gltf_material.extensions and 'MOZ_lightmap' in gltf_material.extensions:
+        extension = gltf_material.extensions['MOZ_lightmap']
+
+        index = extension['index']
+
+        BlenderImage.create(
+            import_settings, index)
+        pyimg = import_settings.data.images[index]
+        blender_image_name = pyimg.blender_image_name
+        blender_image = bpy.data.images[blender_image_name]
+        blender_image.colorspace_settings.name = "Linear"
+        blender_mat.use_nodes = True
+
+        nodes = blender_mat.node_tree.nodes
+        lightmap_node = nodes.new('moz_lightmap.node')
+        lightmap_node.location = (-300, 0)
+        lightmap_node.intensity = extension['intensity']
+        node_tex = nodes.new('ShaderNodeTexImage')
+        node_tex.image = blender_image
+        node_tex.location = (-600, 0)
+
+        blender_mat.node_tree.links.new(
+            node_tex.outputs["Color"], lightmap_node.inputs["Lightmap"])
 
 
 class glTF2ImportUserExtension:
@@ -71,6 +98,8 @@ class glTF2ImportUserExtension:
         self.add_hubs_components(
             gltf_material, blender_mat, import_settings)
 
+        add_lightmap(gltf_material, blender_mat, import_settings)
+
     def add_hubs_components(self, gltf2_object, blender_object, import_settings):
         add_hubs_components(gltf2_object, blender_object, import_settings)
 
@@ -107,8 +136,10 @@ def patched_BlenderMaterial_create(gltf, material_idx, vertex_color):
     orig_BlenderMaterial_create(
         gltf, material_idx, vertex_color)
     gltf_material = gltf.data.materials[material_idx]
-    blender_object = bpy.data.materials[gltf_material.blender_material[None]]
-    add_hubs_components(gltf_material, blender_object, gltf)
+    blender_mat = bpy.data.materials[gltf_material.blender_material[None]]
+    add_hubs_components(gltf_material, blender_mat, gltf)
+
+    add_lightmap(gltf_material, blender_mat, gltf)
 
 
 @staticmethod
