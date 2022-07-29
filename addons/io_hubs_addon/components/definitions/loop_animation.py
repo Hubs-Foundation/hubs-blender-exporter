@@ -50,7 +50,8 @@ class AddTrackOperator(Operator):
         track = host.hubs_component_loop_animation.tracks_list.add()
         track.name = self.track_name
 
-        host.hubs_component_loop_animation.active_track_key += 1
+        num_tracks = len(host.hubs_component_loop_animation.tracks_list)
+        host.hubs_component_loop_animation.active_track_key = num_tracks - 1
 
         return {'FINISHED'}
 
