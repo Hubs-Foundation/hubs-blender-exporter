@@ -105,3 +105,10 @@ def children_recursive(ob):
 def is_gpu_available(context):
     cycles_addon = context.preferences.addons["cycles"]
     return cycles_addon and cycles_addon.preferences.has_active_device()
+
+
+def redraw_component_ui(context):
+    for window in context.window_manager.windows:
+        for area in window.screen.areas:
+            if area.type == 'PROPERTIES':
+                area.tag_redraw()
