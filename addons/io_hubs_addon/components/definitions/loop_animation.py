@@ -9,6 +9,7 @@ from ..utils import redraw_component_ui
 
 nla_track_name_msgbus_owner = None
 action_name_msgbus_owner = None
+errors = {}
 
 class TrackPropertyType(PropertyGroup):
     name: StringProperty(
@@ -109,6 +110,7 @@ def has_track(tracks_list, nla_track):
     return exists
 
 def is_matching_track(nla_track, track):
+    global errors
     if is_default_name(nla_track.name):
         if nla_track.name == track.track_name and get_action_name(nla_track) == track.action_name:
             return True
@@ -119,7 +121,8 @@ def is_matching_track(nla_track, track):
 
     return False
 
-def is_useable_nla_track(nla_track):
+def is_useable_nla_track(nla_track, track):
+    global errors
     track_name = nla_track.name
     action_name = get_action_name(nla_track)
 
@@ -132,21 +135,46 @@ def is_useable_nla_track(nla_track):
         if any([c for c in forbidden_chars if c in action_name]):
             has_forbidden_chars = True
 
-    return len(nla_track.strips) == 1 and action_name in bpy.data.actions and not has_forbidden_chars
+
+    has_valid_action = bool(action_name in bpy.data.actions)
+
+    if has_forbidden_chars:
+        errors[track.name] = ('FORBIDDEN_CHARS', "Names can't contain commas or spaces.")
+
+    elif len(nla_track.strips) > 1:
+        errors[track.name] = ('MULTIPLE_ACTIONS', "Only one action is allowed.")
+
+    elif not nla_track.strips:
+        errors[track.name] = ('NO_ACTION', "No action present.")
+
+    elif not has_valid_action:
+        errors[track.name] = ('MISSING_ACTION', "Action has been renamed or deleted.")
+
+    return len(nla_track.strips) == 1 and has_valid_action and not has_forbidden_chars
 
 def is_valid_regular_track(ob, track):
     if ob.animation_data:
         for nla_track in ob.animation_data.nla_tracks:
-            if is_matching_track(nla_track, track) and is_useable_nla_track(nla_track):
-                return True
+            if is_matching_track(nla_track, track):
+                if is_useable_nla_track(nla_track, track):
+                    return True
+
+                return False
+
+    errors[track.name] = ('NOT_FOUND', "Track not found.  Did you mean:")
 
     return False
 
 def is_valid_shape_key_track(ob, track):
     if hasattr(ob.data, 'shape_keys') and ob.data.shape_keys and ob.data.shape_keys.animation_data:
         for nla_track in ob.data.shape_keys.animation_data.nla_tracks:
-            if is_matching_track(nla_track, track) and is_useable_nla_track(nla_track):
-                return True
+            if is_matching_track(nla_track, track):
+                if is_useable_nla_track(nla_track, track):
+                    return True
+
+                return False
+
+    errors[track.name] = ('NOT_FOUND', "Track not found.  Did you mean:")
 
     return False
 
@@ -290,12 +318,23 @@ class UpdateTrackContextMenu(Menu):
     bl_label = "Update Track"
 
     def draw(self, context):
+        global errors
         track = context.track
         hubs_component = context.hubs_component
         layout = self.layout
         no_tracks = True
         menu_tracks = []
         ob = context.object
+
+        error = errors.get(track.name, '')
+        if error:
+            error_row = layout.row(align=False)
+            error_row.label(text=f"Error: {error[1]}", icon='ERROR')
+
+            if error[0] != 'NOT_FOUND':
+                return
+
+            layout.separator()
 
         if ob.animation_data:
             for _, nla_track in enumerate(ob.animation_data.nla_tracks):
@@ -422,6 +461,9 @@ class LoopAnimation(HubsComponent):
     )
 
     def draw(self, context, layout, panel):
+        global errors
+        errors.clear()
+
         layout.label(text='Animations to play:')
 
         row = layout.row()
