@@ -1,4 +1,3 @@
-import atexit
 import bpy
 from bpy.props import StringProperty, CollectionProperty, IntProperty, BoolProperty
 from bpy.types import PropertyGroup, Menu, Operator
@@ -116,14 +115,6 @@ class TrackPropertyType(PropertyGroup):
     )
 
 
-bpy.utils.register_class(TrackPropertyType)
-
-
-@atexit.register
-def unregister():
-    bpy.utils.unregister_class(TrackPropertyType)
-
-
 class LoopAnimation(HubsComponent):
     _definition = {
         'name': 'loop-animation',
@@ -210,3 +201,11 @@ class LoopAnimation(HubsComponent):
                 if ob.type == 'ARMATURE':
                     for bone in ob.data.bones:
                         migrate_data(bone)
+
+
+def register_module():
+    bpy.utils.register_class(TrackPropertyType)
+
+
+def unregister_module():
+    bpy.utils.unregister_class(TrackPropertyType)

@@ -102,6 +102,8 @@ def load_components_registry():
     for module in get_component_definitions():
         for _, member in inspect.getmembers(module):
             if inspect.isclass(member) and issubclass(member, HubsComponent) and member != HubsComponent:
+                if hasattr(module, 'register_module'):
+                    module.register_module()
                 register_component(member)
                 __components_registry[member.get_name()] = member
 
@@ -111,6 +113,9 @@ def unload_components_registry():
     global __components_registry
     for _, component_class in __components_registry.items():
         unregister_component(component_class)
+    for module in get_component_definitions():
+        if hasattr(module, 'unregister_module'):
+            module.unregister_module()
 
 
 def load_icons():
