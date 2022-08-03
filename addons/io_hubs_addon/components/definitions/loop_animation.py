@@ -34,17 +34,23 @@ class TracksList(bpy.types.UIList):
 class AddTrackOperator(Operator):
     bl_idname = "hubs_loop_animation.add_track"
     bl_label = "Add Track"
+    bl_options = {'REGISTER', 'UNDO'}
 
     track_name: StringProperty(
         name="Track Name", description="Track Name", default="")
 
-    def execute(self, context):
-        ob = context.object
-        if context.mode == 'POSE' or context.mode == 'EDIT_ARMATURE':
-            ob = context.active_bone
+    panel_type: StringProperty(name="panel_type")
 
-        track = ob.hubs_component_loop_animation.tracks_list.add()
+    def execute(self, context):
+        panel_type = PanelType(self.panel_type)
+        ob = context.object
+        host = ob if panel_type == PanelType.OBJECT else context.active_bone
+
+        track = host.hubs_component_loop_animation.tracks_list.add()
         track.name = self.track_name
+
+        num_tracks = len(host.hubs_component_loop_animation.tracks_list)
+        host.hubs_component_loop_animation.active_track_key = num_tracks - 1
 
         return {'FINISHED'}
 
@@ -55,19 +61,30 @@ class AddTrackOperator(Operator):
 class RemoveTrackOperator(Operator):
     bl_idname = "hubs_loop_animation.remove_track"
     bl_label = "Remove Track"
+    bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
-    def poll(self, context):
-        return context.object.hubs_component_loop_animation.active_track_key != -1
+    def poll(cls, context):
+        panel_type = PanelType(context.panel.bl_context)
+        ob = context.object
+        host = ob if panel_type == PanelType.OBJECT else context.active_bone
+
+        return host.hubs_component_loop_animation.active_track_key != -1
 
     def execute(self, context):
+        panel_type = PanelType(context.panel.bl_context)
         ob = context.object
-        if context.mode == 'POSE' or context.mode == 'EDIT_ARMATURE':
-            ob = context.active_bone
+        host = ob if panel_type == PanelType.OBJECT else context.active_bone
 
-        active_track_key = ob.hubs_component_loop_animation.active_track_key
-        ob.hubs_component_loop_animation.tracks_list.remove(
+        active_track_key = host.hubs_component_loop_animation.active_track_key
+        host.hubs_component_loop_animation.tracks_list.remove(
             active_track_key)
+
+        if host.hubs_component_loop_animation.active_track_key != 0:
+            host.hubs_component_loop_animation.active_track_key -= 1
+
+        if len(host.hubs_component_loop_animation.tracks_list) == 0:
+            host.hubs_component_loop_animation.active_track_key = -1
 
         return {'FINISHED'}
 
@@ -87,20 +104,26 @@ class TracksContextMenu(Menu):
     bl_label = "Tracks Specials"
 
     def draw(self, context):
+        panel_type = PanelType(context.panel.bl_context)
         no_tracks = True
         ob = context.object
+        host = ob if panel_type == PanelType.OBJECT else context.active_bone
         if ob.animation_data:
             for _, a in enumerate(ob.animation_data.nla_tracks):
-                if not has_track(context.object.hubs_component_loop_animation.tracks_list, a.name):
-                    self.layout.operator(AddTrackOperator.bl_idname, icon='OBJECT_DATA',
-                                         text=a.name).track_name = a.name
+                if not has_track(host.hubs_component_loop_animation.tracks_list, a.name):
+                    add_track = self.layout.operator(AddTrackOperator.bl_idname, icon='OBJECT_DATA',
+                                         text=a.name)
+                    add_track.track_name = a.name
+                    add_track.panel_type = panel_type.value
                     no_tracks = False
 
         if hasattr(ob.data, 'shape_keys') and ob.data.shape_keys and ob.data.shape_keys.animation_data:
             for _, a in enumerate(ob.data.shape_keys.animation_data.nla_tracks):
                 if not has_track(context.object.hubs_component_loop_animation.tracks_list, a.name):
-                    self.layout.operator(AddTrackOperator.bl_idname, icon='OBJECT_DATA',
-                                         text=a.name).track_name = a.name
+                    add_track = self.layout.operator(AddTrackOperator.bl_idname, icon='OBJECT_DATA',
+                                         text=a.name)
+                    add_track.track_name = a.name
+                    add_track.panel_type = panel_type.value
                     no_tracks = False
 
         if no_tracks:
@@ -146,7 +169,7 @@ class LoopAnimation(HubsComponent):
         default=False
     )
 
-    def draw(self, context, layout, panel_type):
+    def draw(self, context, layout, panel):
         layout.label(text='Animations to play:')
 
         row = layout.row()
@@ -155,6 +178,7 @@ class LoopAnimation(HubsComponent):
 
         col = row.column(align=True)
 
+        col.context_pointer_set('panel', panel)
         col.menu(TracksContextMenu.bl_idname, icon='ADD', text="")
         col.operator(RemoveTrackOperator.bl_idname,
                      icon='REMOVE', text="")

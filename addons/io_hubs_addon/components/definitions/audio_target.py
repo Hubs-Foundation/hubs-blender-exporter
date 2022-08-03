@@ -121,7 +121,7 @@ class AudioTarget(HubsComponent):
         description="Show debug visuals",
         default=False)
 
-    def draw(self, context, layout, panel_type):
+    def draw(self, context, layout, panel):
         from .audio_source import AudioSource
         dep_name = AudioSource.get_name()
 

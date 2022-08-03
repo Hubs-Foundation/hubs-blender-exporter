@@ -307,11 +307,11 @@ class ReflectionProbe(HubsComponent):
         type=Image
     )
 
-    def draw(self, context, layout, panel_type):
+    def draw(self, context, layout, panel):
         row = layout.row()
         row.label(text="Resolution settings, as well as the option to bake all reflection probes at once, can be accessed from the scene settings.",
                   icon='INFO')
-        super().draw(context, layout, panel_type)
+        super().draw(context, layout, panel)
 
         global bake_mode
         bake_msg = "Baking..." if probe_baking and bake_mode == 'ACTIVE' else "Bake"
@@ -337,7 +337,8 @@ class ReflectionProbe(HubsComponent):
         }
 
     @ classmethod
-    def draw_global(cls, context, layout, panel_type):
+    def draw_global(cls, context, layout, panel):
+        panel_type = PanelType(panel.bl_context)
         if len(get_probes()) > 0 and panel_type == PanelType.SCENE:
             row = layout.row()
             col = row.box().column()

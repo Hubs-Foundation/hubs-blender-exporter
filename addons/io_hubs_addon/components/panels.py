@@ -6,10 +6,9 @@ from .utils import get_object_source, dash_to_title
 
 def draw_component_global(panel, context):
     layout = panel.layout
-    panel_type = PanelType(panel.bl_context)
     components_registry = get_components_registry()
     for _, component_class in components_registry.items():
-        component_class.draw_global(context, layout, panel_type)
+        component_class.draw_global(context, layout, panel)
 
 
 def draw_component(panel, context, obj, row, component_item):
@@ -49,7 +48,7 @@ def draw_component(panel, context, obj, row, component_item):
             remove_component_operator.panel_type = panel.bl_context
 
         if has_properties and component_item.expanded:
-            component.draw(context, col, panel_type)
+            component.draw(context, col, panel)
 
     else:
         col = row.box().column()

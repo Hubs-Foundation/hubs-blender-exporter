@@ -25,14 +25,14 @@ class UVScroll(HubsComponent):
                                    subtype="XYZ",
                                    default=[0, 0])
 
-    def draw(self, context, layout, panel_type):
+    def draw(self, context, layout, panel):
         has_texture = False
         for material in context.object.data.materials:
             for node in material.node_tree.nodes:
                 if node.type == 'TEX_IMAGE':
                     has_texture = True
 
-        super().draw(context, layout, panel_type)
+        super().draw(context, layout, panel)
         if not has_texture:
             layout.alert = True
             layout.label(text='This component requires a texture',

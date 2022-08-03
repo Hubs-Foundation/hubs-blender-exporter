@@ -87,7 +87,7 @@ class HubsComponent(PropertyGroup):
             raise Exception(
                 'HubsComponent is an abstract class and cannot be instantiated directly')
 
-    def draw(self, context, layout, panel_type):
+    def draw(self, context, layout, panel):
         '''Draw method to be called by the panel. The base class method will print all the component properties'''
         for key in self.__annotations__.keys():
             if not self.bl_rna.properties[key].is_hidden:
@@ -106,7 +106,7 @@ class HubsComponent(PropertyGroup):
         pass
 
     @classmethod
-    def draw_global(cls, context, layout, panel_type):
+    def draw_global(cls, context, layout, panel):
         '''Draw method to be called by the panel. This can be used to draw global component properties in a panel before the component properties.'''
 
     @classmethod

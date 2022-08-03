@@ -20,7 +20,7 @@ class Networked(HubsComponent):
         default=str(uuid.uuid4()).upper()
     )
 
-    def draw(self, context, layout, panel_type):
+    def draw(self, context, layout, panel):
         layout.label(text="Network ID:")
         layout.label(text=self.id)
 
