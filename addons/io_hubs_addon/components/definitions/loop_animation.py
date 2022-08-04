@@ -477,6 +477,12 @@ class LoopAnimation(HubsComponent):
         col.operator(RemoveTrackOperator.bl_idname,
                      icon='REMOVE', text="")
 
+        if errors:
+            error_row = layout.row()
+            error_row.alert = True
+            error_row.label(text="Errors detected, click on the flagged tracks for more information.",
+                            icon='ERROR')
+
         layout.separator()
 
         layout.prop(data=self, property='paused')
