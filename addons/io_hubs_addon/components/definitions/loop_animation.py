@@ -1,4 +1,3 @@
-import atexit
 import bpy
 from bpy.app.handlers import persistent
 from bpy.props import StringProperty, CollectionProperty, IntProperty, BoolProperty, EnumProperty
@@ -32,12 +31,6 @@ class TrackPropertyType(PropertyGroup):
             ],
         default="object"
     )
-
-bpy.utils.register_class(TrackPropertyType)
-
-@atexit.register
-def unregister():
-    bpy.utils.unregister_class(TrackPropertyType)
 
 def register_msgbus():
     global nla_track_name_msgbus_owner
@@ -521,3 +514,11 @@ class LoopAnimation(HubsComponent):
                 if ob.type == 'ARMATURE':
                     for bone in ob.data.bones:
                         migrate_data(ob, bone)
+
+
+def register_module():
+    bpy.utils.register_class(TrackPropertyType)
+
+
+def unregister_module():
+    bpy.utils.unregister_class(TrackPropertyType)
