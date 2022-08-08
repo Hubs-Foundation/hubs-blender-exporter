@@ -7,6 +7,7 @@ from ..types import Category, PanelType, NodeType
 from ..utils import redraw_component_ui
 
 nla_track_name_msgbus_owner = None
+strip_name_msgbus_owner = None
 action_name_msgbus_owner = None
 
 class TrackPropertyType(PropertyGroup):
@@ -17,6 +18,10 @@ class TrackPropertyType(PropertyGroup):
     track_name: StringProperty(
         name="Track Name",
         description="Track Name",
+    )
+    strip_name: StringProperty( # Will only contain data if the track name is generic
+        name="Strip Name",
+        description="Strip Name",
     )
     action_name: StringProperty( # Will only contain data if the track name is generic
         name="Action Name",
@@ -34,6 +39,7 @@ class TrackPropertyType(PropertyGroup):
 
 def register_msgbus():
     global nla_track_name_msgbus_owner
+    global strip_name_msgbus_owner
     global action_name_msgbus_owner
 
     if nla_track_name_msgbus_owner:
@@ -43,6 +49,17 @@ def register_msgbus():
     bpy.msgbus.subscribe_rna(
         key=(bpy.types.NlaTrack, "name"),
         owner=nla_track_name_msgbus_owner,
+        args=(bpy.context,),
+        notify=redraw_component_ui,
+    )
+
+    if strip_name_msgbus_owner:
+        return
+
+    strip_name_msgbus_owner = object()
+    bpy.msgbus.subscribe_rna(
+        key=(bpy.types.NlaStrip, "name"),
+        owner=strip_name_msgbus_owner,
         args=(bpy.context,),
         notify=redraw_component_ui,
     )
@@ -58,14 +75,18 @@ def register_msgbus():
         notify=redraw_component_ui,
     )
 
+
 def unregister_msgbus():
     global nla_track_name_msgbus_owner
+    global strip_name_msgbus_owner
     global action_name_msgbus_owner
 
     bpy.msgbus.clear_by_owner(nla_track_name_msgbus_owner)
+    bpy.msgbus.clear_by_owner(strip_name_msgbus_owner)
     bpy.msgbus.clear_by_owner(action_name_msgbus_owner)
 
     nla_track_name_msgbus_owner = None
+    strip_name_msgbus_owner = None
     action_name_msgbus_owner = None
 
 @persistent
@@ -76,21 +97,44 @@ def load_post(dummy):
 def is_default_name(track_name):
     return bool(track_name.startswith("NlaTrack") or track_name.startswith("[Action Stash]"))
 
-def get_display_name(track_name, action_name):
-    return track_name if not is_default_name(track_name) else f"{track_name} ({action_name})"
+def get_display_name(track_name, strip_name):
+    return track_name if not is_default_name(track_name) else f"{track_name} ({strip_name})"
 
-def get_action_name(nla_track):
+def get_strip_name(nla_track):
     try:
         return nla_track.strips[0].name
     except IndexError:
         return ''
 
+def get_action_name(nla_track):
+    try:
+        return nla_track.strips[0].action.name
+    except (IndexError, AttributeError):
+        return ''
+
+def is_unique_action(nla_track, animation_data):
+    try:
+        action = nla_track.strips[0].action
+        default_action = animation_data.action
+        dummy_users = 0
+
+        if default_action == action:
+            dummy_users += 1
+        if action.use_fake_user:
+            dummy_users += 1
+
+        return (action.users - dummy_users) == 1
+
+    except (IndexError, AttributeError):
+        return False
+
 def has_track(tracks_list, nla_track):
+    strip_name = get_strip_name(nla_track)
     action_name = get_action_name(nla_track)
     exists = False
     for track in tracks_list:
         if is_default_name(nla_track.name):
-            if track.track_name == nla_track.name and track.action_name == action_name:
+            if track.track_name == nla_track.name and track.strip_name == strip_name and track.action_name == action_name:
                 exists = True
                 break
 
@@ -103,7 +147,7 @@ def has_track(tracks_list, nla_track):
 
 def is_matching_track(nla_track, track):
     if is_default_name(nla_track.name):
-        if nla_track.name == track.track_name and get_action_name(nla_track) == track.action_name:
+        if nla_track.name == track.track_name and get_strip_name(nla_track) == track.strip_name and get_action_name(nla_track) == track.action_name:
             return True
 
     else:
@@ -112,7 +156,7 @@ def is_matching_track(nla_track, track):
 
     return False
 
-def is_useable_nla_track(nla_track):
+def is_useable_nla_track(nla_track, animation_data):
     track_name = nla_track.name
     action_name = get_action_name(nla_track)
 
@@ -125,13 +169,13 @@ def is_useable_nla_track(nla_track):
         if any([c for c in forbidden_chars if c in action_name]):
             has_forbidden_chars = True
 
-    return len(nla_track.strips) == 1 and action_name in bpy.data.actions and not has_forbidden_chars
+    return track_name != '' and len(nla_track.strips) == 1 and nla_track.strips[0].mute == False and action_name != '' and is_unique_action(nla_track, animation_data) and not has_forbidden_chars
 
 def is_valid_regular_track(ob, track):
     if ob.animation_data:
         for nla_track in ob.animation_data.nla_tracks:
             if is_matching_track(nla_track, track):
-                if is_useable_nla_track(nla_track):
+                if is_useable_nla_track(nla_track, ob.animation_data):
                     return True
 
                 return False
@@ -142,7 +186,7 @@ def is_valid_shape_key_track(ob, track):
     if hasattr(ob.data, 'shape_keys') and ob.data.shape_keys and ob.data.shape_keys.animation_data:
         for nla_track in ob.data.shape_keys.animation_data.nla_tracks:
             if is_matching_track(nla_track, track):
-                if is_useable_nla_track(nla_track):
+                if is_useable_nla_track(nla_track, ob.data.shape_keys.animation_data):
                     return True
 
                 return False
@@ -192,6 +236,9 @@ class UpdateTrack(Operator):
     track_name: StringProperty(
         name="Track Name", description="Track Name", default="")
 
+    strip_name: StringProperty(
+        name="Strip Name", description="Strip Name", default="")
+
     action_name: StringProperty(
         name="Action Name", description="Action Name", default="")
 
@@ -203,6 +250,7 @@ class UpdateTrack(Operator):
         track = context.track
         track.name = self.name
         track.track_name = self.track_name
+        track.strip_name = self.strip_name
         track.action_name = self.action_name
         track.track_type = self.track_type
 
@@ -221,6 +269,9 @@ class AddTrackOperator(Operator):
     track_name: StringProperty(
         name="Track Name", description="Track Name", default="")
 
+    strip_name: StringProperty(
+        name="Strip Name", description="Strip Name", default="")
+
     action_name: StringProperty(
         name="Action Name", description="Action Name", default="")
 
@@ -237,6 +288,7 @@ class AddTrackOperator(Operator):
         track = host.hubs_component_loop_animation.tracks_list.add()
         track.name = self.name
         track.track_name = self.track_name
+        track.strip_name = self.strip_name
         track.action_name = self.action_name
         track.track_type = self.track_type
 
@@ -298,8 +350,9 @@ class UpdateTrackContextMenu(Menu):
 
         if ob.animation_data:
             for _, nla_track in enumerate(ob.animation_data.nla_tracks):
+                strip_name = get_strip_name(nla_track)
                 action_name = get_action_name(nla_track)
-                display_name = get_display_name(nla_track.name, action_name)
+                display_name = get_display_name(nla_track.name, strip_name)
 
                 if display_name not in menu_tracks and not has_track(hubs_component.tracks_list, nla_track):
                     row = layout.row(align=False)
@@ -309,6 +362,7 @@ class UpdateTrackContextMenu(Menu):
                                          icon='OBJECT_DATA', text=display_name)
                     update_track.name = display_name
                     update_track.track_name = nla_track.name
+                    update_track.strip_name = strip_name if is_default_name(nla_track.name) else ''
                     update_track.action_name = action_name if is_default_name(nla_track.name) else ''
                     update_track.track_type = "object"
 
@@ -317,8 +371,9 @@ class UpdateTrackContextMenu(Menu):
 
         if hasattr(ob.data, 'shape_keys') and ob.data.shape_keys and ob.data.shape_keys.animation_data:
             for _, nla_track in enumerate(ob.data.shape_keys.animation_data.nla_tracks):
+                strip_name = get_strip_name(nla_track)
                 action_name = get_action_name(nla_track)
-                display_name = get_display_name(nla_track.name, action_name)
+                display_name = get_display_name(nla_track.name, strip_name)
 
                 if display_name not in menu_tracks and not has_track(hubs_component.tracks_list, nla_track):
                     row = layout.row(align=False)
@@ -328,6 +383,7 @@ class UpdateTrackContextMenu(Menu):
                                          icon='SHAPEKEY_DATA', text=display_name)
                     update_track.name = display_name
                     update_track.track_name = nla_track.name
+                    update_track.strip_name = strip_name if is_default_name(nla_track.name) else ''
                     update_track.action_name = action_name if is_default_name(nla_track.name) else ''
                     update_track.track_type = "shape_key"
 
@@ -353,14 +409,16 @@ class TracksContextMenu(Menu):
 
         if ob.animation_data:
             for _, nla_track in enumerate(ob.animation_data.nla_tracks):
+                strip_name = get_strip_name(nla_track)
                 action_name = get_action_name(nla_track)
-                display_name = get_display_name(nla_track.name, action_name)
+                display_name = get_display_name(nla_track.name, strip_name)
 
                 if display_name not in menu_tracks and not has_track(component_tracks_list, nla_track):
                     add_track = layout.operator(AddTrackOperator.bl_idname,
                                          icon='OBJECT_DATA', text=display_name)
                     add_track.name = display_name
                     add_track.track_name = nla_track.name
+                    add_track.strip_name = strip_name if is_default_name(nla_track.name) else ''
                     add_track.action_name = action_name if is_default_name(nla_track.name) else ''
                     add_track.track_type = "object"
                     add_track.panel_type = panel_type.value
@@ -370,14 +428,16 @@ class TracksContextMenu(Menu):
 
         if hasattr(ob.data, 'shape_keys') and ob.data.shape_keys and ob.data.shape_keys.animation_data:
             for _, nla_track in enumerate(ob.data.shape_keys.animation_data.nla_tracks):
+                strip_name = get_strip_name(nla_track)
                 action_name = get_action_name(nla_track)
-                display_name = get_display_name(nla_track.name, action_name)
+                display_name = get_display_name(nla_track.name, strip_name)
 
                 if display_name not in menu_tracks and not has_track(component_tracks_list, nla_track):
                     add_track = layout.operator(AddTrackOperator.bl_idname,
                                          icon='SHAPEKEY_DATA', text=display_name)
                     add_track.name = display_name
                     add_track.track_name = nla_track.name
+                    add_track.strip_name = strip_name if is_default_name(nla_track.name) else ''
                     add_track.action_name = action_name if is_default_name(nla_track.name) else ''
                     add_track.track_type = "shape_key"
                     add_track.panel_type = panel_type.value
@@ -502,9 +562,11 @@ class LoopAnimation(HubsComponent):
 
                         if not has_track(host.hubs_component_loop_animation.tracks_list, nla_track):
                             track = host.hubs_component_loop_animation.tracks_list.add()
+                            strip_name = get_strip_name(nla_track)
                             action_name = get_action_name(nla_track)
-                            track.name = get_display_name(nla_track.name, action_name)
+                            track.name = get_display_name(nla_track.name, strip_name)
                             track.track_name = nla_track.name
+                            track.strip_name = strip_name if is_default_name(nla_track.name) else ''
                             track.action_name = action_name if is_default_name(nla_track.name) else ''
                             track.track_type = track_type
 
