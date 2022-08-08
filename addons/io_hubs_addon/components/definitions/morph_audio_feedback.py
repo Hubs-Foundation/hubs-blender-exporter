@@ -70,7 +70,8 @@ class MorphAudioFeedback(HubsComponent):
 
     name: StringProperty(
         name="Name",
-        description="Name"
+        description="Name",
+        default=BLANK_ID
     )
 
     shape_key: EnumProperty(

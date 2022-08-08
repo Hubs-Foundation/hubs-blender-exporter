@@ -1,5 +1,3 @@
-from io_scene_gltf2.io.exp.gltf2_io_user_extensions import export_user_extensions
-from io_scene_gltf2.blender.exp import gltf2_blender_export
 import bpy
 from bpy.props import PointerProperty, IntVectorProperty
 from ..components.components_registry import get_components_registry
@@ -10,15 +8,25 @@ hubs_config = {
     "gltfExtensionVersion": 4,
 }
 
+if bpy.app.version < (3, 0, 0):
+    from io_scene_gltf2.io.exp.gltf2_io_user_extensions import export_user_extensions
+    from io_scene_gltf2.blender.exp import gltf2_blender_export
+
+    # gather_gltf_hook does not expose the info we need, make a custom hook for now
+    # ideally we can resolve this upstream somehow https://github.com/KhronosGroup/glTF-Blender-IO/issues/1009
+    orig_gather_gltf = gltf2_blender_export.__gather_gltf
+
+
+def patched_gather_gltf(exporter, export_settings):
+    orig_gather_gltf(exporter, export_settings)
+    export_user_extensions('hubs_gather_gltf_hook',
+                           export_settings, exporter._GlTF2Exporter__gltf)
+    exporter._GlTF2Exporter__traverse(exporter._GlTF2Exporter__gltf.extensions)
+
 
 def get_version_string():
     from .. import (bl_info)
     return str(bl_info['version'][0]) + '.' + str(bl_info['version'][1]) + '.' + str(bl_info['version'][2])
-
-
-# gather_gltf_hook does not expose the info we need, make a custom hook for now
-# ideally we can resolve this upstream somehow https://github.com/KhronosGroup/glTF-Blender-IO/issues/1009
-orig_gather_gltf = gltf2_blender_export.__gather_gltf
 
 
 def glTF2_pre_export_callback(export_settings):
@@ -51,12 +59,6 @@ def glTF2_post_export_callback(export_settings):
                     component.post_export(export_settings, ob)
 
 
-def patched_gather_gltf(exporter, export_settings):
-    orig_gather_gltf(exporter, export_settings)
-    export_user_extensions('hubs_gather_gltf_hook',
-                           export_settings, exporter._GlTF2Exporter__gltf)
-    exporter._GlTF2Exporter__traverse(exporter._GlTF2Exporter__gltf.extensions)
-
 # This class name is specifically looked for by gltf-blender-io and it's hooks are automatically invoked on export
 
 
@@ -88,6 +90,9 @@ class glTF2ExportUserExtension:
             gltf2_object.asset.extras = {}
         gltf2_object.asset.extras["HUBS_blenderExporterVersion"] = get_version_string(
         )
+
+    def gather_gltf_extensions_hook(self, gltf2_plan, export_settings):
+        self.hubs_gather_gltf_hook(gltf2_plan, export_settings)
 
     def gather_scene_hook(self, gltf2_object, blender_scene, export_settings):
         if not self.properties.enabled:
@@ -234,7 +239,8 @@ def unregister_export_panel():
 def register():
     print("Register GLTF Exporter")
     register_export_panel()
-    gltf2_blender_export.__gather_gltf = patched_gather_gltf
+    if bpy.app.version < (3, 0, 0):
+        gltf2_blender_export.__gather_gltf = patched_gather_gltf
     bpy.utils.register_class(HubsComponentsExtensionProperties)
     bpy.types.Scene.HubsComponentsExtensionProperties = PointerProperty(
         type=HubsComponentsExtensionProperties)
@@ -245,5 +251,6 @@ def unregister():
     unregister_export_panel()
     del bpy.types.Scene.HubsComponentsExtensionProperties
     bpy.utils.unregister_class(HubsComponentsExtensionProperties)
-    gltf2_blender_export.__gather_gltf = orig_gather_gltf
+    if bpy.app.version < (3, 0, 0):
+        gltf2_blender_export.__gather_gltf = orig_gather_gltf
     unregister_export_panel()
