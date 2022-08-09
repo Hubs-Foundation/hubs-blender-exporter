@@ -9,7 +9,6 @@ from ..utils import redraw_component_ui
 nla_track_name_msgbus_owner = None
 strip_name_msgbus_owner = None
 action_name_msgbus_owner = None
-errors = {}
 
 class TrackPropertyType(PropertyGroup):
     name: StringProperty(
@@ -37,6 +36,46 @@ class TrackPropertyType(PropertyGroup):
             ],
         default="object"
     )
+
+class Errors():
+    _errors = {}
+
+    @classmethod
+    def log(cls, track, error_type, error_message, severity='Error'):
+        has_error = cls._errors.get(track.track_type+track.name, '')
+        if not has_error:
+            cls._errors[track.track_type+track.name] = {'type': error_type, 'message': error_message, 'severity': severity}
+
+    @classmethod
+    def get(cls, track):
+        return cls._errors.get(track.track_type+track.name, '')
+
+    @classmethod
+    def clear(cls):
+        cls._errors.clear()
+
+    @classmethod
+    def are_present(cls):
+        return bool(cls._errors)
+
+    @classmethod
+    def display_error(cls, layout, error):
+        message_lines = error['message'].split('\n')
+        padding = layout.row(align=False)
+        padding.scale_y = 0.18
+        padding.label()
+        for i, line in enumerate(message_lines):
+            error_row = layout.row(align=False)
+            error_row.scale_y = 0.7
+
+            if i == 0:
+                error_row.label(text=f"{error['severity']}: {line}", icon='ERROR')
+            else:
+                error_row.label(text=line, icon='BLANK1')
+
+        padding = layout.row(align=False)
+        padding.scale_y = 0.2
+        padding.label()
 
 def register_msgbus():
     global nla_track_name_msgbus_owner
@@ -112,23 +151,30 @@ def get_action_name(nla_track):
     except (IndexError, AttributeError):
         return ''
 
-def is_unique_action(nla_track, animation_data):
+def get_menu_id(nla_track, track_type, display_name):
+    return display_name if not is_default_name(nla_track.name) else track_type+display_name
+
+def is_unique_action(animation_data, target_nla_track):
     try:
-        action = nla_track.strips[0].action
-        default_action = animation_data.action
-        dummy_users = 0
+        target_action = target_nla_track.strips[0].action
+    except (IndexError):
+        return True
 
-        if default_action == action:
-            dummy_users += 1
-        if action.use_fake_user:
-            dummy_users += 1
+    for nla_track in animation_data.nla_tracks:
+        if nla_track == target_nla_track:
+            continue
 
-        return (action.users - dummy_users) == 1
+        try:
+            action = nla_track.strips[0].action
+        except (IndexError):
+            continue
 
-    except (IndexError, AttributeError):
-        return False
+        if action == target_action:
+            return False
 
-def has_track(tracks_list, nla_track):
+    return True
+
+def has_track(tracks_list, nla_track, invalid_track=None):
     strip_name = get_strip_name(nla_track)
     action_name = get_action_name(nla_track)
     exists = False
@@ -139,17 +185,23 @@ def has_track(tracks_list, nla_track):
                 break
 
         else:
-            if track.track_name == nla_track.name:
+            if track.track_name == nla_track.name and track != invalid_track:
                 exists = True
                 break
 
     return exists
 
-def is_matching_track(nla_track, track):
-    global errors
+def is_matching_track(nla_track_type, nla_track, track):
+    if nla_track_type != track.track_type:
+        return False
+
     if is_default_name(nla_track.name):
-        if nla_track.name == track.track_name and get_strip_name(nla_track) == track.strip_name and get_action_name(nla_track) == track.action_name:
-            return True
+        if nla_track.name == track.track_name:
+            if get_strip_name(nla_track) == track.strip_name:
+                if get_action_name(nla_track) == track.action_name:
+                    return True
+
+                Errors.log(track, 'INVALID_ACTION', "The action has changed for this strip/track.\nChoose the track again to update.")
 
     else:
         if nla_track.name == track.track_name:
@@ -158,59 +210,73 @@ def is_matching_track(nla_track, track):
     return False
 
 def is_useable_nla_track(animation_data, nla_track, track):
-    global errors
     track_name = nla_track.name
     action_name = get_action_name(nla_track)
 
+    if track_name == '':
+        Errors.log(track, 'FORBIDDEN_NAME', "Track names can't be nothing.")
+        return False
+
     forbidden_chars = [",", " "]
-    has_forbidden_chars = False
     if not is_default_name(track_name):
         if any([c for c in forbidden_chars if c in track_name]):
-            has_forbidden_chars = True
+            Errors.log(track, 'FORBIDDEN_NAME', "Custom track names can't contain commas or spaces.")
+            return False
+
     else:
         if any([c for c in forbidden_chars if c in action_name]):
-            has_forbidden_chars = True
+            Errors.log(track, 'FORBIDDEN_NAME', "Action names can't contain commas or spaces.")
+            return False
 
+    if len(nla_track.strips) > 1:
+        Errors.log(track, 'MULTIPLE_STRIPS', "Only one strip is allowed in the track.")
+        return False
 
-    has_valid_action = bool(action_name in bpy.data.actions)
+    if not nla_track.strips:
+        Errors.log(track, 'NO_STRIPS', "No strips are present in the track.")
+        return False
 
-    if has_forbidden_chars:
-        errors[track.name] = ('FORBIDDEN_CHARS', "Names can't contain commas or spaces.")
+    if nla_track.strips[0].mute:
+        Errors.log(track, 'MUTED_STRIP', "The strip is muted and won't export.")
+        return False
 
-    elif len(nla_track.strips) > 1:
-        errors[track.name] = ('MULTIPLE_ACTIONS', "Only one action is allowed.")
+    if not action_name:
+        Errors.log(track, 'NO_ACTION', "The strip/track doesn't have an action.")
+        return False
 
-    elif not nla_track.strips:
-        errors[track.name] = ('NO_ACTION', "No action present.")
+    if not nla_track.strips[0].action.fcurves:
+        Errors.log(track, 'NO_FCURVES', "The strip/track's action doesn't have any animation and\nwon't be exported.")
+        return False
 
-    elif not has_valid_action:
-        errors[track.name] = ('MISSING_ACTION', "Action has been renamed or deleted.")
+    if not is_unique_action(animation_data, nla_track):
+        Errors.log(track, 'NON_UNIQUE_ACTION', "This strip/track contains an action that is present in multiple\nstrips/tracks on this object and may not export correctly.", severity="Warning")
+        return False
 
-    return track_name != '' and len(nla_track.strips) == 1 and nla_track.strips[0].mute == False and action_name != '' and is_unique_action(nla_track, animation_data) and not has_forbidden_chars
+    return True
 
 def is_valid_regular_track(ob, track):
     if ob.animation_data:
         for nla_track in ob.animation_data.nla_tracks:
-            if is_matching_track(nla_track, track):
+            if is_matching_track("object", nla_track, track):
                 if is_useable_nla_track(ob.animation_data, nla_track, track):
                     return True
 
                 return False
 
-    errors[track.name] = ('NOT_FOUND', "Track not found.  Did you mean:")
+    Errors.log(track, 'NOT_FOUND', "Track not found.  Did you mean:")
 
     return False
 
 def is_valid_shape_key_track(ob, track):
     if hasattr(ob.data, 'shape_keys') and ob.data.shape_keys and ob.data.shape_keys.animation_data:
         for nla_track in ob.data.shape_keys.animation_data.nla_tracks:
-            if is_matching_track(nla_track, track):
+            if is_matching_track("shape_key", nla_track, track):
                 if is_useable_nla_track(ob.data.shape_keys.animation_data, nla_track, track):
                     return True
 
                 return False
 
-    errors[track.name] = ('NOT_FOUND', "Track not found.  Did you mean:")
+    Errors.log(track, 'NOT_FOUND', "Track not found.  Did you mean:")
 
     return False
 
@@ -362,7 +428,6 @@ class UpdateTrackContextMenu(Menu):
     bl_label = "Update Track"
 
     def draw(self, context):
-        global errors
         track = context.track
         hubs_component = context.hubs_component
         layout = self.layout
@@ -370,12 +435,10 @@ class UpdateTrackContextMenu(Menu):
         menu_tracks = []
         ob = context.object
 
-        error = errors.get(track.name, '')
+        error = Errors.get(track)
         if error:
-            error_row = layout.row(align=False)
-            error_row.label(text=f"Error: {error[1]}", icon='ERROR')
-
-            if error[0] != 'NOT_FOUND':
+            Errors.display_error(layout, error)
+            if error['type'] not in ['NOT_FOUND', 'INVALID_ACTION']:
                 return
 
             layout.separator()
@@ -385,8 +448,10 @@ class UpdateTrackContextMenu(Menu):
                 strip_name = get_strip_name(nla_track)
                 action_name = get_action_name(nla_track)
                 display_name = get_display_name(nla_track.name, strip_name)
+                track_type = "object"
+                menu_id = get_menu_id(nla_track, track_type, display_name)
 
-                if display_name not in menu_tracks and not has_track(hubs_component.tracks_list, nla_track):
+                if menu_id not in menu_tracks and not has_track(hubs_component.tracks_list, nla_track, invalid_track=track):
                     row = layout.row(align=False)
                     row.context_pointer_set('track', track)
 
@@ -396,18 +461,20 @@ class UpdateTrackContextMenu(Menu):
                     update_track.track_name = nla_track.name
                     update_track.strip_name = strip_name if is_default_name(nla_track.name) else ''
                     update_track.action_name = action_name if is_default_name(nla_track.name) else ''
-                    update_track.track_type = "object"
+                    update_track.track_type = track_type
 
                     no_tracks = False
-                    menu_tracks.append(display_name)
+                    menu_tracks.append(menu_id)
 
         if hasattr(ob.data, 'shape_keys') and ob.data.shape_keys and ob.data.shape_keys.animation_data:
             for _, nla_track in enumerate(ob.data.shape_keys.animation_data.nla_tracks):
                 strip_name = get_strip_name(nla_track)
                 action_name = get_action_name(nla_track)
                 display_name = get_display_name(nla_track.name, strip_name)
+                track_type = "shape_key"
+                menu_id = get_menu_id(nla_track, track_type, display_name)
 
-                if display_name not in menu_tracks and not has_track(hubs_component.tracks_list, nla_track):
+                if menu_id not in menu_tracks and not has_track(hubs_component.tracks_list, nla_track, invalid_track=track):
                     row = layout.row(align=False)
                     row.context_pointer_set('track', track)
 
@@ -417,10 +484,10 @@ class UpdateTrackContextMenu(Menu):
                     update_track.track_name = nla_track.name
                     update_track.strip_name = strip_name if is_default_name(nla_track.name) else ''
                     update_track.action_name = action_name if is_default_name(nla_track.name) else ''
-                    update_track.track_type = "shape_key"
+                    update_track.track_type = track_type
 
                     no_tracks = False
-                    menu_tracks.append(display_name)
+                    menu_tracks.append(menu_id)
 
         if no_tracks:
             layout.label(text="No tracks found")
@@ -444,38 +511,42 @@ class TracksContextMenu(Menu):
                 strip_name = get_strip_name(nla_track)
                 action_name = get_action_name(nla_track)
                 display_name = get_display_name(nla_track.name, strip_name)
+                track_type = "object"
+                menu_id = get_menu_id(nla_track, track_type, display_name)
 
-                if display_name not in menu_tracks and not has_track(component_tracks_list, nla_track):
+                if menu_id not in menu_tracks and not has_track(component_tracks_list, nla_track):
                     add_track = layout.operator(AddTrackOperator.bl_idname,
                                          icon='OBJECT_DATA', text=display_name)
                     add_track.name = display_name
                     add_track.track_name = nla_track.name
                     add_track.strip_name = strip_name if is_default_name(nla_track.name) else ''
                     add_track.action_name = action_name if is_default_name(nla_track.name) else ''
-                    add_track.track_type = "object"
+                    add_track.track_type = track_type
                     add_track.panel_type = panel_type.value
 
                     no_tracks = False
-                    menu_tracks.append(display_name)
+                    menu_tracks.append(menu_id)
 
         if hasattr(ob.data, 'shape_keys') and ob.data.shape_keys and ob.data.shape_keys.animation_data:
             for _, nla_track in enumerate(ob.data.shape_keys.animation_data.nla_tracks):
                 strip_name = get_strip_name(nla_track)
                 action_name = get_action_name(nla_track)
                 display_name = get_display_name(nla_track.name, strip_name)
+                track_type = "shape_key"
+                menu_id = get_menu_id(nla_track, track_type, display_name)
 
-                if display_name not in menu_tracks and not has_track(component_tracks_list, nla_track):
+                if menu_id not in menu_tracks and not has_track(component_tracks_list, nla_track):
                     add_track = layout.operator(AddTrackOperator.bl_idname,
                                          icon='SHAPEKEY_DATA', text=display_name)
                     add_track.name = display_name
                     add_track.track_name = nla_track.name
                     add_track.strip_name = strip_name if is_default_name(nla_track.name) else ''
                     add_track.action_name = action_name if is_default_name(nla_track.name) else ''
-                    add_track.track_type = "shape_key"
+                    add_track.track_type = track_type
                     add_track.panel_type = panel_type.value
 
                     no_tracks = False
-                    menu_tracks.append(display_name)
+                    menu_tracks.append(menu_id)
 
         if no_tracks:
             layout.label(text="No tracks found")
@@ -513,8 +584,7 @@ class LoopAnimation(HubsComponent):
     )
 
     def draw(self, context, layout, panel):
-        global errors
-        errors.clear()
+        Errors.clear()
 
         layout.label(text='Animations to play:')
 
@@ -529,7 +599,7 @@ class LoopAnimation(HubsComponent):
         col.operator(RemoveTrackOperator.bl_idname,
                      icon='REMOVE', text="")
 
-        if errors:
+        if Errors.are_present():
             error_row = layout.row()
             error_row.alert = True
             error_row.label(text="Errors detected, click on the flagged tracks for more information.",
