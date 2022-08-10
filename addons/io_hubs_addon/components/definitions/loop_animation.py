@@ -6,9 +6,7 @@ from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ..utils import redraw_component_ui
 
-nla_track_name_msgbus_owner = None
-strip_name_msgbus_owner = None
-action_name_msgbus_owner = None
+msgbus_owner = None
 
 class TrackPropertyType(PropertyGroup):
     name: StringProperty(
@@ -78,58 +76,49 @@ class Errors():
         padding.label()
 
 def register_msgbus():
-    global nla_track_name_msgbus_owner
-    global strip_name_msgbus_owner
-    global action_name_msgbus_owner
+    global msgbus_owner
 
-    if nla_track_name_msgbus_owner:
+    if msgbus_owner:
         return
 
-    nla_track_name_msgbus_owner = object()
+    msgbus_owner = object()
+
     bpy.msgbus.subscribe_rna(
         key=(bpy.types.NlaTrack, "name"),
-        owner=nla_track_name_msgbus_owner,
+        owner=msgbus_owner,
         args=(bpy.context,),
         notify=redraw_component_ui,
     )
 
-    if strip_name_msgbus_owner:
-        return
-
-    strip_name_msgbus_owner = object()
     bpy.msgbus.subscribe_rna(
         key=(bpy.types.NlaStrip, "name"),
-        owner=strip_name_msgbus_owner,
+        owner=msgbus_owner,
         args=(bpy.context,),
         notify=redraw_component_ui,
     )
 
-    if action_name_msgbus_owner:
-        return
-
-    action_name_msgbus_owner = object()
     bpy.msgbus.subscribe_rna(
         key=(bpy.types.Action, "name"),
-        owner=action_name_msgbus_owner,
+        owner=msgbus_owner,
         args=(bpy.context,),
         notify=redraw_component_ui,
     )
 
 def unregister_msgbus():
-    global nla_track_name_msgbus_owner
-    global strip_name_msgbus_owner
-    global action_name_msgbus_owner
+    global msgbus_owner
+    if not msgbus_owner:
+        return
 
-    bpy.msgbus.clear_by_owner(nla_track_name_msgbus_owner)
-    bpy.msgbus.clear_by_owner(strip_name_msgbus_owner)
-    bpy.msgbus.clear_by_owner(action_name_msgbus_owner)
-
-    nla_track_name_msgbus_owner = None
-    strip_name_msgbus_owner = None
-    action_name_msgbus_owner = None
+    bpy.msgbus.clear_by_owner(msgbus_owner)
+    msgbus_owner = None
 
 @persistent
 def load_post(dummy):
+    unregister_msgbus()
+    register_msgbus()
+
+@persistent
+def undo_redo_post(dummy):
     unregister_msgbus()
     register_msgbus()
 
@@ -632,14 +621,16 @@ class LoopAnimation(HubsComponent):
 
         if not load_post in bpy.app.handlers.load_post:
             bpy.app.handlers.load_post.append(load_post)
+        if not undo_redo_post in bpy.app.handlers.undo_post:
+            bpy.app.handlers.load_post.append(undo_redo_post)
+        if not undo_redo_post in bpy.app.handlers.redo_post:
+            bpy.app.handlers.load_post.append(undo_redo_post)
 
         register_msgbus()
 
 
     @staticmethod
     def unregister():
-        global msgbus_owners
-
         bpy.utils.unregister_class(TracksList)
         bpy.utils.unregister_class(UpdateTrackContextMenu)
         bpy.utils.unregister_class(TracksContextMenu)
@@ -649,6 +640,10 @@ class LoopAnimation(HubsComponent):
 
         if load_post in bpy.app.handlers.load_post:
             bpy.app.handlers.load_post.remove(load_post)
+        if undo_redo_post in bpy.app.handlers.undo_post:
+            bpy.app.handlers.load_post.remove(undo_redo_post)
+        if undo_redo_post in bpy.app.handlers.redo_post:
+            bpy.app.handlers.load_post.remove(undo_redo_post)
 
         unregister_msgbus()
 
