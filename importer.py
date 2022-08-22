@@ -88,7 +88,6 @@ class glTF2ImportUserExtension:
 
         self.add_hubs_components(gltf_scene, blender_scene, import_settings)
 
-        # Bones are created after the armatures so we need to wait until all nodes have been processed to be able to access the bones objects
         add_bones(import_settings)
         armatures.clear()
 
