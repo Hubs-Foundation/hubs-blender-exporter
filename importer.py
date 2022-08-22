@@ -156,7 +156,7 @@ def patched_BlenderNode_create_object(gltf, vnode_id):
     # Unfortunately the bones are created after this hook is called so we need to wait until all nodes have been created.
     if vnode.is_arma:
         global armatures
-        armatures.append(vnode.blender_object)
+        armatures[vnode.blender_object.name] = {'armature': vnode.blender_object, 'gltf_bones': [gltf.data.nodes[child_index] for child_index in vnode.children if gltf.vnodes[child_index].type == vnode.Bone]}
 
     return blender_object
 
