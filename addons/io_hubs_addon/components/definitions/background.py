@@ -1,4 +1,4 @@
-from ...io.utils import import_component, assign_property
+from ...io.utils import import_component, set_color_from_hex
 from ..hubs_component import HubsComponent
 from ..types import NodeType
 
