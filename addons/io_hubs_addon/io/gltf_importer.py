@@ -11,7 +11,7 @@ EXTENSION_NAME = HUBS_CONFIG["gltfExtensionName"]
 armatures = []
 
 
-def add_hubs_components(gltf_node, blender_object, import_settings):
+def import_hubs_components(gltf_node, blender_object, import_settings):
     if gltf_node and gltf_node.extensions and EXTENSION_NAME in gltf_node.extensions:
         components_data = gltf_node.extensions[EXTENSION_NAME]
         from ..components.components_registry import get_component_by_name
@@ -59,7 +59,7 @@ def add_bones(import_settings):
         for bone in blender_object.data.bones:
             gltf_bone = next((
                 gltf_node for gltf_node in import_settings.data.nodes if gltf_node.name == bone.name), None)
-            add_hubs_components(
+            import_hubs_components(
                 gltf_bone, bone, import_settings)
 
 
@@ -86,7 +86,7 @@ class glTF2ImportUserExtension:
         if not self.properties.enabled:
             return
 
-        self.add_hubs_components(gltf_scene, blender_scene, import_settings)
+        self.import_hubs_components(gltf_scene, blender_scene, import_settings)
 
         add_bones(import_settings)
         armatures.clear()
@@ -95,7 +95,7 @@ class glTF2ImportUserExtension:
         if not self.properties.enabled:
             return
 
-        self.add_hubs_components(
+        self.import_hubs_components(
             gltf_node, blender_object, import_settings)
 
         # Node hooks are not called for bones. Bones are created together with their armature.
@@ -118,13 +118,13 @@ class glTF2ImportUserExtension:
         if not self.properties.enabled:
             return
 
-        self.add_hubs_components(
+        self.import_hubs_components(
             gltf_material, blender_mat, import_settings)
 
         add_lightmap(gltf_material, blender_mat, import_settings)
 
-    def add_hubs_components(self, gltf_node, blender_object, import_settings):
-        add_hubs_components(gltf_node, blender_object, import_settings)
+    def import_hubs_components(self, gltf_node, blender_object, import_settings):
+        import_hubs_components(gltf_node, blender_object, import_settings)
 
 
 # import hooks were only recently added to the glTF exporter, so make a custom hook for now
@@ -149,7 +149,7 @@ def patched_BlenderNode_create_object(gltf, vnode_id):
         if vnode.name:
             node = [n for n in gltf.data.nodes if n.name == vnode.name][0]
 
-    add_hubs_components(node, vnode.blender_object, gltf)
+    import_hubs_components(node, vnode.blender_object, gltf)
 
     # Node hooks are not called for bones. Bones are created together with their armature.
     # Unfortunately the bones are created after this hook is called so we need to wait until all nodes have been created.
@@ -166,7 +166,7 @@ def patched_BlenderMaterial_create(gltf, material_idx, vertex_color):
         gltf, material_idx, vertex_color)
     gltf_material = gltf.data.materials[material_idx]
     blender_mat = bpy.data.materials[gltf_material.blender_material[None]]
-    add_hubs_components(gltf_material, blender_mat, gltf)
+    import_hubs_components(gltf_material, blender_mat, gltf)
 
     add_lightmap(gltf_material, blender_mat, gltf)
 
@@ -179,7 +179,7 @@ def patched_BlenderScene_create(gltf):
     orig_BlenderScene_create(gltf)
     gltf_scene = gltf.data.scenes[gltf.data.scene]
     blender_object = bpy.data.scenes[gltf.blender_scene]
-    add_hubs_components(gltf_scene, blender_object, gltf)
+    import_hubs_components(gltf_scene, blender_object, gltf)
 
     # Bones are created after the armatures so we need to wait until all nodes have been processed to be able to access the bones objects
     add_bones(gltf)
