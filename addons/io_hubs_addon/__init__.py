@@ -5,7 +5,7 @@ import bpy
 bl_info = {
     "name": "Hubs Blender Addon",
     "author": "Mozilla Hubs",
-    "description": "Tools for developing GLTF assets for Mozilla Hubs",
+    "description": "Tools for developing glTF assets for Mozilla Hubs",
     "blender": (3, 1, 2),
     "version": (1, 0, 0),
     "location": "",

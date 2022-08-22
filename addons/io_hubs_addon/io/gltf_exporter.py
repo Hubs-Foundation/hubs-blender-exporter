@@ -174,10 +174,10 @@ class glTF2ExportUserExtension:
 
 
 def register():
-    print("Register GLTF Exporter")
+    print("Register glTF Exporter")
     gltf2_blender_export.__gather_gltf = patched_gather_gltf
 
 
 def unregister():
-    print("Unregister GLTF Exporter")
+    print("Unregister glTF Exporter")
     gltf2_blender_export.__gather_gltf = orig_gather_gltf

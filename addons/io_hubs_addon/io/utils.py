@@ -301,7 +301,7 @@ def gather_texture_property(export_settings, blender_object, target, property_na
 
 
 def gather_color_property(export_settings, object, component, property_name):
-    # Convert RGB color array to hex. Blender stores colors in linear space and GLTF color factors are typically in linear space
+    # Convert RGB color array to hex. Blender stores colors in linear space and glTF color factors are typically in linear space
     c = getattr(component, property_name)
     return "#{0:02x}{1:02x}{2:02x}".format(max(0, min(int(c[0] * 256.0), 255)), max(0, min(int(c[1] * 256.0), 255)), max(0, min(int(c[2] * 256.0), 255)))
 

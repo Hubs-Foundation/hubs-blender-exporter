@@ -6,7 +6,7 @@ from ..io.utils import import_component, assign_property
 
 class HubsComponent(PropertyGroup):
     _definition = {
-        # The name that will be used in the GLTF file MOZ_hubs_components object when exporting the component.
+        # The name that will be used in the glTF file MOZ_hubs_components object when exporting the component.
         'name': 'template',
         # Name to be used in the panels, if not set the component name will be used
         'display_name': 'Hubs Component Template',
