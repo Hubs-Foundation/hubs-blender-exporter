@@ -55,10 +55,9 @@ def add_lightmap(gltf_material, blender_mat, import_settings):
 def add_bones(import_settings):
     # Bones are created after the armatures so we need to wait until all nodes have been processed to be able to access the bones objects
     global armatures
-    for blender_object in armatures:
-        for bone in blender_object.data.bones:
-            gltf_bone = next((
-                gltf_node for gltf_node in import_settings.data.nodes if gltf_node.name == bone.name), None)
+    for armature in armatures.values():
+        blender_object = armature['armature']
+        for gltf_bone, bone in zip(armature['gltf_bones'], blender_object.data.
             add_hubs_components(
                 gltf_bone, bone, import_settings)
 
