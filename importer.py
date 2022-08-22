@@ -55,15 +55,16 @@ def add_lightmap(gltf_material, blender_mat, import_settings):
             node_tex.outputs["Color"], lightmap_node.inputs["Lightmap"])
 
 
-def add_bones(import_settings):
+def add_bones(gltf):
     # Bones are created after the armatures so we need to wait until all nodes have been processed to be able to access the bones objects
     global armatures
-    for blender_object in armatures:
+    for armature in armatures.values():
+        blender_object = armature['armature']
+        gltf_bones = armature['gltf_bones']
         for bone in blender_object.data.bones:
-            gltf_bone = next((
-                gltf_node for gltf_node in import_settings.data.nodes if gltf_node.name == bone.name), None)
+            gltf_bone = gltf_bones[bone.name]
             import_hubs_components(
-                gltf_bone, bone, import_settings)
+                gltf_bone, bone, gltf)
 
 
 class glTF2ImportUserExtension:
@@ -101,7 +102,7 @@ class glTF2ImportUserExtension:
         import_hubs_components(
             gltf_node, blender_object, import_settings)
 
-        # Node hooks are not called for bones. Bones are created together with their armature.
+        #  Node hooks are not called for bones. Bones are created together with their armature.
         # Unfortunately the bones are created after this hook is called so we need to wait until all nodes have been created.
         if vnode.is_arma:
             global armatures
@@ -151,7 +152,7 @@ def patched_BlenderNode_create_object(gltf, vnode_id):
 
     import_hubs_components(node, vnode.blender_object, gltf)
 
-    # Node hooks are not called for bones. Bones are created together with their armature.
+    #  Node hooks are not called for bones. Bones are created together with their armature.
     # Unfortunately the bones are created after this hook is called so we need to wait until all nodes have been created.
     if vnode.is_arma:
         global armatures
