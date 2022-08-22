@@ -104,7 +104,8 @@ class glTF2ExportUserExtension:
                 if key.startswith("hubs_"):
                     del gltf2_object.extras[key]
 
-        self.add_hubs_components(gltf2_object, blender_scene, export_settings)
+        self.export_hubs_components(
+            gltf2_object, blender_scene, export_settings)
         self.call_delayed_gathers()
 
     def gather_node_hook(self, gltf2_object, blender_object, export_settings):
@@ -117,13 +118,14 @@ class glTF2ExportUserExtension:
                 if key.startswith("hubs_"):
                     del gltf2_object.extras[key]
 
-        self.add_hubs_components(gltf2_object, blender_object, export_settings)
+        self.export_hubs_components(
+            gltf2_object, blender_object, export_settings)
 
     def gather_material_hook(self, gltf2_object, blender_material, export_settings):
         if not self.properties.enabled:
             return
 
-        self.add_hubs_components(
+        self.export_hubs_components(
             gltf2_object, blender_material, export_settings)
 
         if blender_material.node_tree and blender_material.use_nodes:
@@ -143,7 +145,7 @@ class glTF2ExportUserExtension:
     def gather_joint_hook(self, gltf2_object, blender_pose_bone, export_settings):
         if not self.properties.enabled:
             return
-        self.add_hubs_components(
+        self.export_hubs_components(
             gltf2_object, blender_pose_bone.bone, export_settings)
 
     def call_delayed_gathers(self):
@@ -152,7 +154,7 @@ class glTF2ExportUserExtension:
             component_data[component_name] = gather()
         self.delayed_gathers.clear()
 
-    def add_hubs_components(self, gltf2_object, blender_object, export_settings):
+    def export_hubs_components(self, gltf2_object, blender_object, export_settings):
         component_list = blender_object.hubs_component_list
 
         registered_hubs_components = get_components_registry()
