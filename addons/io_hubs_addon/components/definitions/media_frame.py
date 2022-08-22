@@ -185,15 +185,11 @@ class MediaFrame(HubsComponent):
         blender_component = import_component(
             component_name, blender_object)
 
+        gltf_yup = import_settings.import_settings.get('gltf_yup', True)
+
         for property_name, property_value in component_value.items():
-            gltf_yup = True
-            if 'gltf_yup' in import_settings.import_settings:
-                gltf_yup = import_settings.import_settings['gltf_yup']
             if property_name == 'bounds' and gltf_yup:
-                bounds = (property_value['x'],
-                          property_value['z'], property_value['y'])
-                assign_property(import_settings.vnodes, blender_component,
-                                property_name, bounds)
-            else:
-                assign_property(import_settings.vnodes, blender_component,
+                property_value['y'], property_value['z'] = property_value['z'], property_value['y']
+
+            assign_property(import_settings.vnodes, blender_component,
                                 property_name, property_value)
