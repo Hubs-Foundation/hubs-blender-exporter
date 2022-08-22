@@ -9,7 +9,7 @@ from ..components.components_registry import get_component_by_name
 
 EXTENSION_NAME = HUBS_CONFIG["gltfExtensionName"]
 
-armatures = []
+armatures = {}
 
 
 def import_hubs_components(gltf_node, blender_object, import_settings):
