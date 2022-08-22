@@ -86,7 +86,7 @@ class glTF2ImportUserExtension:
         if not self.properties.enabled:
             return
 
-        self.import_hubs_components(gltf_scene, blender_scene, import_settings)
+        import_hubs_components(gltf_scene, blender_scene, import_settings)
 
         add_bones(import_settings)
         armatures.clear()
@@ -95,7 +95,7 @@ class glTF2ImportUserExtension:
         if not self.properties.enabled:
             return
 
-        self.import_hubs_components(
+        import_hubs_components(
             gltf_node, blender_object, import_settings)
 
         # Node hooks are not called for bones. Bones are created together with their armature.
@@ -118,13 +118,10 @@ class glTF2ImportUserExtension:
         if not self.properties.enabled:
             return
 
-        self.import_hubs_components(
+        import_hubs_components(
             gltf_material, blender_mat, import_settings)
 
         add_lightmap(gltf_material, blender_mat, import_settings)
-
-    def import_hubs_components(self, gltf_node, blender_object, import_settings):
-        import_hubs_components(gltf_node, blender_object, import_settings)
 
 
 # import hooks were only recently added to the glTF exporter, so make a custom hook for now
