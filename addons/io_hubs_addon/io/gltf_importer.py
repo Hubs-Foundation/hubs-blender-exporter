@@ -9,7 +9,7 @@ from ..components.components_registry import get_component_by_name
 
 EXTENSION_NAME = HUBS_CONFIG["gltfExtensionName"]
 
-armatures = []
+armatures = {}
 
 
 def import_hubs_components(gltf_node, blender_object, import_settings):
@@ -60,8 +60,8 @@ def add_bones(import_settings):
     global armatures
     for armature in armatures.values():
         blender_object = armature['armature']
-        for gltf_bone, bone in zip(armature['gltf_bones'], blender_object.data):
-            add_hubs_components(
+        for gltf_bone, bone in zip(armature['gltf_bones'], blender_object.data.bones):
+            import_hubs_components(
                 gltf_bone, bone, import_settings)
 
 
