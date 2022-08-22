@@ -106,7 +106,7 @@ class glTF2ImportUserExtension:
         # Unfortunately the bones are created after this hook is called so we need to wait until all nodes have been created.
         if vnode.is_arma:
             global armatures
-            armatures.append(blender_object)
+            armatures[vnode.blender_object.name] = {'armature': vnode.blender_object, 'gltf_bones': [import_settings.data.nodes[child_index] for child_index in vnode.children if import_settings.vnodes[child_index].type == vnode.Bone]}
 
     def gather_import_image_after_hook(self, gltf_img, blender_image, import_settings):
         # As of Blender 3.2.0 the importer doesn't import images that are not referenced by a material socket.
