@@ -19,8 +19,11 @@ def import_hubs_components(gltf_node, blender_object, import_settings):
             component_class = get_component_by_name(component_name)
             if component_class:
                 component_value = components_data[component_name]
-                component_class.gather_import(
-                    import_settings, blender_object, component_name, component_value)
+                try:
+                    component_class.gather_import(
+                        import_settings, blender_object, component_name, component_value)
+                except Exception as err:
+                    print(err)
             else:
                 print('Could not import unsupported component "%s"' %
                       (component_name))
