@@ -60,7 +60,7 @@ def add_bones(import_settings):
     global armatures
     for armature in armatures.values():
         blender_object = armature['armature']
-        for gltf_bone, bone in zip(armature['gltf_bones'], blender_object.data.
+        for gltf_bone, bone in zip(armature['gltf_bones'], blender_object.data):
             add_hubs_components(
                 gltf_bone, bone, import_settings)
 
@@ -104,7 +104,8 @@ class glTF2ImportUserExtension:
         # Unfortunately the bones are created after this hook is called so we need to wait until all nodes have been created.
         if vnode.is_arma:
             global armatures
-            armatures[vnode.blender_object.name] = {'armature': vnode.blender_object, 'gltf_bones': [import_settings.data.nodes[child_index] for child_index in vnode.children if import_settings.vnodes[child_index].type == vnode.Bone]}
+            armatures[vnode.blender_object.name] = {'armature': vnode.blender_object, 'gltf_bones': [
+                import_settings.data.nodes[child_index] for child_index in vnode.children if import_settings.vnodes[child_index].type == vnode.Bone]}
 
     def gather_import_image_after_hook(self, gltf_img, blender_image, import_settings):
         # As of Blender 3.2.0 the importer doesn't import images that are not referenced by a material socket.
@@ -154,7 +155,8 @@ def patched_BlenderNode_create_object(gltf, vnode_id):
     # Unfortunately the bones are created after this hook is called so we need to wait until all nodes have been created.
     if vnode.is_arma:
         global armatures
-        armatures[vnode.blender_object.name] = {'armature': vnode.blender_object, 'gltf_bones': [gltf.data.nodes[child_index] for child_index in vnode.children if gltf.vnodes[child_index].type == vnode.Bone]}
+        armatures[vnode.blender_object.name] = {'armature': vnode.blender_object, 'gltf_bones': [
+            gltf.data.nodes[child_index] for child_index in vnode.children if gltf.vnodes[child_index].type == vnode.Bone]}
 
     return blender_object
 
@@ -165,8 +167,8 @@ def patched_BlenderMaterial_create(gltf, material_idx, vertex_color):
         gltf, material_idx, vertex_color)
     gltf_material = gltf.data.materials[material_idx]
     blender_mat_name = next(iter(gltf_material.blender_material.values()))
-    blender_mat = bpy.data.materials[blender_mat_name
-    add_hubs_components(gltf_material, blender_mat, gltf)
+    blender_mat = bpy.data.materials[blender_mat_name]
+    import_hubs_components(gltf_material, blender_mat, gltf)
 
     add_lightmap(gltf_material, blender_mat, gltf)
 
