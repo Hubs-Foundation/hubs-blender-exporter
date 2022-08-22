@@ -165,7 +165,8 @@ def patched_BlenderMaterial_create(gltf, material_idx, vertex_color):
     orig_BlenderMaterial_create(
         gltf, material_idx, vertex_color)
     gltf_material = gltf.data.materials[material_idx]
-    blender_mat = bpy.data.materials[gltf_material.blender_material[None]]
+    blender_mat_name = next(iter(gltf_material.blender_material.values()))
+    blender_mat = bpy.data.materials[blender_mat_name
     add_hubs_components(gltf_material, blender_mat, gltf)
 
     add_lightmap(gltf_material, blender_mat, gltf)
