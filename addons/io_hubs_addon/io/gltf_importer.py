@@ -5,6 +5,7 @@ from io_scene_gltf2.blender.imp.gltf2_blender_material import BlenderMaterial
 from io_scene_gltf2.blender.imp.gltf2_blender_scene import BlenderScene
 from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
 from .utils import HUBS_CONFIG
+from ..components.components_registry import get_component_by_name
 
 EXTENSION_NAME = HUBS_CONFIG["gltfExtensionName"]
 
@@ -14,7 +15,6 @@ armatures = []
 def import_hubs_components(gltf_node, blender_object, import_settings):
     if gltf_node and gltf_node.extensions and EXTENSION_NAME in gltf_node.extensions:
         components_data = gltf_node.extensions[EXTENSION_NAME]
-        from ..components.components_registry import get_component_by_name
         for component_name in components_data.keys():
             component_class = get_component_by_name(component_name)
             if component_class:
