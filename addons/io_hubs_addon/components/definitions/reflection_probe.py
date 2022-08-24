@@ -10,6 +10,7 @@ from ..components_registry import get_components_registry
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ... import io
+from ...utils import rgetattr, rsetattr
 import math
 
 
@@ -268,10 +269,16 @@ class BakeProbeOperator(bpy.types.Operator):
         self.camera_object.rotation_euler.x += math.pi/2
         self.camera_object.rotation_euler.z += -math.pi/2
 
-        bpy.context.scene.camera = self.camera_object
-        bpy.context.scene.render.engine = "CYCLES"
         resolution = context.scene.hubs_scene_reflection_probe_properties.resolution
         (x, y) = [int(i) for i in resolution.split('x')]
+
+        saved_props = {}
+        props_to_save = ["camera", "render.engine", "cycles.device", "render.resolution_x", "render.resolution_y", "render.resolution_percentage", "render.image_settings.file_format", "render.filepath", "render.use_compositing"]
+        for prop in props_to_save:
+           saved_props[prop] = rgetattr(bpy.context.scene, prop)
+
+        bpy.context.scene.camera = self.camera_object
+        bpy.context.scene.render.engine = "CYCLES"
         bpy.context.scene.cycles.device = "GPU" if is_gpu_available(
             context) else "CPU"
         bpy.context.scene.render.resolution_x = x
@@ -280,9 +287,7 @@ class BakeProbeOperator(bpy.types.Operator):
         bpy.context.scene.render.image_settings.file_format = "HDR"
         bpy.context.scene.render.filepath = "%s/%s.hdr" % (
             get_addon_pref(context).tmp_path, probe.name)
-
-        # TODO don't clobber renderer properties
-        # TODO handle skipping compositor
+        bpy.context.scene.render.use_compositing = False
 
         tmp_pref = bpy.context.preferences.view.render_display_type
         bpy.context.preferences.view.render_display_type = "NONE"
@@ -290,6 +295,8 @@ class BakeProbeOperator(bpy.types.Operator):
         bpy.ops.render.render("INVOKE_DEFAULT", write_still=True)
         bpy.context.preferences.view.render_display_type = tmp_pref
 
+        for prop in saved_props:
+           rsetattr(bpy.context.scene, prop, saved_props[prop])
 
 class ReflectionProbe(HubsComponent):
     _definition = {
