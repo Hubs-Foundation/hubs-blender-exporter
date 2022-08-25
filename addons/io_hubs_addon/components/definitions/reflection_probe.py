@@ -271,32 +271,32 @@ class BakeProbeOperator(bpy.types.Operator):
 
         resolution = context.scene.hubs_scene_reflection_probe_properties.resolution
         (x, y) = [int(i) for i in resolution.split('x')]
+        output_path = "%s/%s.hdr" % (get_addon_pref(context).tmp_path, probe.name)
 
         saved_props = {}
-        props_to_save = ["camera", "render.engine", "cycles.device", "render.resolution_x", "render.resolution_y", "render.resolution_percentage", "render.image_settings.file_format", "render.filepath", "render.use_compositing"]
-        for prop in props_to_save:
-           saved_props[prop] = rgetattr(bpy.context.scene, prop)
+        overrides = [
+            ("preferences.view.render_display_type", "NONE"),
+            ("scene.camera", self.camera_object),
+            ("scene.render.engine", "CYCLES"),
+            ("scene.cycles.device", "GPU" if is_gpu_available(context) else "CPU"),
+            ("scene.render.resolution_x", x),
+            ("scene.render.resolution_y", y),
+            ("scene.render.resolution_percentage", 100),
+            ("scene.render.image_settings.file_format", "HDR"),
+            ("scene.render.filepath", output_path),
+            ("scene.render.use_compositing", False),
+            ("scene.use_nodes", False)
+        ]
 
-        bpy.context.scene.camera = self.camera_object
-        bpy.context.scene.render.engine = "CYCLES"
-        bpy.context.scene.cycles.device = "GPU" if is_gpu_available(
-            context) else "CPU"
-        bpy.context.scene.render.resolution_x = x
-        bpy.context.scene.render.resolution_y = y
-        bpy.context.scene.render.resolution_percentage = 100
-        bpy.context.scene.render.image_settings.file_format = "HDR"
-        bpy.context.scene.render.filepath = "%s/%s.hdr" % (
-            get_addon_pref(context).tmp_path, probe.name)
-        bpy.context.scene.render.use_compositing = False
+        for (prop, value) in overrides:
+           saved_props[prop] = rgetattr(bpy.context, prop)
+           rsetattr(bpy.context, prop, value)
 
-        tmp_pref = bpy.context.preferences.view.render_display_type
-        bpy.context.preferences.view.render_display_type = "NONE"
         self.report({'INFO'}, 'Baking probe %s' % probe.name)
         bpy.ops.render.render("INVOKE_DEFAULT", write_still=True)
-        bpy.context.preferences.view.render_display_type = tmp_pref
 
         for prop in saved_props:
-           rsetattr(bpy.context.scene, prop, saved_props[prop])
+           rsetattr(bpy.context, prop, saved_props[prop])
 
 class ReflectionProbe(HubsComponent):
     _definition = {
