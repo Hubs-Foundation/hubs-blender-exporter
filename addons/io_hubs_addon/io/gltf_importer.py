@@ -33,16 +33,24 @@ def add_lightmap(gltf_material, blender_mat, import_settings):
     if gltf_material and gltf_material.extensions and 'MOZ_lightmap' in gltf_material.extensions:
         extension = gltf_material.extensions['MOZ_lightmap']
 
-        index = extension['index']
+        texture_index = extension['index']
+
+        gltf_texture = import_settings.data.textures[texture_index]
+        texture_extensions = gltf_texture.extensions
+        if texture_extensions and texture_extensions.get('MOZ_texture_rgbe'):
+            source = gltf_texture.extensions['MOZ_texture_rgbe']['source']
+        else:
+            source = gltf_texture.source
 
         BlenderImage.create(
-            import_settings, index)
-        pyimg = import_settings.data.images[index]
+            import_settings, source)
+        pyimg = import_settings.data.images[source]
         blender_image_name = pyimg.blender_image_name
         blender_image = bpy.data.images[blender_image_name]
-        blender_image.colorspace_settings.name = "Linear"
-        blender_mat.use_nodes = True
+        if pyimg.mime_type == "image/vnd.radiance":
+            blender_image.colorspace_settings.name = "Linear"
 
+        blender_mat.use_nodes = True
         nodes = blender_mat.node_tree.nodes
         lightmap_node = nodes.new('moz_lightmap.node')
         lightmap_node.location = (-300, 0)
@@ -50,9 +58,13 @@ def add_lightmap(gltf_material, blender_mat, import_settings):
         node_tex = nodes.new('ShaderNodeTexImage')
         node_tex.image = blender_image
         node_tex.location = (-600, 0)
-
         blender_mat.node_tree.links.new(
             node_tex.outputs["Color"], lightmap_node.inputs["Lightmap"])
+        node_uv = nodes.new('ShaderNodeUVMap')
+        node_uv.uv_map = 'UVMap.%03d' % 1
+        node_uv.location = (-900, 0)
+        blender_mat.node_tree.links.new(
+            node_uv.outputs["UV"], node_tex.inputs["Vector"])
 
 
 def add_bones(import_settings):
