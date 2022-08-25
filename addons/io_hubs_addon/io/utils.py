@@ -189,7 +189,7 @@ def gather_node_property(export_settings, blender_object, target, property_name)
             vtree = export_settings['vtree']
             vnode = vtree.nodes[next((uuid for uuid in vtree.nodes if (
                 vtree.nodes[uuid].blender_object == blender_object)), None)]
-            node = gltf2_blender_gather_nodes.gather_node(
+            node = vnode.node or gltf2_blender_gather_nodes.gather_node(
                 vnode,
                 export_settings
             )
