@@ -6,6 +6,7 @@ from io_scene_gltf2.blender.imp.gltf2_blender_scene import BlenderScene
 from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
 from .utils import HUBS_CONFIG
 from ..components.components_registry import get_component_by_name
+import traceback
 
 EXTENSION_NAME = HUBS_CONFIG["gltfExtensionName"]
 
@@ -22,8 +23,8 @@ def import_hubs_components(gltf_node, blender_object, import_settings):
                 try:
                     component_class.gather_import(
                         import_settings, blender_object, component_name, component_value)
-                except Exception as err:
-                    print(err)
+                except Exception:
+                    traceback.print_exc()
             else:
                 print('Could not import unsupported component "%s"' %
                       (component_name))
