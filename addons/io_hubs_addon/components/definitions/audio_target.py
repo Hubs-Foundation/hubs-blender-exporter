@@ -4,7 +4,7 @@ from ..hubs_component import HubsComponent
 from ..utils import has_component
 from ..types import Category, PanelType, NodeType
 from bpy.types import Object
-from ...io.utils import gather_joint_property, gather_node_property
+from ...io.utils import gather_joint_property, gather_node_property, import_component
 
 BLANK_ID = "374e54CMHFCipSk"
 

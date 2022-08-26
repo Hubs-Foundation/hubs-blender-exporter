@@ -5,7 +5,8 @@ from ..types import Category, PanelType, NodeType
 
 
 def update(self, context):
-    context.object.hide_viewport = not bpy.context.object.hubs_component_visible.visible
+    if context.object:
+        context.object.hide_viewport = not context.object.hubs_component_visible.visible
 
 
 class Visible(HubsComponent):

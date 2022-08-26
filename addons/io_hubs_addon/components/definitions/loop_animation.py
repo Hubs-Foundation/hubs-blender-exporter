@@ -4,6 +4,7 @@ from bpy.props import StringProperty, CollectionProperty, IntProperty, BoolPrope
 from bpy.types import PropertyGroup, Menu, Operator
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
+from ...io.utils import import_component, assign_property
 
 
 class TracksList(bpy.types.UIList):
@@ -198,3 +199,20 @@ class LoopAnimation(HubsComponent):
                 if ob.type == 'ARMATURE':
                     for bone in ob.data.bones:
                         migrate_data(bone)
+
+    @classmethod
+    def gather_import(cls, import_settings, blender_object, component_name, component_value):
+        blender_component = import_component(
+            component_name, blender_object)
+
+        for property_name, property_value in component_value.items():
+            if property_name == 'clip':
+                tracks = property_value.split(",")
+                for track_name in tracks:
+                    if not has_track(blender_component.tracks_list, track_name):
+                        track = blender_component.tracks_list.add()
+                        track.name = track_name.strip()
+
+            else:
+                assign_property(import_settings.vnodes, blender_component,
+                                property_name, property_value)

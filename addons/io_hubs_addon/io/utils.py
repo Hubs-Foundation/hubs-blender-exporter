@@ -13,6 +13,12 @@ from io_scene_gltf2.blender.exp.gltf2_blender_gather_cache import cached
 from io_scene_gltf2.blender.exp import gltf2_blender_export_keys
 from typing import Optional
 from ..nodes.lightmap import MozLightmapNode
+import re
+
+HUBS_CONFIG = {
+    "gltfExtensionName": "MOZ_hubs_components",
+    "gltfExtensionVersion": 4,
+}
 
 # gather_texture/image with HDR support via MOZ_texture_rgbe
 
@@ -295,7 +301,7 @@ def gather_texture_property(export_settings, blender_object, target, property_na
 
 
 def gather_color_property(export_settings, object, component, property_name):
-    # Convert RGB color array to hex. Blender stores colors in linear space and GLTF color factors are typically in linear space
+    # Convert RGB color array to hex. Blender stores colors in linear space and glTF color factors are typically in linear space
     c = getattr(component, property_name)
     return "#{0:02x}{1:02x}{2:02x}".format(max(0, min(int(c[0] * 256.0), 255)), max(0, min(int(c[1] * 256.0), 255)), max(0, min(int(c[2] * 256.0), 255)))
 
@@ -340,3 +346,50 @@ def gather_lightmap_texture_info(blender_material, export_settings):
         "index": texture_info.index,
         "texCoord": texture_info.tex_coord
     }
+
+
+def import_component(component_name, blender_object):
+    from ..components.utils import add_component, has_component
+    from ..components.components_registry import get_component_by_name
+    component_class = get_component_by_name(component_name)
+    if component_class:
+        if not has_component(blender_object, component_name):
+            add_component(blender_object, component_name)
+
+    return getattr(blender_object, component_class.get_id())
+
+
+def set_color_from_hex(blender_component, property_name, hexcolor):
+    hexcolor = hexcolor.lstrip('#')
+    rgb_int = [int(hexcolor[i:i+2], 16) for i in (0, 2, 4)]
+
+    for x, value in enumerate(rgb_int):
+        rgb_float = value/255 if value > 0 else 0
+
+        # convert sRGB values to linear
+        if rgb_float < 0.04045:
+            rgb_float_linear = rgb_float * (1.0 / 12.92)
+
+        else:
+            rgb_float_linear = ((rgb_float + 0.055) * (1.0 / 1.055)) ** 2.4
+
+        getattr(blender_component, property_name)[x] = rgb_float_linear
+
+
+def assign_property(vnodes, blender_component, property_name, property_value):
+    if isinstance(property_value, dict):
+        if property_value.get('__mhc_link_type'):
+            if len(property_value) == 2:
+                setattr(blender_component, property_name,
+                        vnodes[property_value['index']].blender_object)
+
+        else:
+            blender_subcomponent = getattr(blender_component, property_name)
+            for x, subproperty_value in enumerate(property_value.values()):
+                blender_subcomponent[x] = subproperty_value
+
+    elif re.fullmatch("#[0-9a-fA-F]*", str(property_value)):
+        set_color_from_hex(blender_component, property_name, property_value)
+
+    else:
+        setattr(blender_component, property_name, property_value)
