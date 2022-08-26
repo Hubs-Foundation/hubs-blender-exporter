@@ -54,5 +54,5 @@ class Spawner(HubsComponent):
                 setattr(blender_component, "applyGravity",
                         property_value["applyGravity"])
             else:
-                assign_property(import_settings, blender_component,
+                assign_property(import_settings.vnodes, blender_component,
                                 property_name, property_value)
