@@ -1,6 +1,6 @@
 import bpy
 from bpy.app.handlers import persistent
-from bpy.props import StringProperty, CollectionProperty, IntProperty, BoolProperty, EnumProperty
+from bpy.props import StringProperty, CollectionProperty, IntProperty, BoolProperty, EnumProperty, FloatProperty
 from bpy.types import PropertyGroup, Menu, Operator
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
@@ -566,14 +566,23 @@ class LoopAnimation(HubsComponent):
         default=-1
     )
 
-    paused: BoolProperty(
-        name="Paused",
-        description="Paused",
-        default=False
+    startOffset: IntProperty(
+        name="Start Offset",
+        description="Time in frames to skip on the first loop of the animation",
+        default=0
+    )
+
+    timeScale: FloatProperty(
+        name="Time Scale",
+        description="Scale animation playback speed by this factor. Normal playback rate being 1. Negative values will play the animation backwards.",
+        default=1.0
     )
 
     def draw(self, context, layout, panel):
         Errors.clear()
+
+        layout.prop(data=self, property="startOffset")
+        layout.prop(data=self, property="timeScale")
 
         layout.label(text='Animations to play:')
 
@@ -596,17 +605,18 @@ class LoopAnimation(HubsComponent):
 
         layout.separator()
 
-        layout.prop(data=self, property='paused')
-
     def gather(self, export_settings, object):
         final_track_names = []
         for track in object.hubs_component_loop_animation.tracks_list.values():
             final_track_names.append(track.track_name if not is_default_name(track.track_name) else track.action_name)
 
+        fps = bpy.context.scene.render.fps/bpy.context.scene.render.fps_base
+
         return {
             'clip': ",".join(
                 final_track_names),
-            'paused': self.paused
+            'startOffset': self.startOffset/fps,
+            'timeScale': self.timeScale
         }
 
 
