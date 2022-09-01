@@ -753,7 +753,8 @@ describe('Exporter', function () {
         assert.deepStrictEqual(ext, {
           "loop-animation": {
             "clip": "sample_clip_track_name,sample_clip_action_push_down,sample_clip_action_stash",
-            "paused": false
+            "startOffset": 0,
+            "timeScale": 1
           }
         });
       });
