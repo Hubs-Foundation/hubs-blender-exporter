@@ -1,6 +1,7 @@
 from . import (nodes, components)
 from .io import gltf_exporter, gltf_importer, panels
 import bpy
+from . import preferences
 
 bl_info = {
     "name": "Hubs Blender Addon",
@@ -18,6 +19,7 @@ bl_info = {
 
 
 def register():
+    preferences.register()
     panels.register()
     gltf_exporter.register()
     gltf_importer.register()
@@ -31,6 +33,7 @@ def unregister():
     gltf_importer.unregister()
     gltf_exporter.unregister()
     panels.unregister()
+    preferences.unregister()
 
 
 # called by gltf-blender-io after it has loaded

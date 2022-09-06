@@ -75,7 +75,7 @@ class VideoTextureTarget(HubsComponent):
     _definition = {
         'name': 'video-texture-target',
         'display_name': 'Video Texture Target',
-        'category': Category.AVATAR,
+        'category': Category.MEDIA,
         'node_type': NodeType.MATERIAL,
         'panel_type': [PanelType.MATERIAL],
         'icon': 'IMAGE_DATA'
@@ -106,7 +106,7 @@ class VideoTextureTarget(HubsComponent):
         default=BLANK_ID,
         options={'HIDDEN'})
 
-    def draw(self, context, layout, panel_type):
+    def draw(self, context, layout, panel):
         from .video_texture_source import VideoTextureSource
         dep_name = VideoTextureSource.get_name()
 

@@ -8,7 +8,7 @@ class AmmoShape(HubsComponent):
     _definition = {
         'name': 'ammo-shape',
         'display_name': 'Ammo Shape',
-        'category': Category.SCENE,
+        'category': Category.OBJECT,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'SCENE_DATA'
@@ -68,8 +68,8 @@ class AmmoShape(HubsComponent):
         description="Include invisible objects when generating a collider. (Only used if \"fit\" is set to \"all\")",
         default=False)
 
-    def draw(self, context, layout, panel_type):
-        super().draw(context, layout, panel_type)
+    def draw(self, context, layout, panel):
+        super().draw(context, layout, panel)
 
         parents = [context.object]
         while parents:

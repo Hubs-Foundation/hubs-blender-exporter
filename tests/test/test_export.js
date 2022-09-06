@@ -752,8 +752,9 @@ describe('Exporter', function () {
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
           "loop-animation": {
-            "clip": "sample_clip",
-            "paused": false
+            "clip": "sample_clip_track_name,sample_clip_action_push_down,sample_clip_action_stash",
+            "startOffset": 0,
+            "timeScale": 1
           }
         });
       });

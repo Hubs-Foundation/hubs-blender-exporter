@@ -3,12 +3,6 @@ from bpy.props import BoolProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 
-
-def update(self, context):
-    if context.object:
-        context.object.hide_viewport = not context.object.hubs_component_visible.visible
-
-
 class Visible(HubsComponent):
     _definition = {
         'name': 'visible',
@@ -19,4 +13,4 @@ class Visible(HubsComponent):
         'icon': 'HIDE_OFF'
     }
 
-    visible: BoolProperty(name="Visible", default=True, update=update)
+    visible: BoolProperty(name="Visible", default=True)

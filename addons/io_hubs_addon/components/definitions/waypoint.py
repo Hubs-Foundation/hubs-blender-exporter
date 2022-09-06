@@ -10,7 +10,7 @@ class Waypoint(HubsComponent):
     _definition = {
         'name': 'waypoint',
         'display_name': 'Waypoint',
-        'category': Category.OBJECT,
+        'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'gizmo': 'waypoint',

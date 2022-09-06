@@ -75,7 +75,7 @@ class AudioTarget(HubsComponent):
     _definition = {
         'name': 'audio-target',
         'display_name': 'Audio Target',
-        'category': Category.ELEMENTS,
+        'category': Category.MEDIA,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'deps': ['audio-params'],
@@ -121,7 +121,7 @@ class AudioTarget(HubsComponent):
         description="Show debug visuals",
         default=False)
 
-    def draw(self, context, layout, panel_type):
+    def draw(self, context, layout, panel):
         from .audio_source import AudioSource
         dep_name = AudioSource.get_name()
 

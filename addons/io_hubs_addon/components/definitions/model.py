@@ -8,7 +8,7 @@ class Model(HubsComponent):
     _definition = {
         'name': 'model',
         'display_name': 'Model',
-        'category': Category.ELEMENTS,
+        'category': Category.MEDIA,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'SCENE_DATA',

@@ -7,7 +7,7 @@ class Billboard(HubsComponent):
     _definition = {
         'name': 'billboard',
         'display_name': 'Billboard',
-        'category': Category.ELEMENTS,
+        'category': Category.OBJECT,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'IMAGE_PLANE'
