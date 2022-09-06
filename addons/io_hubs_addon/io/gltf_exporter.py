@@ -191,10 +191,12 @@ class glTF2ExportUserExtension:
 
 
 def register():
-    print("Register glTF Exporter")
-    gltf2_blender_export.__gather_gltf = patched_gather_gltf
+    print("Register GLTF Exporter")
+    if bpy.app.version < (3, 0, 0):
+        gltf2_blender_export.__gather_gltf = patched_gather_gltf
 
 
 def unregister():
-    print("Unregister glTF Exporter")
-    gltf2_blender_export.__gather_gltf = orig_gather_gltf
+    print("Unregister GLTF Exporter")
+    if bpy.app.version < (3, 0, 0):
+        gltf2_blender_export.__gather_gltf = orig_gather_gltf
