@@ -10,6 +10,7 @@ from ..components_registry import get_components_registry
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ... import io
+from ...utils import rgetattr, rsetattr
 import math
 
 
@@ -152,15 +153,6 @@ class BakeProbeOperator(bpy.types.Operator):
             'Temp EnvMap Camera', self.camera_data)
         bpy.context.scene.collection.objects.link(self.camera_object)
 
-        self.prev_render_camera = bpy.context.scene.camera
-        self.prev_render_engine = bpy.context.scene.render.engine
-        self.prev_cycles_device = bpy.context.scene.cycles.device
-        self.prev_render_rex_x = bpy.context.scene.render.resolution_x
-        self.prev_render_res_y = bpy.context.scene.render.resolution_y
-        self.prev_render_res_percent = bpy.context.scene.render.resolution_percentage
-        self.prev_render_file_format = bpy.context.scene.render.image_settings.file_format
-        self.prev_render_file_path = bpy.context.scene.render.filepath
-
         modes = {
             'ACTIVE': lambda: [context.active_object],
             'SELECTED': lambda: [ob for ob in get_probes() if ob in context.selected_objects],
@@ -168,6 +160,7 @@ class BakeProbeOperator(bpy.types.Operator):
         }
         self.probes = modes[self.bake_mode]()
 
+        self.saved_props = {}
         self.cancelled = False
         self.done = False
         self.rendering = False
@@ -196,7 +189,6 @@ class BakeProbeOperator(bpy.types.Operator):
                 if self.cancelled:
                     self.report(
                         {'WARNING'}, 'Reflection probe baking cancelled')
-                    self.restore_render_props()
                     return {"CANCELLED"}
 
                 for probe in self.probes:
@@ -218,7 +210,6 @@ class BakeProbeOperator(bpy.types.Operator):
                 props.render_resolution = props.resolution
 
                 self.report({'INFO'}, 'Reflection probe baking finished')
-                self.restore_render_props()
                 return {"FINISHED"}
 
             elif not self.rendering:
@@ -241,14 +232,8 @@ class BakeProbeOperator(bpy.types.Operator):
         return {"PASS_THROUGH"}
 
     def restore_render_props(self):
-        bpy.context.scene.camera = self.prev_render_camera
-        bpy.context.scene.render.engine = self.prev_render_engine
-        bpy.context.scene.cycles.device = self.prev_cycles_device
-        bpy.context.scene.render.resolution_x = self.prev_render_rex_x
-        bpy.context.scene.render.resolution_y = self.prev_render_res_y
-        bpy.context.scene.render.resolution_percentage = self.prev_render_res_percent
-        bpy.context.scene.render.image_settings.file_format = self.prev_render_file_format
-        bpy.context.scene.render.filepath = self.prev_render_file_path
+        for prop in self.saved_props:
+           rsetattr(bpy.context, prop, self.saved_props[prop])
 
     def render_probe(self, context):
         probe = self.probes[self.probe_index]
@@ -268,28 +253,31 @@ class BakeProbeOperator(bpy.types.Operator):
         self.camera_object.rotation_euler.x += math.pi/2
         self.camera_object.rotation_euler.z += -math.pi/2
 
-        bpy.context.scene.camera = self.camera_object
-        bpy.context.scene.render.engine = "CYCLES"
         resolution = context.scene.hubs_scene_reflection_probe_properties.resolution
         (x, y) = [int(i) for i in resolution.split('x')]
-        bpy.context.scene.cycles.device = "GPU" if is_gpu_available(
-            context) else "CPU"
-        bpy.context.scene.render.resolution_x = x
-        bpy.context.scene.render.resolution_y = y
-        bpy.context.scene.render.resolution_percentage = 100
-        bpy.context.scene.render.image_settings.file_format = "HDR"
-        bpy.context.scene.render.filepath = "%s/%s.hdr" % (
-            get_addon_pref(context).tmp_path, probe.name)
+        output_path = "%s/%s.hdr" % (get_addon_pref(context).tmp_path, probe.name)
 
-        # TODO don't clobber renderer properties
-        # TODO handle skipping compositor
+        overrides = [
+            ("preferences.view.render_display_type", "NONE"),
+            ("scene.camera", self.camera_object),
+            ("scene.render.engine", "CYCLES"),
+            ("scene.cycles.device", "GPU" if is_gpu_available(context) else "CPU"),
+            ("scene.render.resolution_x", x),
+            ("scene.render.resolution_y", y),
+            ("scene.render.resolution_percentage", 100),
+            ("scene.render.image_settings.file_format", "HDR"),
+            ("scene.render.filepath", output_path),
+            ("scene.render.use_compositing", False),
+            ("scene.use_nodes", False)
+        ]
 
-        tmp_pref = bpy.context.preferences.view.render_display_type
-        bpy.context.preferences.view.render_display_type = "NONE"
+        for (prop, value) in overrides:
+            if prop not in self.saved_props:
+                self.saved_props[prop] = rgetattr(bpy.context, prop)
+            rsetattr(bpy.context, prop, value)
+
         self.report({'INFO'}, 'Baking probe %s' % probe.name)
         bpy.ops.render.render("INVOKE_DEFAULT", write_still=True)
-        bpy.context.preferences.view.render_display_type = tmp_pref
-
 
 class ReflectionProbe(HubsComponent):
     _definition = {
