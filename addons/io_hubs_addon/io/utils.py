@@ -185,19 +185,18 @@ def gather_node_property(export_settings, blender_object, target, property_name)
                 None,
                 export_settings
             )
-        else:
-            vtree = export_settings['vtree']
-            vnode = vtree.nodes[next((uuid for uuid in vtree.nodes if (
-                vtree.nodes[uuid].blender_object == blender_object)), None)]
-            node = vnode.node or gltf2_blender_gather_nodes.gather_node(
-                vnode,
-                export_settings
-            )
-
-        return {
-            "__mhc_link_type": "node",
-            "index": node
+            return {
+                "__mhc_link_type": "node",
+                "index": node
+            }
+        reference = {
+            "__mhc_link_type": "node"
         }
+        for extension in export_settings['gltf_user_extensions']:
+            references = getattr(extension, "hubs_node_property_references", None)
+            if references is not None:
+                references.setdefault(blender_object, []).append(reference)
+        return reference
     else:
         return None
 

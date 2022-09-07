@@ -71,6 +71,7 @@ class glTF2ExportUserExtension:
         self.Extension = Extension
         self.properties = bpy.context.scene.HubsComponentsExtensionProperties
         self.was_used = False
+        self.hubs_node_property_references = {}
 
     def hubs_gather_gltf_hook(self, gltf2_object, export_settings):
         if not self.properties.enabled or not self.was_used:
@@ -105,6 +106,7 @@ class glTF2ExportUserExtension:
                     del gltf2_object.extras[key]
 
         self.add_hubs_components(gltf2_object, blender_scene, export_settings)
+        self.fix_node_property_references(export_settings)
 
     def gather_node_hook(self, gltf2_object, blender_object, export_settings):
         if not self.properties.enabled:
@@ -144,6 +146,19 @@ class glTF2ExportUserExtension:
             return
         self.add_hubs_components(
             gltf2_object, blender_pose_bone.bone, export_settings)
+
+    def fix_node_property_references(self, export_settings):
+        vtree = export_settings['vtree']
+        for blender_object, references in list(self.hubs_node_property_references.items()):
+            vnode = vtree.nodes[next((uuid for uuid in vtree.nodes if (
+                vtree.nodes[uuid].blender_object == blender_object)), None)]
+            node = vnode.node or gltf2_blender_gather_nodes.gather_node(
+                vnode,
+                export_settings
+            )
+            for ref in references:
+                ref["index"] = node
+            del self.hubs_node_property_references[blender_object]
 
     def add_hubs_components(self, gltf2_object, blender_object, export_settings):
         component_list = blender_object.hubs_component_list
