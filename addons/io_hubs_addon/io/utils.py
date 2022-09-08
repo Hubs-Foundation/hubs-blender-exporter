@@ -225,7 +225,7 @@ def gather_joint_property(export_settings, blender_object, target, property_name
             vtree = export_settings['vtree']
             vnode = vtree.nodes[next((uuid for uuid in vtree.nodes if (
                 vtree.nodes[uuid].joint == joint)), None)]
-            node = gltf2_blender_gather_joints.gather_joint_vnode(
+            node = vnode.node or gltf2_blender_gather_joints.gather_joint_vnode(
                 vnode,
                 export_settings
             )
