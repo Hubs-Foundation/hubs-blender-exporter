@@ -3,7 +3,7 @@ from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ..utils import has_component
 from bpy.types import Object
-from ...io.utils import gather_joint_property, gather_node_property
+from ...io.utils import gather_joint_property, gather_node_property, delayed_gather
 
 BLANK_ID = "pXph8WBzMu9fung"
 
@@ -141,6 +141,7 @@ class VideoTextureTarget(HubsComponent):
             col.label(text='This component requires a material',
                       icon='ERROR')
 
+    @delayed_gather
     def gather(self, export_settings, object):
 
         return {

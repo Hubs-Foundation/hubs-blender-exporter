@@ -71,7 +71,7 @@ class glTF2ExportUserExtension:
         self.Extension = Extension
         self.properties = bpy.context.scene.HubsComponentsExtensionProperties
         self.was_used = False
-        self.hubs_node_property_references = {}
+        self.delayed_gathers = []
 
     def hubs_gather_gltf_hook(self, gltf2_object, export_settings):
         if not self.properties.enabled or not self.was_used:
@@ -106,7 +106,7 @@ class glTF2ExportUserExtension:
                     del gltf2_object.extras[key]
 
         self.add_hubs_components(gltf2_object, blender_scene, export_settings)
-        self.fix_node_property_references(export_settings)
+        self.call_delayed_gathers()
 
     def gather_node_hook(self, gltf2_object, blender_object, export_settings):
         if not self.properties.enabled:
@@ -147,18 +147,11 @@ class glTF2ExportUserExtension:
         self.add_hubs_components(
             gltf2_object, blender_pose_bone.bone, export_settings)
 
-    def fix_node_property_references(self, export_settings):
-        vtree = export_settings['vtree']
-        for blender_object, references in list(self.hubs_node_property_references.items()):
-            vnode = vtree.nodes[next((uuid for uuid in vtree.nodes if (
-                vtree.nodes[uuid].blender_object == blender_object)), None)]
-            node = vnode.node or gltf2_blender_gather_nodes.gather_node(
-                vnode,
-                export_settings
-            )
-            for ref in references:
-                ref["index"] = node
-            del self.hubs_node_property_references[blender_object]
+    def call_delayed_gathers(self):
+        for delayed_gather in self.delayed_gathers:
+            component_data, component_name, gather = delayed_gather
+            component_data[component_name] = gather()
+        self.delayed_gathers.clear()
 
     def add_hubs_components(self, gltf2_object, blender_object, export_settings):
         component_list = blender_object.hubs_component_list
@@ -175,8 +168,11 @@ class glTF2ExportUserExtension:
                     component_class = registered_hubs_components[component_name]
                     component = getattr(
                         blender_object, component_class.get_id())
-                    component_data[component_class.get_name()] = component.gather(
-                        export_settings, blender_object)
+                    data = component.gather(export_settings, blender_object)
+                    if hasattr(data, "delayed_gather"):
+                        self.delayed_gathers.append((component_data, component_class.get_name(), data))
+                    else:
+                        component_data[component_class.get_name()] = data
                 else:
                     print('Could not export unsupported component "%s"' %
                           (component_name))
