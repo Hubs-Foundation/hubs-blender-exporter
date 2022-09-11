@@ -205,7 +205,7 @@ def patched_BlenderScene_create(gltf):
 
 def register():
     print("Register glTF Importer")
-    if bpy.app.version < (3, 0, 0):
+    if bpy.app.version < (3, 1, 0):
         BlenderNode.create_object = patched_BlenderNode_create_object
         BlenderMaterial.create = patched_BlenderMaterial_create
         BlenderScene.create = patched_BlenderScene_create
@@ -213,7 +213,7 @@ def register():
 
 def unregister():
     print("Unregister glTF Importer")
-    if bpy.app.version < (3, 0, 0):
+    if bpy.app.version < (3, 1, 0):
         BlenderNode.create_object = orig_BlenderNode_create_object
         BlenderMaterial.create = orig_BlenderMaterial_create
         BlenderScene.create = orig_BlenderScene_create
