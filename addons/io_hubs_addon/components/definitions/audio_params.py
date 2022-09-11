@@ -35,8 +35,7 @@ class AudioParams(HubsComponent):
         name="Gain",
         description="How much to amplify the source audio by",
         default=1.0,
-        min=0.0,
-        soft_min=0.0)
+        min=0.0)
 
     # TODO Add conditional UI to show only the required properties per type
 
@@ -46,15 +45,13 @@ class AudioParams(HubsComponent):
         subtype="DISTANCE",
         unit="LENGTH",
         default=1.0,
-        min=0.0,
-        soft_min=0.0)
+        min=0.0)
 
     rolloffFactor: FloatProperty(
         name="Rolloff Factor",
         description="A double value describing how quickly the volume is reduced as the source moves away from the listener. This value is used by all distance models.",
         default=1.0,
-        min=0.0,
-        soft_min=0.0)
+        min=0.0)
 
     maxDistance: FloatProperty(
         name="Max Distance",
@@ -62,8 +59,7 @@ class AudioParams(HubsComponent):
         subtype="DISTANCE",
         unit="LENGTH",
         default=10000.0,
-        min=0.0,
-        soft_min=0.0)
+        min=0.0)
 
     coneInnerAngle: FloatProperty(
         name="Cone Inner Angle",
@@ -71,9 +67,7 @@ class AudioParams(HubsComponent):
         subtype="ANGLE",
         default=MAX_ANGLE,
         min=0.0,
-        soft_min=0.0,
         max=MAX_ANGLE,
-        soft_max=MAX_ANGLE,
         precision=2)
 
     coneOuterAngle: FloatProperty(
@@ -82,17 +76,14 @@ class AudioParams(HubsComponent):
         subtype="ANGLE",
         default=0.0,
         min=0.0,
-        soft_min=0.0,
         max=MAX_ANGLE,
-        soft_max=MAX_ANGLE,
         precision=2)
 
     coneOuterGain: FloatProperty(
         name="Cone Outer Gain",
         description="A double value describing the amount of volume reduction outside the cone defined by the coneOuterAngle attribute.",
         default=0.0,
-        min=0.0,
-        soft_min=0.0)
+        min=0.0)
 
     def gather(self, export_settings, object):
         return {
