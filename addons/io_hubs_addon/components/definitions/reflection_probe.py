@@ -145,7 +145,6 @@ class BakeProbeOperator(bpy.types.Operator):
         context.window_manager.modal_handler_add(self)
 
         global probe_baking, bake_mode
-        probe_baking = True
         bake_mode = self.bake_mode
 
         self.camera_data = bpy.data.cameras.new(name='Temp EnvMap Camera')
@@ -167,6 +166,8 @@ class BakeProbeOperator(bpy.types.Operator):
         self.post_render_wait = 500
         self.probe_index = len(self.probes) - 1
 
+        probe_baking = True
+
         return {"RUNNING_MODAL"}
 
     def modal(self, context, event):
@@ -175,6 +176,7 @@ class BakeProbeOperator(bpy.types.Operator):
         # print("ev: %s" % event.type)
         if event.type == 'TIMER':
             if self.cancelled or self.done:
+                probe_baking = False
                 bpy.app.handlers.render_post.remove(self.render_post)
                 bpy.app.handlers.render_cancel.remove(self.render_cancelled)
                 context.window_manager.event_timer_remove(self._timer)
@@ -184,7 +186,6 @@ class BakeProbeOperator(bpy.types.Operator):
 
                 self.restore_render_props()
                 self.rendering = False
-                probe_baking = False
 
                 if self.cancelled:
                     self.report(
