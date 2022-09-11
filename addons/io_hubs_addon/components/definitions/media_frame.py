@@ -60,7 +60,7 @@ class MediaFrame(HubsComponent):
 
     bounds: FloatVectorProperty(
         name="Bounds",
-        description="Bounding box to fit objects into when they are snapped into the media frame.",
+        description="Bounding box to fit objects into when they are snapped into the media frame",
         unit='LENGTH',
         subtype="XYZ",
         default=(1.0, 1.0, 1.0))
@@ -68,17 +68,17 @@ class MediaFrame(HubsComponent):
     mediaType: EnumProperty(
         name="Media Type",
         description="Limit what type of media this frame will capture",
-        items=[("all", "All Media", "Allow any type of media."),
-               ("all-2d", "Only 2D Media", "Allow only Images, Videos, and PDFs."),
-               ("model", "Only 3D Models", "Allow only 3D models."),
-               ("image", "Only Images", "Allow only images."),
-               ("video", "Only Videos", "Allow only videos."),
-               ("pdf", "Only PDFs", "Allow only PDFs.")],
+        items=[("all", "All Media", "Allow any type of media"),
+               ("all-2d", "Only 2D Media", "Allow only Images, Videos, and PDFs"),
+               ("model", "Only 3D Models", "Allow only 3D models"),
+               ("image", "Only Images", "Allow only images"),
+               ("video", "Only Videos", "Allow only videos"),
+               ("pdf", "Only PDFs", "Allow only PDFs")],
         default="all-2d")
 
     snapToCenter: BoolProperty(
         name="Snap To Center",
-        description="Snap the media to the center of the media frame when capturing. If set to false the object will just remain in the place it was dorpped but still be considered \"captured\" by the media frame.",
+        description="Snap the media to the center of the media frame when capturing. If set to false the object will just remain in the place it was dropped but still be considered \"captured\" by the media frame",
         default=True
     )
 

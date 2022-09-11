@@ -14,4 +14,4 @@ class Billboard(HubsComponent):
     }
 
     onlyY: BoolProperty(
-        name="Only Y", description="Rotate only in Y axis", default=False)
+        name="Only Y", description="Rotate only on the Y axis", default=False)

@@ -42,7 +42,7 @@ class AudioParams(HubsComponent):
 
     refDistance: FloatProperty(
         name="Ref Distance",
-        description="A double value representing the reference distance for reducing volume as the audio source moves further from the listener. For distances greater than this the volume will be reduced based on rolloffFactor and distanceModel.",
+        description="A double value representing the reference distance for reducing volume as the audio source moves further from the listener. For distances greater than this the volume will be reduced based on rolloffFactor and distanceModel",
         subtype="DISTANCE",
         unit="LENGTH",
         default=1.0,
@@ -51,14 +51,14 @@ class AudioParams(HubsComponent):
 
     rolloffFactor: FloatProperty(
         name="Rolloff Factor",
-        description="A double value describing how quickly the volume is reduced as the source moves away from the listener. This value is used by all distance models.",
+        description="A double value describing how quickly the volume is reduced as the source moves away from the listener. This value is used by all distance models",
         default=1.0,
         min=0.0,
         soft_min=0.0)
 
     maxDistance: FloatProperty(
         name="Max Distance",
-        description="A double value representing the maximum distance between the audio source and the listener, after which the volume is not reduced any further. This value is used only by the linear distance model.",
+        description="A double value representing the maximum distance between the audio source and the listener, after which the volume is not reduced any further. This value is used only by the linear distance model",
         subtype="DISTANCE",
         unit="LENGTH",
         default=10000.0,
@@ -67,7 +67,7 @@ class AudioParams(HubsComponent):
 
     coneInnerAngle: FloatProperty(
         name="Cone Inner Angle",
-        description="A double value describing the angle, in degrees, of a cone inside of which there will be no volume reduction.",
+        description="A double value describing the angle, in degrees, of a cone inside of which there will be no volume reduction",
         subtype="ANGLE",
         default=MAX_ANGLE,
         min=0.0,
@@ -78,7 +78,7 @@ class AudioParams(HubsComponent):
 
     coneOuterAngle: FloatProperty(
         name="Cone Outer Angle",
-        description="A double value describing the angle, in degrees, of a cone outside of which the volume will be reduced by a constant value, defined by the coneOuterGain attribute.",
+        description="A double value describing the angle, in degrees, of a cone outside of which the volume will be reduced by a constant value, defined by the coneOuterGain attribute",
         subtype="ANGLE",
         default=0.0,
         min=0.0,
@@ -89,7 +89,7 @@ class AudioParams(HubsComponent):
 
     coneOuterGain: FloatProperty(
         name="Cone Outer Gain",
-        description="A double value describing the amount of volume reduction outside the cone defined by the coneOuterAngle attribute.",
+        description="A double value describing the amount of volume reduction outside the cone defined by the coneOuterAngle attribute",
         default=0.0,
         min=0.0,
         soft_min=0.0)

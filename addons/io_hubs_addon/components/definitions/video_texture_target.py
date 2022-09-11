@@ -81,20 +81,20 @@ class VideoTextureTarget(HubsComponent):
     }
 
     targetBaseColorMap: BoolProperty(
-        name="Override Base Color Map", description="Should the video texture override the base color map?", default=True)
+        name="Override Base Color Map", description="Causes the video texture to be displayed in place of the base color map", default=True)
 
     targetEmissiveMap: BoolProperty(
-        name="Override Emissive Color Map", description="Should the video texture override the emissive map?", default=False)
+        name="Override Emissive Color Map", description="Causes the video texture to be displayed in place of the emissive map", default=False)
 
     srcNode: PointerProperty(
         name="Source",
-        description="Node with a vide-texture-source to pull video from",
+        description="The object with a video-texture-source component to pull video from",
         type=Object,
         poll=filter_on_component)
 
     bone: EnumProperty(
         name="Bone",
-        description="Bone",
+        description="The bone with a video-texture-source component to pull video from.  If a bone is selected, this will override the object source, otherwise if no bone is selected, the source will be pulled from the object",
         items=get_bones,
         get=get_bone,
         set=set_bone

@@ -574,7 +574,7 @@ class LoopAnimation(HubsComponent):
 
     timeScale: FloatProperty(
         name="Time Scale",
-        description="Scale animation playback speed by this factor. Normal playback rate being 1. Negative values will play the animation backwards.",
+        description="Scale animation playback speed by this factor. Normal playback rate being 1. Negative values will play the animation backwards",
         default=1.0
     )
 

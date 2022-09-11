@@ -23,7 +23,7 @@ class HubsPreferences(AddonPreferences):
 
     tmp_path: StringProperty(
         name="Temporary files path",
-        description="Path where temporary files will be stored.",
+        description="Path where temporary files will be stored",
         subtype="DIR_PATH",
         default="//generated_cubemaps/"
     )
