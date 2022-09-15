@@ -151,7 +151,7 @@ def gather_property(export_settings, blender_object, target, property_name):
     isArray = getattr(property_definition, 'is_array', None)
 
     if isArray and property_definition.is_array:
-        if property_definition.subtype.startsWith('COLOR'):
+        if property_definition.subtype.startswith('COLOR'):
             return gather_color_property(export_settings, blender_object, target, property_name, property_definition.subtype)
         else:
             return gather_vec_property(export_settings, blender_object, target, property_name)
