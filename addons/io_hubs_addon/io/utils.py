@@ -309,8 +309,9 @@ def lin2srgb(lin):
 
 
 def gather_color_property(export_settings, object, component, property_name, color_type):
-    # Convert RGB color array to hex. Blender stores colors in linear space and GLTF color factors are typically in linear space
     c = list(getattr(component, property_name))
+
+    # Blender stores colors in linear space for subtype COLOR and sRGB for COLOR_GAMMA
     if color_type == "COLOR":
         c[0] = lin2srgb(c[0])
         c[1] = lin2srgb(c[1])
