@@ -300,10 +300,18 @@ def gather_texture_property(export_settings, blender_object, target, property_na
         return None
 
 
+def lin2srgb(lin):
+    if lin > 0.0031308:
+        s = 1.055 * (pow(lin, (1.0 / 2.4))) - 0.055
+    else:
+        s = 12.92 * lin
+    return s
+
+
 def gather_color_property(export_settings, object, component, property_name):
     # Convert RGB color array to hex. Blender stores colors in linear space and GLTF color factors are typically in linear space
     c = getattr(component, property_name)
-    return "#{0:02x}{1:02x}{2:02x}".format(max(0, min(int(c[0] * 256.0), 255)), max(0, min(int(c[1] * 256.0), 255)), max(0, min(int(c[2] * 256.0), 255)))
+    return "#{0:02x}{1:02x}{2:02x}".format(max(0, min(int(lin2srgb(c[0]) * 256.0), 255)), max(0, min(int(lin2srgb(c[1]) * 256.0), 255)), max(0, min(int(lin2srgb(c[2]) * 256.0), 255)))
 
 # MOZ_lightmap extension data
 
