@@ -58,7 +58,7 @@ class EnvironmentSettings(HubsComponent):
         return {
             'toneMapping': self.toneMapping,
             'toneMappingExposure': self.toneMappingExposure,
-            'backgroundColor': gather_color_property(export_settings, object, self, 'backgroundColor'),
+            'backgroundColor': gather_color_property(export_settings, object, self, 'backgroundColor', 'COLOR'),
             'backgroundTexture': gather_texture_property(
                 export_settings,
                 object,
