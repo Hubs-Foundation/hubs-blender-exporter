@@ -196,9 +196,15 @@ class BakeProbeOperator(bpy.types.Operator):
                     img = bpy.data.images.get(image_name)
                     img_path = "%s/%s.hdr" % (get_addon_pref(context).tmp_path,
                                               probe.name)
-                    if not img:
+                    if not img or img.filepath != img_path:
                         img = bpy.data.images.load(filepath=img_path)
                         img.name = image_name
+
+                        for window in context.window_manager.windows:
+                            for area in window.screen.areas:
+                                if area.type == 'IMAGE_EDITOR':
+                                    if area.spaces.active.image == probe.hubs_component_reflection_probe['envMapTexture']:
+                                        area.spaces.active.image = img
                     else:
                         img.reload()
                     self.report(
