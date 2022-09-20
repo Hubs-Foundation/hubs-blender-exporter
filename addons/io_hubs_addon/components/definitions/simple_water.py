@@ -15,7 +15,7 @@ class SimpleWater(HubsComponent):
 
     color: FloatVectorProperty(name="Color",
                                description="Color",
-                               subtype='COLOR',
+                               subtype='COLOR_GAMMA',
                                default=(1.0, 1.0, 1.0, 1.0),
                                size=4,
                                min=0,

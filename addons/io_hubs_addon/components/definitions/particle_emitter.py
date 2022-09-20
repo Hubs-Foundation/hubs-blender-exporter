@@ -19,7 +19,7 @@ class ParticleEmitter(HubsComponent):
 
     startColor: FloatVectorProperty(name="Start Color",
                                     description="Start Color",
-                                    subtype='COLOR',
+                                    subtype='COLOR_GAMMA',
                                     default=(1.0, 1.0, 1.0, 1.0),
                                     size=4,
                                     min=0,
@@ -27,7 +27,7 @@ class ParticleEmitter(HubsComponent):
 
     middleColor: FloatVectorProperty(name="Middle Color",
                                      description="Middle Color",
-                                     subtype='COLOR',
+                                     subtype='COLOR_GAMMA',
                                      default=(1.0, 1.0, 1.0, 1.0),
                                      size=4,
                                      min=0,
@@ -35,7 +35,7 @@ class ParticleEmitter(HubsComponent):
 
     endColor: FloatVectorProperty(name="End Color",
                                   description="End Color",
-                                  subtype='COLOR',
+                                  subtype='COLOR_GAMMA',
                                   default=(1.0, 1.0, 1.0, 1.0),
                                   size=4,
                                   min=0,

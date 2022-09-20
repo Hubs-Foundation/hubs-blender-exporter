@@ -22,7 +22,7 @@ class Fog(HubsComponent):
         default="linear")
 
     color: FloatVectorProperty(name="Color",
-                               subtype='COLOR',
+                               subtype='COLOR_GAMMA',
                                default=(1.0, 1.0, 1.0, 1.0),
                                size=4,
                                min=0,

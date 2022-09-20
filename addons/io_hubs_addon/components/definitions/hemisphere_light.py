@@ -15,7 +15,7 @@ class HemisphereLight(HubsComponent):
 
     skyColor: FloatVectorProperty(name="Sky Color",
                                   description="Sky Color",
-                                  subtype='COLOR',
+                                  subtype='COLOR_GAMMA',
                                   default=(1.0, 1.0, 1.0, 1.0),
                                   size=4,
                                   min=0,
@@ -23,7 +23,7 @@ class HemisphereLight(HubsComponent):
 
     groundColor: FloatVectorProperty(name="Ground Color",
                                      description="Ground Color",
-                                     subtype='COLOR',
+                                     subtype='COLOR_GAMMA',
                                      default=(1.0, 1.0, 1.0, 1.0),
                                      size=4,
                                      min=0,
