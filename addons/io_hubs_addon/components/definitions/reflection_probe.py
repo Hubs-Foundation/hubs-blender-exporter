@@ -1,5 +1,5 @@
 import bpy
-from bpy.props import PointerProperty, EnumProperty, StringProperty
+from bpy.props import PointerProperty, EnumProperty, StringProperty, BoolProperty
 from bpy.types import Image, PropertyGroup
 
 from ...components.utils import is_gpu_available
@@ -89,6 +89,11 @@ class ReflectionProbeSceneProps(PropertyGroup):
 
     resolution_id: StringProperty(name='Current Resolution Id',
                                   default='256x128', options={'HIDDEN'})
+
+    use_compositor: BoolProperty(name="Use Compositor",
+        description="Controls whether the baked images will be processed by the compositor after baking",
+        default=False
+    )
 
 
 class BakeProbeOperator(bpy.types.Operator):
@@ -257,6 +262,7 @@ class BakeProbeOperator(bpy.types.Operator):
         resolution = context.scene.hubs_scene_reflection_probe_properties.resolution
         (x, y) = [int(i) for i in resolution.split('x')]
         output_path = "%s/%s.hdr" % (get_addon_pref(context).tmp_path, probe.name)
+        use_compositor = context.scene.hubs_scene_reflection_probe_properties.use_compositor
 
         overrides = [
             ("preferences.view.render_display_type", "NONE"),
@@ -268,8 +274,8 @@ class BakeProbeOperator(bpy.types.Operator):
             ("scene.render.resolution_percentage", 100),
             ("scene.render.image_settings.file_format", "HDR"),
             ("scene.render.filepath", output_path),
-            ("scene.render.use_compositing", False),
-            ("scene.use_nodes", False)
+            ("scene.render.use_compositing", use_compositor),
+            ("scene.use_nodes", use_compositor)
         ]
 
         for (prop, value) in overrides:
@@ -343,6 +349,9 @@ class ReflectionProbe(HubsComponent):
                 row.alert = True
                 row.label(text="Reflection probe resolution has changed. Bake again to apply the new resolution.",
                           icon='ERROR')
+
+            row = col.row()
+            row.prop(context.scene.hubs_scene_reflection_probe_properties, "use_compositor")
 
             global bake_mode
 
