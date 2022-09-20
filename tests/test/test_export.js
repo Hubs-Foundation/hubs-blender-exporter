@@ -228,7 +228,7 @@ describe('Exporter', function () {
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
           "directional-light": {
-            "color": "#ffffff",
+            "color": "#0cff00",
             "intensity": 1,
             "castShadow": false,
             "shadowMapResolution": [
@@ -254,7 +254,7 @@ describe('Exporter', function () {
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
           "point-light": {
-            "color": "#ffffff",
+            "color": "#0cff00",
             "intensity": 1,
             "range": 0,
             "decay": 2,
@@ -282,7 +282,7 @@ describe('Exporter', function () {
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
           "spot-light": {
-            "color": "#ffffff",
+            "color": "#0cff00",
             "intensity": 1,
             "range": 0,
             "decay": 2,
@@ -312,7 +312,7 @@ describe('Exporter', function () {
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
           "ambient-light": {
-            "color": "#ffffff",
+            "color": "#0cff00",
             "intensity": 1
           }
         });
@@ -332,9 +332,9 @@ describe('Exporter', function () {
         assert.deepStrictEqual(ext, {
           "particle-emitter": {
             "src": "",
-            "startColor": "#ffffff",
-            "middleColor": "#ffffff",
-            "endColor": "#ffffff",
+            "startColor": "#0cff00",
+            "middleColor": "#0cff00",
+            "endColor": "#0cff00",
             "startOpacity": 1,
             "middleOpacity": 1,
             "endOpacity": 1,
@@ -377,9 +377,9 @@ describe('Exporter', function () {
         assert.deepStrictEqual(ext, {
           "particle-emitter": {
             "src": "",
-            "startColor": "#ffffff",
-            "middleColor": "#ffffff",
-            "endColor": "#ffffff",
+            "startColor": "#0cff00",
+            "middleColor": "#0cff00",
+            "endColor": "#0cff00",
             "startOpacity": 1,
             "middleOpacity": 1,
             "endOpacity": 1,
@@ -550,18 +550,18 @@ describe('Exporter', function () {
             "textAlign": "left",
             "anchorX": "center",
             "anchorY": "middle",
-            "color": "#ffffff",
+            "color": "#0cff00",
             "letterSpacing": 0,
             "lineHeight": 0,
             "outlineWidth": "0",
-            "outlineColor": "#000000",
+            "outlineColor": "#0cff00",
             "outlineBlur": "0",
             "outlineOffsetX": "0",
             "outlineOffsetY": "0",
             "outlineOpacity": 1,
             "fillOpacity": 1,
             "strokeWidth": "0",
-            "strokeColor": "#000000",
+            "strokeColor": "#0cff00",
             "strokeOpacity": 1,
             "textIndent": 0,
             "whiteSpace": "normal",
@@ -832,7 +832,7 @@ describe('Exporter', function () {
         assert.deepStrictEqual(ext, {
           "fog": {
             "type": "linear",
-            "color": "#ffffff",
+            "color": "#0cff00",
             "near": 1,
             "far": 100,
             "density": 0.10000000149011612
@@ -884,7 +884,7 @@ describe('Exporter', function () {
           "environment-settings": {
             "toneMapping": "LUTToneMapping",
             "toneMappingExposure": 1,
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "#0cff00",
             "backgroundTexture": {
               "__mhc_link_type": "texture",
               "index": 0
@@ -945,8 +945,8 @@ describe('Exporter', function () {
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
           "hemisphere-light": {
-            "skyColor": "#ffffff",
-            "groundColor": "#ffffff",
+            "skyColor": "#0cff00",
+            "groundColor": "#0cff00",
             "intensity": 1
           }
         });
@@ -965,7 +965,7 @@ describe('Exporter', function () {
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext, {
           "simple-water": {
-            "color": "#ffffff",
+            "color": "#0cff00",
             "opacity": 1,
             "tideHeight": 0.009999999776482582,
             "tideScale": {
