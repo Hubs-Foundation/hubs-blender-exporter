@@ -53,6 +53,14 @@ class HubsExportImage(ExportImage):
         raise Exception(
             "HDR images must be saved as a .hdr file before exporting")
 
+def delayed_gather(func):
+    """ It delays the gather until all resources are available """
+    def wrapper_delayed_gather(*args, **kwargs):
+        def gather():
+            return func(*args, **kwargs)
+        gather.delayed_gather = True
+        return gather
+    return wrapper_delayed_gather
 
 @cached
 def gather_image(blender_image, export_settings):
@@ -172,7 +180,6 @@ def gather_array_property(export_settings, blender_object, target, property_name
 
     return value
 
-
 def gather_node_property(export_settings, blender_object, target, property_name):
     blender_object = getattr(target, property_name)
 
@@ -189,7 +196,7 @@ def gather_node_property(export_settings, blender_object, target, property_name)
             vtree = export_settings['vtree']
             vnode = vtree.nodes[next((uuid for uuid in vtree.nodes if (
                 vtree.nodes[uuid].blender_object == blender_object)), None)]
-            node = gltf2_blender_gather_nodes.gather_node(
+            node = vnode.node or gltf2_blender_gather_nodes.gather_node(
                 vnode,
                 export_settings
             )
@@ -202,7 +209,6 @@ def gather_node_property(export_settings, blender_object, target, property_name)
         return None
 
 # PointerProperty doesn't support bones so for now we have to call this manually where using an object pointer
-
 
 def gather_joint_property(export_settings, blender_object, target, property_name):
     joint_name = getattr(target, property_name)
@@ -219,7 +225,7 @@ def gather_joint_property(export_settings, blender_object, target, property_name
             vtree = export_settings['vtree']
             vnode = vtree.nodes[next((uuid for uuid in vtree.nodes if (
                 vtree.nodes[uuid].joint == joint)), None)]
-            node = gltf2_blender_gather_joints.gather_joint_vnode(
+            node = vnode.node or gltf2_blender_gather_joints.gather_joint_vnode(
                 vnode,
                 export_settings
             )

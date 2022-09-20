@@ -4,7 +4,7 @@ from ..hubs_component import HubsComponent
 from ..utils import has_component
 from ..types import Category, PanelType, NodeType
 from bpy.types import Object
-from ...io.utils import gather_joint_property, gather_node_property
+from ...io.utils import gather_joint_property, gather_node_property, delayed_gather
 
 BLANK_ID = "374e54CMHFCipSk"
 
@@ -151,6 +151,7 @@ class AudioTarget(HubsComponent):
         layout.prop(data=self, property="maxDelay")
         layout.prop(data=self, property="debug")
 
+    @delayed_gather
     def gather(self, export_settings, object):
         return {
             'srcNode': gather_joint_property(export_settings, self.srcNode, self, 'bone') if self.bone_id != BLANK_ID else gather_node_property(
