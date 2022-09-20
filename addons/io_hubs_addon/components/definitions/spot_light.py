@@ -40,9 +40,7 @@ class SpotLight(HubsComponent):
         subtype="ANGLE",
         default=0.0,
         min=0.0,
-        soft_min=0.0,
-        max=pi / 2,
-        soft_max=pi / 2)
+        max=pi / 2)
 
     outerConeAngle: FloatProperty(
         name="Cone Outer Angle",
@@ -50,9 +48,7 @@ class SpotLight(HubsComponent):
         subtype="ANGLE",
         default=pi / 4,
         min=0.0,
-        soft_min=0.0,
-        max=pi / 2,
-        soft_max=pi / 2)
+        max=pi / 2)
 
     decay: FloatProperty(name="Decay",
                          description="Decay",

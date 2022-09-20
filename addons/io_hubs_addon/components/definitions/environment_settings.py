@@ -33,7 +33,7 @@ class EnvironmentSettings(HubsComponent):
         default="LUTToneMapping")
 
     toneMappingExposure: FloatProperty(
-        name="Exposure", description="Exposure level of tone mapping", default=1.0, min=0.0, soft_min=0.0)
+        name="Exposure", description="Exposure level of tone mapping", default=1.0, min=0.0)
 
     backgroundColor: FloatVectorProperty(name="Background Color",
                                          description="Background Color",
