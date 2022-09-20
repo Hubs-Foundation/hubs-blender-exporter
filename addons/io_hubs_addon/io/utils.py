@@ -151,8 +151,8 @@ def gather_property(export_settings, blender_object, target, property_name):
     isArray = getattr(property_definition, 'is_array', None)
 
     if isArray and property_definition.is_array:
-        if property_definition.subtype == 'COLOR':
-            return gather_color_property(export_settings, blender_object, target, property_name)
+        if property_definition.subtype.startswith('COLOR'):
+            return gather_color_property(export_settings, blender_object, target, property_name, property_definition.subtype)
         else:
             return gather_vec_property(export_settings, blender_object, target, property_name)
 
@@ -300,10 +300,28 @@ def gather_texture_property(export_settings, blender_object, target, property_na
         return None
 
 
-def gather_color_property(export_settings, object, component, property_name):
-    # Convert RGB color array to hex. Blender stores colors in linear space and GLTF color factors are typically in linear space
-    c = getattr(component, property_name)
-    return "#{0:02x}{1:02x}{2:02x}".format(max(0, min(int(c[0] * 256.0), 255)), max(0, min(int(c[1] * 256.0), 255)), max(0, min(int(c[2] * 256.0), 255)))
+def lin2srgb(lin):
+    if lin > 0.0031308:
+        s = 1.055 * (pow(lin, (1.0 / 2.4))) - 0.055
+    else:
+        s = 12.92 * lin
+    return s
+
+
+def gather_color_property(export_settings, object, component, property_name, color_type):
+    c = list(getattr(component, property_name))
+
+    # Blender stores colors in linear space for subtype COLOR and sRGB for COLOR_GAMMA
+    if color_type == "COLOR":
+        c[0] = lin2srgb(c[0])
+        c[1] = lin2srgb(c[1])
+        c[2] = lin2srgb(c[2])
+
+    c[0] = max(0, min(int(c[0] * 256.0), 255))
+    c[1] = max(0, min(int(c[1] * 256.0), 255))
+    c[2] = max(0, min(int(c[2] * 256.0), 255))
+
+    return "#{0:02x}{1:02x}{2:02x}".format(c[0], c[1], c[2], 255)
 
 # MOZ_lightmap extension data
 

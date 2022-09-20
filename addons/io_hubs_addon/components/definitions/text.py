@@ -57,7 +57,7 @@ class Text(HubsComponent):
 
     color: FloatVectorProperty(name="Color",
                                description="Color",
-                               subtype='COLOR',
+                               subtype='COLOR_GAMMA',
                                default=(1.0, 1.0, 1.0, 1.0),
                                size=4)
 
@@ -79,7 +79,7 @@ class Text(HubsComponent):
 
     outlineColor: FloatVectorProperty(name="Outline Color",
                                       description="The color to use for the text outline when outlineWidth, outlineBlur, and/or outlineOffsetX/Y are set",
-                                      subtype='COLOR',
+                                      subtype='COLOR_GAMMA',
                                       default=(0.0, 0.0, 0.0, 1.0),
                                       size=4)
 
@@ -115,7 +115,7 @@ class Text(HubsComponent):
 
     strokeColor: FloatVectorProperty(name="Stroke Color",
                                      description="The color of the text stroke, when strokeWidth is nonzero",
-                                     subtype='COLOR',
+                                     subtype='COLOR_GAMMA',
                                      default=(0.0, 0.0, 0.0, 1.0),
                                      size=4)
 

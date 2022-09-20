@@ -37,7 +37,7 @@ class EnvironmentSettings(HubsComponent):
 
     backgroundColor: FloatVectorProperty(name="Background Color",
                                          description="Background Color",
-                                         subtype='COLOR',
+                                         subtype='COLOR_GAMMA',
                                          default=(1.0, 1.0, 1.0, 1.0),
                                          size=4,
                                          min=0,
@@ -58,7 +58,7 @@ class EnvironmentSettings(HubsComponent):
         return {
             'toneMapping': self.toneMapping,
             'toneMappingExposure': self.toneMappingExposure,
-            'backgroundColor': gather_color_property(export_settings, object, self, 'backgroundColor'),
+            'backgroundColor': gather_color_property(export_settings, object, self, 'backgroundColor', 'COLOR_GAMMA'),
             'backgroundTexture': gather_texture_property(
                 export_settings,
                 object,
