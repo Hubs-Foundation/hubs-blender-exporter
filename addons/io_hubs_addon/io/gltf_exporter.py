@@ -191,7 +191,7 @@ class glTF2ExportUserExtension:
 class HubsComponentsExtensionProperties(bpy.types.PropertyGroup):
     enabled: bpy.props.BoolProperty(
         name="Export Hubs Components",
-        description='Include this extension in the exported glTF file.',
+        description='Include this extension in the exported glTF file',
         default=True
     )
     version: IntVectorProperty(size=3)

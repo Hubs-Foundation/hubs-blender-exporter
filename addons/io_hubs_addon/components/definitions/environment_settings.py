@@ -5,7 +5,7 @@ from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 
 
-TOME_MAPPING = [("NoToneMapping", "None", "No tone mapping."),
+TOME_MAPPING = [("NoToneMapping", "None", "No tone mapping"),
                 ("LinearToneMapping", "Linear", "Linear tone mapping"),
                 ("ReinhardToneMapping", "ThreeJS 'Reinhard'",
                  "ThreeJS 'Reinhard' tone mapping"),

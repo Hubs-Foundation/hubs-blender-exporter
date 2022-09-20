@@ -84,14 +84,14 @@ class AudioTarget(HubsComponent):
 
     srcNode: PointerProperty(
         name="Source",
-        description="Node with a audio-source-zone to pull audio from",
+        description="The object with an audio-source component to pull audio from",
         type=Object,
         poll=filter_on_component
     )
 
     bone: EnumProperty(
         name="Bone",
-        description="Bone",
+        description="The bone with an audio-source component to pull audio from.  If a bone is selected, this will override the object source, otherwise if no bone is selected, the source will be pulled from the object",
         items=get_bones,
         get=get_bone,
         set=set_bone
@@ -138,12 +138,12 @@ class AudioTarget(HubsComponent):
             col = layout.column()
             col.alert = True
             col.label(
-                text=f'The selected source doesn\'t have a {AudioSource.get_display_name()} component', icon='ERROR')
+                text=f'The selected source doesn\'t have an {AudioSource.get_display_name()} component', icon='ERROR')
         elif self.srcNode and self.bone_id != BLANK_ID and not has_bone_component:
             col = layout.column()
             col.alert = True
             col.label(
-                text=f'The selected bone doesn\'t have a {AudioSource.get_display_name()} component', icon='ERROR')
+                text=f'The selected bone doesn\'t have an {AudioSource.get_display_name()} component', icon='ERROR')
 
         layout.prop(data=self, property="minDelay")
         layout.prop(data=self, property="maxDelay")

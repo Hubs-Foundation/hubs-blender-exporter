@@ -23,7 +23,7 @@ class Audio(HubsComponent):
                            default=True)
 
     controls: BoolProperty(name="Show controls",
-                           description="Show Controls",
+                           description="When enabled, shows play/pause, skip forward/back, and volume controls when hovering your cursor over it in Hubs",
                            default=True)
 
     loop: BoolProperty(name="Loop",

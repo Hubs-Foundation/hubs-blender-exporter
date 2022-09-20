@@ -17,7 +17,7 @@ class Video(HubsComponent):
     }
 
     src: StringProperty(
-        name="Video URL", description="Video URL", default='https://')
+        name="Video URL", description="The web address of the video", default='https://mozilla.org')
 
     projection: EnumProperty(
         name="Projection",
@@ -30,7 +30,7 @@ class Video(HubsComponent):
                            default=True)
 
     controls: BoolProperty(name="Show controls",
-                           description="Show Controls",
+                           description="When enabled, shows play/pause, skip forward/back, and, if the video contains audio, volume controls when hovering your cursor over it in Hubs",
                            default=True)
 
     loop: BoolProperty(name="Loop",

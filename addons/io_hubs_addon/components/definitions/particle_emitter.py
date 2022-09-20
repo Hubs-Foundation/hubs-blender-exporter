@@ -15,7 +15,7 @@ class ParticleEmitter(HubsComponent):
     }
 
     src: StringProperty(
-        name="Source", description="Source", default="https://mozilla.org")
+        name="Image Source", description="The web address (URL) of the image to use for each particle", default="https://mozilla.org")
 
     startColor: FloatVectorProperty(name="Start Color",
                                     description="Start Color",
@@ -75,7 +75,7 @@ class ParticleEmitter(HubsComponent):
         name="Age Randomness", description="Age Randomness", default=0.0)
 
     lifetime: FloatProperty(
-        name="Lifetime", description="Lifetime  ", unit="TIME", subtype="TIME", default=1.0)
+        name="Lifetime", description="Lifetime", unit="TIME", subtype="TIME", default=1.0)
 
     lifetimeRandomness: FloatProperty(
         name="Lifetime Randomness", description="Lifetime Randomness", default=0.0)

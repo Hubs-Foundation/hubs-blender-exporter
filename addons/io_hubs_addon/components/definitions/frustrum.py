@@ -6,7 +6,7 @@ from ..types import Category, PanelType, NodeType
 class Frustrum(HubsComponent):
     _definition = {
         'name': 'frustrum',
-        'display_name': 'Frustrum',
+        'display_name': 'Frustum',
         'category': Category.OBJECT,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT],
@@ -14,4 +14,4 @@ class Frustrum(HubsComponent):
     }
 
     culled: BoolProperty(
-        name="Culled", description="Ignore entities outside of the camera frustrum. Frustrum culling can cause problems with some animations", default=True)
+        name="Culled", description="Ignore entities outside of the camera frustum. Frustum culling can cause problems with some animations", default=True)

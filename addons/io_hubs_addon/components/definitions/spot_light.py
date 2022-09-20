@@ -36,7 +36,7 @@ class SpotLight(HubsComponent):
 
     innerConeAngle: FloatProperty(
         name="Cone Inner Angle",
-        description="A double value describing the angle, in degrees, of a cone inside of which there will be no volume reduction.",
+        description="A double value describing the angle, in degrees, of a cone inside of which there will be no volume reduction",
         subtype="ANGLE",
         default=0.0,
         min=0.0,
@@ -44,7 +44,7 @@ class SpotLight(HubsComponent):
 
     outerConeAngle: FloatProperty(
         name="Cone Outer Angle",
-        description="A double value describing the angle, in degrees, of a cone outside of which the volume will be reduced by a constant value, defined by the coneOuterGain attribute.",
+        description="A double value describing the angle, in degrees, of a cone outside of which the volume will be reduced by a constant value, defined by the coneOuterGain attribute",
         subtype="ANGLE",
         default=pi / 4,
         min=0.0,

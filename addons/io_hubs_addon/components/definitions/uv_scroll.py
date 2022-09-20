@@ -35,5 +35,5 @@ class UVScroll(HubsComponent):
         super().draw(context, layout, panel)
         if not has_texture:
             layout.alert = True
-            layout.label(text='This component requires a texture',
+            layout.label(text='This component requires an image texture',
                          icon='ERROR')

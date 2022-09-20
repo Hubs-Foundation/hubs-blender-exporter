@@ -35,7 +35,7 @@ class Waypoint(HubsComponent):
 
     willDisableMotion: BoolProperty(
         name="Disable Motion",
-        description="Avatars will not be able to move while occupying his waypoint",
+        description="Avatars will not be able to move while occupying this waypoint",
         default=False)
 
     willDisableTeleporting: BoolProperty(

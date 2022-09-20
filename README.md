@@ -69,7 +69,7 @@ You can override the Blender user scripts directory from the console to point to
 
 `BLENDER_USER_SCRIPTS=full_path_to_/hubs-blender-exporter blender`
 
-- ### Symlinking you addon to the Blender user scripts directory
+- ### Symlinking your addon to the Blender user scripts directory
 You can create a symbolic link pointing to `full_path_to_/hubs-blender-exporter/addons/io_hubs_addon` in your current Python scripts directory in Blender. This way you will also load any other addons that you have in that directory.
 
 **MacOS and Linux**
