@@ -94,7 +94,7 @@ def children_recurse(ob, result):
 
 
 def children_recursive(ob):
-    if bpy.app.version < (3, 0, 0):
+    if bpy.app.version < (3, 1, 0):
         ret = []
         children_recurse(ob, ret)
         return ret
