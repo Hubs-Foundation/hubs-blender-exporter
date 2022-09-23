@@ -1,6 +1,8 @@
 from bpy.types import PropertyGroup
+from bpy.props import StringProperty
 from ..io.utils import gather_properties
 from .types import Category, PanelType, NodeType
+from ..utils import get_version_string
 
 
 class HubsComponent(PropertyGroup):
@@ -20,6 +22,9 @@ class HubsComponent(PropertyGroup):
         # Name of the icon to load. It can be a image file in the icons directory or one of the Blender builtin icons id
         'icon': 'icon.png'
     }
+
+    # Version of the add-on this component was created with.
+    addon_version: StringProperty()
 
     @classmethod
     def __get_definition(cls, key, default):
@@ -60,6 +65,11 @@ class HubsComponent(PropertyGroup):
     def init(cls, obj):
         '''Called right after the component is added to give the component a chance to initialize'''
         pass
+
+    @classmethod
+    def init_addon_version(cls, obj):
+        component = getattr(obj, cls.get_id())
+        component.addon_version = get_version_string()
 
     @classmethod
     def create_gizmo(cls, obj, gizmo_group):
