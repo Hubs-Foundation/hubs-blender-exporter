@@ -28,17 +28,7 @@ class Spawner(HubsComponent):
             }
         }
 
-    @classmethod
-    def migrate(cls, version):
+    def migrate(self, version, host, ob=None):
         if version < (1, 0, 0):
-            def migrate_data(ob):
-                if cls.get_name() in ob.hubs_component_list.items:
-                    ob.hubs_component_spawner.applyGravity = ob.hubs_component_spawner[
-                        'mediaOptions']['applyGravity']
-
-            for ob in bpy.data.objects:
-                migrate_data(ob)
-
-                if ob.type == 'ARMATURE':
-                    for bone in ob.data.bones:
-                        migrate_data(bone)
+            self.applyGravity = self[
+                'mediaOptions']['applyGravity']

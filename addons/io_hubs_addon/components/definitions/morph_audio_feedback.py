@@ -94,16 +94,12 @@ class MorphAudioFeedback(HubsComponent):
     def poll(cls, context, panel_type):
         return context.object.type == 'MESH'
 
-    @classmethod
-    def migrate(cls, version):
+    def migrate(self, version, host, ob=None):
         if version < (1, 0, 0):
-            for ob in bpy.data.objects:
-                if cls.get_name() in ob.hubs_component_list.items:
-                    component = ob.hubs_component_morph_audio_feedback
-                    shape_keys = get_object_shape_keys(component, ob)
-                    list_ids = list(map(lambda x: x[0], shape_keys))
-                    if not component.name in list_ids:
-                        component.name = component.name
+            shape_keys = get_object_shape_keys(self, host)
+            list_ids = list(map(lambda x: x[0], shape_keys))
+            if not self.name in list_ids:
+                self.name = self.name
 
     def draw(self, context, layout, panel):
         layout.prop(data=self, property="shape_key")

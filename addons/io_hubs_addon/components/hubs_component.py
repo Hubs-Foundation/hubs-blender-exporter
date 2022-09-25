@@ -105,6 +105,12 @@ class HubsComponent(PropertyGroup):
         '''This is called by the exporter after the export process has finished'''
         pass
 
+    def migrate(self, version, host, ob=None):
+        '''This is called when an object component needs to migrate the data from previous add-on versions.
+        The version argument represents the addon version the component came from, as a tuple.
+        '''
+        pass
+
     @classmethod
     def draw_global(cls, context, layout, panel):
         '''Draw method to be called by the panel. This can be used to draw global component properties in a panel before the component properties.'''
@@ -114,13 +120,6 @@ class HubsComponent(PropertyGroup):
         if hasattr(cls, '__annotations__'):
             return cls.__annotations__.keys()
         return {}
-
-    @classmethod
-    def migrate(cls, version):
-        '''This is called when a new file is loaded to give the components a chance to migrate the data from previous add-on versions.
-        The addon version used when the blend was last saved, as a tuple.
-        '''
-        pass
 
     @classmethod
     def poll(cls, context, panel_type):

@@ -2,6 +2,9 @@ import bpy
 from .components_registry import get_component_by_name
 from .gizmos import update_gizmos
 from mathutils import Vector
+from contextlib import contextmanager
+import os
+import sys
 
 V_S1 = Vector((1.0, 1.0, 1.0))
 
@@ -112,3 +115,40 @@ def redraw_component_ui(context):
         for area in window.screen.areas:
             if area.type == 'PROPERTIES':
                 area.tag_redraw()
+
+
+@contextmanager
+def get_c_stdout(binary_stream):
+    stdout = sys.stdout
+    stdout_file_descriptor = stdout.fileno()
+    original_stdout_file_descriptor_copy = os.dup(stdout_file_descriptor)
+    pipe_read_end, pipe_write_end = os.pipe()
+
+    try:
+        os.dup2(pipe_write_end, stdout_file_descriptor)
+        yield # wait for input
+    finally:
+        stdout.write("\f")
+        stdout.flush()
+
+        while True:
+            byte = os.read(pipe_read_end, 1)
+            binary_stream.write(byte)
+
+            if byte.decode(stdout.encoding) == "\f":
+                break
+
+        os.dup2(original_stdout_file_descriptor_copy, stdout_file_descriptor)
+        os.close(original_stdout_file_descriptor_copy)
+        os.close(pipe_write_end)
+        os.close(pipe_read_end)
+
+def host_components(host):
+    for component_item in host.hubs_component_list.items:
+        component_name = component_item.name
+        component_class = get_component_by_name(component_name)
+        if not component_class:
+            continue
+
+        component = getattr(host, component_class.get_id())
+        yield component

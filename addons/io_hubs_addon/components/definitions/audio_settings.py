@@ -111,12 +111,9 @@ class AudioSettings(HubsComponent):
             'mediaConeOuterGain': self.mediaConeOuterGain,
         }
 
-    @classmethod
-    def migrate(cls, version):
+    def migrate(self, version, host, ob=None):
         if version < (1, 0, 0):
-            for scene in bpy.data.scenes:
-                if cls.get_name() in scene.hubs_component_list.items:
-                    scene.hubs_component_audio_settings.mediaConeInnerAngle = radians(
-                        scene.hubs_component_audio_settings.mediaConeInnerAngle)
-                    scene.hubs_component_audio_settings.mediaConeOuterAngle = radians(
-                        scene.hubs_component_audio_settings.mediaConeOuterAngle)
+            self.mediaConeInnerAngle = radians(
+                self.mediaConeInnerAngle)
+            self.mediaConeOuterAngle = radians(
+                self.mediaConeOuterAngle)
