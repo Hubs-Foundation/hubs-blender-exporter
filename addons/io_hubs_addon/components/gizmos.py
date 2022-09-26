@@ -111,7 +111,7 @@ class HubsGizmoGroup(GizmoGroup):
                         self.add_gizmo(ob, bone, 'BONE')
 
         if not self.widgets:
-            unregister_gizmo_system()
+            bpy.app.timers.register(unregister_gizmo_system)
             return
 
         self.refresh(context)
@@ -133,23 +133,30 @@ class HubsGizmoGroup(GizmoGroup):
                 gizmo = widget['gizmo']
                 ob = widget['ob']
                 host_name = widget['host_name']
-                if widget['host_type'] == 'BONE':
-                    # https://docs.blender.org/api/current/info_gotcha.html#editbones-posebones-bone-bones
-                    if ob.mode == 'EDIT':
-                        edit_bone = ob.data.edit_bones[host_name]
-                        self.update_bone_gizmo(
-                                    component_name, ob, edit_bone, edit_bone, gizmo)
+
+                try:
+                    if widget['host_type'] == 'BONE':
+                        # https://docs.blender.org/api/current/info_gotcha.html#editbones-posebones-bone-bones
+                        if ob.mode == 'EDIT':
+                            edit_bone = ob.data.edit_bones[host_name]
+                            self.update_bone_gizmo(
+                                        component_name, ob, edit_bone, edit_bone, gizmo)
+                        else:
+                            bone = ob.data.bones[host_name]
+                            pose_bone = ob.pose.bones[host_name]
+                            self.update_bone_gizmo(
+                                        component_name, ob, bone, pose_bone, gizmo)
                     else:
-                        bone = ob.data.bones[host_name]
-                        pose_bone = ob.pose.bones[host_name]
-                        self.update_bone_gizmo(
-                                    component_name, ob, bone, pose_bone, gizmo)
-                else:
-                    self.update_object_gizmo(
-                            component_name, ob, gizmo)
+                        self.update_object_gizmo(
+                                component_name, ob, gizmo)
+
+                except ReferenceError:
+                    # This shouldn't happen, but if objects and widgets have gotten out of sync refresh the whole system
+                    bpy.app.timers.register(update_gizmos)
+                    return
 
 
-global objects_count
+objects_count = -1
 gizmo_system_registered = False
 msgbus_owners = []
 
@@ -183,15 +190,19 @@ def depsgraph_update_post(dummy):
 
 @persistent
 def load_post(dummy):
-    global objects_count
-    objects_count = len(bpy.data.objects)
     unregister_gizmo_system()
     register_gizmo_system()
 
 
 def register_gizmo_system():
+    global objects_count
     global gizmo_system_registered
     global msgbus_owners
+
+    try:
+        objects_count = len(bpy.data.objects)
+    except AttributeError:
+        pass
 
     if not depsgraph_update_post in bpy.app.handlers.depsgraph_update_post:
         bpy.app.handlers.depsgraph_update_post.append(
@@ -225,6 +236,7 @@ def register_gizmos():
         pass
 
 def unregister_gizmo_system():
+    global objects_count
     global gizmo_system_registered
     global msgbus_owners
 
@@ -244,6 +256,7 @@ def unregister_gizmo_system():
 
     unregister_gizmos()
     gizmo_system_registered = False
+    objects_count = -1
 
 def unregister_gizmos():
     try:

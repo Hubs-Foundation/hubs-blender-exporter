@@ -95,7 +95,7 @@ def find_active_undo_step_index(undo_steps):
 
 
 @persistent
-def append_link_handler(dummy):
+def undo_stack_handler(dummy):
     global previous_undo_steps_dump
     global previous_undo_step_index
     global file_loading
@@ -125,11 +125,20 @@ def append_link_handler(dummy):
     undo_step_index = find_active_undo_step_index(undo_steps)
 
     # Handle the current undo step.  This is needed for do, redo, and undo because the step holds the unmodified data, so the migration needs to be applied each time it becomes active.
-    active_undo_step = undo_steps[undo_step_index]
-    undo_name = active_undo_step.split("name=")[-1][1:-1]
+    if undo_step_index < previous_undo_step_index:
+        active_undo_step = undo_steps[undo_step_index+1]
+        step_type = 'UNDO'
+    else:
+        active_undo_step = undo_steps[undo_step_index]
+        step_type = 'DO'
 
-    if undo_name in {'Append', 'Link'}:
+    step_name = active_undo_step.split("name=")[-1][1:-1]
+
+    if step_type == 'DO' and step_name in {'Append', 'Link'}:
         migrate_components('LOCAL')
+
+    if step_name in {'Add Hubs Component', 'Remove Hubs Component', 'Delete'}:
+        update_gizmos()
 
     # Store things for comparison next time.
     previous_undo_steps_dump = undo_steps_dump
@@ -143,8 +152,8 @@ def register():
     if not version_update in bpy.app.handlers.save_pre:
         bpy.app.handlers.save_pre.append(version_update)
 
-    if not append_link_handler in bpy.app.handlers.depsgraph_update_post:
-        bpy.app.handlers.depsgraph_update_post.append(append_link_handler)
+    if not undo_stack_handler in bpy.app.handlers.depsgraph_update_post:
+        bpy.app.handlers.depsgraph_update_post.append(undo_stack_handler)
 
 
 def unregister():
@@ -154,5 +163,5 @@ def unregister():
     if version_update in bpy.app.handlers.save_pre:
         bpy.app.handlers.save_pre.remove(version_update)
 
-    if append_link_handler in bpy.app.handlers.depsgraph_update_post:
-        bpy.app.handlers.depsgraph_update_post.remove(append_link_handler)
+    if undo_stack_handler in bpy.app.handlers.depsgraph_update_post:
+        bpy.app.handlers.depsgraph_update_post.remove(undo_stack_handler)
