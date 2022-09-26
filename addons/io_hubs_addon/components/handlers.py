@@ -11,6 +11,7 @@ file_just_loaded = False
 previous_undo_steps_dump = ""
 previous_undo_step_index = 0
 
+
 def migrate_components(migration_type):
     version = (0,0,0)
     if migration_type == 'GLOBAL':
@@ -40,6 +41,7 @@ def migrate_components(migration_type):
     if migration_type == 'LOCAL':
         update_gizmos()
 
+
 @persistent
 def load_post(dummy):
     global file_just_loaded
@@ -66,6 +68,7 @@ def find_active_undo_step_index(undo_steps):
         index += 1
 
     return None
+
 
 @persistent
 def append_link_handler(dummy):
