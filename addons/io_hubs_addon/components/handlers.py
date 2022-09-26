@@ -8,7 +8,7 @@ import io
 import sys
 
 file_just_loaded = False
-undo_step_archive = []
+previous_undo_steps_dump = ""
 previous_undo_step_index = 0
 
 def migrate_components(migration_type):
@@ -43,10 +43,10 @@ def migrate_components(migration_type):
 @persistent
 def load_post(dummy):
     global file_just_loaded
-    global undo_step_archive
+    global previous_undo_steps_dump
     global previous_undo_step_index
     file_just_loaded = True
-    undo_step_archive = []
+    previous_undo_steps_dump = ""
     previous_undo_step_index = 0
     migrate_components('GLOBAL')
 
@@ -70,7 +70,7 @@ def find_active_undo_step_index(undo_steps):
 @persistent
 def append_link_handler(dummy):
     global file_just_loaded
-    global undo_step_archive
+    global previous_undo_steps_dump
     global previous_undo_step_index
 
     if file_just_loaded:
@@ -83,6 +83,11 @@ def append_link_handler(dummy):
         bpy.context.window_manager.print_undo_steps()
 
     undo_steps_dump = binary_stream.getvalue().decode(sys.stdout.encoding)
+
+    if undo_steps_dump == previous_undo_steps_dump:
+        # The undo stack hasn't changed, so return early.  Note: this prevents modal operators from triggering things repeatedly.
+        return
+
     undo_steps = undo_steps_dump.split("\n")[1:-1]
     undo_step_index = find_active_undo_step_index(undo_steps)
 
@@ -90,16 +95,14 @@ def append_link_handler(dummy):
         previous_undo_step_index = undo_step_index
         return
 
-    if undo_steps == undo_step_archive:
-        return
-
-    undo_step_archive = undo_steps
-    previous_undo_step_index = undo_step_index
     active_undo_step = undo_steps[undo_step_index]
     undo_name = active_undo_step.split("name=")[-1][1:-1]
 
     if undo_name in {'Append', 'Link'}:
         migrate_components('LOCAL')
+
+    previous_undo_steps_dump = undo_steps_dump
+    previous_undo_step_index = undo_step_index
 
 
 def register():
