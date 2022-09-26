@@ -128,8 +128,8 @@ class HubsGizmoGroup(GizmoGroup):
 
     def refresh(self, context):
         for component_name in self.widgets:
-            components_widgets = self.widgets[component_name].copy()
-            for widget in components_widgets.values():
+            component_widgets = self.widgets[component_name].copy()
+            for widget in component_widgets.values():
                 gizmo = widget['gizmo']
                 ob = widget['ob']
                 host_name = widget['host_name']
