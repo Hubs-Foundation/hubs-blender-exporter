@@ -153,7 +153,7 @@ else: # Linux or Mac
 
 
 @contextmanager
-def get_c_stdout(binary_stream):
+def redirect_c_stdout(binary_stream):
     stdout_file_descriptor = sys.stdout.fileno()
     original_stdout_file_descriptor_copy = os.dup(stdout_file_descriptor)
     pipe_read_end, pipe_write_end = os.pipe() # os.pipe returns two file descriptors.
@@ -179,7 +179,7 @@ def get_c_stdout(binary_stream):
         # Close the remaining open file descriptor.
         os.close(original_stdout_file_descriptor_copy)
 
-def host_components(host):
+def get_host_components(host):
     for component_item in host.hubs_component_list.items:
         component_name = component_item.name
         component_class = get_component_by_name(component_name)

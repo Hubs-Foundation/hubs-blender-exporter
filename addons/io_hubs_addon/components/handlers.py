@@ -1,8 +1,8 @@
 import bpy
 from bpy.app.handlers import persistent
 from .components_registry import get_components_registry
-from .utils import get_c_stdout
-from .utils import host_components
+from .utils import redirect_c_stdout
+from .utils import get_host_components
 from .gizmos import update_gizmos
 import io
 import sys
@@ -19,20 +19,20 @@ def migrate_components(migration_type):
             return
 
     for scene in bpy.data.scenes:
-        for component in host_components(scene):
+        for component in get_host_components(scene):
             if migration_type == 'LOCAL':
                 version = (0,0,0) # TODO: add version to components.
             component.migrate(version, scene)
 
     for ob in bpy.data.objects:
-        for component in host_components(ob):
+        for component in get_host_components(ob):
             if migration_type == 'LOCAL':
                 version = (0,0,0) # TODO: add version to components.
             component.migrate(version, ob, ob=ob)
 
         if ob.type == 'ARMATURE':
             for bone in ob.data.bones:
-                for component in host_components(bone):
+                for component in get_host_components(bone):
                     if migration_type == 'LOCAL':
                         version = (0,0,0) # TODO: add version to components.
                     component.migrate(version, bone, ob=ob)
@@ -74,7 +74,7 @@ def append_link_handler(dummy):
 
     binary_stream = io.BytesIO()
 
-    with get_c_stdout(binary_stream):
+    with redirect_c_stdout(binary_stream):
         bpy.context.window_manager.print_undo_steps()
 
     undo_steps_dump = binary_stream.getvalue().decode(sys.stdout.encoding)
