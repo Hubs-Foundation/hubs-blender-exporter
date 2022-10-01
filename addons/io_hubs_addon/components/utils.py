@@ -5,6 +5,8 @@ from mathutils import Vector
 from contextlib import contextmanager
 import os
 import sys
+import platform
+import ctypes
 
 V_S1 = Vector((1.0, 1.0, 1.0))
 
@@ -117,31 +119,65 @@ def redraw_component_ui(context):
                 area.tag_redraw()
 
 
+if platform.system() == "Windows":
+    try:
+        # Get the CRT Blender's using (currently ships with Blender)
+        libc = ctypes.windll.LoadLibrary('api-ms-win-crt-stdio-l1-1-0')
+
+        def c_fflush():
+            try:
+                libc.fflush(None)
+            except:
+                print("Error: Unable to flush the C stdout")
+    except:
+        print("Error: Unable to find the C runtime.")
+        def c_fflush():
+            print("Error: Unable to flush the C stdout")
+
+else: # Linux or Mac
+    try:
+        import ctypes.util
+        libc = ctypes.CDLL(ctypes.util.find_library('c'))
+        c_stdout = ctypes.c_void_p.in_dll(libc, 'stdout')
+
+        def c_fflush():
+            try:
+                libc.fflush(c_stdout)
+            except:
+                print("Warning: Unable to flush the C stdout.")
+
+    except: # It seems that Linux/Mac doesn't strictly require a C-level flush to work, so skip it if needed.
+        print("Warning: Unable to find the C runtime.")
+        def c_fflush():
+            pass
+
+
 @contextmanager
 def get_c_stdout(binary_stream):
-    stdout = sys.stdout
-    stdout_file_descriptor = stdout.fileno()
+    stdout_file_descriptor = sys.stdout.fileno()
     original_stdout_file_descriptor_copy = os.dup(stdout_file_descriptor)
-    pipe_read_end, pipe_write_end = os.pipe()
+    pipe_read_end, pipe_write_end = os.pipe() # os.pipe returns two file descriptors.
 
     try:
+        # Flush the C-level buffer of stdout before redirecting.  This should make sure that only the desired data is captured.
+        c_fflush()
+        # Redirect stdout to your pipe.
         os.dup2(pipe_write_end, stdout_file_descriptor)
         yield # wait for input
     finally:
-        stdout.write("\f")
-        stdout.flush()
-
-        while True:
-            byte = os.read(pipe_read_end, 1)
-            binary_stream.write(byte)
-
-            if byte.decode(stdout.encoding) == "\f":
-                break
-
+        # Flush the C-level buffer of stdout before returning things to normal.  This seems to be mainly needed on Windows because it looks like Windows changes the buffering policy to be fully buffered when redirecting stdout.
+        c_fflush()
+        # Redirect stdout back to the original file descriptor.
         os.dup2(original_stdout_file_descriptor_copy, stdout_file_descriptor)
-        os.close(original_stdout_file_descriptor_copy)
+        # Close the write end of the pipe to allow reading.
         os.close(pipe_write_end)
-        os.close(pipe_read_end)
+        # Read what was written to the pipe and pass it to the binary stream for use outside this function.
+        pipe_reader = os.fdopen(pipe_read_end, 'rb')
+        binary_stream.write(pipe_reader.read())
+        # Close the reader, also closes the pipe_read_end file descriptor.
+        pipe_reader.close()
+        # Close the remaining open file descriptor.
+        os.close(original_stdout_file_descriptor_copy)
 
 def host_components(host):
     for component_item in host.hubs_component_list.items:

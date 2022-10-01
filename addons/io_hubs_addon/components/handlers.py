@@ -7,7 +7,6 @@ from .gizmos import update_gizmos
 import io
 import sys
 
-file_just_loaded = False
 previous_undo_steps_dump = ""
 previous_undo_step_index = 0
 
@@ -44,10 +43,8 @@ def migrate_components(migration_type):
 
 @persistent
 def load_post(dummy):
-    global file_just_loaded
     global previous_undo_steps_dump
     global previous_undo_step_index
-    file_just_loaded = True
     previous_undo_steps_dump = ""
     previous_undo_step_index = 0
     migrate_components('GLOBAL')
@@ -72,13 +69,8 @@ def find_active_undo_step_index(undo_steps):
 
 @persistent
 def append_link_handler(dummy):
-    global file_just_loaded
     global previous_undo_steps_dump
     global previous_undo_step_index
-
-    if file_just_loaded:
-        file_just_loaded = False
-        return
 
     binary_stream = io.BytesIO()
 
@@ -86,6 +78,7 @@ def append_link_handler(dummy):
         bpy.context.window_manager.print_undo_steps()
 
     undo_steps_dump = binary_stream.getvalue().decode(sys.stdout.encoding)
+    binary_stream.close()
 
     if undo_steps_dump == previous_undo_steps_dump:
         # The undo stack hasn't changed, so return early.  Note: this prevents modal operators from triggering things repeatedly.
