@@ -7,6 +7,7 @@ import os
 import sys
 import platform
 import ctypes
+import ctypes.util
 
 V_S1 = Vector((1.0, 1.0, 1.0))
 
@@ -119,34 +120,61 @@ def redraw_component_ui(context):
                 area.tag_redraw()
 
 
+# Note: Set up stuff specifically for C FILE pointers so that they aren't truncated to 32 bits on 64 bit systems.
+class _FILE(ctypes.Structure):
+    """opaque C FILE type"""
+
+
 if platform.system() == "Windows":
     try:
-        # Get the CRT Blender's using (currently ships with Blender)
+        # Get stdio from the CRT Blender's using (currently ships with Blender)
         libc = ctypes.windll.LoadLibrary('api-ms-win-crt-stdio-l1-1-0')
 
-        def c_fflush():
-            try:
-                libc.fflush(None)
-            except:
-                print("Error: Unable to flush the C stdout")
-    except:
+        try: # Attempt to set up flushing for the C stdout.
+            libc.__acrt_iob_func.restype = ctypes.POINTER(_FILE)
+            stdout = libc.__acrt_iob_func(1)
+
+            def c_fflush():
+                try:
+                    libc.fflush(stdout)
+                except:
+                    print("Error: Unable to flush the C stdout")
+
+        except: # Fall back to flushing all open output streams.
+            print("Warning: Couldn't get the C stdout")
+            def c_fflush():
+                try:
+                    libc.fflush(None)
+                except:
+                    print("Error: Unable to flush the C stdout")
+
+    except: # Warn and fail gracefully.  Flushing the C stdout is required because Windows switches to full buffering when redirected.
         print("Error: Unable to find the C runtime.")
         def c_fflush():
             print("Error: Unable to flush the C stdout")
 
-else: # Linux or Mac
-    try:
-        import ctypes.util
-        libc = ctypes.CDLL(ctypes.util.find_library('c'))
-        c_stdout = ctypes.c_void_p.in_dll(libc, 'stdout')
+else: # Linux/Mac
+    try: # get the C runtime
+        libc = ctypes.cdll.LoadLibrary(ctypes.util.find_library('c'))
 
-        def c_fflush():
-            try:
-                libc.fflush(c_stdout)
-            except:
-                print("Warning: Unable to flush the C stdout.")
+        try: # Attempt to set up flushing for the C stdout.
+            if platform.system() == "Linux":
+                c_stdout = ctypes.POINTER(_FILE).in_dll(libc, 'stdout')
+            else: # Mac
+                c_stdout = ctypes.POINTER(_FILE).in_dll(libc, '__stdoutp')
 
-    except: # It seems that Linux/Mac doesn't strictly require a C-level flush to work, so skip it if needed.
+            def c_fflush():
+                try:
+                    libc.fflush(c_stdout)
+                except:
+                    print("Warning: Unable to flush the C stdout.")
+
+        except: # The C stdout wasn't found.  This is unlikely to happen, but if it does then just skip flushing since Linux/Mac doesn't seem to strictly require a C-level flush to work.
+            print("Warning: Couldn't get the C stdout.")
+            def c_fflush():
+                pass
+
+    except: # The C runtime wasn't found.  This is unlikely to happen, but if it does then just skip flushing since Linux/Mac doesn't seem to strictly require a C-level flush to work.
         print("Warning: Unable to find the C runtime.")
         def c_fflush():
             pass
