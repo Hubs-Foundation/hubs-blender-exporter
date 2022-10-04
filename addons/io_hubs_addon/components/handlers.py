@@ -72,6 +72,7 @@ def append_link_handler(dummy):
     global previous_undo_steps_dump
     global previous_undo_step_index
 
+    # Get a representation of the undo stack.
     binary_stream = io.BytesIO()
 
     with redirect_c_stdout(binary_stream):
@@ -81,22 +82,21 @@ def append_link_handler(dummy):
     binary_stream.close()
 
     if undo_steps_dump == previous_undo_steps_dump:
-        # The undo stack hasn't changed, so return early.  Note: this prevents modal operators from triggering things repeatedly.
+        # The undo stack hasn't changed, so return early.  Note: this prevents modal operators (and anything else) from triggering things repeatedly when nothing has changed.
         return
 
+    # Convert the undo stack representation into a list of undo steps (removing the unneeded header and footer in the process) and find the active undo step index.
     undo_steps = undo_steps_dump.split("\n")[1:-1]
     undo_step_index = find_active_undo_step_index(undo_steps)
 
-    if undo_step_index < previous_undo_step_index:
-        previous_undo_step_index = undo_step_index
-        return
-
+    # Handle the current undo step.  This is needed for do, redo, and undo because the step holds the unmodified data, so the migration needs to be applied each time it becomes active.
     active_undo_step = undo_steps[undo_step_index]
     undo_name = active_undo_step.split("name=")[-1][1:-1]
 
     if undo_name in {'Append', 'Link'}:
         migrate_components('LOCAL')
 
+    # Store things for comparison next time.
     previous_undo_steps_dump = undo_steps_dump
     previous_undo_step_index = undo_step_index
 
