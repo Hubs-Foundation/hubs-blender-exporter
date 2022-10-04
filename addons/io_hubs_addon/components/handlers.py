@@ -124,20 +124,38 @@ def undo_stack_handler(dummy):
     undo_steps = undo_steps_dump.split("\n")[1:-1]
     undo_step_index = find_active_undo_step_index(undo_steps)
 
-    # Handle the current undo step.  This is needed for do, redo, and undo because the step holds the unmodified data, so the migration needs to be applied each time it becomes active.
-    if undo_step_index < previous_undo_step_index:
-        active_undo_step = undo_steps[undo_step_index+1]
-        step_type = 'UNDO'
-    else:
-        active_undo_step = undo_steps[undo_step_index]
-        step_type = 'DO'
+    try: # Get the interim undo steps that need to be processed (can be more than one) and whether the change has been forward ('DO') or backward ('UNDO').  'UNDO' includes the previous index, while 'DO' does not.
+        if undo_step_index < previous_undo_step_index: # UNDO
+            start = previous_undo_step_index
+            stop = undo_step_index
+            interim_undo_steps = [undo_steps[i] for i in range(start, stop, -1)]
+        else: # DO
+            start = previous_undo_step_index + 1
+            stop = undo_step_index
+            interim_undo_steps = [undo_steps[i] for i in range(start, stop)]
 
-    step_name = active_undo_step.split("name=")[-1][1:-1]
+    except: # Fall back to just processing the current undo step.
+        print("Warning: Couldn't get the full range of undo steps to process.  Falling back to the current one.")
+        interim_undo_steps = []
 
-    if step_type == 'DO' and step_name in {'Append', 'Link'}:
+
+    # Handle the undo steps that have passed since the previous time this executed. This accounts for steps undone, users jumping around in the history ,and any updates that might have been missed.
+    for undo_step in interim_undo_steps:
+        step_name = undo_step.split("name=")[-1][1:-1]
+
+        if step_name in {'Append', 'Link'}:
+            update_gizmos()
+
+        if step_name in {'Add Hubs Component', 'Remove Hubs Component', 'Delete'}:
+            update_gizmos()
+
+    # Handle the active undo step.  Migrations (or anything that modifies blend data) need to be handled here because the undo step in which they occurred holds the unmodified data, so the modifications need to be applied each time it becomes active.
+    active_step_name = undo_steps[undo_step_index].split("name=")[-1][1:-1]
+
+    if active_step_name in {'Append', 'Link'}:
         migrate_components('LOCAL')
 
-    if step_name in {'Add Hubs Component', 'Remove Hubs Component', 'Delete'}:
+    if active_step_name in {'Add Hubs Component', 'Remove Hubs Component', 'Delete'}:
         update_gizmos()
 
     # Store things for comparison next time.
