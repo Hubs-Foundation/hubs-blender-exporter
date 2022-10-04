@@ -100,7 +100,7 @@ class HubsGizmoGroup(GizmoGroup):
     def setup(self, context):
         self.widgets = {}
 
-        for ob in bpy.data.objects:
+        for ob in context.scene.objects:
             self.add_gizmo(ob, ob, 'OBJECT')
             if ob.type == 'ARMATURE':
                 if ob.mode == 'EDIT':
