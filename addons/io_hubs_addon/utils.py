@@ -1,9 +1,9 @@
 def get_addon_package():
     return __package__
 
-def get_version_string():
+def get_version():
     from . import (bl_info)
-    return '.'.join(map(str, bl_info['version']))
+    return bl_info['version']
 
 import functools
 

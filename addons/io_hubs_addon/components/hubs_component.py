@@ -1,8 +1,8 @@
 from bpy.types import PropertyGroup
-from bpy.props import StringProperty
+from bpy.props import IntVectorProperty
 from ..io.utils import gather_properties
 from .types import Category, PanelType, NodeType
-from ..utils import get_version_string
+from ..utils import get_version
 
 
 class HubsComponent(PropertyGroup):
@@ -24,7 +24,7 @@ class HubsComponent(PropertyGroup):
     }
 
     # Version of the add-on this component was created with.
-    addon_version: StringProperty()
+    addon_version: IntVectorProperty(size=3)
 
     @classmethod
     def __get_definition(cls, key, default):
@@ -69,7 +69,7 @@ class HubsComponent(PropertyGroup):
     @classmethod
     def init_addon_version(cls, obj):
         component = getattr(obj, cls.get_id())
-        component.addon_version = get_version_string()
+        component.addon_version = get_version()
 
     @classmethod
     def create_gizmo(cls, obj, gizmo_group):

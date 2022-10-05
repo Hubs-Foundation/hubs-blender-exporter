@@ -2,7 +2,6 @@ import bpy
 from bpy.props import PointerProperty, IntVectorProperty
 from ..components.components_registry import get_components_registry
 from .utils import gather_lightmap_texture_info
-from ..utils import get_version_string
 
 hubs_config = {
     "gltfExtensionName": "MOZ_hubs_components",
@@ -23,6 +22,11 @@ def patched_gather_gltf(exporter, export_settings):
     export_user_extensions('hubs_gather_gltf_hook',
                            export_settings, exporter._GlTF2Exporter__gltf)
     exporter._GlTF2Exporter__traverse(exporter._GlTF2Exporter__gltf.extensions)
+
+
+def get_version_string():
+    from .. import (bl_info)
+    return str(bl_info['version'][0]) + '.' + str(bl_info['version'][1]) + '.' + str(bl_info['version'][2])
 
 
 def glTF2_pre_export_callback(export_settings):
