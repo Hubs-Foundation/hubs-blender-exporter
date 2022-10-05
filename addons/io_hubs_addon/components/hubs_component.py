@@ -23,6 +23,8 @@ class HubsComponent(PropertyGroup):
         'icon': 'icon.png'
     }
 
+    # Properties defined here are for internal use and won't be displayed by default in components or exported.
+
     # Version of the add-on this component was created with.
     addon_version: IntVectorProperty(size=3)
 
@@ -99,7 +101,7 @@ class HubsComponent(PropertyGroup):
 
     def draw(self, context, layout, panel):
         '''Draw method to be called by the panel. The base class method will print all the component properties'''
-        for key in self.__annotations__.keys():
+        for key in self.get_properties():
             if not self.bl_rna.properties[key].is_hidden:
                 layout.prop(data=self, property=key)
 
@@ -122,7 +124,8 @@ class HubsComponent(PropertyGroup):
     @classmethod
     def get_properties(cls):
         if hasattr(cls, '__annotations__'):
-            return cls.__annotations__.keys()
+            # Python versions below 3.10 will sometimes return the base class' annotations if there are none in the subclass, so make sure only the subclass' annotations are returned.
+            return cls.__annotations__.keys() - HubsComponent.__annotations__.keys()
         return {}
 
     @classmethod
