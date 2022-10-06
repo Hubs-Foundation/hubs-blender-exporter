@@ -4,6 +4,7 @@ from .components_registry import get_components_registry
 from .utils import redirect_c_stdout
 from .utils import get_host_components
 from .gizmos import update_gizmos
+from ..utils import get_version
 import io
 import sys
 
@@ -13,29 +14,33 @@ previous_undo_step_index = 0
 
 def migrate_components(migration_type):
     version = (0,0,0)
+    global_version = get_version()
     if migration_type == 'GLOBAL':
         version = tuple(bpy.context.scene.HubsComponentsExtensionProperties.version)
-        if version == (1,0,0):
+        if version == global_version:
             return
 
     for scene in bpy.data.scenes:
         for component in get_host_components(scene):
             if migration_type == 'LOCAL':
-                version = (0,0,0) # TODO: add version to components.
+                version = tuple(component.addon_version)
             component.migrate(version, scene)
+            component.addon_version = global_version
 
     for ob in bpy.data.objects:
         for component in get_host_components(ob):
             if migration_type == 'LOCAL':
-                version = (0,0,0) # TODO: add version to components.
+                version = tuple(component.addon_version)
             component.migrate(version, ob, ob=ob)
+            component.addon_version = global_version
 
         if ob.type == 'ARMATURE':
             for bone in ob.data.bones:
                 for component in get_host_components(bone):
                     if migration_type == 'LOCAL':
-                        version = (0,0,0) # TODO: add version to components.
+                        version = tuple(component.addon_version)
                     component.migrate(version, bone, ob=ob)
+                    component.addon_version = global_version
 
     if migration_type == 'LOCAL':
         update_gizmos()
