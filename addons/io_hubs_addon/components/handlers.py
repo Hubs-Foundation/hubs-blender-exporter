@@ -77,6 +77,10 @@ def append_link_handler(dummy):
     global previous_undo_steps_dump
     global previous_undo_step_index
 
+    # Return if Blender isn't in a fully loaded state. (Prevents Blender crashing)
+    if not bpy.context.space_data:
+        return
+
     # Get a representation of the undo stack.
     binary_stream = io.BytesIO()
 
