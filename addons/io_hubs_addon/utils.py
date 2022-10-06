@@ -1,6 +1,10 @@
 def get_addon_package():
     return __package__
 
+def get_version():
+    from . import (bl_info)
+    return bl_info['version']
+
 import functools
 
 def rsetattr(obj, attr, val):
