@@ -94,7 +94,7 @@ class MorphAudioFeedback(HubsComponent):
     def poll(cls, context, panel_type):
         return context.object.type == 'MESH'
 
-    def migrate(self, version, host, ob=None):
+    def migrate(self, version, host, migration_report, ob=None):
         if version < (1, 0, 0):
             shape_keys = get_object_shape_keys(self, host)
             list_ids = list(map(lambda x: x[0], shape_keys))

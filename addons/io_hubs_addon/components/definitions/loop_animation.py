@@ -657,7 +657,7 @@ class LoopAnimation(HubsComponent):
 
         unregister_msgbus()
 
-    def migrate(self, version, host, ob=None):
+    def migrate(self, version, host, migration_report, ob=None):
         if version < (1, 0, 0):
             tracks = self.clip.split(",")
             for track_name in tracks:
@@ -682,6 +682,13 @@ class LoopAnimation(HubsComponent):
                     track.strip_name = strip_name if is_default_name(nla_track.name) else ''
                     track.action_name = action_name if is_default_name(nla_track.name) else ''
                     track.track_type = track_type
+
+            host_type = "bone" if hasattr(host, "tail") else "object"
+            if host_type == "bone":
+                host_reference = f"\"{host.name}\" in \"{host.id_data.name_full}\""
+            else:
+                host_reference = f"\"{host.name_full}\""
+            migration_report.append(f"Warning: The Loop Animation component on the {host_type} {host_reference} may not have migrated correctly")
 
 
 def register_module():

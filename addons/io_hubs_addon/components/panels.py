@@ -133,11 +133,19 @@ class HubsBonePanel(bpy.types.Panel):
         draw_components_list(self, context)
 
 
+def window_menu_addition(self, context):
+    layout = self.layout
+    layout.separator()
+    layout.operator("wm.hubs_view_last_report")
+
+
 def register():
     bpy.utils.register_class(HubsObjectPanel)
     bpy.utils.register_class(HubsScenePanel)
     bpy.utils.register_class(HubsMaterialPanel)
     bpy.utils.register_class(HubsBonePanel)
+
+    bpy.types.TOPBAR_MT_window.append(window_menu_addition)
 
 
 def unregister():
@@ -145,3 +153,5 @@ def unregister():
     bpy.utils.unregister_class(HubsScenePanel)
     bpy.utils.unregister_class(HubsMaterialPanel)
     bpy.utils.unregister_class(HubsBonePanel)
+
+    bpy.types.TOPBAR_MT_window.remove(window_menu_addition)

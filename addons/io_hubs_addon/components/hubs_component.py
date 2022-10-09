@@ -117,9 +117,10 @@ class HubsComponent(PropertyGroup):
         '''This is called by the exporter after the export process has finished'''
         pass
 
-    def migrate(self, version, host, ob=None):
+    def migrate(self, version, host, migration_report, ob=None):
         '''This is called when an object component needs to migrate the data from previous add-on versions.
         The version argument represents the addon version the component came from, as a tuple.
+        The migration_report argument is a list that you can append messages to and they will be displayed to the user after the migration has finished.
         '''
         pass
 

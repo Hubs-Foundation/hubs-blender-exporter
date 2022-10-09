@@ -16,6 +16,8 @@ file_loading = False
 def migrate_components(migration_type):
     version = (0,0,0)
     global_version = get_version()
+    migration_report = []
+    failed_migrations = []
     if migration_type == 'GLOBAL':
         version = tuple(bpy.context.scene.HubsComponentsExtensionProperties.version)
         if version == global_version:
@@ -25,26 +27,53 @@ def migrate_components(migration_type):
         for component in get_host_components(scene):
             if migration_type == 'LOCAL':
                 version = tuple(component.addon_version)
-            component.migrate(version, scene)
-            component.addon_version = global_version
+            try:
+                component.migrate(version, scene, migration_report)
+                component.addon_version = global_version
+            except Exception as e:
+                print(e)
+                error = f"Error: Migration failed for component {component.get_display_name()} on scene \"{scene.name_full}\""
+                migration_report.append(error)
+                failed_migrations.append(error)
 
     for ob in bpy.data.objects:
         for component in get_host_components(ob):
             if migration_type == 'LOCAL':
                 version = tuple(component.addon_version)
-            component.migrate(version, ob, ob=ob)
-            component.addon_version = global_version
-
+            try:
+                component.migrate(version, ob, migration_report, ob=ob)
+                component.addon_version = global_version
+            except Exception as e:
+                print(e)
+                error = f"Error: Migration failed for component {component.get_display_name()} on object \"{ob.name_full}\""
+                migration_report.append(error)
+                failed_migrations.append(error)
         if ob.type == 'ARMATURE':
             for bone in ob.data.bones:
                 for component in get_host_components(bone):
                     if migration_type == 'LOCAL':
                         version = tuple(component.addon_version)
-                    component.migrate(version, bone, ob=ob)
-                    component.addon_version = global_version
+                    try:
+                        component.migrate(version, bone, migration_report, ob=ob)
+                        component.addon_version = global_version
+                    except Exception as e:
+                        print(e)
+                        error = f"Error: Migration failed for component {component.get_display_name()} on bone \"{bone.name}\" in \"{ob.name_full}\""
+                        migration_report.append(error)
+                        failed_migrations.append(error)
 
     if migration_type == 'LOCAL':
         update_gizmos()
+
+        if migration_report:
+            def report_migration():
+                bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Migration Report", report_string='\n'.join(migration_report))
+            bpy.app.timers.register(report_migration)
+
+    if failed_migrations and migration_type == 'GLOBAL':
+        def report_failed_migrations():
+            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Migration Report", report_string='\n'.join(failed_migrations))
+        bpy.app.timers.register(report_failed_migrations)
 
 
 @persistent

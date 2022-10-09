@@ -28,7 +28,7 @@ class Spawner(HubsComponent):
             }
         }
 
-    def migrate(self, version, host, ob=None):
+    def migrate(self, version, host, migration_report, ob=None):
         if version < (1, 0, 0):
             self.applyGravity = self[
                 'mediaOptions']['applyGravity']

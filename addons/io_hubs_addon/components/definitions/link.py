@@ -18,5 +18,5 @@ class Link(HubsComponent):
     href: StringProperty(name="Link URL", description="Link URL",
                          default="https://mozilla.org")
 
-    def migrate(self, version, host, ob=None):
+    def migrate(self, version, host, migration_report, ob=None):
         migrate_networked(host)
