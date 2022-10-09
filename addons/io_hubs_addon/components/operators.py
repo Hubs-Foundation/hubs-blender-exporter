@@ -8,6 +8,7 @@ from .types import PanelType
 from .utils import get_object_source, dash_to_title, has_component, add_component, remove_component
 from .components_registry import get_components_registry, get_components_icons
 from ..preferences import get_addon_pref
+from .handlers import migrate_components
 
 
 class AddHubsComponent(Operator):
@@ -181,6 +182,17 @@ class RemoveHubsComponent(Operator):
         return {'FINISHED'}
 
 
+class MigrateHubsComponents(Operator):
+    bl_idname = "wm.migrate_hubs_components"
+    bl_label = "Migrate Hubs Components"
+    bl_description = "Loops through all objects/components and attempts to migrate them to the current version based on their internal version"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        migrate_components('LOCAL')
+        return {'FINISHED'}
+
+
 class ViewLastReport(Operator):
     bl_idname = "wm.hubs_view_last_report"
     bl_label = "View Last Hubs Report"
@@ -334,6 +346,7 @@ class ReportViewer(Operator):
 def register():
     bpy.utils.register_class(AddHubsComponent)
     bpy.utils.register_class(RemoveHubsComponent)
+    bpy.utils.register_class(MigrateHubsComponents)
     bpy.utils.register_class(ReportViewer)
     bpy.utils.register_class(ReportScroller)
     bpy.utils.register_class(ViewLastReport)
@@ -346,6 +359,7 @@ def register():
 def unregister():
     bpy.utils.unregister_class(AddHubsComponent)
     bpy.utils.unregister_class(RemoveHubsComponent)
+    bpy.utils.unregister_class(MigrateHubsComponents)
     bpy.utils.unregister_class(ReportViewer)
     bpy.utils.unregister_class(ReportScroller)
     bpy.utils.unregister_class(ViewLastReport)

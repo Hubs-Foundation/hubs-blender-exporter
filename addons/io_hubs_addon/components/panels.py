@@ -139,6 +139,12 @@ def window_menu_addition(self, context):
     layout.operator("wm.hubs_view_last_report")
 
 
+def object_menu_addition(self, context):
+    layout = self.layout
+    layout.separator()
+    layout.operator("wm.migrate_hubs_components")
+
+
 def register():
     bpy.utils.register_class(HubsObjectPanel)
     bpy.utils.register_class(HubsScenePanel)
@@ -146,6 +152,7 @@ def register():
     bpy.utils.register_class(HubsBonePanel)
 
     bpy.types.TOPBAR_MT_window.append(window_menu_addition)
+    bpy.types.VIEW3D_MT_object.append(object_menu_addition)
 
 
 def unregister():
@@ -155,3 +162,4 @@ def unregister():
     bpy.utils.unregister_class(HubsBonePanel)
 
     bpy.types.TOPBAR_MT_window.remove(window_menu_addition)
+    bpy.types.VIEW3D_MT_object.remove(object_menu_addition)
