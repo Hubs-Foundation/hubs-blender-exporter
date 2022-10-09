@@ -10,6 +10,7 @@ import sys
 
 previous_undo_steps_dump = ""
 previous_undo_step_index = 0
+file_loading = False
 
 
 def migrate_components(migration_type):
@@ -50,8 +51,10 @@ def migrate_components(migration_type):
 def load_post(dummy):
     global previous_undo_steps_dump
     global previous_undo_step_index
+    global file_loading
     previous_undo_steps_dump = ""
     previous_undo_step_index = 0
+    file_loading = True
     migrate_components('GLOBAL')
 
 
@@ -76,10 +79,14 @@ def find_active_undo_step_index(undo_steps):
 def append_link_handler(dummy):
     global previous_undo_steps_dump
     global previous_undo_step_index
+    global file_loading
 
     # Return if Blender isn't in a fully loaded state. (Prevents Blender crashing)
-    if not bpy.context.space_data:
+    if file_loading and not bpy.context.space_data:
+        file_loading = False
         return
+
+    file_loading = False
 
     # Get a representation of the undo stack.
     binary_stream = io.BytesIO()
