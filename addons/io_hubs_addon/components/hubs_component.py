@@ -117,10 +117,13 @@ class HubsComponent(PropertyGroup):
         '''This is called by the exporter after the export process has finished'''
         pass
 
-    def migrate(self, version, host, migration_report, ob=None):
+    def migrate(self, migration_type, version, host, migration_report, ob=None):
         '''This is called when an object component needs to migrate the data from previous add-on versions.
+        The migration_type argument is the type of migration, GLOBAL represents file loads, and LOCAL represents things like append/link.
         The version argument represents the addon version the component came from, as a tuple.
+        The host argument is what the component is attached to, object/bone.
         The migration_report argument is a list that you can append messages to and they will be displayed to the user after the migration has finished.
+        The ob argument is used for bone migrations and is the armature object that the bone is part of.  Note: this is passed for object migrations as well.
         '''
         pass
 

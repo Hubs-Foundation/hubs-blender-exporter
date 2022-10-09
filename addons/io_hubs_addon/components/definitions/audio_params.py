@@ -98,16 +98,17 @@ class AudioParams(HubsComponent):
             'coneOuterGain': self.coneOuterGain
         }
 
-    def migrate(self, version, host, migration_report, ob=None):
+    def migrate(self, migration_type, version, host, migration_report, ob=None):
         if version < (1, 0, 0):
             self.coneInnerAngle = radians(
                 self.coneInnerAngle)
             self.coneOuterAngle = radians(
                 self.coneOuterAngle)
 
-            host_type = "bone" if hasattr(host, "tail") else "object"
-            if host_type == "bone":
-                host_reference = f"\"{host.name}\" in \"{host.id_data.name_full}\""
-            else:
-                host_reference = f"\"{host.name_full}\""
-            migration_report.append(f"Warning: The Media Cone angles may not have migrated correctly for the Audio Params component on the {host_type} {host_reference}")
+            if migration_type == 'LOCAL':
+                host_type = "bone" if hasattr(host, "tail") else "object"
+                if host_type == "bone":
+                    host_reference = f"\"{host.name}\" in \"{host.id_data.name_full}\""
+                else:
+                    host_reference = f"\"{host.name_full}\""
+                migration_report.append(f"Warning: The Media Cone angles may not have migrated correctly for the Audio Params component on the {host_type} {host_reference}")

@@ -117,7 +117,7 @@ class MediaFrame(HubsComponent):
 
         return gizmo
 
-    def migrate(self, version, host, migration_report, ob=None):
+    def migrate(self, migration_type, version, host, migration_report, ob=None):
         migrate_networked(host)
 
         if version < (1, 0, 0):
@@ -125,12 +125,13 @@ class MediaFrame(HubsComponent):
                 bounds = Vector((bounds.x, bounds.z, bounds.y))
                 self.bounds = bounds
 
-                host_type = "bone" if hasattr(host, "tail") else "object"
-                if host_type == "bone":
-                    host_reference = f"\"{host.name}\" in \"{host.id_data.name_full}\""
-                else:
-                    host_reference = f"\"{host.name_full}\""
-                migration_report.append(f"Warning: The Media Frame component's Y and Z bounds on the {host_type} {host_reference} may not have migrated correctly")
+                if migration_type == 'LOCAL':
+                    host_type = "bone" if hasattr(host, "tail") else "object"
+                    if host_type == "bone":
+                        host_reference = f"\"{host.name}\" in \"{host.id_data.name_full}\""
+                    else:
+                        host_reference = f"\"{host.name_full}\""
+                    migration_report.append(f"Warning: The Media Frame component's Y and Z bounds on the {host_type} {host_reference} may not have migrated correctly")
 
     @staticmethod
     def register():

@@ -33,5 +33,5 @@ class Image(HubsComponent):
         items=PROJECTION_MODE,
         default="flat")
 
-    def migrate(self, version, host, migration_report, ob=None):
+    def migrate(self, migration_type, version, host, migration_report, ob=None):
         migrate_networked(host)

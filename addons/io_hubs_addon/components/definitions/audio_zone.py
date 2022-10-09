@@ -53,5 +53,5 @@ class AudioZone(HubsComponent):
 
         return gizmo
 
-    def migrate(self, version, host, migration_report, ob=None):
+    def migrate(self, migration_type, version, host, migration_report, ob=None):
         migrate_networked(host)

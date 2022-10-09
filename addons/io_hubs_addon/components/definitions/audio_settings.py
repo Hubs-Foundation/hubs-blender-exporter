@@ -111,11 +111,12 @@ class AudioSettings(HubsComponent):
             'mediaConeOuterGain': self.mediaConeOuterGain,
         }
 
-    def migrate(self, version, host, migration_report, ob=None):
+    def migrate(self, migration_type, version, host, migration_report, ob=None):
         if version < (1, 0, 0):
             self.mediaConeInnerAngle = radians(
                 self.mediaConeInnerAngle)
             self.mediaConeOuterAngle = radians(
                 self.mediaConeOuterAngle)
 
-            migration_report.append(f"Warning: The Media Cone angles may not have migrated correctly for the Audio Settings component on scene \"{host.name_full}\"")
+            if migration_type == 'LOCAL':
+                migration_report.append(f"Warning: The Media Cone angles may not have migrated correctly for the Audio Settings component on scene \"{host.name_full}\"")
