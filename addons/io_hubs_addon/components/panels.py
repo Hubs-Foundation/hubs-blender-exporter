@@ -144,6 +144,11 @@ def object_menu_addition(self, context):
     layout.separator()
     layout.operator("wm.migrate_hubs_components")
 
+def gizmo_display_popover_addition(self, context):
+    layout = self.layout
+    layout.separator()
+    layout.operator("wm.update_hubs_gizmos")
+
 
 def register():
     bpy.utils.register_class(HubsObjectPanel)
@@ -153,6 +158,7 @@ def register():
 
     bpy.types.TOPBAR_MT_window.append(window_menu_addition)
     bpy.types.VIEW3D_MT_object.append(object_menu_addition)
+    bpy.types.VIEW3D_PT_gizmo_display.append(gizmo_display_popover_addition)
 
 
 def unregister():
@@ -163,3 +169,4 @@ def unregister():
 
     bpy.types.TOPBAR_MT_window.remove(window_menu_addition)
     bpy.types.VIEW3D_MT_object.remove(object_menu_addition)
+    bpy.types.VIEW3D_PT_gizmo_display.remove(gizmo_display_popover_addition)
