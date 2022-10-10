@@ -14,7 +14,7 @@ previous_window_setups = set()
 file_loading = False
 
 
-def migrate_components(migration_type, *, do_update_gizmos=True):
+def migrate_components(migration_type, *, do_update_gizmos=True, suppress_report=False):
     version = (0,0,0)
     global_version = get_version()
     migration_report = []
@@ -61,7 +61,7 @@ def migrate_components(migration_type, *, do_update_gizmos=True):
     if migration_type == 'LOCAL' and do_update_gizmos:
         update_gizmos()
 
-    if migration_report:
+    if migration_report and not suppress_report:
         def report_migration():
             bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Component Migration Report", report_string='\n'.join(migration_report))
         bpy.app.timers.register(report_migration)
@@ -132,10 +132,12 @@ def undo_stack_handler(dummy=None):
             start = previous_undo_step_index
             stop = undo_step_index
             interim_undo_steps = [undo_steps[i] for i in range(start, stop, -1)]
+            step_type = 'UNDO'
         else: # DO
             start = previous_undo_step_index + 1
             stop = undo_step_index
             interim_undo_steps = [undo_steps[i] for i in range(start, stop)]
+            step_type = 'DO'
 
     except: # Fall back to just processing the current undo step.
         print("Warning: Couldn't get the full range of undo steps to process.  Falling back to the current one.")
@@ -144,10 +146,24 @@ def undo_stack_handler(dummy=None):
 
     # Allow performance heavy tasks to be combined into one task that is executed at the end of the handler so they're run as little as possible.
     task_scheduler = set()
+    # task options
+    suppress_report = True
 
     # Handle the undo steps that have passed since the previous time this executed. This accounts for steps undone, users jumping around in the history ,and any updates that might have been missed.
     for undo_step in interim_undo_steps:
         step_name = undo_step.split("name=")[-1][1:-1]
+
+        if step_type == 'DO' and step_name in {'Link'}:
+            # Components need to be migrated after they are linked, but don't need to be remigrated when returning to the link step, and don't store the migrated values in subsequent undo steps until after they have been made local.
+            task_scheduler.add('migrate_components')
+            suppress_report = True
+            task_scheduler.add('update_gizmos')
+
+        if step_type == 'UNDO' and step_name in {'Make Local', 'Localized Data'}:
+            # Components need to be migrated again if they are returned to a linked state.
+            task_scheduler.add('migrate_components')
+            suppress_report = True
+            task_scheduler.add('update_gizmos')
 
         if step_name in {'Append', 'Link'}:
             task_scheduler.add('update_gizmos')
@@ -155,20 +171,37 @@ def undo_stack_handler(dummy=None):
         if step_name in {'Add Hubs Component', 'Remove Hubs Component', 'Delete'}:
             task_scheduler.add('update_gizmos')
 
+        if step_name in {'Add Object', 'Add Named Object', 'Overridden Data Hierarchy', 'Resync Overridden Data Hierarchy'}:
+            # Update gizmos when using various outliner/asset operators to add objects to the scene. 
+            task_scheduler.add('update_gizmos')
+
     # Handle the active undo step.  Migrations (or anything that modifies blend data) need to be handled here because the undo step in which they occurred holds the unmodified data, so the modifications need to be applied each time it becomes active.
     active_step_name = undo_steps[undo_step_index].split("name=")[-1][1:-1]
 
-    if active_step_name in {'Append', 'Link'}:
-        migrate_components('LOCAL', do_update_gizmos=False)
+    if step_type == 'DO' and active_step_name in {'Link'}:
+        # Components need to be migrated after they are linked, but don't need to be remigrated when returning to the link step, and don't store the migrated values in subsequent undo steps until after they have been made local.
+        task_scheduler.add('migrate_components')
+        suppress_report = False
+        task_scheduler.add('update_gizmos')
+
+    if active_step_name in {'Append'}:
+        task_scheduler.add('migrate_components')
+        suppress_report = step_type == 'UNDO'
         task_scheduler.add('update_gizmos')
 
     if active_step_name in {'Add Hubs Component', 'Remove Hubs Component', 'Delete'}:
         task_scheduler.add('update_gizmos')
 
-   # Execute the scheduled performance heavy tasks.
+    if active_step_name in {'Add Object', 'Add Named Object', 'Overridden Data Hierarchy', 'Resync Overridden Data Hierarchy'}:
+        # Update gizmos when using various outliner/asset operators to add objects to the scene.
+        task_scheduler.add('update_gizmos')
+
+    # Execute the scheduled performance heavy tasks.
     for task in task_scheduler:
         if task == 'update_gizmos':
             update_gizmos()
+        elif task == 'migrate_components':
+            migrate_components('LOCAL', do_update_gizmos=False, suppress_report=suppress_report)
         else:
             print('Error: unrecognized task scheduled')
 
