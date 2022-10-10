@@ -62,7 +62,7 @@ def migrate_components(migration_type):
 
     if migration_report:
         def report_migration():
-            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Migration Report", report_string='\n'.join(migration_report))
+            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Component Migration Report", report_string='\n'.join(migration_report))
         bpy.app.timers.register(report_migration)
 
 

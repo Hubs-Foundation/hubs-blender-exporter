@@ -211,6 +211,36 @@ class ViewLastReport(Operator):
         return {'FINISHED'}
 
 
+class ViewReportInInfoEditor(Operator):
+    bl_idname = "wm.hubs_view_report_in_info_editor"
+    bl_label = "View Report in the Info Editor"
+    bl_description = "Save the Hubs report to the Info Editor and open it for viewing"
+
+    title: StringProperty(default="")
+    report_string: StringProperty()
+
+    def highlight_info_report(self):
+        context_override = bpy.context.copy()
+        for window in bpy.context.window_manager.windows:
+            for area in window.screen.areas:
+                if area.type == 'INFO':
+                    for region in area.regions:
+                        if region.type == 'WINDOW':
+                            context_override['area'] = area
+                            context_override['region'] = region
+                            # Find and select the last info message for each Info editor.
+                            index = 0
+                            while bpy.ops.info.select_pick(context_override, report_index=index, extend=False) != {'CANCELLED'}:
+                                index += 1
+                            bpy.ops.info.select_pick(context_override, report_index=index, extend=False)
+
+    def execute(self, context):
+        self.report({'INFO'}, f"Hubs {self.title}\n{self.report_string}\nEnd of Hubs {self.title}")
+        bpy.ops.screen.info_log_show()
+        bpy.app.timers.register(self.highlight_info_report)
+        return {'FINISHED'}
+
+
 class ReportScroller(Operator):
     bl_idname = "wm.hubs_report_scroller"
     bl_label = "Hubs Report Scroller"
@@ -311,27 +341,11 @@ class ReportViewer(Operator):
 
         layout.separator()
 
-        layout.label(text="Click the OK button to close and view the report in the Info Editor")
-
-    def highlight_info_report(self):
-        context_override = bpy.context.copy()
-        for window in bpy.context.window_manager.windows:
-            for area in window.screen.areas:
-                if area.type == 'INFO':
-                    for region in area.regions:
-                        if region.type == 'WINDOW':
-                            context_override['area'] = area
-                            context_override['region'] = region
-                            # Find and select the last info message for each Info editor.
-                            index = 0
-                            while bpy.ops.info.select_pick(context_override, report_index=index, extend=False) != {'CANCELLED'}:
-                                index += 1
-                            bpy.ops.info.select_pick(context_override, report_index=index, extend=False)
+        op = layout.operator(ViewReportInInfoEditor.bl_idname)
+        op.title = self.title
+        op.report_string = self.report_string
 
     def execute(self, context):
-        self.report({'INFO'}, f"Hubs {self.title}\n{self.report_string}\nEnd of Hubs {self.title}")
-        bpy.ops.screen.info_log_show()
-        bpy.app.timers.register(self.highlight_info_report)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -350,6 +364,7 @@ def register():
     bpy.utils.register_class(ReportViewer)
     bpy.utils.register_class(ReportScroller)
     bpy.utils.register_class(ViewLastReport)
+    bpy.utils.register_class(ViewReportInInfoEditor)
     bpy.types.WindowManager.hubs_report_scroll_index = IntProperty(default=0, min=0)
     bpy.types.WindowManager.hubs_report_scroll_percentage = IntProperty(name = "Scroll Position", default=0, min=0, max=100, subtype='PERCENTAGE')
     bpy.types.WindowManager.hubs_report_last_title = StringProperty()
@@ -363,6 +378,7 @@ def unregister():
     bpy.utils.unregister_class(ReportViewer)
     bpy.utils.unregister_class(ReportScroller)
     bpy.utils.unregister_class(ViewLastReport)
+    bpy.utils.unregister_class(ViewReportInInfoEditor)
     del bpy.types.WindowManager.hubs_report_scroll_index
     del bpy.types.WindowManager.hubs_report_scroll_percentage
     del bpy.types.WindowManager.hubs_report_last_title
