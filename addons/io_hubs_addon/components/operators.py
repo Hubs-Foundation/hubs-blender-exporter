@@ -28,7 +28,9 @@ class AddHubsComponent(Operator):
         obj = get_object_source(context, self.panel_type)
         add_component(obj, self.component_name)
 
+        # Redraw panel and trigger depsgraph update
         context.area.tag_redraw()
+        obj.hide_render = obj.hide_render
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -179,7 +181,10 @@ class RemoveHubsComponent(Operator):
             return
         obj = get_object_source(context, self.panel_type)
         remove_component(obj, self.component_name)
+
+        # Redraw panel and trigger depsgraph update
         context.area.tag_redraw()
+        obj.hide_render = obj.hide_render
         return {'FINISHED'}
 
 

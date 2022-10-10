@@ -15,7 +15,7 @@ previous_view_layer_name = ""
 file_loading = False
 
 
-def migrate_components(migration_type):
+def migrate_components(migration_type, *, do_update_gizmos=True):
     version = (0,0,0)
     global_version = get_version()
     migration_report = []
@@ -59,7 +59,7 @@ def migrate_components(migration_type):
                         migration_report.append(error)
 
 
-    if migration_type == 'LOCAL':
+    if migration_type == 'LOCAL' and do_update_gizmos:
         update_gizmos()
 
     if migration_report:
@@ -147,29 +147,39 @@ def undo_stack_handler(dummy=None):
         interim_undo_steps = []
 
 
+    # Allow performance heavy tasks to be combined into one task that is executed at the end of the handler so they're run as little as possible.
+    task_scheduler = set()
+
     # Handle the undo steps that have passed since the previous time this executed. This accounts for steps undone, users jumping around in the history ,and any updates that might have been missed.
     for undo_step in interim_undo_steps:
         step_name = undo_step.split("name=")[-1][1:-1]
 
         if step_name in {'Append', 'Link'}:
-            update_gizmos()
+            task_scheduler.add('update_gizmos')
 
         if step_name in {'Add Hubs Component', 'Remove Hubs Component', 'Delete'}:
-            update_gizmos()
+            task_scheduler.add('update_gizmos')
 
     # Handle the active undo step.  Migrations (or anything that modifies blend data) need to be handled here because the undo step in which they occurred holds the unmodified data, so the modifications need to be applied each time it becomes active.
     active_step_name = undo_steps[undo_step_index].split("name=")[-1][1:-1]
 
     if active_step_name in {'Append', 'Link'}:
-        migrate_components('LOCAL')
+        migrate_components('LOCAL', do_update_gizmos=False)
+        task_scheduler.add('update_gizmos')
 
     if active_step_name in {'Add Hubs Component', 'Remove Hubs Component', 'Delete'}:
-        update_gizmos()
+        task_scheduler.add('update_gizmos')
 
     # Handle scene and view layer changes.  The step names aren't specific enough and the interim steps don't matter, so just check if the scene or view layer has changed.
     if previous_scene_name != bpy.context.scene.name or previous_view_layer_name != bpy.context.view_layer.name:
-        update_gizmos()
+        task_scheduler.add('update_gizmos')
 
+    # Execute the scheduled performance heavy tasks.
+    for task in task_scheduler:
+        if task == 'update_gizmos':
+            update_gizmos()
+        else:
+            print('Error: unrecognized task scheduled')
 
     # Store things for comparison next time.
     previous_undo_steps_dump = undo_steps_dump

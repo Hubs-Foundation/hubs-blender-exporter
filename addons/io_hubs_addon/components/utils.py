@@ -18,7 +18,8 @@ def add_component(obj, component_name):
 
     component_class = get_component_by_name(component_name)
     if component_class:
-        update_gizmos()
+        if 'create_gizmo' in component_class.__dict__:
+            update_gizmos()
         component_class.init_addon_version(obj)
         component_class.init(obj)
         for dep_name in component_class.get_deps():
@@ -40,7 +41,8 @@ def remove_component(obj, component_name):
     component_class = get_component_by_name(component_name)
     if component_class:
         del obj[component_class.get_id()]
-        update_gizmos()
+        if 'create_gizmo' in component_class.__dict__:
+            update_gizmos()
         for dep_name in component_class.get_deps():
             dep_class = get_component_by_name(dep_name)
             dep_name = dep_class.get_name()
