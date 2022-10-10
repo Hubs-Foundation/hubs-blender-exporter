@@ -14,7 +14,7 @@ previous_window_setups = set()
 file_loading = False
 
 
-def migrate_components(migration_type, *, do_update_gizmos=True, suppress_report=False):
+def migrate_components(migration_type, *, do_update_gizmos=True, suppress_report=False, override_report_title=""):
     version = (0,0,0)
     global_version = get_version()
     migration_report = []
@@ -62,8 +62,12 @@ def migrate_components(migration_type, *, do_update_gizmos=True, suppress_report
         update_gizmos()
 
     if migration_report and not suppress_report:
+        title = "Component Migration Report"
+        if override_report_title:
+            title = override_report_title
+
         def report_migration():
-            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Component Migration Report", report_string='\n'.join(migration_report))
+            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title=title, report_string='\n'.join(migration_report))
         bpy.app.timers.register(report_migration)
 
 
@@ -201,7 +205,7 @@ def undo_stack_handler(dummy=None):
         if task == 'update_gizmos':
             update_gizmos()
         elif task == 'migrate_components':
-            migrate_components('LOCAL', do_update_gizmos=False, suppress_report=suppress_report)
+            migrate_components('LOCAL', do_update_gizmos=False, suppress_report=suppress_report, override_report_title="Append/Link: Component Migration Report")
         else:
             print('Error: unrecognized task scheduled')
 
