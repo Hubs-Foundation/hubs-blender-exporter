@@ -77,7 +77,7 @@ class HubsGizmoGroup(GizmoGroup):
                 if not component_name in self.widgets:
                     self.widgets[component_name] = {}
 
-                host_key = ob.name+host.name
+                host_key = ob.name_full+host.name
                 if host_key not in self.widgets[component_name]:
                     self.widgets[component_name][host_key] = {
                         'ob': ob,
