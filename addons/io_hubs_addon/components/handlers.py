@@ -14,7 +14,7 @@ previous_window_setups = set()
 file_loading = False
 
 
-def migrate_components(migration_type, *, do_update_gizmos=True, suppress_report=False, override_report_title=""):
+def migrate_components(migration_type, *, do_update_gizmos=True, display_report=True, override_report_title=""):
     version = (0,0,0)
     global_version = get_version()
     migration_report = []
@@ -61,7 +61,7 @@ def migrate_components(migration_type, *, do_update_gizmos=True, suppress_report
     if migration_type == 'LOCAL' and do_update_gizmos:
         update_gizmos()
 
-    if migration_report and not suppress_report:
+    if migration_report and display_report:
         title = "Component Migration Report"
         if override_report_title:
             title = override_report_title
@@ -152,7 +152,7 @@ def undo_stack_handler(dummy=None):
     # Allow performance heavy tasks to be combined into one task that is executed at the end of the handler so they're run as little as possible.
     task_scheduler = set()
     # task options
-    suppress_report = True
+    display_report = False
 
     # Handle the undo steps that have passed since the previous time this executed. This accounts for steps undone, users jumping around in the history ,and any updates that might have been missed.
     for undo_step in interim_undo_steps:
@@ -161,13 +161,13 @@ def undo_stack_handler(dummy=None):
         if step_type == 'DO' and step_name in {'Link'}:
             # Components need to be migrated after they are linked, but don't need to be remigrated when returning to the link step, and don't store the migrated values in subsequent undo steps until after they have been made local.
             task_scheduler.add('migrate_components')
-            suppress_report = True
+            display_report = False
             task_scheduler.add('update_gizmos')
 
         if step_type == 'UNDO' and step_name in {'Make Local', 'Localized Data'}:
             # Components need to be migrated again if they are returned to a linked state.
             task_scheduler.add('migrate_components')
-            suppress_report = True
+            display_report = False
             task_scheduler.add('update_gizmos')
 
         if step_name in {'Append', 'Link'}:
@@ -186,12 +186,12 @@ def undo_stack_handler(dummy=None):
     if step_type == 'DO' and active_step_name in {'Link'}:
         # Components need to be migrated after they are linked, but don't need to be remigrated when returning to the link step, and don't store the migrated values in subsequent undo steps until after they have been made local.
         task_scheduler.add('migrate_components')
-        suppress_report = False
+        display_report = True
         task_scheduler.add('update_gizmos')
 
     if active_step_name in {'Append'}:
         task_scheduler.add('migrate_components')
-        suppress_report = step_type == 'UNDO'
+        display_report = (step_type == 'DO')
         task_scheduler.add('update_gizmos')
 
     if active_step_name in {'Add Hubs Component', 'Remove Hubs Component', 'Delete'}:
@@ -206,7 +206,7 @@ def undo_stack_handler(dummy=None):
         if task == 'update_gizmos':
             update_gizmos()
         elif task == 'migrate_components':
-            migrate_components('LOCAL', do_update_gizmos=False, suppress_report=suppress_report, override_report_title="Append/Link: Component Migration Report")
+            migrate_components('LOCAL', do_update_gizmos=False, display_report=display_report, override_report_title="Append/Link: Component Migration Report")
         else:
             print('Error: unrecognized task scheduled')
 
