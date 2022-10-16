@@ -162,7 +162,6 @@ def undo_stack_handler(dummy=None):
             # Components need to be migrated after they are linked, but don't need to be remigrated when returning to the link step, and don't store the migrated values in subsequent undo steps until after they have been made local.
             task_scheduler.add('migrate_components')
             display_report = False
-            task_scheduler.add('update_gizmos')
 
         if step_type == 'UNDO' and step_name in {'Make Local', 'Localized Data'}:
             # Components need to be migrated again if they are returned to a linked state.
@@ -170,15 +169,14 @@ def undo_stack_handler(dummy=None):
             display_report = False
             task_scheduler.add('update_gizmos')
 
-        if step_name in {'Append', 'Link'}:
+        if step_name in {'Add Hubs Component', 'Remove Hubs Component'}:
             task_scheduler.add('update_gizmos')
 
-        if step_name in {'Add Hubs Component', 'Remove Hubs Component', 'Delete'}:
-            task_scheduler.add('update_gizmos')
 
-        if step_name in {'Add Object', 'Add Named Object', 'Overridden Data Hierarchy', 'Resync Overridden Data Hierarchy'}:
-            # Update gizmos when using various outliner/asset operators to add objects to the scene. 
-            task_scheduler.add('update_gizmos')
+    # If the user has jumped ahead/back multiple undo steps, update the gizmos in case the number of objects/bones in the scene has remained the same, but gizmo objects have been added/removed.
+    if abs(previous_undo_step_index - undo_step_index) > 1:
+        task_scheduler.add('update_gizmos')
+
 
     # Handle the active undo step.  Migrations (or anything that modifies blend data) need to be handled here because the undo step in which they occurred holds the unmodified data, so the modifications need to be applied each time it becomes active.
     active_step_name = undo_steps[undo_step_index].split("name=")[-1][1:-1]
@@ -187,19 +185,14 @@ def undo_stack_handler(dummy=None):
         # Components need to be migrated after they are linked, but don't need to be remigrated when returning to the link step, and don't store the migrated values in subsequent undo steps until after they have been made local.
         task_scheduler.add('migrate_components')
         display_report = True
+
+    if step_type == 'DO' and active_step_name in {'Add Hubs Component', 'Remove Hubs Component'}:
         task_scheduler.add('update_gizmos')
 
     if active_step_name in {'Append'}:
         task_scheduler.add('migrate_components')
         display_report = (step_type == 'DO')
-        task_scheduler.add('update_gizmos')
 
-    if active_step_name in {'Add Hubs Component', 'Remove Hubs Component', 'Delete'}:
-        task_scheduler.add('update_gizmos')
-
-    if active_step_name in {'Add Object', 'Add Named Object', 'Overridden Data Hierarchy', 'Resync Overridden Data Hierarchy'}:
-        # Update gizmos when using various outliner/asset operators to add objects to the scene.
-        task_scheduler.add('update_gizmos')
 
     # Execute the scheduled performance heavy tasks.
     for task in task_scheduler:

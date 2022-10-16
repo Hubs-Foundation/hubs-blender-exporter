@@ -176,36 +176,42 @@ def redo_post(dummy):
 @persistent
 def depsgraph_update_post(dummy):
     global objects_count
-    if bpy.context.mode == 'OBJECT':
-        if len(bpy.data.objects) != objects_count:
-            update_gizmos()
-        objects_count = len(bpy.data.objects)
-    elif bpy.context.mode == 'EDIT_ARMATURE':
-        for ob in bpy.context.objects_in_mode:
-            if len(ob.data.edit_bones) != ob.data.hubs_old_bones_length:
-                update_gizmos()
-            ob.data.hubs_old_bones_length = len(ob.data.edit_bones)
+    do_gizmo_update = False
+    open_scenes_object_count = 0
+    wm = bpy.context.window_manager
+    for window in wm.windows:
+        open_scenes_object_count += len(window.scene.objects)
+        active_object = window.view_layer.objects.active
+        if active_object:
+            if active_object.type == 'ARMATURE' and active_object.mode == 'EDIT':
+                edited_objects = set(window.view_layer.objects.selected)
+                edited_objects.add(active_object)
+                for ob in edited_objects:
+                    if len(ob.data.edit_bones) != ob.data.hubs_old_bones_length:
+                        do_gizmo_update = True
+                        ob.data.hubs_old_bones_length = len(ob.data.edit_bones)
+
+    if open_scenes_object_count != objects_count:
+        do_gizmo_update = True
+
+    objects_count = open_scenes_object_count
+
+    if do_gizmo_update:
+        update_gizmos()
 
 
 @persistent
 def load_post(dummy):
+    global objects_count
+    objects_count = -1
     unregister_gizmo_system()
     register_gizmo_system()
 
 
 def register_gizmo_system():
-    global objects_count
     global gizmo_system_registered
     global msgbus_owners
 
-    try:
-        objects_count = len(bpy.data.objects)
-    except AttributeError:
-        pass
-
-    if not depsgraph_update_post in bpy.app.handlers.depsgraph_update_post:
-        bpy.app.handlers.depsgraph_update_post.append(
-            depsgraph_update_post)
     if not undo_post in bpy.app.handlers.undo_post:
         bpy.app.handlers.undo_post.append(
             undo_post)
@@ -237,13 +243,9 @@ def register_gizmos():
         pass
 
 def unregister_gizmo_system():
-    global objects_count
     global gizmo_system_registered
     global msgbus_owners
 
-    if depsgraph_update_post in bpy.app.handlers.depsgraph_update_post:
-        bpy.app.handlers.depsgraph_update_post.remove(
-            depsgraph_update_post)
     if undo_post in bpy.app.handlers.undo_post:
         bpy.app.handlers.undo_post.remove(
             undo_post)
@@ -257,7 +259,6 @@ def unregister_gizmo_system():
 
     unregister_gizmos()
     gizmo_system_registered = False
-    objects_count = -1
 
 def unregister_gizmos():
     try:
@@ -275,6 +276,9 @@ def register_functions():
     def register():
         if not load_post in bpy.app.handlers.load_post:
             bpy.app.handlers.load_post.append(load_post)
+        if not depsgraph_update_post in bpy.app.handlers.depsgraph_update_post:
+            bpy.app.handlers.depsgraph_update_post.append(
+                depsgraph_update_post)
 
         bpy.types.Armature.hubs_old_bones_length = IntProperty(options={'HIDDEN', 'SKIP_SAVE'})
 
@@ -283,6 +287,9 @@ def register_functions():
     def unregister():
         if load_post in bpy.app.handlers.load_post:
             bpy.app.handlers.load_post.remove(load_post)
+        if depsgraph_update_post in bpy.app.handlers.depsgraph_update_post:
+            bpy.app.handlers.depsgraph_update_post.remove(
+                depsgraph_update_post)
 
 
         unregister_gizmo_system()
