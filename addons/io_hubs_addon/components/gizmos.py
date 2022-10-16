@@ -86,17 +86,6 @@ class HubsGizmoGroup(GizmoGroup):
                         'gizmo': gizmo
                         }
 
-                    if host_type == 'OBJECT':
-                        owner = object()
-                        msgbus_owners.append(owner)
-                        subscribe_to = host.path_resolve("name", False)
-                        bpy.msgbus.subscribe_rna(
-                            key=subscribe_to,
-                            owner=owner,
-                            args=(bpy.context,),
-                            notify=msgbus_callback,
-                        )
-
     def setup(self, context):
         self.widgets = {}
 
