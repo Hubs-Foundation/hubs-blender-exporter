@@ -219,3 +219,31 @@ def get_host_components(host):
 
         component = getattr(host, component_class.get_id())
         yield component
+
+def wrap_text(text, max_length=70):
+    '''Wraps text in a string so that the total characters in a single line doesn't exceed the specified maximum length.  Lines are broken by word, and the increased width of capital letters is accounted for so that the displayed line length is roughly the same regardless of case.  The maximum length is based on lowercase characters.'''
+    wrapped_lines = []
+    text_line = ''
+    line_length = 0
+    words = text.split(' ')
+
+    for word in words:
+        word_length = 0
+        for char in word:
+            word_length += 1
+            if char.isupper():
+                word_length += 0.25
+
+        if line_length + word_length < max_length:
+            text_line += word + ' '
+            line_length += word_length + 1
+
+        else:
+            wrapped_lines.append(text_line.rstrip())
+            text_line = word + ' '
+            line_length = word_length + 1
+
+    if text_line.rstrip():
+        wrapped_lines.append(text_line.rstrip())
+
+    return wrapped_lines

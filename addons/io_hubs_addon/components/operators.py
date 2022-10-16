@@ -2,10 +2,9 @@ import bpy
 from bpy.props import StringProperty, IntProperty
 from bpy.types import Operator
 from functools import reduce
-import textwrap
 
 from .types import PanelType
-from .utils import get_object_source, dash_to_title, has_component, add_component, remove_component
+from .utils import get_object_source, dash_to_title, has_component, add_component, remove_component, wrap_text
 from .components_registry import get_components_registry, get_components_icons
 from ..preferences import get_addon_pref
 from .handlers import migrate_components
@@ -324,7 +323,7 @@ class ReportViewer(Operator):
             end_index = reports_length
 
         for report in self.reports[start_index:end_index]:
-            for i, text in enumerate(textwrap.wrap(report, width=90)):
+            for i, text in enumerate(wrap_text(report, max_length=90)):
                 if i == 0:
                     msg_row = box.row()
                     msg_row.scale_y = 0.7
