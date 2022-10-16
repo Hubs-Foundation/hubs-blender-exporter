@@ -14,10 +14,11 @@ previous_window_setups = set()
 file_loading = False
 
 
-def migrate_components(migration_type, *, do_update_gizmos=True, display_report=True, override_report_title=""):
+def migrate_components(migration_type, *, initiator='', do_update_gizmos=True, display_report=True, override_report_title=""):
     version = (0,0,0)
     global_version = get_version()
     migration_report = []
+    migration_occurred = False
     if migration_type == 'GLOBAL':
         version = tuple(bpy.context.scene.HubsComponentsExtensionProperties.version)
         if version == global_version:
@@ -27,6 +28,7 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
         for component in get_host_components(scene):
             if migration_type == 'LOCAL':
                 version = tuple(component.addon_version)
+                migration_occurred |= (version < global_version)
             try:
                 component.migrate(migration_type, version, scene, migration_report)
                 component.addon_version = global_version
@@ -38,6 +40,7 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
         for component in get_host_components(ob):
             if migration_type == 'LOCAL':
                 version = tuple(component.addon_version)
+                migration_occurred |= (version < global_version)
             try:
                 component.migrate(migration_type, version, ob, migration_report, ob=ob)
                 component.addon_version = global_version
@@ -50,6 +53,7 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
                 for component in get_host_components(bone):
                     if migration_type == 'LOCAL':
                         version = tuple(component.addon_version)
+                        migration_occurred |= (version < global_version)
                     try:
                         component.migrate(migration_type, version, bone, migration_report, ob=ob)
                         component.addon_version = global_version
@@ -65,6 +69,9 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
         title = "Component Migration Report"
         if override_report_title:
             title = override_report_title
+
+        if initiator == 'Link' and migration_occurred:
+            migration_report.insert(0, "WARNING: A MIGRATION WAS PERFORMED ON LINKED OBJECTS, THIS IS UNSTABLE AND MAY NOT BE PERMANENT.  CONTINUE AT YOUR OWN RISK!")
 
         def report_migration():
             bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title=title, report_string='\n'.join(migration_report))
@@ -153,6 +160,7 @@ def undo_stack_handler(dummy=None):
     task_scheduler = set()
     # task options
     display_report = False
+    migration_initiator = ''
 
     # Handle the undo steps that have passed since the previous time this executed. This accounts for steps undone, users jumping around in the history ,and any updates that might have been missed.
     for undo_step in interim_undo_steps:
@@ -184,6 +192,7 @@ def undo_stack_handler(dummy=None):
     if step_type == 'DO' and active_step_name in {'Link'}:
         # Components need to be migrated after they are linked, but don't need to be remigrated when returning to the link step, and don't store the migrated values in subsequent undo steps until after they have been made local.
         task_scheduler.add('migrate_components')
+        migration_initiator = 'Link'
         display_report = True
 
     if step_type == 'DO' and active_step_name in {'Add Hubs Component', 'Remove Hubs Component'}:
@@ -199,7 +208,7 @@ def undo_stack_handler(dummy=None):
         if task == 'update_gizmos':
             update_gizmos()
         elif task == 'migrate_components':
-            migrate_components('LOCAL', do_update_gizmos=False, display_report=display_report, override_report_title="Append/Link: Component Migration Report")
+            migrate_components('LOCAL', initiator=migration_initiator, do_update_gizmos=False, display_report=display_report, override_report_title="Append/Link: Component Migration Report")
         else:
             print('Error: unrecognized task scheduled')
 
