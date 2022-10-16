@@ -146,6 +146,7 @@ def undo_stack_handler(dummy=None):
     except: # Fall back to just processing the current undo step.
         print("Warning: Couldn't get the full range of undo steps to process.  Falling back to the current one.")
         interim_undo_steps = []
+        step_type = 'DO'
 
 
     # Allow performance heavy tasks to be combined into one task that is executed at the end of the handler so they're run as little as possible.
