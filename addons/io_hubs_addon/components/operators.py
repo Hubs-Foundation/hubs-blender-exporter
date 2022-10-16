@@ -30,7 +30,7 @@ class AddHubsComponent(Operator):
 
         # Redraw panel and trigger depsgraph update
         context.area.tag_redraw()
-        obj.hide_render = obj.hide_render
+        context.window_manager.update_tag()
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -184,7 +184,7 @@ class RemoveHubsComponent(Operator):
 
         # Redraw panel and trigger depsgraph update
         context.area.tag_redraw()
-        obj.hide_render = obj.hide_render
+        context.window_manager.update_tag()
         return {'FINISHED'}
 
 
