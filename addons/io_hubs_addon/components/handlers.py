@@ -10,8 +10,7 @@ import sys
 
 previous_undo_steps_dump = ""
 previous_undo_step_index = 0
-previous_scene_name = ""
-previous_view_layer_name = ""
+previous_window_setups = set()
 file_loading = False
 
 
@@ -72,13 +71,11 @@ def migrate_components(migration_type, *, do_update_gizmos=True):
 def load_post(dummy):
     global previous_undo_steps_dump
     global previous_undo_step_index
-    global previous_scene_name
-    global previous_view_layer_name
+    global previous_window_setups
     global file_loading
     previous_undo_steps_dump = ""
     previous_undo_step_index = 0
-    previous_scene_name = bpy.context.scene.name
-    previous_view_layer_name = bpy.context.view_layer.name
+    previous_window_setups = set()
     file_loading = True
     migrate_components('GLOBAL')
 
@@ -104,8 +101,6 @@ def find_active_undo_step_index(undo_steps):
 def undo_stack_handler(dummy=None):
     global previous_undo_steps_dump
     global previous_undo_step_index
-    global previous_scene_name
-    global previous_view_layer_name
     global file_loading
 
     # Return if Blender isn't in a fully loaded state. (Prevents Blender crashing)
@@ -170,11 +165,7 @@ def undo_stack_handler(dummy=None):
     if active_step_name in {'Add Hubs Component', 'Remove Hubs Component', 'Delete'}:
         task_scheduler.add('update_gizmos')
 
-    # Handle scene and view layer changes.  The step names aren't specific enough and the interim steps don't matter, so just check if the scene or view layer has changed.
-    if previous_scene_name != bpy.context.scene.name or previous_view_layer_name != bpy.context.view_layer.name:
-        task_scheduler.add('update_gizmos')
-
-    # Execute the scheduled performance heavy tasks.
+   # Execute the scheduled performance heavy tasks.
     for task in task_scheduler:
         if task == 'update_gizmos':
             update_gizmos()
@@ -184,17 +175,16 @@ def undo_stack_handler(dummy=None):
     # Store things for comparison next time.
     previous_undo_steps_dump = undo_steps_dump
     previous_undo_step_index = undo_step_index
-    previous_scene_name = bpy.context.scene.name
-    previous_view_layer_name = bpy.context.view_layer.name
 
 
 def scene_and_view_layer_update_notifier(self, context):
     """Some scene/view layer actions/changes don't trigger a depsgraph update so watch the top bar for changes to the scene or view layer by hooking into it's draw method."""
-    global previous_scene_name
-    global previous_view_layer_name
-
-    if context.scene.name != previous_scene_name or context.view_layer.name != previous_view_layer_name:
-        bpy.app.timers.register(undo_stack_handler)
+    global previous_window_setups
+    wm = context.window_manager
+    current_window_setups = {w.scene.name+w.view_layer.name for w in wm.windows}
+    if current_window_setups != previous_window_setups:
+        bpy.app.timers.register(update_gizmos)
+        previous_window_setups = current_window_setups
 
 
 def register():

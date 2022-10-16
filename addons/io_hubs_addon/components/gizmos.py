@@ -66,6 +66,9 @@ class HubsGizmoGroup(GizmoGroup):
     bl_region_type = 'WINDOW'
     bl_options = {'3D', 'PERSISTENT', 'SHOW_MODAL_ALL', 'SELECT'}
 
+    has_widgets = False
+    windows_processed = 0
+
     def add_gizmo(self, ob, host, host_type):
         for component_item in host.hubs_component_list.items:
             component_name = component_item.name
@@ -87,6 +90,7 @@ class HubsGizmoGroup(GizmoGroup):
                         }
 
     def setup(self, context):
+        # A new instance of the gizmo group is instantiated, and setup is called once for each instance, for each open window.
         self.widgets = {}
 
         for ob in context.scene.objects:
@@ -99,9 +103,15 @@ class HubsGizmoGroup(GizmoGroup):
                     for bone in ob.data.bones:
                         self.add_gizmo(ob, bone, 'BONE')
 
-        if not self.widgets:
-            bpy.app.timers.register(unregister_gizmo_system)
-            return
+        if self.widgets:
+            HubsGizmoGroup.has_widgets = True
+
+        HubsGizmoGroup.windows_processed += 1
+
+        if HubsGizmoGroup.windows_processed == len(context.window_manager.windows):
+            if not HubsGizmoGroup.has_widgets:
+                bpy.app.timers.register(unregister_gizmo_system)
+                return
 
         self.refresh(context)
 
@@ -219,6 +229,8 @@ def register_gizmo_system():
 
 def register_gizmos():
     try:
+        HubsGizmoGroup.has_widgets = False
+        HubsGizmoGroup.windows_processed = 0
         bpy.utils.register_class(CustomModelGizmo)
         bpy.utils.register_class(HubsGizmoGroup)
     except:
