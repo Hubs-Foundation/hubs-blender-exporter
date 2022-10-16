@@ -150,7 +150,7 @@ class HubsGizmoGroup(GizmoGroup):
                                 component_name, ob, gizmo)
 
                 except ReferenceError:
-                    # This shouldn't happen, but if objects and widgets have gotten out of sync refresh the whole system
+                    # This shouldn't happen, but if objects and widgets have gotten out of sync refresh the whole system.
                     bpy.app.timers.register(update_gizmos)
                     return
 

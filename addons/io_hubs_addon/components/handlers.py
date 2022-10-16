@@ -155,8 +155,7 @@ def undo_stack_handler(dummy=None):
         interim_undo_steps = []
         step_type = 'DO'
 
-
-    # Allow performance heavy tasks to be combined into one task that is executed at the end of the handler so they're run as little as possible.
+    # Multiple undo steps/operations are being processed at once in this handler, so allow tasks to be combined into one that is executed at the end.  This also allows performance heavy tasks to be run as little as possible.  In general, any actual work performed should be scheduled as a task.
     task_scheduler = set()
     # task options
     display_report = False
@@ -203,7 +202,8 @@ def undo_stack_handler(dummy=None):
         display_report = (step_type == 'DO')
 
 
-    # Execute the scheduled performance heavy tasks.
+    # Execute the scheduled tasks.
+    # Note: Blender seems to somehow be caching calls to update_gizmos, so having it as a scheduled task may not affect performance.  Calls to migrate_components are not cached by Blender.
     for task in task_scheduler:
         if task == 'update_gizmos':
             update_gizmos()
