@@ -75,6 +75,14 @@ def get_probes():
     return probes
 
 
+def get_probe_image_path(context, probe):
+    tmp_path = get_addon_pref(context).tmp_path
+    blendfile_name = bpy.path.display_name_from_filepath(bpy.data.filepath)
+    if not blendfile_name:
+        blendfile_name = "untitled"
+    return f"{tmp_path}/{blendfile_name}-{probe.name}.hdr"
+
+
 class ReflectionProbeSceneProps(PropertyGroup):
     resolution: EnumProperty(name='Resolution',
                              description='Reflection Probe Selected Environment Map Resolution',
@@ -200,8 +208,7 @@ class BakeProbeOperator(bpy.types.Operator):
                 for probe in self.probes:
                     image_name = "generated_cubemap-%s" % probe.name
                     img = bpy.data.images.get(image_name)
-                    img_path = "%s/%s.hdr" % (get_addon_pref(context).tmp_path,
-                                              probe.name)
+                    img_path = get_probe_image_path(context, probe)
                     if not img or img.filepath != img_path:
                         img = bpy.data.images.load(filepath=img_path)
                         img.name = image_name
@@ -267,7 +274,7 @@ class BakeProbeOperator(bpy.types.Operator):
 
         resolution = context.scene.hubs_scene_reflection_probe_properties.resolution
         (x, y) = [int(i) for i in resolution.split('x')]
-        output_path = "%s/%s.hdr" % (get_addon_pref(context).tmp_path, probe.name)
+        output_path = get_probe_image_path(context, probe)
         use_compositor = context.scene.hubs_scene_reflection_probe_properties.use_compositor
 
         overrides = [
