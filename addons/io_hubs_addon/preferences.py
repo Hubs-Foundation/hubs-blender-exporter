@@ -34,6 +34,12 @@ class HubsPreferences(AddonPreferences):
 
         box.row().prop(self, "row_length")
         box.row().prop(self, "tmp_path")
+        if not bpy.data.filepath:
+            tmp_path_notice = box.column()
+            tmp_path_notice.scale_y = 0.7
+            tmp_path_notice.alert = True
+            tmp_path_notice.label(text=f"New file detected, redirecting output directory to: {bpy.app.tempdir}", icon='ERROR')
+            tmp_path_notice.label(text=f"The contents will be transferred to the main directory when the blend file is saved", icon='BLANK1')
 
 
 def register():

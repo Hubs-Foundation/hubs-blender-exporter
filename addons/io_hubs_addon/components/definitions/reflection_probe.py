@@ -1,6 +1,7 @@
 import bpy
 from bpy.props import PointerProperty, EnumProperty, StringProperty, BoolProperty
 from bpy.types import Image, PropertyGroup
+from bpy.app.handlers import persistent
 
 from ...components.utils import is_gpu_available
 
@@ -12,6 +13,9 @@ from ..types import Category, PanelType, NodeType
 from ... import io
 from ...utils import rgetattr, rsetattr
 import math
+import os
+import shutil
+import pathlib
 
 
 DEFAULT_RESOLUTION_ITEMS = [
@@ -31,6 +35,11 @@ RESOLUTION_ITEMS = DEFAULT_RESOLUTION_ITEMS[:]
 
 probe_baking = False
 bake_mode = None
+save_handler = {
+    'transfer_probe_images': False,
+    'stored_save_version': None,
+    'final_save': False
+    }
 
 
 def get_resolutions(self, context):
@@ -58,9 +67,10 @@ def set_resolution(self, value):
         self.resolution_id = RESOLUTION_ITEMS[value][0]
 
 
-def get_probes():
+def get_probes(all_objects=False):
     probes = []
-    for ob in bpy.context.view_layer.objects:
+    objects = bpy.data.objects if all_objects else bpy.context.view_layer.objects
+    for ob in objects:
         component_list = ob.hubs_component_list
 
         registered_hubs_components = get_components_registry()
@@ -75,12 +85,65 @@ def get_probes():
     return probes
 
 
-def get_probe_image_path(context, probe):
+def compose_probe_image_path(context, probe):
     tmp_path = get_addon_pref(context).tmp_path
     blendfile_name = bpy.path.display_name_from_filepath(bpy.data.filepath)
     if not blendfile_name:
         blendfile_name = "untitled"
+        tmp_path = bpy.app.tempdir
     return f"{tmp_path}/{blendfile_name}-{probe.name}.hdr"
+
+
+@ persistent
+def save_pre(dummy):
+    global save_handler
+    if save_handler['final_save']:
+        return
+
+    if not bpy.data.filepath:
+       save_handler['transfer_probe_images'] = True
+
+
+@ persistent
+def save_post(dummy):
+    global save_handler
+    preferences = bpy.context.preferences
+
+    if save_handler['final_save']:
+        save_handler['final_save'] = False
+        preferences.filepaths.save_version = save_handler['stored_save_version']
+        bpy.ops.ed.undo_push()
+        return
+
+    if save_handler['transfer_probe_images'] and bpy.data.filepath:
+        tmp_path = get_addon_pref(bpy.context).tmp_path
+        absolute_tmp_path = os.path.realpath(bpy.path.abspath(tmp_path))
+        for probe in get_probes(all_objects=True):
+            envMapTexture = probe.hubs_component_reflection_probe.envMapTexture
+            current_probe_image_path = envMapTexture.filepath
+            current_image_absolute_path = os.path.realpath(
+                bpy.path.abspath(current_probe_image_path))
+            current_image_directory = os.path.dirname(current_image_absolute_path)
+            if pathlib.Path(current_image_directory) == pathlib.Path(bpy.app.tempdir):
+                new_image_path = compose_probe_image_path(bpy.context, probe)
+                new_image_absolute_path = os.path.realpath(
+                    bpy.path.abspath(new_image_path))
+                try:
+                    pathlib.Path(absolute_tmp_path).mkdir(parents=True, exist_ok=True)
+                    shutil.move(current_image_absolute_path, new_image_absolute_path)
+                    envMapTexture.filepath = new_image_path
+
+                except Exception as e:
+                    print(f"Error: Could not transfer reflection probe environment map \'{current_image_absolute_path}\' to \'{new_image_absolute_path}\'")
+                    print(e)
+
+        save_handler['transfer_probe_images'] = False
+
+        # Save new envMapTexture filepaths.
+        save_handler['stored_save_version'] = preferences.filepaths.save_version
+        preferences.filepaths.save_version = 0
+        save_handler['final_save'] = True
+        bpy.ops.wm.save_mainfile()
 
 
 class ReflectionProbeSceneProps(PropertyGroup):
@@ -208,7 +271,7 @@ class BakeProbeOperator(bpy.types.Operator):
                 for probe in self.probes:
                     image_name = "generated_cubemap-%s" % probe.name
                     img = bpy.data.images.get(image_name)
-                    img_path = get_probe_image_path(context, probe)
+                    img_path = compose_probe_image_path(context, probe)
                     if not img or img.filepath != img_path:
                         img = bpy.data.images.load(filepath=img_path)
                         img.name = image_name
@@ -274,7 +337,7 @@ class BakeProbeOperator(bpy.types.Operator):
 
         resolution = context.scene.hubs_scene_reflection_probe_properties.resolution
         (x, y) = [int(i) for i in resolution.split('x')]
-        output_path = get_probe_image_path(context, probe)
+        output_path = compose_probe_image_path(context, probe)
         use_compositor = context.scene.hubs_scene_reflection_probe_properties.use_compositor
 
         overrides = [
@@ -399,8 +462,22 @@ class ReflectionProbe(HubsComponent):
         bpy.types.Scene.hubs_scene_reflection_probe_properties = PointerProperty(
             type=ReflectionProbeSceneProps)
 
+        if not save_pre in bpy.app.handlers.save_pre:
+            bpy.app.handlers.save_pre.append(
+                save_pre)
+        if not save_post in bpy.app.handlers.save_post:
+            bpy.app.handlers.save_post.append(
+                save_post)
+
     @ staticmethod
     def unregister():
         bpy.utils.unregister_class(BakeProbeOperator)
         bpy.utils.unregister_class(ReflectionProbeSceneProps)
         del bpy.types.Scene.hubs_scene_reflection_probe_properties
+
+        if save_pre in bpy.app.handlers.save_pre:
+            bpy.app.handlers.save_pre.remove(
+                save_pre)
+        if save_post in bpy.app.handlers.save_post:
+            bpy.app.handlers.save_post.remove(
+                save_post)
