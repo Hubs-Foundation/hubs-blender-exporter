@@ -21,9 +21,9 @@ class HubsPreferences(AddonPreferences):
         min=0,
     )
 
-    tmp_path: StringProperty(
-        name="Temporary files path",
-        description="Path where temporary files will be stored",
+    ref_probe_path: StringProperty(
+        name="Reflection Probe Output Directory",
+        description="Path where Reflection Probe bakes will be stored",
         subtype="DIR_PATH",
         default="//generated_cubemaps/"
     )
@@ -33,13 +33,13 @@ class HubsPreferences(AddonPreferences):
         box = layout.box()
 
         box.row().prop(self, "row_length")
-        box.row().prop(self, "tmp_path")
+        box.row().prop(self, "ref_probe_path")
         if not bpy.data.filepath:
-            tmp_path_notice = box.column()
-            tmp_path_notice.scale_y = 0.7
-            tmp_path_notice.alert = True
-            tmp_path_notice.label(text=f"New file detected, redirecting output directory to: {bpy.app.tempdir}", icon='ERROR')
-            tmp_path_notice.label(text=f"The contents will be transferred to the main directory when the blend file is saved", icon='BLANK1')
+            ref_probe_path_notice = box.column()
+            ref_probe_path_notice.scale_y = 0.7
+            ref_probe_path_notice.alert = True
+            ref_probe_path_notice.label(text=f"New file detected, redirecting output directory to: {bpy.app.tempdir}", icon='ERROR')
+            ref_probe_path_notice.label(text=f"The contents will be transferred to the main directory when the blend file is saved", icon='BLANK1')
 
 
 def register():

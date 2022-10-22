@@ -87,12 +87,12 @@ def get_probes(all_objects=False):
 
 
 def compose_probe_image_path(context, probe):
-    tmp_path = get_addon_pref(context).tmp_path
+    ref_probe_path = get_addon_pref(context).ref_probe_path
     blendfile_name = bpy.path.display_name_from_filepath(bpy.data.filepath)
     if not blendfile_name:
         blendfile_name = "untitled"
-        tmp_path = bpy.app.tempdir
-    return f"{tmp_path}/{blendfile_name}-{probe.name}.hdr"
+        ref_probe_path = bpy.app.tempdir
+    return f"{ref_probe_path}/{blendfile_name}-{probe.name}.hdr"
 
 
 @ persistent
@@ -119,8 +119,8 @@ def save_post(dummy):
         return
 
     if save_handler['transfer_probe_images'] and bpy.data.filepath:
-        tmp_path = get_addon_pref(bpy.context).tmp_path
-        absolute_tmp_path = os.path.realpath(bpy.path.abspath(tmp_path))
+        ref_probe_path = get_addon_pref(bpy.context).ref_probe_path
+        absolute_ref_probe_path = os.path.realpath(bpy.path.abspath(ref_probe_path))
         for probe in get_probes(all_objects=True):
             envMapTexture = probe.hubs_component_reflection_probe.envMapTexture
             current_probe_image_path = envMapTexture.filepath
@@ -132,7 +132,7 @@ def save_post(dummy):
                 new_image_absolute_path = os.path.realpath(
                     bpy.path.abspath(new_image_path))
                 try:
-                    pathlib.Path(absolute_tmp_path).mkdir(parents=True, exist_ok=True)
+                    pathlib.Path(absolute_ref_probe_path).mkdir(parents=True, exist_ok=True)
                     shutil.move(current_image_absolute_path, new_image_absolute_path)
                     envMapTexture.filepath = new_image_path
 
