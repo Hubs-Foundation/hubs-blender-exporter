@@ -35,6 +35,7 @@ RESOLUTION_ITEMS = DEFAULT_RESOLUTION_ITEMS[:]
 
 probe_baking = False
 bake_mode = None
+stored_preferences_is_dirty = None
 save_handler = {
     'transfer_probe_images': False,
     'stored_save_version': None,
@@ -106,12 +107,14 @@ def save_pre(dummy):
 
 @ persistent
 def save_post(dummy):
+    global stored_preferences_is_dirty
     global save_handler
     preferences = bpy.context.preferences
 
     if save_handler['final_save']:
         save_handler['final_save'] = False
         preferences.filepaths.save_version = save_handler['stored_save_version']
+        preferences.is_dirty = stored_preferences_is_dirty
         bpy.ops.ed.undo_push()
         return
 
@@ -140,6 +143,7 @@ def save_post(dummy):
         save_handler['transfer_probe_images'] = False
 
         # Save new envMapTexture filepaths.
+        stored_preferences_is_dirty = preferences.is_dirty
         save_handler['stored_save_version'] = preferences.filepaths.save_version
         preferences.filepaths.save_version = 0
         save_handler['final_save'] = True
@@ -314,10 +318,14 @@ class BakeProbeOperator(bpy.types.Operator):
         return {"PASS_THROUGH"}
 
     def restore_render_props(self):
+        global stored_preferences_is_dirty
         for prop in self.saved_props:
            rsetattr(bpy.context, prop, self.saved_props[prop])
+        bpy.context.preferences.is_dirty = stored_preferences_is_dirty
+        stored_preferences_is_dirty = None
 
     def render_probe(self, context):
+        global stored_preferences_is_dirty
         probe = self.probes[self.probe_index]
 
         self.camera_data.type = "PANO"
@@ -354,6 +362,7 @@ class BakeProbeOperator(bpy.types.Operator):
             ("scene.use_nodes", use_compositor)
         ]
 
+        stored_preferences_is_dirty = bpy.context.preferences.is_dirty
         for (prop, value) in overrides:
             if prop not in self.saved_props:
                 self.saved_props[prop] = rgetattr(bpy.context, prop)
