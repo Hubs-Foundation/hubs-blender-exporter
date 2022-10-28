@@ -1,5 +1,5 @@
 import bpy
-from bpy.props import FloatProperty, EnumProperty
+from bpy.props import BoolProperty, FloatProperty, EnumProperty
 from ..hubs_component import HubsComponent
 from ..types import PanelType, NodeType
 from ..consts import DISTACE_MODELS, MAX_ANGLE
@@ -19,6 +19,11 @@ class AudioParams(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE]
     }
 
+    overrideAudioSettings: BoolProperty(
+        name="Override Audio Settings",
+        description="Override Audio Settings",
+        default=False)
+
     audioType: EnumProperty(
         name="Audio Type",
         description="Audio Type",
@@ -36,8 +41,6 @@ class AudioParams(HubsComponent):
         description="How much to amplify the source audio by",
         default=1.0,
         min=0.0)
-
-    # TODO Add conditional UI to show only the required properties per type
 
     refDistance: FloatProperty(
         name="Ref Distance",
@@ -86,17 +89,18 @@ class AudioParams(HubsComponent):
         min=0.0)
 
     def gather(self, export_settings, object):
-        return {
-            'audioType': self.audioType,
-            'distanceModel': self.distanceModel,
-            'gain': self.gain,
-            'refDistance': self.refDistance,
-            'rolloffFactor': self.rolloffFactor,
-            'maxDistance': self.maxDistance,
-            'coneInnerAngle': round(degrees(self.coneInnerAngle), 2),
-            'coneOuterAngle': round(degrees(self.coneOuterAngle), 2),
-            'coneOuterGain': self.coneOuterGain
-        }
+        if (self.overrideAudioSettings):
+            return {
+                'audioType': self.audioType,
+                'distanceModel': self.distanceModel,
+                'gain': self.gain,
+                'refDistance': self.refDistance,
+                'rolloffFactor': self.rolloffFactor,
+                'maxDistance': self.maxDistance,
+                'coneInnerAngle': round(degrees(self.coneInnerAngle), 2),
+                'coneOuterAngle': round(degrees(self.coneOuterAngle), 2),
+                'coneOuterGain': self.coneOuterGain
+            }
 
     @classmethod
     def migrate(cls, version):
@@ -114,3 +118,20 @@ class AudioParams(HubsComponent):
                 if ob.type == 'ARMATURE':
                     for bone in ob.data.bones:
                         migrate_data(bone)
+
+    def draw(self, context, layout, panel):
+        layout.prop(data=self, property="overrideAudioSettings")
+        if not self.overrideAudioSettings:
+            return
+
+        layout.prop(data=self, property="audioType")
+        layout.prop(data=self, property="gain")
+
+        if self.audioType == "pannernode":
+            layout.prop(data=self, property="distanceModel")
+            layout.prop(data=self, property="rolloffFactor")
+            layout.prop(data=self, property="refDistance")
+            layout.prop(data=self, property="maxDistance")
+            layout.prop(data=self, property="coneInnerAngle")
+            layout.prop(data=self, property="coneOuterAngle")
+            layout.prop(data=self, property="coneOuterGain")
