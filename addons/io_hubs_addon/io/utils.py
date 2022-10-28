@@ -11,7 +11,7 @@ from io_scene_gltf2.io.exp.gltf2_io_image_data import ImageData
 from io_scene_gltf2.blender.exp.gltf2_blender_image import ExportImage
 from io_scene_gltf2.blender.exp.gltf2_blender_gather_cache import cached
 from io_scene_gltf2.blender.exp import gltf2_blender_export_keys
-from typing import Optional
+from typing import Optional, Tuple, Union
 from ..nodes.lightmap import MozLightmapNode
 
 # gather_texture/image with HDR support via MOZ_texture_rgbe
@@ -33,14 +33,14 @@ class HubsExportImage(ExportImage):
             export_image.fill_image(image, dst_chan=chan, src_chan=chan)
         return export_image
 
-    def encode(self, mime_type: Optional[str]) -> bytes:
+    def encode(self, mime_type: Optional[str]) -> Union(Tuple[bytes, bool], bytes):
         if mime_type == "image/vnd.radiance":
             return self.encode_from_image_hdr(self.blender_image())
         return super().encode(mime_type)
 
     # TODO this should allow conversion from other HDR formats (namely EXR),
     # in memory images, and combining separate channels like SDR images
-    def encode_from_image_hdr(self, image: bpy.types.Image) -> bytes:
+    def encode_from_image_hdr(self, image: bpy.types.Image) -> Union(Tuple[bytes, bool], bytes):
         if image.file_format == "HDR" and image.source == 'FILE' and not image.is_dirty:
             if image.packed_file is not None:
                 return image.packed_file.data
@@ -53,6 +53,7 @@ class HubsExportImage(ExportImage):
         raise Exception(
             "HDR images must be saved as a .hdr file before exporting")
 
+
 def delayed_gather(func):
     """ It delays the gather until all resources are available """
     def wrapper_delayed_gather(*args, **kwargs):
@@ -61,6 +62,7 @@ def delayed_gather(func):
         gather.delayed_gather = True
         return gather
     return wrapper_delayed_gather
+
 
 @cached
 def gather_image(blender_image, export_settings):
@@ -79,6 +81,9 @@ def gather_image(blender_image, export_settings):
         mime_type = "image/jpeg"
 
     data = HubsExportImage.from_blender_image(blender_image).encode(mime_type)
+
+    if type(data) == Tuple:
+        data = data[0]
 
     if export_settings[gltf2_blender_export_keys.FORMAT] == 'GLTF_SEPARATE':
         uri = HubsImageData(data=data, mime_type=mime_type, name=name)
@@ -180,6 +185,7 @@ def gather_array_property(export_settings, blender_object, target, property_name
 
     return value
 
+
 def gather_node_property(export_settings, blender_object, target, property_name):
     blender_object = getattr(target, property_name)
 
@@ -209,6 +215,7 @@ def gather_node_property(export_settings, blender_object, target, property_name)
         return None
 
 # PointerProperty doesn't support bones so for now we have to call this manually where using an object pointer
+
 
 def gather_joint_property(export_settings, blender_object, target, property_name):
     joint_name = getattr(target, property_name)
