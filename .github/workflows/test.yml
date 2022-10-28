@@ -26,7 +26,7 @@ jobs:
           patch=$(echo ${{ matrix.version }} | cut -d. -f3)
           echo "Looking for Blender $BLENDER_MAJOR.$BLENDER_MINOR.${BLENDER_PATCH}"
           BLENDER_URL="https://download.blender.org/release/Blender$major.$minor/blender-$major.$minor.$patch-linux-x64.tar.xz"
-          echo "::set-output name=blender-url::$BLENDER_URL"
+          echo "blender-url=$BLENDER_URL" >> $GITHUB_OUTPUT
       # Loads a cached build of Blender if available. If not available, this step
       # enqueues the /opt/blender directory to be cached after tests pass.
       - id: blender_cache
