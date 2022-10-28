@@ -33,14 +33,14 @@ class HubsExportImage(ExportImage):
             export_image.fill_image(image, dst_chan=chan, src_chan=chan)
         return export_image
 
-    def encode(self, mime_type: Optional[str]) -> Union(Tuple[bytes, bool], bytes):
+    def encode(self, mime_type: Optional[str]) -> Union[Tuple[bytes, bool], bytes]:
         if mime_type == "image/vnd.radiance":
             return self.encode_from_image_hdr(self.blender_image())
         return super().encode(mime_type)
 
     # TODO this should allow conversion from other HDR formats (namely EXR),
     # in memory images, and combining separate channels like SDR images
-    def encode_from_image_hdr(self, image: bpy.types.Image) -> Union(Tuple[bytes, bool], bytes):
+    def encode_from_image_hdr(self, image: bpy.types.Image) -> Union[Tuple[bytes, bool], bytes]:
         if image.file_format == "HDR" and image.source == 'FILE' and not image.is_dirty:
             if image.packed_file is not None:
                 return image.packed_file.data
