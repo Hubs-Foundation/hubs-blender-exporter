@@ -82,7 +82,7 @@ def gather_image(blender_image, export_settings):
 
     data = HubsExportImage.from_blender_image(blender_image).encode(mime_type)
 
-    if type(data) == Tuple:
+    if type(data) == tuple:
         data = data[0]
 
     if export_settings[gltf2_blender_export_keys.FORMAT] == 'GLTF_SEPARATE':
