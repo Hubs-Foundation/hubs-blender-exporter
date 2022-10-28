@@ -15,13 +15,16 @@ jobs:
     with:
       versions: >-
         ["3.3.1", "2.93.9"]
-        
+
   publish:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: test
     steps:
       - uses: actions/checkout@v3
+      - name: Update build number
+        run: |
+          sed -i'' 's/"dev_build"/${{ github.run_number }}/g' $GITHUB_WORKSPACE/addons/io_hubs_addon/__init__.py
       - name: Upload addon artifacts
         uses: actions/upload-artifact@v3
         with:
