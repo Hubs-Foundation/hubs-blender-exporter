@@ -12,6 +12,7 @@ from ..types import Category, PanelType, NodeType
 from ... import io
 from ...utils import rgetattr, rsetattr
 import math
+import os
 
 
 DEFAULT_RESOLUTION_ITEMS = [
@@ -73,6 +74,10 @@ def get_probes():
                         probes.append(ob)
 
     return probes
+
+
+def get_probe_image_path(probe):
+    return f"{bpy.app.tempdir}/{probe.name}.hdr"
 
 
 class ReflectionProbeSceneProps(PropertyGroup):
@@ -198,25 +203,38 @@ class BakeProbeOperator(bpy.types.Operator):
                     return {"CANCELLED"}
 
                 for probe in self.probes:
-                    image_name = "generated_cubemap-%s" % probe.name
-                    img = bpy.data.images.get(image_name)
-                    img_path = "%s/%s.hdr" % (get_addon_pref(context).tmp_path,
-                                              probe.name)
-                    if not img or img.filepath != img_path:
-                        img = bpy.data.images.load(filepath=img_path)
-                        img.name = image_name
+                    probe_component = probe.hubs_component_reflection_probe
+                    old_img = probe_component.envMapTexture
+                    image_name = f"generated_cubemap-{probe.name}"
+                    # Store the old image's full name in case of name juggling.
+                    old_img_name_full = old_img.name_full if old_img else ""
 
-                        for window in context.window_manager.windows:
-                            for area in window.screen.areas:
-                                if area.type == 'IMAGE_EDITOR':
-                                    if area.spaces.active.image == probe.hubs_component_reflection_probe['envMapTexture']:
-                                        area.spaces.active.image = img
-                    else:
-                        img.reload()
-                    self.report(
-                        {'INFO'}, 'Reflection probe environment map saved at %s' % img_path)
+                    img_path = get_probe_image_path(probe)
+                    img = bpy.data.images.load(filepath=img_path)
+                    img.name = image_name
+                    if old_img:
+                        if image_name == old_img_name_full:
+                            old_img.user_remap(img)
+                            bpy.data.images.remove(old_img)
+                        else:
+                            for window in context.window_manager.windows:
+                                for area in window.screen.areas:
+                                    if area.type == 'IMAGE_EDITOR':
+                                        if area.spaces.active.image == old_img:
+                                            area.spaces.active.image = img
 
-                    probe.hubs_component_reflection_probe['envMapTexture'] = img
+
+                    probe_component['envMapTexture'] = img
+
+                    # Pack image and update filepaths so that it displays/unpacks nicely for the user.
+                    # Note: updating the filepaths prints an error to the terminal, but otherwise seems to work fine.
+                    img.pack()
+                    new_filepath = f"//{image_name}.hdr"
+                    img.packed_files[0].filepath = new_filepath
+                    img.filepath_raw = new_filepath
+                    img.filepath = new_filepath
+                    if os.path.exists(img_path):
+                        os.remove(img_path)
 
                 props = context.scene.hubs_scene_reflection_probe_properties
                 props.render_resolution = props.resolution
@@ -267,7 +285,7 @@ class BakeProbeOperator(bpy.types.Operator):
 
         resolution = context.scene.hubs_scene_reflection_probe_properties.resolution
         (x, y) = [int(i) for i in resolution.split('x')]
-        output_path = "%s/%s.hdr" % (get_addon_pref(context).tmp_path, probe.name)
+        output_path = get_probe_image_path(probe)
         use_compositor = context.scene.hubs_scene_reflection_probe_properties.use_compositor
 
         overrides = [
