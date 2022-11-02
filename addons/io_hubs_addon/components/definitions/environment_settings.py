@@ -153,6 +153,8 @@ class EnvironmentSettings(HubsComponent):
             if isinstance(property_value, dict) and property_value['__mhc_link_type'] == "texture":
                 blender_image_name = images[property_value['index']]
                 blender_image = bpy.data.images[blender_image_name]
+                if blender_image.file_format == 'HDR':
+                    blender_image.colorspace_settings.name = 'Linear'
                 setattr(blender_component, property_name, blender_image)
 
             else:
