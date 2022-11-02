@@ -733,7 +733,7 @@ class LoopAnimation(HubsComponent):
                         migrate_data(ob, bone)
 
     @classmethod
-    def gather_import(cls, import_settings, blender_object, component_name, component_value):
+    def gather_import(cls, gltf, blender_object, component_name, component_value):
         blender_component = import_component(
             component_name, blender_object)
 
@@ -746,7 +746,7 @@ class LoopAnimation(HubsComponent):
                         track.name = track_name.strip()
 
             else:
-                assign_property(import_settings.vnodes, blender_component,
+                assign_property(gltf.vnodes, blender_component,
                                 property_name, property_value)
 
 

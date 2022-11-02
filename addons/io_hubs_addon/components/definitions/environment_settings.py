@@ -128,12 +128,12 @@ class EnvironmentSettings(HubsComponent):
         return output
 
     @classmethod
-    def gather_import(cls, import_settings, blender_object, component_name, component_value):
+    def gather_import(cls, gltf, blender_object, component_name, component_value):
         blender_component = import_component(
             component_name, blender_object)
 
         images = {}
-        for gltf_texture in import_settings.data.textures:
+        for gltf_texture in gltf.data.textures:
             extensions = gltf_texture.extensions
             source = None
             if extensions:
@@ -144,8 +144,8 @@ class EnvironmentSettings(HubsComponent):
                 source = gltf_texture.source
 
             BlenderImage.create(
-                import_settings, source)
-            pyimg = import_settings.data.images[source]
+                gltf, source)
+            pyimg = gltf.data.images[source]
             blender_image_name = pyimg.blender_image_name
             images[source] = blender_image_name
 
@@ -156,5 +156,5 @@ class EnvironmentSettings(HubsComponent):
                 setattr(blender_component, property_name, blender_image)
 
             else:
-                assign_property(import_settings.vnodes, blender_component,
+                assign_property(gltf.vnodes, blender_component,
                                 property_name, property_value)

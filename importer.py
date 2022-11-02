@@ -13,7 +13,7 @@ EXTENSION_NAME = HUBS_CONFIG["gltfExtensionName"]
 armatures = {}
 
 
-def import_hubs_components(gltf_node, blender_object, import_settings):
+def import_hubs_components(gltf_node, blender_object, gltf):
     if gltf_node and gltf_node.extensions and EXTENSION_NAME in gltf_node.extensions:
         components_data = gltf_node.extensions[EXTENSION_NAME]
         for component_name in components_data.keys():
@@ -22,7 +22,7 @@ def import_hubs_components(gltf_node, blender_object, import_settings):
                 component_value = components_data[component_name]
                 try:
                     component_class.gather_import(
-                        import_settings, blender_object, component_name, component_value)
+                        gltf, blender_object, component_name, component_value)
                 except Exception:
                     traceback.print_exc()
             else:
@@ -30,13 +30,13 @@ def import_hubs_components(gltf_node, blender_object, import_settings):
                       (component_name))
 
 
-def add_lightmap(gltf_material, blender_mat, import_settings):
+def add_lightmap(gltf_material, blender_mat, gltf):
     if gltf_material and gltf_material.extensions and 'MOZ_lightmap' in gltf_material.extensions:
         extension = gltf_material.extensions['MOZ_lightmap']
 
         texture_index = extension['index']
 
-        gltf_texture = import_settings.data.textures[texture_index]
+        gltf_texture = gltf.data.textures[texture_index]
         texture_extensions = gltf_texture.extensions
         if texture_extensions and texture_extensions.get('MOZ_texture_rgbe'):
             source = gltf_texture.extensions['MOZ_texture_rgbe']['source']
@@ -44,8 +44,8 @@ def add_lightmap(gltf_material, blender_mat, import_settings):
             source = gltf_texture.source
 
         BlenderImage.create(
-            import_settings, source)
-        pyimg = import_settings.data.images[source]
+            gltf, source)
+        pyimg = gltf.data.images[source]
         blender_image_name = pyimg.blender_image_name
         blender_image = bpy.data.images[blender_image_name]
         if pyimg.mime_type == "image/vnd.radiance":
@@ -80,19 +80,20 @@ def add_bones(gltf):
                 gltf_bone, bone, gltf)
 
 
-def store_bones_for_import(import_settings, vnode):
+def store_bones_for_import(gltf, vnode):
     # Store the glTF bones with the armature so their components can be imported once the Blender bones are created.
     global armatures
     children = vnode.children[:]
     gltf_bones = {}
     while children:
         child_index = children.pop()
-        child_vnode = import_settings.vnodes[child_index]
-        if child_vnode.type  == vnode.Bone:
-            gltf_bones[child_vnode.name] = import_settings.data.nodes[child_index]
+        child_vnode = gltf.vnodes[child_index]
+        if child_vnode.type == vnode.Bone:
+            gltf_bones[child_vnode.name] = gltf.data.nodes[child_index]
             children.extend(child_vnode.children)
 
-    armatures[vnode.blender_object.name] = {'armature': vnode.blender_object, 'gltf_bones': gltf_bones}
+    armatures[vnode.blender_object.name] = {
+        'armature': vnode.blender_object, 'gltf_bones': gltf_bones}
 
 
 class glTF2ImportUserExtension:
@@ -102,57 +103,57 @@ class glTF2ImportUserExtension:
             Extension(name=EXTENSION_NAME, extension={}, required=True)]
         self.properties = bpy.context.scene.hubs_import_properties
 
-    def gather_import_scene_before_hook(self, gltf_scene, blender_scene, import_settings):
+    def gather_import_scene_before_hook(self, gltf_scene, blender_scene, gltf):
         if not self.properties.enabled:
             return
 
         global armatures
         armatures.clear()
 
-        if import_settings.data.asset and import_settings.data.asset.extras:
-            if 'gltf_yup' in import_settings.data.asset.extras:
-                import_settings.import_settings['gltf_yup'] = import_settings.data.asset.extras[
+        if gltf.data.asset and gltf.data.asset.extras:
+            if 'gltf_yup' in gltf.data.asset.extras:
+                gltf.import_settings['gltf_yup'] = gltf.data.asset.extras[
                     'gltf_yup']
 
-    def gather_import_scene_after_nodes_hook(self, gltf_scene, blender_scene, import_settings):
+    def gather_import_scene_after_nodes_hook(self, gltf_scene, blender_scene, gltf):
         if not self.properties.enabled:
             return
 
-        import_hubs_components(gltf_scene, blender_scene, import_settings)
+        import_hubs_components(gltf_scene, blender_scene, gltf)
 
-        add_bones(import_settings)
+        add_bones(gltf)
         armatures.clear()
 
-    def gather_import_node_after_hook(self, vnode, gltf_node, blender_object, import_settings):
+    def gather_import_node_after_hook(self, vnode, gltf_node, blender_object, gltf):
         if not self.properties.enabled:
             return
 
         import_hubs_components(
-            gltf_node, blender_object, import_settings)
+            gltf_node, blender_object, gltf)
 
         #  Node hooks are not called for bones. Bones are created together with their armature.
         # Unfortunately the bones are created after this hook is called so we need to wait until all nodes have been created.
         if vnode.is_arma:
-            store_bones_for_import(import_settings, vnode)
+            store_bones_for_import(gltf, vnode)
 
-    def gather_import_image_after_hook(self, gltf_img, blender_image, import_settings):
+    def gather_import_image_after_hook(self, gltf_img, blender_image, gltf):
         # As of Blender 3.2.0 the importer doesn't import images that are not referenced by a material socket.
         # We handle this case by case in each component's gather_import override.
         pass
 
-    def gather_import_texture_after_hook(self, gltf_texture, node_tree, mh, tex_info, location, label, color_socket, alpha_socket, is_data, import_settings):
+    def gather_import_texture_after_hook(self, gltf_texture, node_tree, mh, tex_info, location, label, color_socket, alpha_socket, is_data, gltf):
         # As of Blender 3.2.0 the importer doesn't import textures that are not referenced by a material socket image.
         # We handle this case by case in each component's gather_import override.
         pass
 
-    def gather_import_material_after_hook(self, gltf_material, vertex_color, blender_mat, import_settings):
+    def gather_import_material_after_hook(self, gltf_material, vertex_color, blender_mat, gltf):
         if not self.properties.enabled:
             return
 
         import_hubs_components(
-            gltf_material, blender_mat, import_settings)
+            gltf_material, blender_mat, gltf)
 
-        add_lightmap(gltf_material, blender_mat, import_settings)
+        add_lightmap(gltf_material, blender_mat, gltf)
 
 
 # import hooks were only recently added to the glTF exporter, so make a custom hook for now

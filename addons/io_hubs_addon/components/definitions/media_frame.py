@@ -181,15 +181,15 @@ class MediaFrame(HubsComponent):
                 parents.insert(0, parent.parent.pose.bones[parent.parent_bone])
 
     @classmethod
-    def gather_import(cls, import_settings, blender_object, component_name, component_value):
+    def gather_import(cls, gltf, blender_object, component_name, component_value):
         blender_component = import_component(
             component_name, blender_object)
 
-        gltf_yup = import_settings.import_settings.get('gltf_yup', True)
+        gltf_yup = gltf.import_settings.get('gltf_yup', True)
 
         for property_name, property_value in component_value.items():
             if property_name == 'bounds' and gltf_yup:
                 property_value['y'], property_value['z'] = property_value['z'], property_value['y']
 
-            assign_property(import_settings.vnodes, blender_component,
-                                property_name, property_value)
+            assign_property(gltf.vnodes, blender_component,
+                            property_name, property_value)

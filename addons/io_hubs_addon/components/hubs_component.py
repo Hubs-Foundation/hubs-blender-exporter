@@ -103,10 +103,10 @@ class HubsComponent(PropertyGroup):
         return gather_properties(export_settings, blender_object, self)
 
     @classmethod
-    def gather_import(cls, import_settings, blender_object, component_name, component_value):
+    def gather_import(cls, gltf, blender_object, component_name, component_value):
         component = import_component(component_name, blender_object)
         for property_name, property_value in component_value.items():
-            assign_property(import_settings.vnodes, component,
+            assign_property(gltf.vnodes, component,
                             property_name, property_value)
 
     def post_export(self, export_settings, object):
