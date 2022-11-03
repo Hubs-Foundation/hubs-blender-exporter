@@ -209,6 +209,16 @@ class BakeProbeOperator(bpy.types.Operator):
                     # Store the old image's full name in case of name juggling.
                     old_img_name_full = old_img.name_full if old_img else ""
 
+                    conflicting_img = None
+                    for img in bpy.data.images:
+                        if img.name == image_name and not img.library:
+                            conflicting_img = img
+                            break
+
+                    if conflicting_img and conflicting_img != old_img:
+                        # Rename the conflicting image to help avoid problems caused by Blender's name juggling and allow name juggled images to be more easily found.
+                        conflicting_img.name = f"{conflicting_img.name}-old"
+
                     img_path = get_probe_image_path(probe)
                     img = bpy.data.images.load(filepath=img_path)
                     img.name = image_name
