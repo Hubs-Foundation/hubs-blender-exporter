@@ -111,7 +111,7 @@ class BakeProbeOperator(bpy.types.Operator):
     cancelled = False
     probes = []
     probe_index = 0
-    post_render_wait = 0
+    probe_is_setup = False
 
     bake_mode: EnumProperty(
         name="bake_mode",
@@ -128,6 +128,7 @@ class BakeProbeOperator(bpy.types.Operator):
         print("Finished render")
 
         self.rendering = False
+        self.probe_is_setup = False
 
         if self.probe_index == 0:
             self.done = True
@@ -173,7 +174,7 @@ class BakeProbeOperator(bpy.types.Operator):
         self.cancelled = False
         self.done = False
         self.rendering = False
-        self.post_render_wait = 500
+        self.probe_is_setup = False
         self.probe_index = len(self.probes) - 1
 
         probe_baking = True
@@ -196,6 +197,7 @@ class BakeProbeOperator(bpy.types.Operator):
 
                 self.restore_render_props()
                 self.rendering = False
+                self.probe_is_setup = False
 
                 if self.cancelled:
                     self.report(
@@ -253,16 +255,15 @@ class BakeProbeOperator(bpy.types.Operator):
                 return {"FINISHED"}
 
             elif not self.rendering:
-                # There seems to be some sort of deadlock if we don't wait some time time between renders.
-                # It would be nice to get to the bottom of this.
-                if self.post_render_wait < 500:
-                    self.post_render_wait += 500
-                    return {"PASS_THROUGH"}
-                else:
-                    self.post_render_wait = 0
                 try:
-                    self.rendering = True
-                    self.render_probe(context)
+                    if not self.probe_is_setup:
+                        self.setup_probe_render(context)
+
+                    # Rendering can sometimes fail if the old render is still being cleaned up.  Keep trying until it works.
+                    # For more details see https://developer.blender.org/T52258
+                    if bpy.ops.render.render("INVOKE_DEFAULT", write_still=True) != {'CANCELLED'}:
+                        self.rendering = True
+
                 except Exception as e:
                     print(e)
                     self.cancelled = True
@@ -275,7 +276,7 @@ class BakeProbeOperator(bpy.types.Operator):
         for prop in self.saved_props:
            rsetattr(bpy.context, prop, self.saved_props[prop])
 
-    def render_probe(self, context):
+    def setup_probe_render(self, context):
         probe = self.probes[self.probe_index]
 
         self.camera_data.type = "PANO"
@@ -318,7 +319,7 @@ class BakeProbeOperator(bpy.types.Operator):
             rsetattr(bpy.context, prop, value)
 
         self.report({'INFO'}, 'Baking probe %s' % probe.name)
-        bpy.ops.render.render("INVOKE_DEFAULT", write_still=True)
+        self.probe_is_setup = True
 
 class ReflectionProbe(HubsComponent):
     _definition = {
