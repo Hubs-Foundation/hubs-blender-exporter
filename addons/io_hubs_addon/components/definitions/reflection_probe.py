@@ -1,6 +1,6 @@
 import bpy
-from bpy.props import PointerProperty, EnumProperty, StringProperty, BoolProperty
-from bpy.types import Image, PropertyGroup
+from bpy.props import PointerProperty, EnumProperty, StringProperty, BoolProperty, CollectionProperty
+from bpy.types import Image, PropertyGroup, Operator
 
 from ...components.utils import is_gpu_available
 
@@ -11,6 +11,7 @@ from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ... import io
 from ...utils import rgetattr, rsetattr
+from ..utils import redraw_component_ui
 import math
 import os
 
@@ -80,6 +81,14 @@ def get_probe_image_path(probe):
     return f"{bpy.app.tempdir}/{probe.name}.hdr"
 
 
+def update_image_editors(old_img, img):
+    for window in bpy.context.window_manager.windows:
+        for area in window.screen.areas:
+            if area.type == 'IMAGE_EDITOR':
+                if area.spaces.active.image == old_img:
+                    area.spaces.active.image = img
+
+
 class ReflectionProbeSceneProps(PropertyGroup):
     resolution: EnumProperty(name='Resolution',
                              description='Reflection Probe Selected Environment Map Resolution',
@@ -101,7 +110,7 @@ class ReflectionProbeSceneProps(PropertyGroup):
     )
 
 
-class BakeProbeOperator(bpy.types.Operator):
+class BakeProbeOperator(Operator):
     bl_idname = "render.hubs_render_reflection_probe"
     bl_label = "Render Hubs Reflection Probe"
 
@@ -229,11 +238,7 @@ class BakeProbeOperator(bpy.types.Operator):
                             old_img.user_remap(img)
                             bpy.data.images.remove(old_img)
                         else:
-                            for window in context.window_manager.windows:
-                                for area in window.screen.areas:
-                                    if area.type == 'IMAGE_EDITOR':
-                                        if area.spaces.active.image == old_img:
-                                            area.spaces.active.image = img
+                            update_image_editors(old_img, img)
 
 
                     probe_component['envMapTexture'] = img
@@ -321,6 +326,51 @@ class BakeProbeOperator(bpy.types.Operator):
         self.report({'INFO'}, 'Baking probe %s' % probe.name)
         self.probe_is_setup = True
 
+class OpenReflectionProbeEnvMap(Operator):
+    bl_idname = "image.hubs_open_reflection_probe_envmap"
+    bl_label = "Open EnvMap"
+    bl_description = "Load an external image to be used as this probe's environment map"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    filepath: StringProperty(subtype="FILE_PATH")
+    files: CollectionProperty(type=PropertyGroup)
+    filter_folder: BoolProperty(default=True, options={"HIDDEN"})
+    filter_image: BoolProperty(default=True, options={"HIDDEN"})
+
+    relative_path: BoolProperty(name="Relative Path", description="Select the file relative to the blend file", default=True)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "relative_path")
+
+    def execute(self, context):
+        dirname = os.path.dirname(self.filepath)
+
+        if not self.files[0].name:
+            self.report({'INFO'}, "Open EnvMap cancelled.  No image selected.")
+            return {'CANCELLED'}
+
+        probe_component = context.active_object.hubs_component_reflection_probe
+        old_img = probe_component['envMapTexture']
+
+        # Load/Reload the first image and assign it to the reflection probe, then load the rest of the images if they're not already loaded.  This mimics Blender's default open files behavior.
+        primary_filepath = os.path.join(dirname, self.files[0].name)
+        primary_img = bpy.data.images.load(filepath=primary_filepath, check_existing=True)
+        primary_img.reload()
+        probe_component['envMapTexture'] = primary_img
+
+        for f in self.files[1:]:
+            img = bpy.data.images.load(filepath=os.path.join(dirname, f.name), check_existing=True)
+
+        update_image_editors(old_img, primary_img)
+        redraw_component_ui(context)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        self.filepath = ""
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
 class ReflectionProbe(HubsComponent):
     _definition = {
         'name': 'reflection-probe',
@@ -341,7 +391,9 @@ class ReflectionProbe(HubsComponent):
         row = layout.row()
         row.label(text="Resolution settings, as well as the option to bake all reflection probes at once, can be accessed from the scene settings.",
                   icon='INFO')
-        super().draw(context, layout, panel)
+        row = layout.row(align=True)
+        row.prop(self, "envMapTexture")
+        row.operator("image.hubs_open_reflection_probe_envmap", text='', icon='FILE_FOLDER')
 
         global bake_mode
         bake_msg = "Baking..." if probe_baking and bake_mode == 'ACTIVE' else "Bake"
@@ -418,6 +470,7 @@ class ReflectionProbe(HubsComponent):
     def register():
         bpy.utils.register_class(BakeProbeOperator)
         bpy.utils.register_class(ReflectionProbeSceneProps)
+        bpy.utils.register_class(OpenReflectionProbeEnvMap)
         bpy.types.Scene.hubs_scene_reflection_probe_properties = PointerProperty(
             type=ReflectionProbeSceneProps)
 
@@ -425,4 +478,5 @@ class ReflectionProbe(HubsComponent):
     def unregister():
         bpy.utils.unregister_class(BakeProbeOperator)
         bpy.utils.unregister_class(ReflectionProbeSceneProps)
+        bpy.utils.unregister_class(OpenReflectionProbeEnvMap)
         del bpy.types.Scene.hubs_scene_reflection_probe_properties
