@@ -208,10 +208,7 @@ def gather_node_property(export_settings, blender_object, target, property_name)
             vtree = export_settings['vtree']
             vnode = vtree.nodes[next((uuid for uuid in vtree.nodes if (
                 vtree.nodes[uuid].blender_object == blender_object)), None)]
-            node = vnode.node or gltf2_blender_gather_nodes.gather_node(
-                vnode,
-                export_settings
-            )
+            node = vnode.node
 
         return {
             "__mhc_link_type": "node",
@@ -238,10 +235,7 @@ def gather_joint_property(export_settings, blender_object, target, property_name
             vtree = export_settings['vtree']
             vnode = vtree.nodes[next((uuid for uuid in vtree.nodes if (
                 vtree.nodes[uuid].joint == joint)), None)]
-            node = vnode.node or gltf2_blender_gather_joints.gather_joint_vnode(
-                vnode,
-                export_settings
-            )
+            node = node = vnode.node
 
         return {
             "__mhc_link_type": "node",
@@ -311,6 +305,14 @@ def gather_texture_property(export_settings, blender_object, target, property_na
         }
     else:
         return None
+
+
+def srgb2lin(s):
+    if s <= 0.0404482362771082:
+        lin = s / 12.92
+    else:
+        lin = pow(((s + 0.055) / 1.055), 2.4)
+    return lin
 
 
 def lin2srgb(lin):
@@ -397,15 +399,7 @@ def set_color_from_hex(blender_component, property_name, hexcolor):
 
     for x, value in enumerate(rgb_int):
         rgb_float = value/255 if value > 0 else 0
-
-        # convert sRGB values to linear
-        if rgb_float < 0.04045:
-            rgb_float_linear = rgb_float * (1.0 / 12.92)
-
-        else:
-            rgb_float_linear = ((rgb_float + 0.055) * (1.0 / 1.055)) ** 2.4
-
-        getattr(blender_component, property_name)[x] = rgb_float_linear
+        getattr(blender_component, property_name)[x] = rgb_float
 
 
 def assign_property(vnodes, blender_component, property_name, property_value):

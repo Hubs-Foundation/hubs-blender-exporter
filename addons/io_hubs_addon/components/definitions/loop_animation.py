@@ -6,6 +6,8 @@ from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ...io.utils import import_component, assign_property
 from ..utils import redraw_component_ui
+from ...io.utils import delayed_gather
+
 
 msgbus_owner = None
 
@@ -296,6 +298,36 @@ def is_valid_shape_key_track(ob, track):
     Errors.log(track, 'NOT_FOUND', "Track not found.  Did you mean:")
 
     return False
+
+
+def migrate_data(tracks, ob, host=None):
+    host = host or ob
+    if LoopAnimation.get_name() in host.hubs_component_list.items:
+        for track_name in tracks:
+            try:
+                nla_track = ob.animation_data.nla_tracks[track_name]
+                track_type = "object"
+            except (AttributeError, KeyError):
+                try:
+                    nla_track = ob.data.shape_keys.animation_data.nla_tracks[track_name]
+                    track_type = "shape_key"
+                except (AttributeError, KeyError):
+                    track = host.hubs_component_loop_animation.tracks_list.add()
+                    track.name = track_name
+                    continue
+
+            if not has_track(host.hubs_component_loop_animation.tracks_list, nla_track):
+                track = host.hubs_component_loop_animation.tracks_list.add()
+                strip_name = get_strip_name(nla_track)
+                action_name = get_action_name(nla_track)
+                track.name = get_display_name(
+                    nla_track.name, strip_name)
+                track.track_name = nla_track.name
+                track.strip_name = strip_name if is_default_name(
+                    nla_track.name) else ''
+                track.action_name = action_name if is_default_name(
+                    nla_track.name) else ''
+                track.track_type = track_type
 
 
 class TracksList(bpy.types.UIList):
@@ -696,43 +728,18 @@ class LoopAnimation(HubsComponent):
     @classmethod
     def migrate(cls, version):
         if version < (1, 0, 0):
-            def migrate_data(ob, host):
-                if cls.get_name() in host.hubs_component_list.items:
-                    tracks = host.hubs_component_loop_animation.clip.split(",")
-                    for track_name in tracks:
-                        try:
-                            nla_track = ob.animation_data.nla_tracks[track_name]
-                            track_type = "object"
-                        except (AttributeError, KeyError):
-                            try:
-                                nla_track = ob.data.shape_keys.animation_data.nla_tracks[track_name]
-                                track_type = "shape_key"
-                            except (AttributeError, KeyError):
-                                track = host.hubs_component_loop_animation.tracks_list.add()
-                                track.name = track_name
-                                continue
-
-                        if not has_track(host.hubs_component_loop_animation.tracks_list, nla_track):
-                            track = host.hubs_component_loop_animation.tracks_list.add()
-                            strip_name = get_strip_name(nla_track)
-                            action_name = get_action_name(nla_track)
-                            track.name = get_display_name(
-                                nla_track.name, strip_name)
-                            track.track_name = nla_track.name
-                            track.strip_name = strip_name if is_default_name(
-                                nla_track.name) else ''
-                            track.action_name = action_name if is_default_name(
-                                nla_track.name) else ''
-                            track.track_type = track_type
-
             for ob in bpy.data.objects:
-                migrate_data(ob, ob)
+                tracks = ob.hubs_component_loop_animation.clip.split(",")
+                migrate_data(tracks, ob)
 
                 if ob.type == 'ARMATURE':
                     for bone in ob.data.bones:
-                        migrate_data(ob, bone)
+                        tracks = bone.hubs_component_loop_animation.clip.split(
+                            ",")
+                        migrate_data(tracks, ob, bone)
 
     @classmethod
+    @delayed_gather
     def gather_import(cls, gltf, blender_object, component_name, component_value):
         blender_component = import_component(
             component_name, blender_object)
@@ -740,11 +747,7 @@ class LoopAnimation(HubsComponent):
         for property_name, property_value in component_value.items():
             if property_name == 'clip':
                 tracks = property_value.split(",")
-                for track_name in tracks:
-                    if not has_track(blender_component.tracks_list, track_name):
-                        track = blender_component.tracks_list.add()
-                        track.name = track_name.strip()
-
+                migrate_data(tracks, blender_object)
             else:
                 assign_property(gltf.vnodes, blender_component,
                                 property_name, property_value)

@@ -11,6 +11,15 @@ import traceback
 EXTENSION_NAME = HUBS_CONFIG["gltfExtensionName"]
 
 armatures = {}
+delayed_gathers = []
+
+
+def call_delayed_gathers():
+    global delayed_gathers
+    for delayed_gather in delayed_gathers:
+        gather = delayed_gather
+        gather()
+    delayed_gathers.clear()
 
 
 def import_hubs_components(gltf_node, blender_object, gltf):
@@ -21,8 +30,10 @@ def import_hubs_components(gltf_node, blender_object, gltf):
             if component_class:
                 component_value = components_data[component_name]
                 try:
-                    component_class.gather_import(
+                    data = component_class.gather_import(
                         gltf, blender_object, component_name, component_value)
+                    if data and hasattr(data, "delayed_gather"):
+                        delayed_gathers.append((data))
                 except Exception:
                     traceback.print_exc()
             else:
@@ -102,6 +113,8 @@ class glTF2ImportUserExtension:
         self.extensions = [
             Extension(name=EXTENSION_NAME, extension={}, required=True)]
         self.properties = bpy.context.scene.hubs_import_properties
+        global delayed_gathers
+        delayed_gathers = []
 
     def gather_import_scene_before_hook(self, gltf_scene, blender_scene, gltf):
         if not self.properties.enabled:
@@ -155,6 +168,12 @@ class glTF2ImportUserExtension:
 
         add_lightmap(gltf_material, blender_mat, gltf)
 
+    def gather_import_animations(self, gltf_animations, animation_options, gltf):
+        print("Anima")
+
+    def gather_import_scene_after_animation_hook(self, gltf_scene, blender_scene, gltf):
+        call_delayed_gathers()
+
 
 # import hooks were only recently added to the glTF exporter, so make a custom hook for now
 orig_BlenderNode_create_object = BlenderNode.create_object
@@ -203,7 +222,9 @@ def patched_BlenderMaterial_create(gltf, material_idx, vertex_color):
 @ staticmethod
 def patched_BlenderScene_create(gltf):
     global armatures
+    global delayed_gathers
     armatures.clear()
+    delayed_gathers = []
 
     orig_BlenderScene_create(gltf)
     gltf_scene = gltf.data.scenes[gltf.data.scene]
@@ -213,6 +234,8 @@ def patched_BlenderScene_create(gltf):
     # Bones are created after the armatures so we need to wait until all nodes have been processed to be able to access the bones objects
     add_bones(gltf)
     armatures.clear()
+
+    call_delayed_gathers()
 
 
 def register():

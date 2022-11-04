@@ -135,3 +135,7 @@ class AudioParams(HubsComponent):
             layout.prop(data=self, property="coneInnerAngle")
             layout.prop(data=self, property="coneOuterAngle")
             layout.prop(data=self, property="coneOuterGain")
+
+    @classmethod
+    def gather_import(cls, gltf, blender_object, component_name, component_value):
+        blender_object.hubs_component_audio_params.overrideAudioSettings = True
