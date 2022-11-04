@@ -60,9 +60,10 @@ def set_resolution(self, value):
         self.resolution_id = RESOLUTION_ITEMS[value][0]
 
 
-def get_probes():
+def get_probes(all_objects=False):
     probes = []
-    for ob in bpy.context.view_layer.objects:
+    objects = bpy.data.objects if all_objects else bpy.context.view_layer.objects
+    for ob in objects:
         component_list = ob.hubs_component_list
 
         registered_hubs_components = get_components_registry()
@@ -87,6 +88,14 @@ def update_image_editors(old_img, img):
             if area.type == 'IMAGE_EDITOR':
                 if area.spaces.active.image == old_img:
                     area.spaces.active.image = img
+
+
+def import_menu_draw(self, context):
+    self.layout.operator("image.hubs_import_reflection_probe_envmaps", text="Import Reflection Probe EnvMaps")
+
+
+def export_menu_draw(self, context):
+    self.layout.operator("image.hubs_export_reflection_probe_envmaps", text="Export Reflection Probe EnvMaps")
 
 
 class ReflectionProbeSceneProps(PropertyGroup):
@@ -371,6 +380,153 @@ class OpenReflectionProbeEnvMap(Operator):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
+
+class ImportReflectionProbeEnvMaps(Operator):
+    bl_idname = "image.hubs_import_reflection_probe_envmaps"
+    bl_label = "Import EnvMaps"
+    bl_description = "Batch open environment maps and assign them to their corresponding reflection probes"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    filepath: StringProperty(subtype="FILE_PATH")
+    files: CollectionProperty(type=PropertyGroup)
+    filter_folder: BoolProperty(default=True, options={"HIDDEN"})
+    filter_image: BoolProperty(default=True, options={"HIDDEN"})
+
+    relative_path: BoolProperty(name="Relative Path", description="Select the file relative to the blend file", default=True)
+    overwrite_images: BoolProperty(name="Overwrite Probe Images", description="Overwrite/Remove the current images of the reflection probes being imported to", default=False)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "relative_path")
+        layout.prop(self, "overwrite_images")
+        layout.separator()
+        info_col = layout.column()
+        info_col.scale_y = 0.7
+        info_col.label(text="Load the selected images", icon='INFO')
+        info_col.label(text="into the matching probes.", icon='BLANK1')
+        info_col.label(text="Images must start with the", icon='BLANK1')
+        info_col.label(text="respective probe's name", icon='BLANK1')
+        info_col.label(text="formatted like this:", icon='BLANK1')
+        info_col.label(text="\"<Probe Name> - EnvMap\"", icon='BLANK1')
+
+    def execute(self, context):
+        dirname = os.path.dirname(self.filepath)
+
+        if not self.files[0].name:
+            self.report({'INFO'}, "Import EnvMaps cancelled.  No images selected.")
+            return {'CANCELLED'}
+
+        num_imported = 0
+        num_failed = 0
+        probes = get_probes(all_objects=True)
+        for f in self.files:
+            imported_file = False
+            for probe in probes:
+                if f.name.startswith(f"{probe.name} - EnvMap"):
+                    probe_component = probe.hubs_component_reflection_probe
+                    old_img = probe_component['envMapTexture']
+
+                    img = bpy.data.images.load(filepath=os.path.join(dirname, f.name))
+                    probe_component['envMapTexture'] = img
+
+                    if old_img:
+                        if self.overwrite_images:
+                            if old_img.name == f.name:
+                                img.name = f.name
+                            old_img.user_remap(img)
+                            bpy.data.images.remove(old_img)
+                        else:
+                            update_image_editors(old_img, img)
+
+                    imported_file = True
+                    num_imported += 1
+                    self.report({'INFO'}, f"Imported {f.name} to probe {probe.name}")
+
+            if not imported_file:
+                num_failed += 1
+                self.report({'WARNING'}, f"Warning: Couldn't import {f.name}.  The corresponding probe doesn't exist")
+
+
+        if num_failed:
+            final_report_message = f"Warning: {num_failed} environment maps failed to import. {num_imported} environment maps imported to probes"
+        else:
+            final_report_message = f"{num_imported} environment maps imported to probes"
+        self.report({'INFO'}, final_report_message)
+
+        redraw_component_ui(context)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        self.filepath = ""
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class ExportReflectionProbeEnvMaps(Operator):
+    bl_idname = "image.hubs_export_reflection_probe_envmaps"
+    bl_label = "Export EnvMaps"
+    bl_description = "Batch save out the current environment maps from reflection probes"
+
+    directory: StringProperty(subtype="DIR_PATH")
+    filter_folder: BoolProperty(default=True, options={"HIDDEN"})
+    filter_image: BoolProperty(default=True, options={"HIDDEN"})
+
+
+    batch_type: EnumProperty(
+        name="Batch Type",
+        description="Choose which probes to export",
+        items=(
+            ('ALL', "All Probes", "Export the environment maps from all probes in the current view layer"),
+            ('SELECTED', "Selected Probes", "Export the environment maps from the selected probes"),
+        ),
+        default='ALL',
+    )
+
+    naming_scheme: StringProperty(
+        name="Output Naming Scheme",
+        description="How exported files will be named",
+        default="<Probe Name> - EnvMap.hdr"
+        )
+
+    def draw(self, context):
+        layout = self.layout
+        layout.label(text="Export EnvMaps for:")
+        layout.prop(self, "batch_type", expand=True)
+        layout.separator()
+        row = layout.row()
+        row.prop(self, "naming_scheme", text="To")
+        row.enabled = False
+
+    def execute(self, context):
+        if self.batch_type == 'SELECTED':
+            probes = [ob for ob in get_probes() if ob in context.selected_objects]
+        else:
+            probes = get_probes()
+
+        if not probes:
+            self.report({'WARNING'}, "Export EnvMaps cancelled.  No probes matching the criteria were found.")
+            return {'CANCELLED'}
+
+        num_exported = 0
+        for probe in probes:
+            envMapTexture = probe.hubs_component_reflection_probe.envMapTexture
+            if envMapTexture:
+                export_path = f"{self.directory}/{probe.name} - EnvMap.hdr"
+                orig_filepath_raw = envMapTexture.filepath_raw
+                envMapTexture.filepath_raw = export_path
+                envMapTexture.save()
+                envMapTexture.filepath_raw = orig_filepath_raw
+                self.report({'INFO'}, f"Exported environment map for probe {probe.name}")
+                num_exported += 1
+            else:
+                self.report({'WARNING'}, f"Reflection probe {probe.name} doesn't have an environment map to export")
+        self.report({'INFO'}, f"Exported {num_exported} environment maps to {self.directory}")
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
 class ReflectionProbe(HubsComponent):
     _definition = {
         'name': 'reflection-probe',
@@ -471,12 +627,20 @@ class ReflectionProbe(HubsComponent):
         bpy.utils.register_class(BakeProbeOperator)
         bpy.utils.register_class(ReflectionProbeSceneProps)
         bpy.utils.register_class(OpenReflectionProbeEnvMap)
+        bpy.utils.register_class(ImportReflectionProbeEnvMaps)
+        bpy.utils.register_class(ExportReflectionProbeEnvMaps)
         bpy.types.Scene.hubs_scene_reflection_probe_properties = PointerProperty(
             type=ReflectionProbeSceneProps)
+        bpy.types.TOPBAR_MT_file_import.append(import_menu_draw)
+        bpy.types.TOPBAR_MT_file_export.append(export_menu_draw)
 
     @ staticmethod
     def unregister():
         bpy.utils.unregister_class(BakeProbeOperator)
         bpy.utils.unregister_class(ReflectionProbeSceneProps)
         bpy.utils.unregister_class(OpenReflectionProbeEnvMap)
+        bpy.utils.unregister_class(ImportReflectionProbeEnvMaps)
+        bpy.utils.unregister_class(ExportReflectionProbeEnvMaps)
         del bpy.types.Scene.hubs_scene_reflection_probe_properties
+        bpy.types.TOPBAR_MT_file_import.remove(import_menu_draw)
+        bpy.types.TOPBAR_MT_file_export.remove(export_menu_draw)
