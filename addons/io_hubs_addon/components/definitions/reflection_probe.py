@@ -60,7 +60,7 @@ def set_resolution(self, value):
         self.resolution_id = RESOLUTION_ITEMS[value][0]
 
 
-def get_probes(all_objects=False):
+def get_probes(all_objects=False, include_locked=False):
     probes = []
     objects = bpy.data.objects if all_objects else bpy.context.view_layer.objects
     for ob in objects:
@@ -73,6 +73,9 @@ def get_probes(all_objects=False):
                 component_name = component_item.name
                 if component_name in registered_hubs_components:
                     if component_name == 'reflection-probe':
+                        probe_component = ob.hubs_component_reflection_probe
+                        if probe_component.locked and not include_locked:
+                            continue
                         probes.append(ob)
 
     return probes
@@ -444,7 +447,7 @@ class ImportReflectionProbeEnvMaps(Operator):
 
             if not imported_file:
                 num_failed += 1
-                self.report({'WARNING'}, f"Warning: Couldn't import {f.name}.  The corresponding probe doesn't exist")
+                self.report({'WARNING'}, f"Warning: Couldn't import {f.name}.  The corresponding probe either doesn't exist or is locked.")
 
 
         if num_failed:
@@ -482,6 +485,8 @@ class ExportReflectionProbeEnvMaps(Operator):
         default='ALL',
     )
 
+    include_locked: BoolProperty(name="Include Locked", description="Include environment maps from locked probes", default=False)
+
     naming_scheme: StringProperty(
         name="Output Naming Scheme",
         description="How exported files will be named",
@@ -492,6 +497,7 @@ class ExportReflectionProbeEnvMaps(Operator):
         layout = self.layout
         layout.label(text="Export EnvMaps for:")
         layout.prop(self, "batch_type", expand=True)
+        layout.prop(self, "include_locked")
         layout.separator()
         row = layout.row()
         row.prop(self, "naming_scheme", text="To")
@@ -499,9 +505,9 @@ class ExportReflectionProbeEnvMaps(Operator):
 
     def execute(self, context):
         if self.batch_type == 'SELECTED':
-            probes = [ob for ob in get_probes() if ob in context.selected_objects]
+            probes = [ob for ob in get_probes(include_locked=self.include_locked) if ob in context.selected_objects]
         else:
-            probes = get_probes()
+            probes = get_probes(include_locked=self.include_locked)
 
         if not probes:
             self.report({'WARNING'}, "Export EnvMaps cancelled.  No probes matching the criteria were found.")
@@ -543,7 +549,14 @@ class ReflectionProbe(HubsComponent):
         type=Image
     )
 
+    locked: BoolProperty(name="Probe Lock", description="Toggle whether new environment maps can be assigned/baked to this reflection probe", default=False)
+
     def draw(self, context, layout, panel):
+        row = layout.row()
+        row.alignment = 'LEFT'
+        icon = 'LOCKED' if self.locked else 'UNLOCKED'
+        row.prop(self, "locked", text='', icon=icon, toggle=True)
+
         row = layout.row()
         row.label(text="Resolution settings, as well as the option to bake all reflection probes at once, can be accessed from the scene settings.",
                   icon='INFO')
@@ -551,13 +564,20 @@ class ReflectionProbe(HubsComponent):
         row.prop(self, "envMapTexture")
         row.operator("image.hubs_open_reflection_probe_envmap", text='', icon='FILE_FOLDER')
 
+        if self.locked:
+            row.enabled = False
+
         global bake_mode
+        row = layout.row()
         bake_msg = "Baking..." if probe_baking and bake_mode == 'ACTIVE' else "Bake"
-        bake_op = layout.operator(
+        bake_op = row.operator(
             "render.hubs_render_reflection_probe",
             text=bake_msg
         )
         bake_op.bake_mode = 'ACTIVE'
+
+        if self.locked:
+            row.enabled = False
 
         if not hasattr(bpy.context.scene, "cycles"):
             row = layout.row()
@@ -577,7 +597,7 @@ class ReflectionProbe(HubsComponent):
     @ classmethod
     def draw_global(cls, context, layout, panel):
         panel_type = PanelType(panel.bl_context)
-        if len(get_probes()) > 0 and panel_type == PanelType.SCENE:
+        if len(get_probes(include_locked=True)) > 0 and panel_type == PanelType.SCENE:
             row = layout.row()
             col = row.box().column()
             row = col.row()
