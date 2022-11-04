@@ -161,13 +161,35 @@ class BakeProbeOperator(Operator):
         self.cancelled = True
 
     def execute(self, context):
-        if self.bake_mode == 'SELECTED' and len(context.selected_objects) == 0:
+        modes = {
+            'ACTIVE': lambda: [context.active_object],
+            'SELECTED': lambda: [ob for ob in get_probes() if ob in context.selected_objects],
+            'ALL': lambda: get_probes(),
+        }
+        self.probes = modes[self.bake_mode]()
+
+        if self.bake_mode == 'SELECTED' and len(self.probes) == 0:
             def draw(self, context):
                 self.layout.label(
-                    text="No objects selected to bake. Please select some objects first.")
+                    text="No probes selected to bake or the selected probes are locked. Please select some unlocked probes first.")
             bpy.context.window_manager.popup_menu(
-                draw, title="No object selected", icon='ERROR')
-            return {"FINISHED"}
+                draw, title="No unlocked probes selected", icon='ERROR')
+            return {'CANCELLED'}
+        if self.bake_mode == 'ALL' and len(self.probes) == 0:
+            def draw(self, context):
+                self.layout.label(
+                    text="No unlocked probes to bake. Please unlock the desired probes first.")
+            bpy.context.window_manager.popup_menu(
+                draw, title="No unlocked probes", icon='ERROR')
+            return {'CANCELLED'}
+        if self.bake_mode == 'ACTIVE' and self.probes[0].hubs_component_reflection_probe.locked:
+            # This isn't likely to ever happen, but just in case....
+            def draw(self, context):
+                self.layout.label(
+                    text="The active probe is locked. Please unlock it first.")
+            bpy.context.window_manager.popup_menu(
+                draw, title="Active probe locked", icon='ERROR')
+            return {'CANCELLED'}
 
         bpy.app.handlers.render_post.append(self.render_post)
         bpy.app.handlers.render_cancel.append(self.render_cancelled)
@@ -183,13 +205,6 @@ class BakeProbeOperator(Operator):
         self.camera_object = bpy.data.objects.new(
             'Temp EnvMap Camera', self.camera_data)
         bpy.context.scene.collection.objects.link(self.camera_object)
-
-        modes = {
-            'ACTIVE': lambda: [context.active_object],
-            'SELECTED': lambda: [ob for ob in get_probes() if ob in context.selected_objects],
-            'ALL': lambda: get_probes(),
-        }
-        self.probes = modes[self.bake_mode]()
 
         self.saved_props = {}
         self.cancelled = False
