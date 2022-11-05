@@ -627,7 +627,12 @@ class ReflectionProbe(HubsComponent):
         if envmap:
             envmap_resolution = f"{envmap.size[0]}x{envmap.size[1]}"
             props = context.scene.hubs_scene_reflection_probe_properties
-            if envmap_resolution != props.resolution:
+            if not envmap.has_data:
+                row = layout.row()
+                row.alert = True
+                row.label(text="Can't load image.",
+                            icon='ERROR')
+            elif envmap_resolution != props.resolution:
                 row = layout.row()
                 row.alert = True
                 row.label(text="EnvMap/Probe resolution mismatch.",
