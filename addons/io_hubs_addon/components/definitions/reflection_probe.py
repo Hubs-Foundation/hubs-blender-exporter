@@ -142,6 +142,16 @@ class BakeProbeOperator(Operator):
         default='ACTIVE')
 
     @ classmethod
+    def description(cls, context, properties):
+        if properties.bake_mode == 'ACTIVE':
+            description_text = "Generate a 360 equirectangular HDR environment map of the current area in the scene"
+        elif properties.bake_mode == 'SELECTED':
+            description_text = "Bake the selected unlocked reflection probes"
+        else:
+            description_text = "Bake all the unlocked reflection probes in the current view layer"
+        return description_text
+
+    @ classmethod
     def poll(cls, context):
         return not probe_baking and hasattr(bpy.context.scene, "cycles")
 
