@@ -246,6 +246,9 @@ class BakeProbeOperator(bpy.types.Operator):
         self.post_render_wait = 500
         self.probe_index = len(self.probes) - 1
 
+        global stored_preferences_is_dirty
+        stored_preferences_is_dirty = bpy.context.preferences.is_dirty
+
         probe_baking = True
 
         return {"RUNNING_MODAL"}
@@ -325,7 +328,6 @@ class BakeProbeOperator(bpy.types.Operator):
         stored_preferences_is_dirty = None
 
     def render_probe(self, context):
-        global stored_preferences_is_dirty
         probe = self.probes[self.probe_index]
 
         self.camera_data.type = "PANO"
@@ -362,7 +364,6 @@ class BakeProbeOperator(bpy.types.Operator):
             ("scene.use_nodes", use_compositor)
         ]
 
-        stored_preferences_is_dirty = bpy.context.preferences.is_dirty
         for (prop, value) in overrides:
             if prop not in self.saved_props:
                 self.saved_props[prop] = rgetattr(bpy.context, prop)
