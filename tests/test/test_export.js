@@ -1,6 +1,7 @@
 const fs = require('fs');
 const glob = require('glob')
 const path = require('path');
+const { test } = require('./tests/link.js');
 const utils = require('./utils.js');
 
 const OUT_PREFIX = process.env.OUT_PREFIX || '../tests_out';
@@ -27,45 +28,45 @@ const tests = glob.sync(path.join(basePath, 'tests', '*.js')).reduce((loaded, fi
   return loaded;
 }, []);
 
-// describe('Exporter', function () {
-//   const blenderSampleScenes = fs.readdirSync('scenes').filter(f => f.endsWith('.blend')).map(f => f.substring(0, f.length - 6));
+describe('Exporter', function () {
+  const blenderSampleScenes = fs.readdirSync('scenes').filter(f => f.endsWith('.blend')).map(f => f.substring(0, f.length - 6));
 
-//   blenderVersions.forEach(function (blenderVersion) {
-//     let variants = [
-//       ['', '']
-//     ];
+  blenderVersions.forEach(function (blenderVersion) {
+    let variants = [
+      ['', '']
+    ];
 
-//     variants.forEach(function (variant) {
-//       const args = variant[1];
-//       describe(blenderVersion + '_export' + variant[0], function () {
-//         blenderSampleScenes.forEach((scene) => {
-//           it(scene, function (done) {
-//             let outDirName = 'out' + blenderVersion + variant[0];
-//             let blenderPath = `scenes/${scene}.blend`;
-//             let ext = args.indexOf('--glb') === -1 ? '.gltf' : '.glb';
-//             let outDirPath = path.resolve(OUT_PREFIX, outDirName, 'export');
-//             let dstPath = path.resolve(outDirPath, `${scene}${ext}`);
-//             utils.blenderFileToGltf(blenderVersion, blenderPath, outDirPath, (error) => {
-//               if (error)
-//                 return done(error);
+    variants.forEach(function (variant) {
+      const args = variant[1];
+      describe(blenderVersion + '_export' + variant[0], function () {
+        blenderSampleScenes.forEach((scene) => {
+          it(scene, function (done) {
+            let outDirName = 'out' + blenderVersion + variant[0];
+            let blenderPath = `scenes/${scene}.blend`;
+            let ext = args.indexOf('--glb') === -1 ? '.gltf' : '.glb';
+            let outDirPath = path.resolve(OUT_PREFIX, outDirName, 'export');
+            let dstPath = path.resolve(outDirPath, `${scene}${ext}`);
+            utils.blenderFileToGltf(blenderVersion, blenderPath, outDirPath, (error) => {
+              if (error)
+                return done(error);
 
-//               utils.validateGltf(dstPath, done);
-//             }, args);
-//           });
-//         });
-//       });
-//     });
+              utils.validateGltf(dstPath, done);
+            }, args);
+          });
+        });
+      });
+    });
 
-//     describe(blenderVersion + '_export_results', function () {
-//       let outDirName = 'out' + blenderVersion;
-//       let outDirPath = path.resolve(OUT_PREFIX, outDirName, 'export');
+    describe(blenderVersion + '_export_results', function () {
+      let outDirName = 'out' + blenderVersion;
+      let outDirPath = path.resolve(OUT_PREFIX, outDirName, 'export');
 
-//       tests.forEach(test => {
-//         it(test.description, () => test.test(outDirPath));
-//       });
-//     });
-//   });
-// });
+      tests.forEach(test => {
+        it(test.description, () => test.test(outDirPath));
+      });
+    });
+  });
+});
 
 describe('Importer / Exporter (Roundtrip)', function () {
   const blenderSampleScenes = fs.readdirSync('scenes').filter(f => f.endsWith('.blend')).map(f => f.substring(0, f.length - 6));
