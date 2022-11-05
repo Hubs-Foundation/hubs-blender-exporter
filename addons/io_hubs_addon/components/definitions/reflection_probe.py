@@ -247,6 +247,10 @@ class BakeProbeOperator(Operator):
                 self.probe_is_setup = False
 
                 if self.cancelled:
+                    for probe in self.probes:
+                        img_path = get_probe_image_path(probe)
+                        if os.path.exists(img_path):
+                            os.remove(img_path)
                     self.report(
                         {'WARNING'}, 'Reflection probe baking cancelled')
                     return {"CANCELLED"}
