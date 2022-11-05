@@ -168,9 +168,6 @@ class glTF2ImportUserExtension:
 
         add_lightmap(gltf_material, blender_mat, gltf)
 
-    def gather_import_animations(self, gltf_animations, animation_options, gltf):
-        print("Anima")
-
     def gather_import_scene_after_animation_hook(self, gltf_scene, blender_scene, gltf):
         call_delayed_gathers()
 
