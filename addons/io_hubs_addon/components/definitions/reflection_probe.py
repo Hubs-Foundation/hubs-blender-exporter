@@ -217,6 +217,7 @@ class BakeProbeOperator(Operator):
         bpy.context.scene.collection.objects.link(self.camera_object)
 
         self.saved_props = {}
+        self.preferences_is_dirty_state = bpy.context.preferences.is_dirty
         self.cancelled = False
         self.done = False
         self.rendering = False
@@ -317,6 +318,8 @@ class BakeProbeOperator(Operator):
     def restore_render_props(self):
         for prop in self.saved_props:
            rsetattr(bpy.context, prop, self.saved_props[prop])
+        bpy.context.preferences.is_dirty = self.preferences_is_dirty_state
+        self.preferences_is_dirty_state = None
 
     def setup_probe_render(self, context):
         probe = self.probes[self.probe_index]
