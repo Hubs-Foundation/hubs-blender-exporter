@@ -11,7 +11,7 @@ from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ... import io
 from ...utils import rgetattr, rsetattr
-from ..utils import redraw_component_ui
+from ..utils import redraw_component_ui, is_linked
 import math
 import os
 
@@ -60,7 +60,7 @@ def set_resolution(self, value):
         self.resolution_id = RESOLUTION_ITEMS[value][0]
 
 
-def get_probes(all_objects=False, include_locked=False):
+def get_probes(all_objects=False, include_locked=False, include_linked=False):
     probes = []
     objects = bpy.data.objects if all_objects else bpy.context.view_layer.objects
     for ob in objects:
@@ -74,6 +74,8 @@ def get_probes(all_objects=False, include_locked=False):
                 if component_name in registered_hubs_components:
                     if component_name == 'reflection-probe':
                         probe_component = ob.hubs_component_reflection_probe
+                        if is_linked(ob) and not include_linked:
+                            continue
                         if probe_component.locked and not include_locked:
                             continue
                         probes.append(ob)
@@ -146,9 +148,9 @@ class BakeProbeOperator(Operator):
         if properties.bake_mode == 'ACTIVE':
             description_text = "Generate a 360 equirectangular HDR environment map of the current area in the scene"
         elif properties.bake_mode == 'SELECTED':
-            description_text = "Bake the selected unlocked reflection probes"
+            description_text = "Bake the selected unlocked/local reflection probes"
         else:
-            description_text = "Bake all the unlocked reflection probes in the current view layer"
+            description_text = "Bake all the unlocked/local reflection probes in the current view layer"
         return description_text
 
     @ classmethod
@@ -181,16 +183,23 @@ class BakeProbeOperator(Operator):
         if self.bake_mode == 'SELECTED' and len(self.probes) == 0:
             def draw(self, context):
                 self.layout.label(
-                    text="No probes selected to bake or the selected probes are locked. Please select some unlocked probes first.")
+                    text="No probes selected to bake or the selected probes are locked/linked. Please select some unlocked/local probes first.")
             bpy.context.window_manager.popup_menu(
-                draw, title="No unlocked probes selected", icon='ERROR')
+                draw, title="No unlocked/local probes selected", icon='ERROR')
             return {'CANCELLED'}
         if self.bake_mode == 'ALL' and len(self.probes) == 0:
             def draw(self, context):
                 self.layout.label(
-                    text="No unlocked probes to bake. Please unlock the desired probes first.")
+                    text="No unlocked/local probes to bake. Please unlock/make local the desired probes first.")
             bpy.context.window_manager.popup_menu(
-                draw, title="No unlocked probes", icon='ERROR')
+                draw, title="No unlocked/local probes", icon='ERROR')
+            return {'CANCELLED'}
+        if self.bake_mode == 'ACTIVE' and is_linked(self.probes[0]):
+            def draw(self, context):
+                self.layout.label(
+                    text="The active probe is linked. Please make it local first.")
+            bpy.context.window_manager.popup_menu(
+                draw, title="Active probe linked", icon='ERROR')
             return {'CANCELLED'}
         if self.bake_mode == 'ACTIVE' and self.probes[0].hubs_component_reflection_probe.locked:
             # This isn't likely to ever happen, but just in case....
@@ -259,12 +268,12 @@ class BakeProbeOperator(Operator):
                     probe_component = probe.hubs_component_reflection_probe
                     old_img = probe_component.envMapTexture
                     image_name = f"generated_cubemap-{probe.name}"
-                    # Store the old image's full name in case of name juggling.
-                    old_img_name_full = old_img.name_full if old_img else ""
+                    # Store the old image's name in case of name juggling.
+                    old_img_name = old_img.name if old_img else ""
 
                     conflicting_img = None
                     for img in bpy.data.images:
-                        if img.name == image_name and not img.library:
+                        if img.name == image_name and not is_linked(img):
                             conflicting_img = img
                             break
 
@@ -276,7 +285,7 @@ class BakeProbeOperator(Operator):
                     img = bpy.data.images.load(filepath=img_path)
                     img.name = image_name
                     if old_img:
-                        if image_name == old_img_name_full:
+                        if image_name == old_img_name and not is_linked(old_img):
                             old_img.user_remap(img)
                             bpy.data.images.remove(old_img)
                         else:
@@ -411,6 +420,15 @@ class OpenReflectionProbeEnvMap(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
+        probe = context.active_object
+        if is_linked(probe):
+            def draw(self, context):
+                self.layout.label(
+                    text="The active probe is linked. Please make it local first.")
+            bpy.context.window_manager.popup_menu(
+                draw, title="Active probe linked", icon='ERROR')
+            return {'CANCELLED'}
+
         self.filepath = ""
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
@@ -468,8 +486,12 @@ class ImportReflectionProbeEnvMaps(Operator):
                         if self.overwrite_images:
                             if old_img.name == f.name:
                                 img.name = f.name
+
                             old_img.user_remap(img)
-                            bpy.data.images.remove(old_img)
+
+                            if not is_linked(old_img):
+                                bpy.data.images.remove(old_img)
+
                         else:
                             update_image_editors(old_img, img)
 
@@ -479,7 +501,7 @@ class ImportReflectionProbeEnvMaps(Operator):
 
             if not imported_file:
                 num_failed += 1
-                self.report({'WARNING'}, f"Warning: Couldn't import {f.name}.  The corresponding probe either doesn't exist or is locked.")
+                self.report({'WARNING'}, f"Warning: Couldn't import {f.name}.  The corresponding probe either doesn't exist or is locked/linked.")
 
 
         if num_failed:
@@ -542,7 +564,7 @@ class ExportReflectionProbeEnvMaps(Operator):
             probes = get_probes(include_locked=self.include_locked)
 
         if not probes:
-            self.report({'WARNING'}, "Export EnvMaps cancelled.  No probes matching the criteria were found.")
+            self.report({'WARNING'}, "Export EnvMaps cancelled.  No local probes matching the criteria were found.")
             return {'CANCELLED'}
 
         num_exported = 0
@@ -587,7 +609,7 @@ class SelectMismatchedReflectionProbes(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        probes = get_probes(include_locked=True)
+        probes = get_probes(include_locked=True, include_linked=True)
         def draw(self, context):
             layout = self.layout
             layout.label(text="Select Mismatched Probes")
@@ -685,7 +707,7 @@ class ReflectionProbe(HubsComponent):
     @ classmethod
     def draw_global(cls, context, layout, panel):
         panel_type = PanelType(panel.bl_context)
-        probes = get_probes(include_locked=True)
+        probes = get_probes(include_locked=True, include_linked=True)
         if len(probes) > 0 and panel_type == PanelType.SCENE:
             row = layout.row()
             col = row.box().column()
