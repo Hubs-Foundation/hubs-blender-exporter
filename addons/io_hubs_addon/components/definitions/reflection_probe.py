@@ -594,7 +594,19 @@ class SelectMismatchedReflectionProbes(Operator):
     bl_description = "Select reflection probes in the current view layer with environment maps that don't match the global resolution"
     bl_options = {'REGISTER', 'UNDO'}
 
+    select_all: BoolProperty(default=False)
+    mismatched_probe_indexes: StringProperty()
+
     def execute(self, context):
+        if self.select_all:
+            bpy.ops.object.select_all(action='DESELECT')
+            probes = get_probes(include_locked=True, include_linked=True)
+            for index in map(int, self.mismatched_probe_indexes.split(',')):
+                probe = probes[index]
+                probe.select_set(True)
+            context.view_layer.objects.active = None
+            return {'FINISHED'}
+
         probe = context.probe
 
         # Check if the probe can be selected.
@@ -614,15 +626,34 @@ class SelectMismatchedReflectionProbes(Operator):
             layout = self.layout
             layout.label(text="Select Mismatched Probes")
             layout.separator()
+
             props = context.scene.hubs_scene_reflection_probe_properties
-            for probe in probes:
+            mismatched_probe_indexes = []
+            mismatched_probes = []
+            for i, probe in enumerate(probes):
                 envmap = probe.hubs_component_reflection_probe.envMapTexture
                 if envmap:
                     envmap_resolution = f"{envmap.size[0]}x{envmap.size[1]}"
                     if envmap_resolution != props.resolution:
-                        row = layout.row()
-                        row.context_pointer_set("probe", probe)
-                        row.operator(SelectMismatchedReflectionProbes.bl_idname, text=probe.name_full)
+                        mismatched_probe_indexes.append(i)
+                        mismatched_probes.append(probe)
+
+            is_selected = (context.selected_objects == mismatched_probes and not context.active_object)
+            icon = 'RADIOBUT_ON' if is_selected else 'RADIOBUT_OFF'
+            op = layout.operator(SelectMismatchedReflectionProbes.bl_idname, text="Select All", icon=icon)
+            op.select_all = True
+            op.mismatched_probe_indexes = ','.join(map(str, mismatched_probe_indexes))
+
+            layout.separator()
+
+            for probe in mismatched_probes:
+                is_selected = (probe == context.active_object and probe in context.selected_objects and len(context.selected_objects) == 1)
+                icon = 'RADIOBUT_ON' if is_selected else 'RADIOBUT_OFF'
+                row = layout.row()
+                row.context_pointer_set("probe", probe)
+                op = row.operator(SelectMismatchedReflectionProbes.bl_idname, text=probe.name_full, icon=icon)
+                op.select_all = False
+                op.mismatched_probe_indexes = ''
 
         bpy.context.window_manager.popup_menu(draw)
         return {'RUNNING_MODAL'}
@@ -674,7 +705,7 @@ class ReflectionProbe(HubsComponent):
             elif envmap_resolution != props.resolution:
                 row = layout.row()
                 row.alert = True
-                row.label(text="EnvMap/Probe resolution mismatch.",
+                row.label(text=f"{envmap_resolution} EnvMap doesn't match the scene probe resolution.",
                             icon='ERROR')
 
         global bake_mode
@@ -718,25 +749,25 @@ class ReflectionProbe(HubsComponent):
                      "resolution", text="")
 
             props = context.scene.hubs_scene_reflection_probe_properties
-            if props.resolution != props.render_resolution:
-                row = col.row()
-                row.alert = True
-                row.label(text="Reflection probe resolution has changed. Bake again to apply the new resolution.",
-                          icon='ERROR')
-            else:
-                mismatched_probes = 0
-                for probe in probes:
-                    envmap = probe.hubs_component_reflection_probe.envMapTexture
-                    if envmap:
-                        envmap_resolution = f"{envmap.size[0]}x{envmap.size[1]}"
-                        if envmap_resolution != props.resolution:
-                            mismatched_probes += 1
-                if mismatched_probes:
+            mismatched_probes = 0
+            for probe in probes:
+                envmap = probe.hubs_component_reflection_probe.envMapTexture
+                if envmap:
+                    envmap_resolution = f"{envmap.size[0]}x{envmap.size[1]}"
+                    if envmap_resolution != props.resolution:
+                        mismatched_probes += 1
+
+            if mismatched_probes:
+                if props.resolution != props.render_resolution:
                     row = col.row()
                     row.alert = True
-                    row.label(text=f"{mismatched_probes} probes don't match the current resolution.",
+                    row.label(text="Reflection probe resolution has changed. Bake again to apply the new resolution.",
                             icon='ERROR')
-                    row.operator("wm.hubs_select_mismatched_reflection_probes", text="", icon='RESTRICT_SELECT_OFF')
+                row = col.row()
+                row.alert = True
+                row.label(text=f"{mismatched_probes} probes don't match the current resolution.",
+                        icon='ERROR')
+                row.operator("wm.hubs_select_mismatched_reflection_probes", text="", icon='RESTRICT_SELECT_OFF')
 
             row = col.row()
             row.prop(context.scene.hubs_scene_reflection_probe_properties, "use_compositor")
