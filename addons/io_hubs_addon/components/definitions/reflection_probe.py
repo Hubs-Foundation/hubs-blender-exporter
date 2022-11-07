@@ -96,11 +96,13 @@ def update_image_editors(old_img, img):
 
 
 def import_menu_draw(self, context):
-    self.layout.operator("image.hubs_import_reflection_probe_envmaps", text="Import Reflection Probe EnvMaps")
+    self.layout.operator("image.hubs_import_reflection_probe_envmaps",
+                         text="Import Reflection Probe EnvMaps")
 
 
 def export_menu_draw(self, context):
-    self.layout.operator("image.hubs_export_reflection_probe_envmaps", text="Export Reflection Probe EnvMaps")
+    self.layout.operator("image.hubs_export_reflection_probe_envmaps",
+                         text="Export Reflection Probe EnvMaps")
 
 
 class ReflectionProbeSceneProps(PropertyGroup):
@@ -119,9 +121,9 @@ class ReflectionProbeSceneProps(PropertyGroup):
                                   default='256x128', options={'HIDDEN'})
 
     use_compositor: BoolProperty(name="Use Compositor",
-        description="Controls whether the baked images will be processed by the compositor after baking",
-        default=False
-    )
+                                 description="Controls whether the baked images will be processed by the compositor after baking",
+                                 default=False
+                                 )
 
 
 class BakeProbeOperator(Operator):
@@ -291,7 +293,6 @@ class BakeProbeOperator(Operator):
                         else:
                             update_image_editors(old_img, img)
 
-
                     probe_component['envMapTexture'] = img
 
                     # Pack image and update filepaths so that it displays/unpacks nicely for the user.
@@ -330,7 +331,7 @@ class BakeProbeOperator(Operator):
 
     def restore_render_props(self):
         for prop in self.saved_props:
-           rsetattr(bpy.context, prop, self.saved_props[prop])
+            rsetattr(bpy.context, prop, self.saved_props[prop])
         bpy.context.preferences.is_dirty = self.preferences_is_dirty_state
         self.preferences_is_dirty_state = None
 
@@ -379,6 +380,7 @@ class BakeProbeOperator(Operator):
         self.report({'INFO'}, 'Baking probe %s' % probe.name)
         self.probe_is_setup = True
 
+
 class OpenReflectionProbeEnvMap(Operator):
     bl_idname = "image.hubs_open_reflection_probe_envmap"
     bl_label = "Open EnvMap"
@@ -390,7 +392,8 @@ class OpenReflectionProbeEnvMap(Operator):
     filter_folder: BoolProperty(default=True, options={"HIDDEN"})
     filter_image: BoolProperty(default=True, options={"HIDDEN"})
 
-    relative_path: BoolProperty(name="Relative Path", description="Select the file relative to the blend file", default=True)
+    relative_path: BoolProperty(
+        name="Relative Path", description="Select the file relative to the blend file", default=True)
 
     def draw(self, context):
         layout = self.layout
@@ -408,12 +411,14 @@ class OpenReflectionProbeEnvMap(Operator):
 
         # Load/Reload the first image and assign it to the reflection probe, then load the rest of the images if they're not already loaded.  This mimics Blender's default open files behavior.
         primary_filepath = os.path.join(dirname, self.files[0].name)
-        primary_img = bpy.data.images.load(filepath=primary_filepath, check_existing=True)
+        primary_img = bpy.data.images.load(
+            filepath=primary_filepath, check_existing=True)
         primary_img.reload()
         probe_component['envMapTexture'] = primary_img
 
         for f in self.files[1:]:
-            img = bpy.data.images.load(filepath=os.path.join(dirname, f.name), check_existing=True)
+            img = bpy.data.images.load(filepath=os.path.join(
+                dirname, f.name), check_existing=True)
 
         update_image_editors(old_img, primary_img)
         redraw_component_ui(context)
@@ -445,8 +450,10 @@ class ImportReflectionProbeEnvMaps(Operator):
     filter_folder: BoolProperty(default=True, options={"HIDDEN"})
     filter_image: BoolProperty(default=True, options={"HIDDEN"})
 
-    relative_path: BoolProperty(name="Relative Path", description="Select the file relative to the blend file", default=True)
-    overwrite_images: BoolProperty(name="Overwrite Probe Images", description="Overwrite/Remove the current images of the reflection probes being imported to", default=False)
+    relative_path: BoolProperty(
+        name="Relative Path", description="Select the file relative to the blend file", default=True)
+    overwrite_images: BoolProperty(
+        name="Overwrite Probe Images", description="Overwrite/Remove the current images of the reflection probes being imported to", default=False)
 
     def draw(self, context):
         layout = self.layout
@@ -466,7 +473,8 @@ class ImportReflectionProbeEnvMaps(Operator):
         dirname = os.path.dirname(self.filepath)
 
         if not self.files[0].name:
-            self.report({'INFO'}, "Import EnvMaps cancelled.  No images selected.")
+            self.report(
+                {'INFO'}, "Import EnvMaps cancelled.  No images selected.")
             return {'CANCELLED'}
 
         num_imported = 0
@@ -479,7 +487,8 @@ class ImportReflectionProbeEnvMaps(Operator):
                     probe_component = probe.hubs_component_reflection_probe
                     old_img = probe_component['envMapTexture']
 
-                    img = bpy.data.images.load(filepath=os.path.join(dirname, f.name))
+                    img = bpy.data.images.load(
+                        filepath=os.path.join(dirname, f.name))
                     probe_component['envMapTexture'] = img
 
                     if old_img:
@@ -497,12 +506,13 @@ class ImportReflectionProbeEnvMaps(Operator):
 
                     imported_file = True
                     num_imported += 1
-                    self.report({'INFO'}, f"Imported {f.name} to probe {probe.name}")
+                    self.report(
+                        {'INFO'}, f"Imported {f.name} to probe {probe.name}")
 
             if not imported_file:
                 num_failed += 1
-                self.report({'WARNING'}, f"Warning: Couldn't import {f.name}.  The corresponding probe either doesn't exist or is locked/linked.")
-
+                self.report(
+                    {'WARNING'}, f"Warning: Couldn't import {f.name}.  The corresponding probe either doesn't exist or is locked/linked.")
 
         if num_failed:
             final_report_message = f"Warning: {num_failed} environment maps failed to import. {num_imported} environment maps imported to probes"
@@ -528,24 +538,26 @@ class ExportReflectionProbeEnvMaps(Operator):
     filter_folder: BoolProperty(default=True, options={"HIDDEN"})
     filter_image: BoolProperty(default=True, options={"HIDDEN"})
 
-
     batch_type: EnumProperty(
         name="Batch Type",
         description="Choose which probes to export",
         items=(
-            ('ALL', "All Probes", "Export the environment maps from all probes in the current view layer"),
-            ('SELECTED', "Selected Probes", "Export the environment maps from the selected probes"),
+            ('ALL', "All Probes",
+             "Export the environment maps from all probes in the current view layer"),
+            ('SELECTED', "Selected Probes",
+             "Export the environment maps from the selected probes"),
         ),
         default='ALL',
     )
 
-    include_locked: BoolProperty(name="Include Locked", description="Include environment maps from locked probes", default=False)
+    include_locked: BoolProperty(
+        name="Include Locked", description="Include environment maps from locked probes", default=False)
 
     naming_scheme: StringProperty(
         name="Output Naming Scheme",
         description="How exported files will be named",
         default="<Probe Name> - EnvMap.hdr"
-        )
+    )
 
     def draw(self, context):
         layout = self.layout
@@ -559,12 +571,14 @@ class ExportReflectionProbeEnvMaps(Operator):
 
     def execute(self, context):
         if self.batch_type == 'SELECTED':
-            probes = [ob for ob in get_probes(include_locked=self.include_locked) if ob in context.selected_objects]
+            probes = [ob for ob in get_probes(
+                include_locked=self.include_locked) if ob in context.selected_objects]
         else:
             probes = get_probes(include_locked=self.include_locked)
 
         if not probes:
-            self.report({'WARNING'}, "Export EnvMaps cancelled.  No local probes matching the criteria were found.")
+            self.report(
+                {'WARNING'}, "Export EnvMaps cancelled.  No local probes matching the criteria were found.")
             return {'CANCELLED'}
 
         num_exported = 0
@@ -576,11 +590,14 @@ class ExportReflectionProbeEnvMaps(Operator):
                 envMapTexture.filepath_raw = export_path
                 envMapTexture.save()
                 envMapTexture.filepath_raw = orig_filepath_raw
-                self.report({'INFO'}, f"Exported environment map for probe {probe.name}")
+                self.report(
+                    {'INFO'}, f"Exported environment map for probe {probe.name}")
                 num_exported += 1
             else:
-                self.report({'WARNING'}, f"Reflection probe {probe.name} doesn't have an environment map to export")
-        self.report({'INFO'}, f"Exported {num_exported} environment maps to {self.directory}")
+                self.report(
+                    {'WARNING'}, f"Reflection probe {probe.name} doesn't have an environment map to export")
+        self.report(
+            {'INFO'}, f"Exported {num_exported} environment maps to {self.directory}")
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -622,6 +639,7 @@ class SelectMismatchedReflectionProbes(Operator):
 
     def invoke(self, context, event):
         probes = get_probes(include_locked=True, include_linked=True)
+
         def draw(self, context):
             layout = self.layout
             layout.label(text="Select Mismatched Probes")
@@ -638,20 +656,25 @@ class SelectMismatchedReflectionProbes(Operator):
                         mismatched_probe_indexes.append(i)
                         mismatched_probes.append(probe)
 
-            is_selected = (context.selected_objects == mismatched_probes and not context.active_object)
+            is_selected = (context.selected_objects ==
+                           mismatched_probes and not context.active_object)
             icon = 'RADIOBUT_ON' if is_selected else 'RADIOBUT_OFF'
-            op = layout.operator(SelectMismatchedReflectionProbes.bl_idname, text="Select All", icon=icon)
+            op = layout.operator(
+                SelectMismatchedReflectionProbes.bl_idname, text="Select All", icon=icon)
             op.select_all = True
-            op.mismatched_probe_indexes = ','.join(map(str, mismatched_probe_indexes))
+            op.mismatched_probe_indexes = ','.join(
+                map(str, mismatched_probe_indexes))
 
             layout.separator()
 
             for probe in mismatched_probes:
-                is_selected = (probe == context.active_object and probe in context.selected_objects and len(context.selected_objects) == 1)
+                is_selected = (probe == context.active_object and probe in context.selected_objects and len(
+                    context.selected_objects) == 1)
                 icon = 'RADIOBUT_ON' if is_selected else 'RADIOBUT_OFF'
                 row = layout.row()
                 row.context_pointer_set("probe", probe)
-                op = row.operator(SelectMismatchedReflectionProbes.bl_idname, text=probe.name_full, icon=icon)
+                op = row.operator(
+                    SelectMismatchedReflectionProbes.bl_idname, text=probe.name_full, icon=icon)
                 op.select_all = False
                 op.mismatched_probe_indexes = ''
 
@@ -675,7 +698,8 @@ class ReflectionProbe(HubsComponent):
         type=Image
     )
 
-    locked: BoolProperty(name="Probe Lock", description="Toggle whether new environment maps can be assigned/baked to this reflection probe", default=False)
+    locked: BoolProperty(
+        name="Probe Lock", description="Toggle whether new environment maps can be assigned/baked to this reflection probe", default=False)
 
     def draw(self, context, layout, panel):
         row = layout.row()
@@ -688,7 +712,8 @@ class ReflectionProbe(HubsComponent):
                   icon='INFO')
         row = layout.row(align=True)
         row.prop(self, "envMapTexture")
-        row.operator("image.hubs_open_reflection_probe_envmap", text='', icon='FILE_FOLDER')
+        row.operator("image.hubs_open_reflection_probe_envmap",
+                     text='', icon='FILE_FOLDER')
 
         if self.locked:
             row.enabled = False
@@ -701,12 +726,12 @@ class ReflectionProbe(HubsComponent):
                 row = layout.row()
                 row.alert = True
                 row.label(text="Can't load image.",
-                            icon='ERROR')
+                          icon='ERROR')
             elif envmap_resolution != props.resolution:
                 row = layout.row()
                 row.alert = True
                 row.label(text=f"{envmap_resolution} EnvMap doesn't match the scene probe resolution.",
-                            icon='ERROR')
+                          icon='ERROR')
 
         global bake_mode
         row = layout.row()
@@ -762,15 +787,17 @@ class ReflectionProbe(HubsComponent):
                     row = col.row()
                     row.alert = True
                     row.label(text="Reflection probe resolution has changed. Bake again to apply the new resolution.",
-                            icon='ERROR')
+                              icon='ERROR')
                 row = col.row()
                 row.alert = True
                 row.label(text=f"{mismatched_probes} probes don't match the current resolution.",
-                        icon='ERROR')
-                row.operator("wm.hubs_select_mismatched_reflection_probes", text="", icon='RESTRICT_SELECT_OFF')
+                          icon='ERROR')
+                row.operator("wm.hubs_select_mismatched_reflection_probes",
+                             text="", icon='RESTRICT_SELECT_OFF')
 
             row = col.row()
-            row.prop(context.scene.hubs_scene_reflection_probe_properties, "use_compositor")
+            row.prop(
+                context.scene.hubs_scene_reflection_probe_properties, "use_compositor")
 
             global bake_mode
 
