@@ -19,9 +19,11 @@ module.exports = {
         assert.deepStrictEqual(ext, {
             "reflection-probe": {
                 "size": 2.5,
+                "clipStart": 0.800000011920929,
+                "clipEnd": 40,
                 "envMapTexture": {
                     "__mhc_link_type": "texture",
-                    "index": 0
+                    "index": 0,
                 }
             }
         });

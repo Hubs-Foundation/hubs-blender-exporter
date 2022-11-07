@@ -1,17 +1,18 @@
 import bpy
-from bpy.props import PointerProperty, EnumProperty, StringProperty, BoolProperty
-from bpy.types import Image, PropertyGroup
-
+from bpy.props import PointerProperty, EnumProperty, StringProperty, BoolProperty, FloatProperty
+from bpy.types import Image, PropertyGroup, Gizmo
 from ...components.utils import is_gpu_available
-
 from ...preferences import get_addon_pref
-
 from ..components_registry import get_components_registry
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ... import io
 from ...utils import rgetattr, rsetattr
+from ...io.utils import import_component, assign_property
+from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
 import math
+from ..models import reflection_probe
+from mathutils import Matrix, Vector
 
 
 DEFAULT_RESOLUTION_ITEMS = [
@@ -91,9 +92,9 @@ class ReflectionProbeSceneProps(PropertyGroup):
                                   default='256x128', options={'HIDDEN'})
 
     use_compositor: BoolProperty(name="Use Compositor",
-        description="Controls whether the baked images will be processed by the compositor after baking",
-        default=False
-    )
+                                 description="Controls whether the baked images will be processed by the compositor after baking",
+                                 default=False
+                                 )
 
 
 class BakeProbeOperator(bpy.types.Operator):
@@ -209,14 +210,14 @@ class BakeProbeOperator(bpy.types.Operator):
                         for window in context.window_manager.windows:
                             for area in window.screen.areas:
                                 if area.type == 'IMAGE_EDITOR':
-                                    if area.spaces.active.image == probe.hubs_component_reflection_probe['envMapTexture']:
+                                    if area.spaces.active.image == probe.hubs_component_reflection_probe.envMapTexture:
                                         area.spaces.active.image = img
                     else:
                         img.reload()
                     self.report(
                         {'INFO'}, 'Reflection probe environment map saved at %s' % img_path)
 
-                    probe.hubs_component_reflection_probe['envMapTexture'] = img
+                    probe.hubs_component_reflection_probe.envMapTexture = img
 
                 props = context.scene.hubs_scene_reflection_probe_properties
                 props.render_resolution = props.resolution
@@ -245,7 +246,7 @@ class BakeProbeOperator(bpy.types.Operator):
 
     def restore_render_props(self):
         for prop in self.saved_props:
-           rsetattr(bpy.context, prop, self.saved_props[prop])
+            rsetattr(bpy.context, prop, self.saved_props[prop])
 
     def render_probe(self, context):
         probe = self.probes[self.probe_index]
@@ -258,8 +259,8 @@ class BakeProbeOperator(bpy.types.Operator):
         self.camera_data.cycles.latitude_min = -math.pi/2
         self.camera_data.cycles.latitude_max = math.pi/2
 
-        self.camera_data.clip_start = probe.data.clip_start
-        self.camera_data.clip_end = probe.data.clip_end
+        self.camera_data.clip_start = probe.hubs_component_reflection_probe.clipStart
+        self.camera_data.clip_end = probe.hubs_component_reflection_probe.clipEnd
 
         self.camera_object.matrix_world = probe.matrix_world.copy()
         self.camera_object.rotation_euler.x += math.pi/2
@@ -267,7 +268,8 @@ class BakeProbeOperator(bpy.types.Operator):
 
         resolution = context.scene.hubs_scene_reflection_probe_properties.resolution
         (x, y) = [int(i) for i in resolution.split('x')]
-        output_path = "%s/%s.hdr" % (get_addon_pref(context).tmp_path, probe.name)
+        output_path = "%s/%s.hdr" % (
+            get_addon_pref(context).tmp_path, probe.name)
         use_compositor = context.scene.hubs_scene_reflection_probe_properties.use_compositor
 
         overrides = [
@@ -292,6 +294,40 @@ class BakeProbeOperator(bpy.types.Operator):
         self.report({'INFO'}, 'Baking probe %s' % probe.name)
         bpy.ops.render.render("INVOKE_DEFAULT", write_still=True)
 
+
+class ReflectionProbeGizmo(Gizmo):
+    """ReflectionProbe gizmo"""
+    bl_idname = "GIZMO_GT_hba_reflectionprobe_gizmo"
+    bl_target_properties = (
+        {"id": "influence_distance", "type": 'FLOAT'},
+    )
+
+    __slots__ = (
+        "hubs_gizmo_shape",
+        "custom_shape",
+    )
+
+    def _update_offset_matrix(self):
+        loc, rot, _ = self.matrix_basis.decompose()
+        radius = self.target_get_value("influence_distance")
+        mat_out = Matrix.Translation(
+            loc) @ rot.normalized().to_matrix().to_4x4() @ Matrix.Diagonal(Vector((radius, radius, radius))).to_4x4()
+        self.matrix_basis = mat_out
+
+    def draw(self, context):
+        self._update_offset_matrix()
+        self.draw_custom_shape(self.custom_shape)
+
+    def draw_select(self, context, select_id):
+        self._update_offset_matrix()
+        self.draw_custom_shape(self.custom_shape, select_id=select_id)
+
+    def setup(self):
+        if hasattr(self, "hubs_gizmo_shape"):
+            self.custom_shape = self.new_custom_shape(
+                'TRIS', self.hubs_gizmo_shape)
+
+
 class ReflectionProbe(HubsComponent):
     _definition = {
         'name': 'reflection-probe',
@@ -306,6 +342,33 @@ class ReflectionProbe(HubsComponent):
         name="EnvMap",
         description="An equirectangular image to use as the environment map for this probe",
         type=Image
+    )
+
+    influence_distance: FloatProperty(
+        name="Influence Distance",
+        description="Influence distance of the probe",
+        default=2.5,
+        min=0,
+        subtype="DISTANCE",
+        unit="LENGTH"
+    )
+
+    clipStart: FloatProperty(
+        name="Clip Start",
+        description="Probe clip start, below which objects won't appear in the reflections",
+        default=0.8,
+        min=0.001,
+        subtype="DISTANCE",
+        unit="LENGTH"
+    )
+
+    clipEnd: FloatProperty(
+        name="Clip Start",
+        description="Probe clip end, beyond which objects won't appear in the reflections",
+        default=40,
+        min=0.001,
+        subtype="DISTANCE",
+        unit="LENGTH"
     )
 
     def draw(self, context, layout, panel):
@@ -330,12 +393,61 @@ class ReflectionProbe(HubsComponent):
 
     def gather(self, export_settings, object):
         return {
-            "size": object.data.influence_distance,
+            "size": self.influence_distance,
+            "clipStart": self.clipStart,
+            "clipEnd": self.clipEnd,
             "envMapTexture": {
                 "__mhc_link_type": "texture",
                 "index": io.utils.gather_texture(self.envMapTexture, export_settings)
             }
         }
+
+    @classmethod
+    def create_gizmo(cls, ob, gizmo_group):
+        gizmo = gizmo_group.gizmos.new(ReflectionProbeGizmo.bl_idname)
+        setattr(gizmo, "hubs_gizmo_shape", reflection_probe.SHAPE)
+        gizmo.setup()
+        gizmo.use_draw_scale = False
+        gizmo.use_draw_modal = False
+        gizmo.color = (0.5, 0.8, 0.2)
+        gizmo.alpha = 1.0
+        gizmo.scale_basis = 1.0
+        gizmo.hide_select = True
+        gizmo.color_highlight = (0.5, 0.8, 0.2)
+        gizmo.alpha_highlight = 0.5
+
+        gizmo.target_set_prop(
+            "influence_distance", ob.hubs_component_reflection_probe, "influence_distance")
+
+        return gizmo
+
+    @classmethod
+    def gather_import(cls, gltf, blender_object, component_name, component_value):
+        blender_component = import_component(
+            component_name, blender_object)
+
+        images = {}
+        for gltf_texture in gltf.data.textures:
+            extensions = gltf_texture.extensions
+            source = None
+            if extensions:
+                MOZ_texture_rgbe = extensions.get('MOZ_texture_rgbe')
+                if MOZ_texture_rgbe:
+                    source = MOZ_texture_rgbe['source']
+                    BlenderImage.create(gltf, source)
+                    pyimg = gltf.data.images[source]
+                    blender_image_name = pyimg.blender_image_name
+                    images[source] = blender_image_name
+
+        for property_name, property_value in component_value.items():
+            if isinstance(property_value, dict) and property_value['__mhc_link_type'] == "texture":
+                blender_image_name = images[property_value['index']]
+                blender_image = bpy.data.images[blender_image_name]
+                setattr(blender_component, property_name, blender_image)
+
+            else:
+                assign_property(gltf.vnodes, blender_component,
+                                property_name, property_value)
 
     @ classmethod
     def draw_global(cls, context, layout, panel):
@@ -357,7 +469,8 @@ class ReflectionProbe(HubsComponent):
                           icon='ERROR')
 
             row = col.row()
-            row.prop(context.scene.hubs_scene_reflection_probe_properties, "use_compositor")
+            row.prop(
+                context.scene.hubs_scene_reflection_probe_properties, "use_compositor")
 
             global bake_mode
 
@@ -381,14 +494,11 @@ class ReflectionProbe(HubsComponent):
                 row.label(text="Baking requires Cycles addon to be enabled.",
                           icon='ERROR')
 
-    @ classmethod
-    def poll(cls, context, panel_type):
-        return context.object.type == 'LIGHT_PROBE'
-
     @ staticmethod
     def register():
         bpy.utils.register_class(BakeProbeOperator)
         bpy.utils.register_class(ReflectionProbeSceneProps)
+        bpy.utils.register_class(ReflectionProbeGizmo)
         bpy.types.Scene.hubs_scene_reflection_probe_properties = PointerProperty(
             type=ReflectionProbeSceneProps)
 
@@ -396,4 +506,5 @@ class ReflectionProbe(HubsComponent):
     def unregister():
         bpy.utils.unregister_class(BakeProbeOperator)
         bpy.utils.unregister_class(ReflectionProbeSceneProps)
+        bpy.utils.unregister_class(ReflectionProbeGizmo)
         del bpy.types.Scene.hubs_scene_reflection_probe_properties
