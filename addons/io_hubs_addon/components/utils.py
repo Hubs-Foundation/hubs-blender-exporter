@@ -115,4 +115,6 @@ def redraw_component_ui(context):
 
 
 def is_linked(datablock):
+    if not datablock:
+        return False
     return datablock.library or datablock.override_library
