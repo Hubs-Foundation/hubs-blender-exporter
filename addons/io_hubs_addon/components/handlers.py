@@ -14,7 +14,7 @@ def migrate_components(dummy):
 @persistent
 def version_update(dummy):
     from .. import (bl_info)
-    bpy.context.scene.HubsComponentsExtensionProperties.version = bl_info['version']
+    bpy.context.scene.HubsComponentsExtensionProperties.version = bl_info['version'][0:3]
 
 
 def register():
