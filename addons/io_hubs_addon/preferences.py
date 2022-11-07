@@ -38,8 +38,10 @@ class HubsPreferences(AddonPreferences):
             ref_probe_path_notice = box.column()
             ref_probe_path_notice.scale_y = 0.7
             ref_probe_path_notice.alert = True
-            ref_probe_path_notice.label(text=f"New file detected, redirecting output directory to: {bpy.app.tempdir}", icon='ERROR')
-            ref_probe_path_notice.label(text=f"The contents will be transferred to the main directory when the blend file is saved", icon='BLANK1')
+            ref_probe_path_notice.label(
+                text=f"New file detected, redirecting output directory to: {bpy.app.tempdir}", icon='ERROR')
+            ref_probe_path_notice.label(
+                text=f"The contents will be transferred to the main directory when the blend file is saved", icon='BLANK1')
 
 
 def register():

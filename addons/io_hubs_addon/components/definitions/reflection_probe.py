@@ -40,7 +40,7 @@ save_handler = {
     'transfer_probe_images': False,
     'stored_save_version': None,
     'final_save': False
-    }
+}
 
 
 def get_resolutions(self, context):
@@ -102,7 +102,7 @@ def save_pre(dummy):
         return
 
     if not bpy.data.filepath:
-       save_handler['transfer_probe_images'] = True
+        save_handler['transfer_probe_images'] = True
 
 
 @ persistent
@@ -120,24 +120,29 @@ def save_post(dummy):
 
     if save_handler['transfer_probe_images'] and bpy.data.filepath:
         ref_probe_path = get_addon_pref(bpy.context).ref_probe_path
-        absolute_ref_probe_path = os.path.realpath(bpy.path.abspath(ref_probe_path))
+        absolute_ref_probe_path = os.path.realpath(
+            bpy.path.abspath(ref_probe_path))
         for probe in get_probes(all_objects=True):
             envMapTexture = probe.hubs_component_reflection_probe.envMapTexture
             current_probe_image_path = envMapTexture.filepath
             current_image_absolute_path = os.path.realpath(
                 bpy.path.abspath(current_probe_image_path))
-            current_image_directory = os.path.dirname(current_image_absolute_path)
+            current_image_directory = os.path.dirname(
+                current_image_absolute_path)
             if pathlib.Path(current_image_directory) == pathlib.Path(bpy.app.tempdir):
                 new_image_path = compose_probe_image_path(bpy.context, probe)
                 new_image_absolute_path = os.path.realpath(
                     bpy.path.abspath(new_image_path))
                 try:
-                    pathlib.Path(absolute_ref_probe_path).mkdir(parents=True, exist_ok=True)
-                    shutil.move(current_image_absolute_path, new_image_absolute_path)
+                    pathlib.Path(absolute_ref_probe_path).mkdir(
+                        parents=True, exist_ok=True)
+                    shutil.move(current_image_absolute_path,
+                                new_image_absolute_path)
                     envMapTexture.filepath = new_image_path
 
                 except Exception as e:
-                    print(f"Error: Could not transfer reflection probe environment map \'{current_image_absolute_path}\' to \'{new_image_absolute_path}\'")
+                    print(
+                        f"Error: Could not transfer reflection probe environment map \'{current_image_absolute_path}\' to \'{new_image_absolute_path}\'")
                     print(e)
 
         save_handler['transfer_probe_images'] = False
@@ -166,9 +171,9 @@ class ReflectionProbeSceneProps(PropertyGroup):
                                   default='256x128', options={'HIDDEN'})
 
     use_compositor: BoolProperty(name="Use Compositor",
-        description="Controls whether the baked images will be processed by the compositor after baking",
-        default=False
-    )
+                                 description="Controls whether the baked images will be processed by the compositor after baking",
+                                 default=False
+                                 )
 
 
 class BakeProbeOperator(bpy.types.Operator):
@@ -323,7 +328,7 @@ class BakeProbeOperator(bpy.types.Operator):
     def restore_render_props(self):
         global stored_preferences_is_dirty
         for prop in self.saved_props:
-           rsetattr(bpy.context, prop, self.saved_props[prop])
+            rsetattr(bpy.context, prop, self.saved_props[prop])
         bpy.context.preferences.is_dirty = stored_preferences_is_dirty
         stored_preferences_is_dirty = None
 
@@ -371,6 +376,7 @@ class BakeProbeOperator(bpy.types.Operator):
 
         self.report({'INFO'}, 'Baking probe %s' % probe.name)
         bpy.ops.render.render("INVOKE_DEFAULT", write_still=True)
+
 
 class ReflectionProbe(HubsComponent):
     _definition = {
@@ -437,7 +443,8 @@ class ReflectionProbe(HubsComponent):
                           icon='ERROR')
 
             row = col.row()
-            row.prop(context.scene.hubs_scene_reflection_probe_properties, "use_compositor")
+            row.prop(
+                context.scene.hubs_scene_reflection_probe_properties, "use_compositor")
 
             global bake_mode
 
