@@ -99,9 +99,9 @@ class ReflectionProbeSceneProps(PropertyGroup):
                                   default='256x128', options={'HIDDEN'})
 
     use_compositor: BoolProperty(name="Use Compositor",
-        description="Controls whether the baked images will be processed by the compositor after baking",
-        default=False
-    )
+                                 description="Controls whether the baked images will be processed by the compositor after baking",
+                                 default=False
+                                 )
 
 
 class BakeProbeOperator(bpy.types.Operator):
@@ -252,7 +252,7 @@ class BakeProbeOperator(bpy.types.Operator):
 
     def restore_render_props(self):
         for prop in self.saved_props:
-           rsetattr(bpy.context, prop, self.saved_props[prop])
+            rsetattr(bpy.context, prop, self.saved_props[prop])
 
     def render_probe(self, context):
         probe = self.probes[self.probe_index]
@@ -298,6 +298,7 @@ class BakeProbeOperator(bpy.types.Operator):
 
         self.report({'INFO'}, 'Baking probe %s' % probe.name)
         bpy.ops.render.render("INVOKE_DEFAULT", write_still=True)
+
 
 class ReflectionProbe(HubsComponent):
     _definition = {
@@ -364,7 +365,8 @@ class ReflectionProbe(HubsComponent):
                           icon='ERROR')
 
             row = col.row()
-            row.prop(context.scene.hubs_scene_reflection_probe_properties, "use_compositor")
+            row.prop(
+                context.scene.hubs_scene_reflection_probe_properties, "use_compositor")
 
             global bake_mode
 
