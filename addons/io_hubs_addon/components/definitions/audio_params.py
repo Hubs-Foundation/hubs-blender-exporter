@@ -22,7 +22,7 @@ class AudioParams(HubsComponent):
     overrideAudioSettings: BoolProperty(
         name="Override Audio Settings",
         description="Override Audio Settings",
-        default=False)
+        default=True)
 
     audioType: EnumProperty(
         name="Audio Type",
