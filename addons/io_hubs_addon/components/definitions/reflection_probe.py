@@ -309,6 +309,18 @@ class ReflectionProbe(HubsComponent):
     )
 
     def draw(self, context, layout, panel):
+        if not context.scene.hubs_component_environment_settings.envMapTexture:
+            row = layout.row()
+            row.alert = True
+            row.label(text="No scene environment map found.  Please add an environment map to the environment settings scene component for reflection probes to work in Hubs.",
+                      icon='ERROR')
+
+        if any(context.active_object.matrix_world.to_euler()):
+            row = layout.row()
+            row.alert = True
+            row.label(text="Rotation detected!  The reflection probe must have no rotation applied to it.",
+                      icon='ERROR')
+
         row = layout.row()
         row.label(text="Resolution settings, as well as the option to bake all reflection probes at once, can be accessed from the scene settings.",
                   icon='INFO')
@@ -345,6 +357,13 @@ class ReflectionProbe(HubsComponent):
             col = row.box().column()
             row = col.row()
             row.label(text="Reflection Probes Resolution:")
+
+            if not context.scene.hubs_component_environment_settings.envMapTexture:
+                row = col.row()
+                row.alert = True
+                row.label(text="No scene environment map found.  Please add an environment map to the environment settings scene component for reflection probes to work in Hubs.",
+                          icon='ERROR')
+
             row = col.row()
             row.prop(context.scene.hubs_scene_reflection_probe_properties,
                      "resolution", text="")
