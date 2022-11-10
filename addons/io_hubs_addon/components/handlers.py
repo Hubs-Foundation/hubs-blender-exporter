@@ -80,7 +80,7 @@ def load_post(dummy):
 @persistent
 def version_update(dummy):
     from .. import (bl_info)
-    bpy.context.scene.HubsComponentsExtensionProperties.version = bl_info['version']
+    bpy.context.scene.HubsComponentsExtensionProperties.version = bl_info['version'][0:3]
 
 
 def find_active_undo_step_index(undo_steps):

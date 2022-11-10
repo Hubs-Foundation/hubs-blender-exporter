@@ -29,7 +29,7 @@
       "pathMappings": [
         {
           "localRoot": "${workspaceFolder}",
-          "remoteRoot": "."
+          "remoteRoot": "${workspaceFolder}"
         }
       ],
       "justMyCode": true
