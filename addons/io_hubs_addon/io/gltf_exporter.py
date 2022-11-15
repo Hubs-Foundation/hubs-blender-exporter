@@ -170,7 +170,8 @@ class glTF2ExportUserExtension:
                         blender_object, component_class.get_id())
                     data = component.gather(export_settings, blender_object)
                     if hasattr(data, "delayed_gather"):
-                        self.delayed_gathers.append((component_data, component_class.get_name(), data))
+                        self.delayed_gathers.append(
+                            (component_data, component_class.get_name(), data))
                     else:
                         component_data[component_class.get_name()] = data
                 else:
