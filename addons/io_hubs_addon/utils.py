@@ -3,7 +3,7 @@ def get_addon_package():
 
 def get_version():
     from . import (bl_info)
-    return bl_info['version']
+    return bl_info['version'][:3]
 
 import functools
 
