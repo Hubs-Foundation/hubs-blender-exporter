@@ -10,7 +10,7 @@ import sys
 
 previous_undo_steps_dump = ""
 previous_undo_step_index = 0
-previous_window_setups = set()
+previous_window_setups = []
 file_loading = False
 
 
@@ -86,7 +86,7 @@ def load_post(dummy):
     global file_loading
     previous_undo_steps_dump = ""
     previous_undo_step_index = 0
-    previous_window_setups = set()
+    previous_window_setups = []
     file_loading = True
     migrate_components('GLOBAL')
 
@@ -221,8 +221,8 @@ def scene_and_view_layer_update_notifier(self, context):
     """Some scene/view layer actions/changes don't trigger a depsgraph update so watch the top bar for changes to the scene or view layer by hooking into it's draw method."""
     global previous_window_setups
     wm = context.window_manager
-    current_window_setups = {w.scene.name+w.view_layer.name for w in wm.windows}
-    if current_window_setups != previous_window_setups:
+    current_window_setups = [w.scene.name+w.view_layer.name for w in wm.windows]
+    if sorted(current_window_setups) != sorted(previous_window_setups):
         bpy.app.timers.register(update_gizmos)
         previous_window_setups = current_window_setups
 
