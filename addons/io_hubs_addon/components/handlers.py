@@ -218,7 +218,11 @@ def undo_stack_handler(dummy=None):
 
 
 def scene_and_view_layer_update_notifier(self, context):
-    """Some scene/view layer actions/changes don't trigger a depsgraph update so watch the top bar for changes to the scene or view layer by hooking into it's draw method."""
+    """Some scene/view layer actions/changes don't trigger a depsgraph update so watch the top bar for changes to the scene or view layer by hooking into it's draw method.  Known actions that don't trigger a depsgraph update:
+    - Creating a new scene.
+    - Switching the scene.
+    - Creating a new view layer.
+    - Switching the view layer - if the last action was also a view layer switch"""
     global previous_window_setups
     wm = context.window_manager
     current_window_setups = [w.scene.name+w.view_layer.name for w in wm.windows]
