@@ -113,8 +113,6 @@ class HubsGizmoGroup(GizmoGroup):
                 bpy.app.timers.register(unregister_gizmo_system)
                 return
 
-        self.refresh(context)
-
     def update_gizmo(self, component_name, ob, bone, target, gizmo):
         component_class = get_component_by_name(component_name)
         component_class.update_gizmo(ob, bone, target, gizmo)
