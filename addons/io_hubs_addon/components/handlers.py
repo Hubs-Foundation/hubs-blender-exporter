@@ -176,6 +176,11 @@ def undo_stack_handler(dummy=None):
             display_report = False
             task_scheduler.add('update_gizmos')
 
+        if step_type == 'UNDO' and step_name in {'Delete', 'Unlink Object'}:
+            # Linked components need to be migrated again if their removal was undone.
+            task_scheduler.add('migrate_components')
+            display_report = False
+
         if step_name in {'Add Hubs Component', 'Remove Hubs Component'}:
             task_scheduler.add('update_gizmos')
 
