@@ -15,20 +15,14 @@ file_loading = False
 
 
 def migrate_components(migration_type, *, initiator='', do_update_gizmos=True, display_report=True, override_report_title=""):
-    version = (0,0,0)
     global_version = get_version()
     migration_report = []
     migration_occurred = False
-    if migration_type == 'GLOBAL':
-        version = tuple(bpy.context.scene.HubsComponentsExtensionProperties.version)
-        if version == global_version:
-            return
 
     for scene in bpy.data.scenes:
         for component in get_host_components(scene):
-            if migration_type == 'LOCAL':
-                version = tuple(component.addon_version)
-                migration_occurred |= (version < global_version)
+            version = tuple(component.addon_version)
+            migration_occurred |= (version < global_version)
             try:
                 component.migrate(migration_type, version, scene, migration_report)
                 component.addon_version = global_version
@@ -38,9 +32,8 @@ def migrate_components(migration_type, *, initiator='', do_update_gizmos=True, d
 
     for ob in bpy.data.objects:
         for component in get_host_components(ob):
-            if migration_type == 'LOCAL':
-                version = tuple(component.addon_version)
-                migration_occurred |= (version < global_version)
+            version = tuple(component.addon_version)
+            migration_occurred |= (version < global_version)
             try:
                 component.migrate(migration_type, version, ob, migration_report, ob=ob)
                 component.addon_version = global_version
@@ -51,9 +44,8 @@ def migrate_components(migration_type, *, initiator='', do_update_gizmos=True, d
         if ob.type == 'ARMATURE':
             for bone in ob.data.bones:
                 for component in get_host_components(bone):
-                    if migration_type == 'LOCAL':
-                        version = tuple(component.addon_version)
-                        migration_occurred |= (version < global_version)
+                    version = tuple(component.addon_version)
+                    migration_occurred |= (version < global_version)
                     try:
                         component.migrate(migration_type, version, bone, migration_report, ob=ob)
                         component.addon_version = global_version
@@ -78,6 +70,33 @@ def migrate_components(migration_type, *, initiator='', do_update_gizmos=True, d
         bpy.app.timers.register(report_migration)
 
 
+def version_beta_components():
+    for scene in bpy.data.scenes:
+        for component in get_host_components(scene):
+            if not (scene.library or scene.override_library):
+                component.addon_version = (1, 0, 0)
+
+    for ob in bpy.data.objects:
+        for component in get_host_components(ob):
+            if not (ob.library or ob.override_library):
+                component.addon_version = (1, 0, 0)
+                if ob.type == 'ARMATURE':
+                    for bone in ob.data.bones:
+                        for component in get_host_components(bone):
+                            component.addon_version = (1, 0, 0)
+
+
+def handle_beta_versioning():
+    extension_properties = bpy.context.scene.HubsComponentsExtensionProperties
+    if extension_properties:
+        file_version = extension_properties.get('version')
+        if file_version:
+            if tuple(file_version) == (1, 0, 0):
+                version_beta_components()
+
+            del bpy.context.scene.HubsComponentsExtensionProperties['version']
+
+
 @persistent
 def load_post(dummy):
     global previous_undo_steps_dump
@@ -88,13 +107,9 @@ def load_post(dummy):
     previous_undo_step_index = 0
     previous_window_setups = []
     file_loading = True
+
+    handle_beta_versioning()
     migrate_components('GLOBAL')
-
-
-@persistent
-def version_update(dummy):
-    from .. import (bl_info)
-    bpy.context.scene.HubsComponentsExtensionProperties.version = bl_info['version'][0:3]
 
 
 def find_active_undo_step_index(undo_steps):
@@ -240,9 +255,6 @@ def register():
     if not load_post in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.append(load_post)
 
-    if not version_update in bpy.app.handlers.save_pre:
-        bpy.app.handlers.save_pre.append(version_update)
-
     if not undo_stack_handler in bpy.app.handlers.depsgraph_update_post:
         bpy.app.handlers.depsgraph_update_post.append(undo_stack_handler)
 
@@ -252,9 +264,6 @@ def register():
 def unregister():
     if load_post in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.remove(load_post)
-
-    if version_update in bpy.app.handlers.save_pre:
-        bpy.app.handlers.save_pre.remove(version_update)
 
     if undo_stack_handler in bpy.app.handlers.depsgraph_update_post:
         bpy.app.handlers.depsgraph_update_post.remove(undo_stack_handler)

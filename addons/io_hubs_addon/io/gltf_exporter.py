@@ -194,7 +194,6 @@ class HubsComponentsExtensionProperties(bpy.types.PropertyGroup):
         description='Include this extension in the exported glTF file',
         default=True
     )
-    version: IntVectorProperty(size=3)
 
 
 class HubsGLTFExportPanel(bpy.types.Panel):
