@@ -58,7 +58,7 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
         update_gizmos()
 
     if link_migration_occurred:
-        migration_report.insert(0, "WARNING: A MIGRATION WAS PERFORMED ON LINKED OBJECTS, THIS IS UNSTABLE AND MAY NOT BE PERMANENT.  CONTINUE AT YOUR OWN RISK!")
+        migration_report.insert(0, "WARNING: A MIGRATION WAS PERFORMED ON LINKED COMPONENTS, THIS IS UNSTABLE AND MAY NOT BE PERMANENT.  RESAVE THE LINKED BLEND FILES WITH THE NEW VERSION TO AVOID THIS.")
 
     if migration_report and display_report:
         title = "Component Migration Report"
