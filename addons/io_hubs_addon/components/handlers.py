@@ -54,7 +54,7 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
                         migration_report.append(error)
 
 
-    if migration_type == 'LOCAL' and do_update_gizmos:
+    if do_update_gizmos:
         update_gizmos()
 
     if link_migration_occurred:
