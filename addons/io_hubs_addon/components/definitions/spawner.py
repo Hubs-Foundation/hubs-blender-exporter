@@ -29,9 +29,13 @@ class Spawner(HubsComponent):
         }
 
     def migrate(self, migration_type, version, host, migration_report, ob=None):
+        migration_occurred = False
         if version < (1, 0, 0):
+            migration_occurred = True
             try:
                 self.applyGravity = self[
                     'mediaOptions']['applyGravity']
             except: # applyGravity was never saved, so it must have been left on the default value: False.
                 self.applyGravity = False
+
+        return migration_occurred

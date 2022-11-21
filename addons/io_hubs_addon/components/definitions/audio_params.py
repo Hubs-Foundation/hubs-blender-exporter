@@ -103,7 +103,9 @@ class AudioParams(HubsComponent):
             }
 
     def migrate(self, migration_type, version, host, migration_report, ob=None):
+        migration_occurred = False
         if version < (1, 0, 0):
+            migration_occurred = True
             self.coneInnerAngle = radians(
                 self.coneInnerAngle)
             self.coneOuterAngle = radians(
@@ -116,6 +118,8 @@ class AudioParams(HubsComponent):
                 else:
                     host_reference = f"\"{host.name_full}\""
                 migration_report.append(f"Warning: The Media Cone angles may not have migrated correctly for the Audio Params component on the {host_type} {host_reference}")
+
+        return migration_occurred
 
     def draw(self, context, layout, panel):
         layout.prop(data=self, property="overrideAudioSettings")

@@ -124,8 +124,9 @@ class HubsComponent(PropertyGroup):
         The host argument is what the component is attached to, object/bone.
         The migration_report argument is a list that you can append messages to and they will be displayed to the user after the migration has finished.
         The ob argument is used for bone migrations and is the armature object that the bone is part of.  Note: this is passed for object migrations as well.
+        Returns a boolean to indicate whether a migration was performed.
         '''
-        pass
+        return False
 
     @classmethod
     def draw_global(cls, context, layout, panel):

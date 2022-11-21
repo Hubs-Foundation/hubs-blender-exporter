@@ -14,6 +14,19 @@ previous_window_setups = []
 file_loading = False
 
 
+def migrate(component, migration_type, global_version, host, migration_report, ob=None):
+    version = tuple(component.addon_version)
+    was_migrated = component.migrate(
+        migration_type, version, host, migration_report, ob=ob)
+    component.addon_version = global_version
+
+    if type(was_migrated) != bool:
+        print(f"Warning: the {component.get_display_name()} component didn't return whether a migration occurred.")
+        was_migrated = (version < global_version)
+
+    return was_migrated
+
+
 def migrate_components(migration_type, *, do_update_gizmos=True, display_report=True, override_report_title=""):
     global_version = get_version()
     migration_report = []
@@ -21,37 +34,40 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
 
     for scene in bpy.data.scenes:
         for component in get_host_components(scene):
-            version = tuple(component.addon_version)
-            link_migration_occurred |= bool((version < global_version) and (scene.library or scene.override_library))
             try:
-                component.migrate(migration_type, version, scene, migration_report)
-                component.addon_version = global_version
+                was_migrated = migrate(
+                    component, migration_type, global_version, scene, migration_report)
             except:
+                was_migrated = True
                 error = f"Error: Migration failed for component {component.get_display_name()} on scene \"{scene.name_full}\""
                 migration_report.append(error)
 
+            link_migration_occurred |= bool(was_migrated and (scene.library or scene.override_library))
+
     for ob in bpy.data.objects:
         for component in get_host_components(ob):
-            version = tuple(component.addon_version)
-            link_migration_occurred |= bool((version < global_version) and (ob.library or ob.override_library))
             try:
-                component.migrate(migration_type, version, ob, migration_report, ob=ob)
-                component.addon_version = global_version
+                was_migrated = migrate(
+                    component, migration_type, global_version, ob, migration_report, ob=ob)
             except:
+                was_migrated = True
                 error = f"Error: Migration failed for component {component.get_display_name()} on object \"{ob.name_full}\""
                 migration_report.append(error)
+
+            link_migration_occurred |= bool(was_migrated and (ob.library or ob.override_library))
 
         if ob.type == 'ARMATURE':
             for bone in ob.data.bones:
                 for component in get_host_components(bone):
-                    version = tuple(component.addon_version)
-                    link_migration_occurred |= bool((version < global_version) and (ob.library or ob.override_library))
                     try:
-                        component.migrate(migration_type, version, bone, migration_report, ob=ob)
-                        component.addon_version = global_version
+                        was_migrated = migrate(
+                            component, migration_type, global_version, bone, migration_report, ob=ob)
                     except:
+                        was_migrated = True
                         error = f"Error: Migration failed for component {component.get_display_name()} on bone \"{bone.name}\" in \"{ob.name_full}\""
                         migration_report.append(error)
+
+                    link_migration_occurred |= bool(was_migrated and (ob.library or ob.override_library))
 
 
     if do_update_gizmos:

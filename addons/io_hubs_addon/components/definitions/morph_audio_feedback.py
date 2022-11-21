@@ -95,11 +95,15 @@ class MorphAudioFeedback(HubsComponent):
         return context.object.type == 'MESH'
 
     def migrate(self, migration_type, version, host, migration_report, ob=None):
+        migration_occurred = False
         if version < (1, 0, 0):
+            migration_occurred = True
             shape_keys = get_object_shape_keys(self, host)
             list_ids = list(map(lambda x: x[0], shape_keys))
             if not self.name in list_ids:
                 self.name = self.name
+
+        return migration_occurred
 
     def draw(self, context, layout, panel):
         layout.prop(data=self, property="shape_key")

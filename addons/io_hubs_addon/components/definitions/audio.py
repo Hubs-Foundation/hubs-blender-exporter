@@ -31,4 +31,9 @@ class Audio(HubsComponent):
                        default=True)
 
     def migrate(self, migration_type, version, host, migration_report, ob=None):
-        migrate_networked(host)
+        migration_occurred = False
+        if version < (1, 0, 0):
+            migration_occurred = True
+            migrate_networked(host)
+
+        return migration_occurred

@@ -658,7 +658,9 @@ class LoopAnimation(HubsComponent):
         unregister_msgbus()
 
     def migrate(self, migration_type, version, host, migration_report, ob=None):
+        migration_occurred = False
         if version < (1, 0, 0):
+            migration_occurred = True
             migration_warning = False
             tracks = self.clip.split(",")
             for track_name in tracks:
@@ -692,6 +694,8 @@ class LoopAnimation(HubsComponent):
                 else:
                     host_reference = f"\"{host.name_full}\""
                 migration_report.append(f"Warning: The Loop Animation component on the {host_type} {host_reference} may not have migrated correctly")
+
+        return migration_occurred
 
 
 def register_module():
