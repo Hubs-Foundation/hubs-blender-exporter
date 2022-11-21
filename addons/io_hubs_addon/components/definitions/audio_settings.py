@@ -120,7 +120,7 @@ class AudioSettings(HubsComponent):
             self.mediaConeOuterAngle = radians(
                 self.mediaConeOuterAngle)
 
-            if migration_type == 'LOCAL':
+            if migration_type == 'LOCAL' or (host.library or host.override_library):
                 migration_report.append(f"Warning: The Media Cone angles may not have migrated correctly for the Audio Settings component on scene \"{host.name_full}\"")
 
         return migration_occurred

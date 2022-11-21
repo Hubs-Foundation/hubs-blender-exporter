@@ -30,6 +30,7 @@ def migrate(component, migration_type, global_version, host, migration_report, o
 def migrate_components(migration_type, *, do_update_gizmos=True, display_report=True, override_report_title=""):
     global_version = get_version()
     migration_report = []
+    migrated_linked_components = []
     link_migration_occurred = False
 
     for scene in bpy.data.scenes:
@@ -42,7 +43,10 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
                 error = f"Error: Migration failed for component {component.get_display_name()} on scene \"{scene.name_full}\""
                 migration_report.append(error)
 
-            link_migration_occurred |= bool(was_migrated and (scene.library or scene.override_library))
+            if bool(was_migrated and (scene.library or scene.override_library)):
+                link_migration_occurred = True
+                component_info = f"{component.get_display_name()} component on scene \"{scene.name_full}\""
+                migrated_linked_components.append(component_info)
 
     for ob in bpy.data.objects:
         for component in get_host_components(ob):
@@ -54,7 +58,10 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
                 error = f"Error: Migration failed for component {component.get_display_name()} on object \"{ob.name_full}\""
                 migration_report.append(error)
 
-            link_migration_occurred |= bool(was_migrated and (ob.library or ob.override_library))
+            if bool(was_migrated and (ob.library or ob.override_library)):
+                link_migration_occurred = True
+                component_info = f"{component.get_display_name()} component on object \"{ob.name_full}\""
+                migrated_linked_components.append(component_info)
 
         if ob.type == 'ARMATURE':
             for bone in ob.data.bones:
@@ -67,7 +74,10 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
                         error = f"Error: Migration failed for component {component.get_display_name()} on bone \"{bone.name}\" in \"{ob.name_full}\""
                         migration_report.append(error)
 
-                    link_migration_occurred |= bool(was_migrated and (ob.library or ob.override_library))
+                    if bool(was_migrated and (ob.library or ob.override_library)):
+                        link_migration_occurred = True
+                        component_info = f"{component.get_display_name()} component on bone \"{bone.name}\" in \"{ob.name_full}\""
+                        migrated_linked_components.append(component_info)
 
 
     if do_update_gizmos:
@@ -75,6 +85,8 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
 
     if link_migration_occurred:
         migration_report.insert(0, "WARNING: A MIGRATION WAS PERFORMED ON LINKED COMPONENTS, THIS IS UNSTABLE AND MAY NOT BE PERMANENT.  RESAVE THE LINKED BLEND FILES WITH THE NEW VERSION TO AVOID THIS.")
+        migration_report.append("MIGRATED LINKED COMPONENTS:")
+        migration_report.extend(migrated_linked_components)
 
     if migration_report and display_report:
         title = "Component Migration Report"

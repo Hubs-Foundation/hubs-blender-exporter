@@ -126,7 +126,7 @@ class MediaFrame(HubsComponent):
                 bounds = Vector((bounds.x, bounds.z, bounds.y))
                 self.bounds = bounds
 
-                if migration_type == 'LOCAL':
+                if migration_type == 'LOCAL' or (ob.library or ob.override_library):
                     host_type = "bone" if hasattr(host, "tail") else "object"
                     if host_type == "bone":
                         host_reference = f"\"{host.name}\" in \"{host.id_data.name_full}\""
