@@ -15,7 +15,8 @@ class ParticleEmitter(HubsComponent):
     }
 
     src: StringProperty(
-        name="Image Source", description="The web address (URL) of the image to use for each particle", default="https://mozilla.org")
+        name="Image Source", description="The web address (URL) of the image to use for each particle",
+        default="https://mozilla.org")
 
     startColor: FloatVectorProperty(name="Start Color",
                                     description="Start Color",

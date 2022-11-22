@@ -102,7 +102,7 @@ class MorphAudioFeedback(HubsComponent):
                     component = ob.hubs_component_morph_audio_feedback
                     shape_keys = get_object_shape_keys(component, ob)
                     list_ids = list(map(lambda x: x[0], shape_keys))
-                    if not component.name in list_ids:
+                    if component.name not in list_ids:
                         component.name = component.name
 
     def draw(self, context, layout, panel):

@@ -29,9 +29,10 @@ class Video(HubsComponent):
                            description="Auto Play",
                            default=True)
 
-    controls: BoolProperty(name="Show controls",
-                           description="When enabled, shows play/pause, skip forward/back, and, if the video contains audio, volume controls when hovering your cursor over it in Hubs",
-                           default=True)
+    controls: BoolProperty(
+        name="Show controls",
+        description="When enabled, shows play/pause, skip forward/back, and, if the video contains audio, volume controls when hovering your cursor over it in Hubs",
+        default=True)
 
     loop: BoolProperty(name="Loop",
                        description="Loop",

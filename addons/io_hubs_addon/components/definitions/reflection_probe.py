@@ -90,10 +90,9 @@ class ReflectionProbeSceneProps(PropertyGroup):
     resolution_id: StringProperty(name='Current Resolution Id',
                                   default='256x128', options={'HIDDEN'})
 
-    use_compositor: BoolProperty(name="Use Compositor",
-                                 description="Controls whether the baked images will be processed by the compositor after baking",
-                                 default=False
-                                 )
+    use_compositor: BoolProperty(
+        name="Use Compositor",
+        description="Controls whether the baked images will be processed by the compositor after baking", default=False)
 
 
 class BakeProbeOperator(bpy.types.Operator):
@@ -255,15 +254,15 @@ class BakeProbeOperator(bpy.types.Operator):
 
         self.camera_data.cycles.longitude_min = -math.pi
         self.camera_data.cycles.longitude_max = math.pi
-        self.camera_data.cycles.latitude_min = -math.pi/2
-        self.camera_data.cycles.latitude_max = math.pi/2
+        self.camera_data.cycles.latitude_min = -math.pi / 2
+        self.camera_data.cycles.latitude_max = math.pi / 2
 
         self.camera_data.clip_start = probe.data.clip_start
         self.camera_data.clip_end = probe.data.clip_end
 
         self.camera_object.matrix_world = probe.matrix_world.copy()
-        self.camera_object.rotation_euler.x += math.pi/2
-        self.camera_object.rotation_euler.z += -math.pi/2
+        self.camera_object.rotation_euler.x += math.pi / 2
+        self.camera_object.rotation_euler.z += -math.pi / 2
 
         resolution = context.scene.hubs_scene_reflection_probe_properties.resolution
         (x, y) = [int(i) for i in resolution.split('x')]
@@ -312,8 +311,9 @@ class ReflectionProbe(HubsComponent):
 
     def draw(self, context, layout, panel):
         row = layout.row()
-        row.label(text="Resolution settings, as well as the option to bake all reflection probes at once, can be accessed from the scene settings.",
-                  icon='INFO')
+        row.label(
+            text="Resolution settings, as well as the option to bake all reflection probes at once, can be accessed from the scene settings.",
+            icon='INFO')
         super().draw(context, layout, panel)
 
         global bake_mode
