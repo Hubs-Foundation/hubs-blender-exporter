@@ -5,4 +5,4 @@ then
 fi
 
 cd addons
-autopep8 --exclude="**/models" --in-place --recursive .
+autopep8 --exclude="**/models" --in-place --recursive --max-line-length=120 --experimental .
