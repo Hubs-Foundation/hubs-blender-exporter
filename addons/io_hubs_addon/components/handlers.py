@@ -104,18 +104,18 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
 
 def version_beta_components():
     for scene in bpy.data.scenes:
-        for component in get_host_components(scene):
-            if not (scene.library or scene.override_library):
+        if not (scene.library or scene.override_library):
+            for component in get_host_components(scene):
                 component.instance_version = (1, 0, 0)
 
     for ob in bpy.data.objects:
-        for component in get_host_components(ob):
-            if not (ob.library or ob.override_library):
+        if not (ob.library or ob.override_library):
+            for component in get_host_components(ob):
                 component.instance_version = (1, 0, 0)
-                if ob.type == 'ARMATURE':
-                    for bone in ob.data.bones:
-                        for component in get_host_components(bone):
-                            component.instance_version = (1, 0, 0)
+            if ob.type == 'ARMATURE':
+                for bone in ob.data.bones:
+                    for component in get_host_components(bone):
+                        component.instance_version = (1, 0, 0)
 
 
 def handle_beta_versioning():
