@@ -1,7 +1,7 @@
 import bpy
 from bpy.props import FloatProperty, EnumProperty
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType, NodeType
+from ..types import Category, PanelType, NodeType, MigrationType
 from ..consts import DISTACE_MODELS, MAX_ANGLE
 from math import degrees, radians
 
@@ -121,7 +121,7 @@ class AudioSettings(HubsComponent):
             self.mediaConeOuterAngle = radians(
                 self.mediaConeOuterAngle)
 
-            if migration_type == 'LOCAL' or (host.library or host.override_library):
+            if migration_type == MigrationType.LOCAL or (host.library or host.override_library):
                 migration_report.append(f"Warning: The Media Cone angles may not have migrated correctly for the Audio Settings component on scene \"{host.name_full}\"")
 
         return migration_occurred

@@ -1,7 +1,7 @@
 import bpy
 from bpy.props import BoolProperty, FloatProperty, EnumProperty
 from ..hubs_component import HubsComponent
-from ..types import PanelType, NodeType
+from ..types import PanelType, NodeType, MigrationType
 from ..consts import DISTACE_MODELS, MAX_ANGLE
 from math import degrees, radians
 
@@ -112,7 +112,7 @@ class AudioParams(HubsComponent):
             self.coneOuterAngle = radians(
                 self.coneOuterAngle)
 
-            if migration_type == 'LOCAL' or (ob.library or ob.override_library):
+            if migration_type == MigrationType.LOCAL or (ob.library or ob.override_library):
                 host_type = "bone" if hasattr(host, "tail") else "object"
                 if host_type == "bone":
                     host_reference = f"\"{host.name}\" in \"{host.id_data.name_full}\""

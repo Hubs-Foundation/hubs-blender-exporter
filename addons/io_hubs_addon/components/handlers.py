@@ -4,6 +4,7 @@ from .components_registry import get_components_registry
 from .utils import redirect_c_stdout
 from .utils import get_host_components
 from .gizmos import update_gizmos
+from .types import MigrationType
 import io
 import sys
 
@@ -141,7 +142,7 @@ def load_post(dummy):
     file_loading = True
 
     handle_beta_versioning()
-    migrate_components('GLOBAL')
+    migrate_components(MigrationType.GLOBAL)
 
 
 def find_active_undo_step_index(undo_steps):
@@ -258,7 +259,7 @@ def undo_stack_handler(dummy=None):
         if task == 'update_gizmos':
             update_gizmos()
         elif task == 'migrate_components':
-            migrate_components('LOCAL', do_update_gizmos=False, display_report=display_report, override_report_title="Append/Link: Component Migration Report")
+            migrate_components(MigrationType.LOCAL, do_update_gizmos=False, display_report=display_report, override_report_title="Append/Link: Component Migration Report")
         else:
             print('Error: unrecognized task scheduled')
 

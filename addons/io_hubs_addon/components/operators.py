@@ -3,7 +3,7 @@ from bpy.props import StringProperty, IntProperty
 from bpy.types import Operator
 from functools import reduce
 
-from .types import PanelType
+from .types import PanelType, MigrationType
 from .utils import get_object_source, dash_to_title, has_component, add_component, remove_component, wrap_text
 from .components_registry import get_components_registry, get_components_icons
 from ..preferences import get_addon_pref
@@ -194,7 +194,7 @@ class MigrateHubsComponents(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        migrate_components('LOCAL')
+        migrate_components(MigrationType.LOCAL)
         return {'FINISHED'}
 
 

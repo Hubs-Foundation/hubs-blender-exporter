@@ -24,3 +24,8 @@ class Category(Enum):
     MISC = 'Misc'
     LIGHTS = 'Lights'
     MEDIA = 'Media'
+
+
+class MigrationType(Enum):
+    GLOBAL = 'global'
+    LOCAL = 'local'
