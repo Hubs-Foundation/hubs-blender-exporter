@@ -84,7 +84,7 @@ class HubsGizmoGroup(GizmoGroup):
                         'host_name': host.name,
                         'host_type': host_type,
                         'gizmo': gizmo
-                        }
+                    }
 
                     if host_type == 'OBJECT':
                         owner = object()
@@ -138,20 +138,21 @@ class HubsGizmoGroup(GizmoGroup):
                     if ob.mode == 'EDIT':
                         edit_bone = ob.data.edit_bones[host_name]
                         self.update_bone_gizmo(
-                                    component_name, ob, edit_bone, edit_bone, gizmo)
+                            component_name, ob, edit_bone, edit_bone, gizmo)
                     else:
                         bone = ob.data.bones[host_name]
                         pose_bone = ob.pose.bones[host_name]
                         self.update_bone_gizmo(
-                                    component_name, ob, bone, pose_bone, gizmo)
+                            component_name, ob, bone, pose_bone, gizmo)
                 else:
                     self.update_object_gizmo(
-                            component_name, ob, gizmo)
+                        component_name, ob, gizmo)
 
 
 global objects_count
 gizmo_system_registered = False
 msgbus_owners = []
+
 
 def msgbus_callback(*args):
     update_gizmos()
@@ -213,9 +214,9 @@ def register_gizmo_system():
             notify=msgbus_callback,
         )
 
-
     register_gizmos()
     gizmo_system_registered = True
+
 
 def register_gizmos():
     try:
@@ -223,6 +224,7 @@ def register_gizmos():
         bpy.utils.register_class(HubsGizmoGroup)
     except:
         pass
+
 
 def unregister_gizmo_system():
     global gizmo_system_registered
@@ -245,6 +247,7 @@ def unregister_gizmo_system():
     unregister_gizmos()
     gizmo_system_registered = False
 
+
 def unregister_gizmos():
     try:
         bpy.utils.unregister_class(HubsGizmoGroup)
@@ -252,24 +255,26 @@ def unregister_gizmos():
     except:
         pass
 
+
 def update_gizmos():
     global gizmo_system_registered
     unregister_gizmos()
     register_gizmos() if gizmo_system_registered else register_gizmo_system()
+
 
 def register_functions():
     def register():
         if not load_post in bpy.app.handlers.load_post:
             bpy.app.handlers.load_post.append(load_post)
 
-        bpy.types.Armature.hubs_old_bones_length = IntProperty(options={'HIDDEN', 'SKIP_SAVE'})
+        bpy.types.Armature.hubs_old_bones_length = IntProperty(
+            options={'HIDDEN', 'SKIP_SAVE'})
 
         register_gizmo_system()
 
     def unregister():
         if load_post in bpy.app.handlers.load_post:
             bpy.app.handlers.load_post.remove(load_post)
-
 
         unregister_gizmo_system()
 
