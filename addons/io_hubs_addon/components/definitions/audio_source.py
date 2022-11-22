@@ -10,7 +10,8 @@ class AudioSource(HubsComponent):
         'category': Category.MEDIA,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
-        'icon': 'MOD_WAVE'
+        'icon': 'MOD_WAVE',
+        'version': (1, 0, 0)
     }
 
     onlyMods: BoolProperty(

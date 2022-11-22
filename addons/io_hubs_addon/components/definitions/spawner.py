@@ -11,7 +11,8 @@ class Spawner(HubsComponent):
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
-        'icon': 'MOD_PARTICLE_INSTANCE'
+        'icon': 'MOD_PARTICLE_INSTANCE',
+        'version': (1, 0, 0)
     }
 
     src: StringProperty(
@@ -28,9 +29,9 @@ class Spawner(HubsComponent):
             }
         }
 
-    def migrate(self, migration_type, version, host, migration_report, ob=None):
+    def migrate(self, migration_type, instance_version, host, migration_report, ob=None):
         migration_occurred = False
-        if version < (1, 0, 0):
+        if instance_version < (1, 0, 0):
             migration_occurred = True
             try:
                 self.applyGravity = self[

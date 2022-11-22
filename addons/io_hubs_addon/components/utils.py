@@ -20,7 +20,7 @@ def add_component(obj, component_name):
     if component_class:
         if 'create_gizmo' in component_class.__dict__:
             update_gizmos()
-        component_class.init_addon_version(obj)
+        component_class.init_instance_version(obj)
         component_class.init(obj)
         for dep_name in component_class.get_deps():
             dep_class = get_component_by_name(dep_name)

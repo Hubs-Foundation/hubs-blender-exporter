@@ -16,7 +16,8 @@ class AudioParams(HubsComponent):
         'name': 'audio-params',
         'display_name': 'Audio Params',
         'node_type': NodeType.NODE,
-        'panel_type': [PanelType.OBJECT, PanelType.BONE]
+        'panel_type': [PanelType.OBJECT, PanelType.BONE],
+        'version': (1, 0, 0)
     }
 
     overrideAudioSettings: BoolProperty(
@@ -102,9 +103,9 @@ class AudioParams(HubsComponent):
                 'coneOuterGain': self.coneOuterGain
             }
 
-    def migrate(self, migration_type, version, host, migration_report, ob=None):
+    def migrate(self, migration_type, instance_version, host, migration_report, ob=None):
         migration_occurred = False
-        if version < (1, 0, 0):
+        if instance_version < (1, 0, 0):
             migration_occurred = True
             self.coneInnerAngle = radians(
                 self.coneInnerAngle)

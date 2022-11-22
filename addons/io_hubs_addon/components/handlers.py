@@ -4,7 +4,6 @@ from .components_registry import get_components_registry
 from .utils import redirect_c_stdout
 from .utils import get_host_components
 from .gizmos import update_gizmos
-from ..utils import get_version
 import io
 import sys
 
@@ -14,21 +13,26 @@ previous_window_setups = []
 file_loading = False
 
 
-def migrate(component, migration_type, global_version, host, migration_report, ob=None):
-    version = tuple(component.addon_version)
-    was_migrated = component.migrate(
-        migration_type, version, host, migration_report, ob=ob)
-    component.addon_version = global_version
+def migrate(component, migration_type, host, migration_report, ob=None):
+    instance_version = tuple(component.instance_version)
+    definition_version = component.__class__.get_definition_version()
+    was_migrated = False
 
-    if type(was_migrated) != bool:
-        print(f"Warning: the {component.get_display_name()} component didn't return whether a migration occurred.")
-        was_migrated = (version < global_version)
+    if instance_version < definition_version:
+        was_migrated = component.migrate(
+            migration_type, instance_version, host, migration_report, ob=ob)
+
+        if type(was_migrated) != bool:
+            print(f"Warning: the {component.get_display_name()} component didn't return whether a migration occurred.")
+            # Fall back to assuming there was a migration since the version increased.
+            was_migrated = True
+
+        component.instance_version = definition_version
 
     return was_migrated
 
 
 def migrate_components(migration_type, *, do_update_gizmos=True, display_report=True, override_report_title=""):
-    global_version = get_version()
     migration_report = []
     migrated_linked_components = []
     link_migration_occurred = False
@@ -37,7 +41,7 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
         for component in get_host_components(scene):
             try:
                 was_migrated = migrate(
-                    component, migration_type, global_version, scene, migration_report)
+                    component, migration_type, scene, migration_report)
             except:
                 was_migrated = True
                 error = f"Error: Migration failed for component {component.get_display_name()} on scene \"{scene.name_full}\""
@@ -52,7 +56,7 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
         for component in get_host_components(ob):
             try:
                 was_migrated = migrate(
-                    component, migration_type, global_version, ob, migration_report, ob=ob)
+                    component, migration_type, ob, migration_report, ob=ob)
             except:
                 was_migrated = True
                 error = f"Error: Migration failed for component {component.get_display_name()} on object \"{ob.name_full}\""
@@ -68,7 +72,7 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
                 for component in get_host_components(bone):
                     try:
                         was_migrated = migrate(
-                            component, migration_type, global_version, bone, migration_report, ob=ob)
+                            component, migration_type, bone, migration_report, ob=ob)
                     except:
                         was_migrated = True
                         error = f"Error: Migration failed for component {component.get_display_name()} on bone \"{bone.name}\" in \"{ob.name_full}\""
@@ -102,16 +106,16 @@ def version_beta_components():
     for scene in bpy.data.scenes:
         for component in get_host_components(scene):
             if not (scene.library or scene.override_library):
-                component.addon_version = (1, 0, 0)
+                component.instance_version = (1, 0, 0)
 
     for ob in bpy.data.objects:
         for component in get_host_components(ob):
             if not (ob.library or ob.override_library):
-                component.addon_version = (1, 0, 0)
+                component.instance_version = (1, 0, 0)
                 if ob.type == 'ARMATURE':
                     for bone in ob.data.bones:
                         for component in get_host_components(bone):
-                            component.addon_version = (1, 0, 0)
+                            component.instance_version = (1, 0, 0)
 
 
 def handle_beta_versioning():

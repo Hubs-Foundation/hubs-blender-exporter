@@ -11,7 +11,8 @@ class Networked(HubsComponent):
         'name': 'networked',
         'display_name': 'Networked',
         'node_type': NodeType.NODE,
-        'panel_type': [PanelType.OBJECT, PanelType.BONE]
+        'panel_type': [PanelType.OBJECT, PanelType.BONE],
+        'version': (1, 0, 0)
     }
 
     def gather(self, export_settings, object):

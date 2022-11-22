@@ -14,7 +14,8 @@ class AudioZone(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'deps': ['networked', 'audio-params'],
-        'icon': 'MATCUBE'
+        'icon': 'MATCUBE',
+        'version': (1, 0, 0)
     }
 
     inOut: BoolProperty(name="In Out",
@@ -53,9 +54,9 @@ class AudioZone(HubsComponent):
 
         return gizmo
 
-    def migrate(self, migration_type, version, host, migration_report, ob=None):
+    def migrate(self, migration_type, instance_version, host, migration_report, ob=None):
         migration_occurred = False
-        if version < (1, 0, 0):
+        if instance_version < (1, 0, 0):
             migration_occurred = True
             migrate_networked(host)
 

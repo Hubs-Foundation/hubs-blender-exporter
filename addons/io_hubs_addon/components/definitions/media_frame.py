@@ -55,7 +55,8 @@ class MediaFrame(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'OBJECT_DATA',
-        'deps': ['networked']
+        'deps': ['networked'],
+        'version': (1, 0, 0)
     }
 
     bounds: FloatVectorProperty(
@@ -117,9 +118,9 @@ class MediaFrame(HubsComponent):
 
         return gizmo
 
-    def migrate(self, migration_type, version, host, migration_report, ob=None):
+    def migrate(self, migration_type, instance_version, host, migration_report, ob=None):
         migration_occurred = False
-        if version < (1, 0, 0):
+        if instance_version < (1, 0, 0):
                 migration_occurred = True
                 migrate_networked(host)
                 bounds = self.bounds.copy()

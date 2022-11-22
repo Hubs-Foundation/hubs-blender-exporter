@@ -548,7 +548,8 @@ class LoopAnimation(HubsComponent):
         'category': Category.ANIMATION,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
-        'icon': 'LOOP_BACK'
+        'icon': 'LOOP_BACK',
+        'version': (1, 0, 0)
     }
 
     tracks_list: CollectionProperty(
@@ -657,9 +658,9 @@ class LoopAnimation(HubsComponent):
 
         unregister_msgbus()
 
-    def migrate(self, migration_type, version, host, migration_report, ob=None):
+    def migrate(self, migration_type, instance_version, host, migration_report, ob=None):
         migration_occurred = False
-        if version < (1, 0, 0):
+        if instance_version < (1, 0, 0):
             migration_occurred = True
             migration_warning = False
             tracks = self.clip.split(",")

@@ -2,7 +2,6 @@ from bpy.types import PropertyGroup
 from bpy.props import IntVectorProperty
 from ..io.utils import gather_properties
 from .types import Category, PanelType, NodeType
-from ..utils import get_version
 
 
 class HubsComponent(PropertyGroup):
@@ -20,13 +19,15 @@ class HubsComponent(PropertyGroup):
         # The dependencies of this component (by id). They will be added as a result of adding this component.
         'deps': [],
         # Name of the icon to load. It can be a image file in the icons directory or one of the Blender builtin icons id
-        'icon': 'icon.png'
+        'icon': 'icon.png',
+        # Version of the component. This will be used to trigger component migrations.
+        'version': (0, 0, 1)
     }
 
     # Properties defined here are for internal use and won't be displayed by default in components or exported.
 
-    # Version of the add-on this component was created with.
-    addon_version: IntVectorProperty(size=3)
+    # The internal version of the component.  This is first set when a component is added and is updated during migrations, if necessary.
+    instance_version: IntVectorProperty(size=3)
 
     @classmethod
     def __get_definition(cls, key, default):
@@ -64,14 +65,18 @@ class HubsComponent(PropertyGroup):
         return cls.get_category().value
 
     @classmethod
+    def get_definition_version(cls):
+        return cls.__get_definition('version', (0, 0, 0))
+
+    @classmethod
     def init(cls, obj):
         '''Called right after the component is added to give the component a chance to initialize'''
         pass
 
     @classmethod
-    def init_addon_version(cls, obj):
+    def init_instance_version(cls, obj):
         component = getattr(obj, cls.get_id())
-        component.addon_version = get_version()
+        component.instance_version = cls.get_definition_version()
 
     @classmethod
     def create_gizmo(cls, obj, gizmo_group):
@@ -117,10 +122,10 @@ class HubsComponent(PropertyGroup):
         '''This is called by the exporter after the export process has finished'''
         pass
 
-    def migrate(self, migration_type, version, host, migration_report, ob=None):
+    def migrate(self, migration_type, instance_version, host, migration_report, ob=None):
         '''This is called when an object component needs to migrate the data from previous add-on versions.
         The migration_type argument is the type of migration, GLOBAL represents file loads, and LOCAL represents things like append/link.
-        The version argument represents the addon version the component came from, as a tuple.
+        The instance_version argument represents the version of the component that will be migrated from, as a tuple.
         The host argument is what the component is attached to, object/bone.
         The migration_report argument is a list that you can append messages to and they will be displayed to the user after the migration has finished.
         The ob argument is used for bone migrations and is the armature object that the bone is part of.  Note: this is passed for object migrations as well.

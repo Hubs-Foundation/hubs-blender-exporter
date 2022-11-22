@@ -10,7 +10,8 @@ class Visible(HubsComponent):
         'category': Category.OBJECT,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
-        'icon': 'HIDE_OFF'
+        'icon': 'HIDE_OFF',
+        'version': (1, 0, 0)
     }
 
     visible: BoolProperty(name="Visible", default=True)
