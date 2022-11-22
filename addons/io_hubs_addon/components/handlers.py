@@ -84,6 +84,21 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
                         component_info = f"{component.get_display_name()} component on bone \"{bone.name}\" in \"{ob.name_full}\""
                         migrated_linked_components.append(component_info)
 
+    for material in bpy.data.materials:
+        for component in get_host_components(material):
+            try:
+                was_migrated = migrate(
+                    component, migration_type, material, migration_report)
+            except:
+                was_migrated = True
+                error = f"Error: Migration failed for component {component.get_display_name()} on material \"{material.name_full}\""
+                migration_report.append(error)
+
+            if bool(was_migrated and (material.library or material.override_library)):
+                link_migration_occurred = True
+                component_info = f"{component.get_display_name()} component on material \"{material.name_full}\""
+                migrated_linked_components.append(component_info)
+
 
     if do_update_gizmos:
         update_gizmos()
@@ -117,6 +132,11 @@ def version_beta_components():
                 for bone in ob.data.bones:
                     for component in get_host_components(bone):
                         component.instance_version = (1, 0, 0)
+
+    for material in bpy.data.materials:
+        if not (material.library or material.override_library):
+            for component in get_host_components(material):
+                component.instance_version = (1, 0, 0)
 
 
 def handle_beta_versioning():
