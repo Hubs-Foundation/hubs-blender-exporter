@@ -74,10 +74,10 @@ class HubsGizmoGroup(GizmoGroup):
                 continue
             gizmo = component_class.create_gizmo(host, self)
             if gizmo:
-                if not component_name in self.widgets:
+                if component_name not in self.widgets:
                     self.widgets[component_name] = {}
 
-                host_key = ob.name+host.name
+                host_key = ob.name + host.name
                 if host_key not in self.widgets[component_name]:
                     self.widgets[component_name][host_key] = {
                         'ob': ob,
@@ -194,13 +194,13 @@ def register_gizmo_system():
     global gizmo_system_registered
     global msgbus_owners
 
-    if not depsgraph_update_post in bpy.app.handlers.depsgraph_update_post:
+    if depsgraph_update_post not in bpy.app.handlers.depsgraph_update_post:
         bpy.app.handlers.depsgraph_update_post.append(
             depsgraph_update_post)
-    if not undo_post in bpy.app.handlers.undo_post:
+    if undo_post not in bpy.app.handlers.undo_post:
         bpy.app.handlers.undo_post.append(
             undo_post)
-    if not redo_post in bpy.app.handlers.redo_post:
+    if redo_post not in bpy.app.handlers.redo_post:
         bpy.app.handlers.redo_post.append(
             redo_post)
 
@@ -222,7 +222,7 @@ def register_gizmos():
     try:
         bpy.utils.register_class(CustomModelGizmo)
         bpy.utils.register_class(HubsGizmoGroup)
-    except:
+    except Exception:
         pass
 
 
@@ -252,7 +252,7 @@ def unregister_gizmos():
     try:
         bpy.utils.unregister_class(HubsGizmoGroup)
         bpy.utils.unregister_class(CustomModelGizmo)
-    except:
+    except Exception:
         pass
 
 
@@ -264,7 +264,7 @@ def update_gizmos():
 
 def register_functions():
     def register():
-        if not load_post in bpy.app.handlers.load_post:
+        if load_post not in bpy.app.handlers.load_post:
             bpy.app.handlers.load_post.append(load_post)
 
         bpy.types.Armature.hubs_old_bones_length = IntProperty(

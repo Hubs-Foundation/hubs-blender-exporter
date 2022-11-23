@@ -25,6 +25,40 @@ jobs:
       - name: Update build number
         run: |
           sed -i'' 's/"dev_build"/${{ github.run_number }}/g' $GITHUB_WORKSPACE/addons/io_hubs_addon/__init__.py
+      - name: Python Linter
+        uses: weibullguy/python-lint-plus@v1.9.0
+        with:
+          python-root-list: 'addons'
+          use-black: false
+          use-yapf: false
+          use-isort: false
+          use-docformatter: false
+          use-pycodestyle: true
+          use-autopep8: false
+          use-pydocstyle: false
+          use-mypy: false
+          use-pylint: false
+          use-flake8: false
+          use-mccabe: false
+          use-radon: false
+          use-rstcheck: false
+          use-check-manifest: false
+          use-pyroma: false
+          extra-black-options: ''
+          extra-yapf-options: ''
+          extra-isort-options: ''
+          extra-docformatter-options: ''
+          # This should work with **/models but it doesn't
+          extra-pycodestyle-options: '--exclude=models --ignore=E501'
+          extra-pydocstyle-options: ''
+          extra-mypy-options: ''
+          extra-pylint-options: ''
+          extra-flake8-options: ''
+          extra-mccabe-options: ''
+          extra-radon-options: ''
+          extra-rstcheck-options: ''
+          extra-manifest-options: ''
+          extra-pyroma-options: ''
       - name: Upload addon artifacts
         uses: actions/upload-artifact@v3
         with:

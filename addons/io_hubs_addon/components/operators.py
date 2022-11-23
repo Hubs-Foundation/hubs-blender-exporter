@@ -121,7 +121,8 @@ class AddHubsComponent(Operator):
                                         text=component_display_name, icon_value=components_icons[icon].icon_id)
                                 else:
                                     op = column.operator(
-                                        AddHubsComponent.bl_idname, text=component_display_name, icon_value=components_icons[icon].icon_id)
+                                        AddHubsComponent.bl_idname, text=component_display_name,
+                                        icon_value=components_icons[icon].icon_id)
                                     op.component_name = component_name
                                     op.panel_type = panel_type
                             else:

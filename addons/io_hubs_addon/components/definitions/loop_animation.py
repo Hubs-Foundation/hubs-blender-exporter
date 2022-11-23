@@ -42,14 +42,14 @@ class Errors():
 
     @classmethod
     def log(cls, track, error_type, error_message, severity='Error'):
-        has_error = cls._errors.get(track.track_type+track.name, '')
+        has_error = cls._errors.get(track.track_type + track.name, '')
         if not has_error:
-            cls._errors[track.track_type+track.name] = {
+            cls._errors[track.track_type + track.name] = {
                 'type': error_type, 'message': error_message, 'severity': severity}
 
     @classmethod
     def get(cls, track):
-        return cls._errors.get(track.track_type+track.name, '')
+        return cls._errors.get(track.track_type + track.name, '')
 
     @classmethod
     def clear(cls):
@@ -154,7 +154,7 @@ def get_action_name(nla_track):
 
 
 def get_menu_id(nla_track, track_type, display_name):
-    return display_name if not is_default_name(nla_track.name) else track_type+display_name
+    return display_name if not is_default_name(nla_track.name) else track_type + display_name
 
 
 def is_unique_action(animation_data, target_nla_track):
@@ -262,8 +262,10 @@ def is_useable_nla_track(animation_data, nla_track, track):
         return False
 
     if not is_unique_action(animation_data, nla_track):
-        Errors.log(track, 'NON_UNIQUE_ACTION',
-                   "This strip/track contains an action that is present in multiple\nstrips/tracks on this object and may not export correctly.", severity="Warning")
+        Errors.log(
+            track, 'NON_UNIQUE_ACTION',
+            "This strip/track contains an action that is present in multiple\nstrips/tracks on this object and may not export correctly.",
+            severity="Warning")
         return False
 
     return True
@@ -321,7 +323,7 @@ class TracksList(bpy.types.UIList):
                 row.context_pointer_set('hubs_component', data)
                 row.context_pointer_set('track', item)
                 row.menu(UpdateTrackContextMenu.bl_idname,
-                         text=item.name+spacer, icon='ERROR')
+                         text=item.name + spacer, icon='ERROR')
             row = split.row(align=True)
             row.emboss = 'UI_EMBOSS_NONE_OR_STATUS' if bpy.app.version < (
                 3, 0, 0) else 'NONE_OR_STATUS'
@@ -468,7 +470,8 @@ class UpdateTrackContextMenu(Menu):
                 track_type = "object"
                 menu_id = get_menu_id(nla_track, track_type, display_name)
 
-                if menu_id not in menu_tracks and not has_track(hubs_component.tracks_list, nla_track, invalid_track=track):
+                if menu_id not in menu_tracks and not has_track(
+                        hubs_component.tracks_list, nla_track, invalid_track=track):
                     row = layout.row(align=False)
                     row.context_pointer_set('track', track)
 
@@ -493,7 +496,8 @@ class UpdateTrackContextMenu(Menu):
                 track_type = "shape_key"
                 menu_id = get_menu_id(nla_track, track_type, display_name)
 
-                if menu_id not in menu_tracks and not has_track(hubs_component.tracks_list, nla_track, invalid_track=track):
+                if menu_id not in menu_tracks and not has_track(
+                        hubs_component.tracks_list, nla_track, invalid_track=track):
                     row = layout.row(align=False)
                     row.context_pointer_set('track', track)
 
@@ -647,12 +651,12 @@ class LoopAnimation(HubsComponent):
             final_track_names.append(track.track_name if not is_default_name(
                 track.track_name) else track.action_name)
 
-        fps = bpy.context.scene.render.fps/bpy.context.scene.render.fps_base
+        fps = bpy.context.scene.render.fps / bpy.context.scene.render.fps_base
 
         return {
             'clip': ",".join(
                 final_track_names),
-            'startOffset': self.startOffset/fps,
+            'startOffset': self.startOffset / fps,
             'timeScale': self.timeScale
         }
 
@@ -665,11 +669,11 @@ class LoopAnimation(HubsComponent):
         bpy.utils.register_class(AddTrackOperator)
         bpy.utils.register_class(RemoveTrackOperator)
 
-        if not load_post in bpy.app.handlers.load_post:
+        if load_post not in bpy.app.handlers.load_post:
             bpy.app.handlers.load_post.append(load_post)
-        if not undo_redo_post in bpy.app.handlers.undo_post:
+        if undo_redo_post not in bpy.app.handlers.undo_post:
             bpy.app.handlers.load_post.append(undo_redo_post)
-        if not undo_redo_post in bpy.app.handlers.redo_post:
+        if undo_redo_post not in bpy.app.handlers.redo_post:
             bpy.app.handlers.load_post.append(undo_redo_post)
 
         register_msgbus()

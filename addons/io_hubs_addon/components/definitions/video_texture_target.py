@@ -81,10 +81,12 @@ class VideoTextureTarget(HubsComponent):
     }
 
     targetBaseColorMap: BoolProperty(
-        name="Override Base Color Map", description="Causes the video texture to be displayed in place of the base color map", default=True)
+        name="Override Base Color Map",
+        description="Causes the video texture to be displayed in place of the base color map", default=True)
 
     targetEmissiveMap: BoolProperty(
-        name="Override Emissive Color Map", description="Causes the video texture to be displayed in place of the emissive map", default=False)
+        name="Override Emissive Color Map",
+        description="Causes the video texture to be displayed in place of the emissive map", default=False)
 
     srcNode: PointerProperty(
         name="Source",
@@ -124,12 +126,14 @@ class VideoTextureTarget(HubsComponent):
             col = layout.column()
             col.alert = True
             col.label(
-                text=f'The selected source doesn\'t have a {VideoTextureSource.get_display_name()} component', icon='ERROR')
+                text=f'The selected source doesn\'t have a {VideoTextureSource.get_display_name()} component',
+                icon='ERROR')
         elif self.srcNode and self.bone_id != BLANK_ID and not has_bone_component:
             col = layout.column()
             col.alert = True
             col.label(
-                text=f'The selected bone doesn\'t have a {VideoTextureSource.get_display_name()} component', icon='ERROR')
+                text=f'The selected bone doesn\'t have a {VideoTextureSource.get_display_name()} component',
+                icon='ERROR')
 
         layout.prop(data=self, property="targetBaseColorMap")
         layout.prop(data=self, property="targetEmissiveMap")

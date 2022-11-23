@@ -152,7 +152,10 @@ def get_components_icons():
 
 def get_component_by_name(component_name):
     global __components_registry
-    return next((component_class for _, component_class in __components_registry.items() if component_class.get_name() == component_name), None)
+    return next(
+        (component_class for _, component_class in __components_registry.items()
+         if component_class.get_name() == component_name),
+        None)
 
 
 def register():
