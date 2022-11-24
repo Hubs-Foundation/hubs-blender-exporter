@@ -2,6 +2,7 @@ import bpy
 from bpy.props import PointerProperty, IntVectorProperty
 from ..components.components_registry import get_components_registry
 from .utils import gather_lightmap_texture_info
+from io_scene_gltf2.blender.com.gltf2_blender_extras import BLACK_LIST
 
 hubs_config = {
     "gltfExtensionName": "MOZ_hubs_components",
@@ -73,6 +74,9 @@ class glTF2ExportUserExtension:
         self.was_used = False
         self.delayed_gathers = []
 
+        for _, component_class in get_components_registry().items():
+            BLACK_LIST.append(component_class.get_id())
+
     def hubs_gather_gltf_hook(self, gltf2_object, export_settings):
         if not self.properties.enabled or not self.was_used:
             return
@@ -99,24 +103,12 @@ class glTF2ExportUserExtension:
         if not self.properties.enabled:
             return
 
-        # Don't include hubs component data again in extras, even if "include custom properties" is enabled
-        if gltf2_object.extras:
-            for key in list(gltf2_object.extras):
-                if key.startswith("hubs_"):
-                    del gltf2_object.extras[key]
-
         self.add_hubs_components(gltf2_object, blender_scene, export_settings)
         self.call_delayed_gathers()
 
     def gather_node_hook(self, gltf2_object, blender_object, export_settings):
         if not self.properties.enabled:
             return
-
-        # Don't include hubs component data again in extras, even if "include custom properties" is enabled
-        if gltf2_object.extras:
-            for key in list(gltf2_object.extras):
-                if key.startswith("hubs_"):
-                    del gltf2_object.extras[key]
 
         self.add_hubs_components(gltf2_object, blender_object, export_settings)
 

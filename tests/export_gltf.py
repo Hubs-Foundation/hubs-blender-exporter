@@ -40,7 +40,8 @@ try:
 
         'export_format': ('GLB' if extension == '.glb' else 'GLTF_SEPARATE'),
         'filepath': os.path.join(output_dir, path_parts[1]),
-        'export_cameras': True
+        'export_cameras': True,
+        'export_extras': True
     }
     bpy.ops.export_scene.gltf(**args)
 except Exception as err:
