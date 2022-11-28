@@ -86,7 +86,8 @@ class AudioTarget(HubsComponent):
         name="Source",
         description="The object with an audio-source component to pull audio from",
         type=Object,
-        poll=filter_on_component
+        poll=filter_on_component,
+        update=lambda self, context: setattr(self, 'bone', BLANK_ID)
     )
 
     bone: EnumProperty(
