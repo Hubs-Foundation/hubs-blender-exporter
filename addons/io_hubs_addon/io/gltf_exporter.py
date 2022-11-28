@@ -64,6 +64,17 @@ def glTF2_post_export_callback(export_settings):
 
 
 class glTF2ExportUserExtension:
+
+    @classmethod
+    def add_excluded_property(cls, key):
+        if key not in BLACK_LIST:
+            BLACK_LIST.append(key)
+
+    @classmethod
+    def remove_excluded_property(cls, key):
+        if key in BLACK_LIST:
+            BLACK_LIST.remove(key)
+
     def __init__(self):
         # We need to wait until we create the gltf2UserExtension to import the gltf2 modules
         # Otherwise, it may fail because the gltf2 may not be loaded yet
@@ -73,9 +84,6 @@ class glTF2ExportUserExtension:
         self.properties = bpy.context.scene.HubsComponentsExtensionProperties
         self.was_used = False
         self.delayed_gathers = []
-
-        for _, component_class in get_components_registry().items():
-            BLACK_LIST.append(component_class.get_id())
 
     def hubs_gather_gltf_hook(self, gltf2_object, export_settings):
         if not self.properties.enabled or not self.was_used:
@@ -180,6 +188,16 @@ class glTF2ExportUserExtension:
 
             self.was_used = True
 
+    @classmethod
+    def register(cls):
+        for _, component_class in get_components_registry().items():
+            cls.add_excluded_property(component_class.get_id())
+
+    @classmethod
+    def unregister(cls):
+        for _, component_class in get_components_registry().items():
+            cls.remove_excluded_property(component_class.get_id())
+
 
 class HubsComponentsExtensionProperties(bpy.types.PropertyGroup):
     enabled: bpy.props.BoolProperty(
@@ -248,6 +266,8 @@ def register():
     bpy.utils.register_class(HubsComponentsExtensionProperties)
     bpy.types.Scene.HubsComponentsExtensionProperties = PointerProperty(
         type=HubsComponentsExtensionProperties)
+    glTF2ExportUserExtension.register()
+    glTF2ExportUserExtension.add_excluded_property("HubsComponentsExtensionProperties")
 
 
 def unregister():
@@ -258,3 +278,5 @@ def unregister():
     if bpy.app.version < (3, 0, 0):
         gltf2_blender_export.__gather_gltf = orig_gather_gltf
     unregister_export_panel()
+    glTF2ExportUserExtension.unregister()
+    glTF2ExportUserExtension.remove_excluded_property("HubsComponentsExtensionProperties")

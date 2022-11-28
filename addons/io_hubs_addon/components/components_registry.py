@@ -176,6 +176,9 @@ def register():
     bpy.types.EditBone.hubs_component_list = PointerProperty(
         type=HubsComponentList)
 
+    from ..io.gltf_exporter import glTF2ExportUserExtension
+    glTF2ExportUserExtension.add_excluded_property("hubs_component_list")
+
 
 def unregister():
     del bpy.types.Object.hubs_component_list
@@ -186,6 +189,9 @@ def unregister():
 
     bpy.utils.unregister_class(HubsComponentName)
     bpy.utils.unregister_class(HubsComponentList)
+
+    from ..io.gltf_exporter import glTF2ExportUserExtension
+    glTF2ExportUserExtension.remove_excluded_property("hubs_component_list")
 
     unload_components_registry()
     unload_icons()
