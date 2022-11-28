@@ -145,18 +145,28 @@ class BakeProbeOperator(Operator):
                ('ALL', 'Bake All', 'Bake All')],
         default='ACTIVE')
 
+    disabled_message = "Can't bake linked reflection probes.  Please make it local first"
+
     @ classmethod
     def description(cls, context, properties):
         if properties.bake_mode == 'ACTIVE':
             description_text = "Generate a 360 equirectangular HDR environment map of the current area in the scene"
+            if bpy.app.version < (3, 0, 0) and is_linked(context.active_object):
+                description_text += f"\nDisabled: {cls.disabled_message}"
         elif properties.bake_mode == 'SELECTED':
             description_text = "Bake the selected unlocked/local reflection probes"
         else:
             description_text = "Bake all the unlocked/local reflection probes in the current view layer"
+
         return description_text
 
     @ classmethod
     def poll(cls, context):
+        if hasattr(context, 'bake_active_probe') and is_linked(context.active_object):
+            if bpy.app.version >= (3, 0, 0):
+                cls.poll_message_set(f"{cls.disabled_message}.")
+            return False
+
         return not probe_baking and hasattr(bpy.context.scene, "cycles")
 
     def render_post(self, scene, depsgraph):
@@ -197,6 +207,7 @@ class BakeProbeOperator(Operator):
                 draw, title="No unlocked/local probes", icon='ERROR')
             return {'CANCELLED'}
         if self.bake_mode == 'ACTIVE' and is_linked(self.probes[0]):
+            # This isn't likely to ever happen, but just in case....
             def draw(self, context):
                 self.layout.label(
                     text="The active probe is linked. Please make it local first.")
@@ -384,7 +395,6 @@ class BakeProbeOperator(Operator):
 class OpenReflectionProbeEnvMap(Operator):
     bl_idname = "image.hubs_open_reflection_probe_envmap"
     bl_label = "Open EnvMap"
-    bl_description = "Load an external image to be used as this probe's environment map"
     bl_options = {'REGISTER', 'UNDO'}
 
     filepath: StringProperty(subtype="FILE_PATH")
@@ -394,6 +404,25 @@ class OpenReflectionProbeEnvMap(Operator):
 
     relative_path: BoolProperty(
         name="Relative Path", description="Select the file relative to the blend file", default=True)
+
+    disabled_message = "Can't open/assign environment maps to linked reflection probes.  Please make it local first"
+
+    @ classmethod
+    def description(cls, context, properties):
+        description_text = "Load an external image to be used as this probe's environment map"
+        if bpy.app.version < (3, 0, 0) and is_linked(context.active_object):
+            description_text += f"\nDisabled: {cls.disabled_message}"
+
+        return description_text
+
+    @ classmethod
+    def poll(cls, context):
+        if is_linked(context.active_object):
+            if bpy.app.version >= (3, 0, 0):
+                cls.poll_message_set(f"{cls.disabled_message}.")
+            return False
+
+        return True
 
     def draw(self, context):
         layout = self.layout
@@ -425,15 +454,6 @@ class OpenReflectionProbeEnvMap(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        probe = context.active_object
-        if is_linked(probe):
-            def draw(self, context):
-                self.layout.label(
-                    text="The active probe is linked. Please make it local first.")
-            bpy.context.window_manager.popup_menu(
-                draw, title="Active probe linked", icon='ERROR')
-            return {'CANCELLED'}
-
         self.filepath = ""
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
@@ -735,6 +755,7 @@ class ReflectionProbe(HubsComponent):
 
         global bake_mode
         row = layout.row()
+        row.context_pointer_set("bake_active_probe", None)
         bake_msg = "Baking..." if probe_baking and bake_mode == 'ACTIVE' else "Bake"
         bake_op = row.operator(
             "render.hubs_render_reflection_probe",
