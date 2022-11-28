@@ -472,7 +472,8 @@ class ImportReflectionProbeEnvMaps(Operator):
     relative_path: BoolProperty(
         name="Relative Path", description="Select the file relative to the blend file", default=True)
     overwrite_images: BoolProperty(
-        name="Overwrite Probe Images", description="Overwrite/Remove the current images of the reflection probes being imported to", default=False)
+        name="Overwrite Probe Images",
+        description="Overwrite/Remove the current images of the reflection probes being imported to", default=False)
 
     def draw(self, context):
         layout = self.layout
@@ -531,7 +532,8 @@ class ImportReflectionProbeEnvMaps(Operator):
             if not imported_file:
                 num_failed += 1
                 self.report(
-                    {'WARNING'}, f"Warning: Couldn't import {f.name}.  The corresponding probe either doesn't exist or is locked/linked.")
+                    {'WARNING'},
+                    f"Warning: Couldn't import {f.name}.  The corresponding probe either doesn't exist or is locked/linked.")
 
         if num_failed:
             final_report_message = f"Warning: {num_failed} environment maps failed to import. {num_imported} environment maps imported to probes"
@@ -718,7 +720,8 @@ class ReflectionProbe(HubsComponent):
     )
 
     locked: BoolProperty(
-        name="Probe Lock", description="Toggle whether new environment maps can be assigned/baked to this reflection probe", default=False)
+        name="Probe Lock",
+        description="Toggle whether new environment maps can be assigned/baked to this reflection probe", default=False)
 
     def draw(self, context, layout, panel):
         row = layout.row()
@@ -729,8 +732,9 @@ class ReflectionProbe(HubsComponent):
         if not context.scene.hubs_component_environment_settings.envMapTexture:
             row = layout.row()
             row.alert = True
-            row.label(text="No scene environment map found.  Please add an environment map to the environment settings scene component for reflection probes to work in Hubs.",
-                      icon='ERROR')
+            row.label(
+                text="No scene environment map found.  Please add an environment map to the environment settings scene component for reflection probes to work in Hubs.",
+                icon='ERROR')
 
         if any(context.active_object.matrix_world.to_euler()):
             row = layout.row()
@@ -806,8 +810,9 @@ class ReflectionProbe(HubsComponent):
             if not context.scene.hubs_component_environment_settings.envMapTexture:
                 row = col.row()
                 row.alert = True
-                row.label(text="No scene environment map found.  Please add an environment map to the environment settings scene component for reflection probes to work in Hubs.",
-                          icon='ERROR')
+                row.label(
+                    text="No scene environment map found.  Please add an environment map to the environment settings scene component for reflection probes to work in Hubs.",
+                    icon='ERROR')
 
             row = col.row()
             row.prop(context.scene.hubs_scene_reflection_probe_properties,
