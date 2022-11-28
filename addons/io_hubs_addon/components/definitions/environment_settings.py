@@ -66,13 +66,16 @@ class EnvironmentSettings(HubsComponent):
         default=False
     )
     bloomThreshold: FloatProperty(
-        name="Threshold", description="Values brighter than this in the final render (before tone mapping) will have bloom applied to them. The threshold is applied starting at 1, so a value of 0 will cover all 'HDR' values. You can specify a number below 0 to have bloom effect SDR values (not recommended)", default=1.0, min=0.0, soft_min=1.0)
+        name="Threshold",
+        description="Values brighter than this in the final render (before tone mapping) will have bloom applied to them. The threshold is applied starting at 1, so a value of 0 will cover all 'HDR' values. You can specify a number below 0 to have bloom effect SDR values (not recommended)",
+        default=1.0, min=0.0, soft_min=1.0)
     bloomIntensity: FloatProperty(
         name="Intensity", description="Scales the intensity of the bloom effect", default=1.0, min=0.0)
     bloomRadius: FloatProperty(
         name="Radius", description="Spread distance of the bloom effect", default=0.6, min=0.0, soft_max=1.0)
-    bloomSmoothing: FloatProperty(
-        name="Smoothing", description="Makes transition between under/over-threshold more gradual.", default=0.025, min=0.0, soft_max=1.0)
+    bloomSmoothing: FloatProperty(name="Smoothing",
+                                  description="Makes transition between under/over-threshold more gradual.",
+                                  default=0.025, min=0.0, soft_max=1.0)
 
     def draw(self, context, layout, panel):
         layout.prop(data=self, property="enableHDRPipeline")

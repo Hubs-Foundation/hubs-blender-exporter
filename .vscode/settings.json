@@ -4,7 +4,7 @@
   ],
   "python.formatting.provider": "autopep8",
   "python.formatting.autopep8Args": [
-    "--exclude=**/models/**/*.py"
+    "--exclude=models", "--max-line-length", "120", "--experimental"
   ],
   "python.analysis.extraPaths": [
     "./fake_bpy_modules_3.3-20221006"

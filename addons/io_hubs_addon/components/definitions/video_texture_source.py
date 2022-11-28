@@ -26,7 +26,9 @@ class VideoTextureSource(HubsComponent):
     def poll(cls, context, panel_type):
         ob = context.object
         if panel_type == PanelType.OBJECT:
-            return hasattr(ob, 'type') and (ob.type == 'CAMERA' or [x for x in children_recursive(ob) if x.type == "CAMERA" and not x.parent_bone])
+            return hasattr(
+                ob, 'type') and (
+                ob.type == 'CAMERA' or [x for x in children_recursive(ob) if x.type == "CAMERA" and not x.parent_bone])
         elif panel_type == PanelType.BONE:
             bone = context.active_bone
             return [x for x in children_recursive(ob) if x.type == "CAMERA" and x.parent_bone == bone.name]

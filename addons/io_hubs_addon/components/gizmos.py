@@ -74,17 +74,17 @@ class HubsGizmoGroup(GizmoGroup):
                 continue
             gizmo = component_class.create_gizmo(host, self)
             if gizmo:
-                if not component_name in self.widgets:
+                if component_name not in self.widgets:
                     self.widgets[component_name] = {}
 
-                host_key = ob.name+host.name
+                host_key = ob.name + host.name
                 if host_key not in self.widgets[component_name]:
                     self.widgets[component_name][host_key] = {
                         'ob': ob,
                         'host_name': host.name,
                         'host_type': host_type,
                         'gizmo': gizmo
-                        }
+                    }
 
                     if host_type == 'OBJECT':
                         owner = object()
@@ -138,20 +138,21 @@ class HubsGizmoGroup(GizmoGroup):
                     if ob.mode == 'EDIT':
                         edit_bone = ob.data.edit_bones[host_name]
                         self.update_bone_gizmo(
-                                    component_name, ob, edit_bone, edit_bone, gizmo)
+                            component_name, ob, edit_bone, edit_bone, gizmo)
                     else:
                         bone = ob.data.bones[host_name]
                         pose_bone = ob.pose.bones[host_name]
                         self.update_bone_gizmo(
-                                    component_name, ob, bone, pose_bone, gizmo)
+                            component_name, ob, bone, pose_bone, gizmo)
                 else:
                     self.update_object_gizmo(
-                            component_name, ob, gizmo)
+                        component_name, ob, gizmo)
 
 
 global objects_count
 gizmo_system_registered = False
 msgbus_owners = []
+
 
 def msgbus_callback(*args):
     update_gizmos()
@@ -193,13 +194,13 @@ def register_gizmo_system():
     global gizmo_system_registered
     global msgbus_owners
 
-    if not depsgraph_update_post in bpy.app.handlers.depsgraph_update_post:
+    if depsgraph_update_post not in bpy.app.handlers.depsgraph_update_post:
         bpy.app.handlers.depsgraph_update_post.append(
             depsgraph_update_post)
-    if not undo_post in bpy.app.handlers.undo_post:
+    if undo_post not in bpy.app.handlers.undo_post:
         bpy.app.handlers.undo_post.append(
             undo_post)
-    if not redo_post in bpy.app.handlers.redo_post:
+    if redo_post not in bpy.app.handlers.redo_post:
         bpy.app.handlers.redo_post.append(
             redo_post)
 
@@ -213,16 +214,17 @@ def register_gizmo_system():
             notify=msgbus_callback,
         )
 
-
     register_gizmos()
     gizmo_system_registered = True
+
 
 def register_gizmos():
     try:
         bpy.utils.register_class(CustomModelGizmo)
         bpy.utils.register_class(HubsGizmoGroup)
-    except:
+    except Exception:
         pass
+
 
 def unregister_gizmo_system():
     global gizmo_system_registered
@@ -245,31 +247,34 @@ def unregister_gizmo_system():
     unregister_gizmos()
     gizmo_system_registered = False
 
+
 def unregister_gizmos():
     try:
         bpy.utils.unregister_class(HubsGizmoGroup)
         bpy.utils.unregister_class(CustomModelGizmo)
-    except:
+    except Exception:
         pass
+
 
 def update_gizmos():
     global gizmo_system_registered
     unregister_gizmos()
     register_gizmos() if gizmo_system_registered else register_gizmo_system()
 
+
 def register_functions():
     def register():
-        if not load_post in bpy.app.handlers.load_post:
+        if load_post not in bpy.app.handlers.load_post:
             bpy.app.handlers.load_post.append(load_post)
 
-        bpy.types.Armature.hubs_old_bones_length = IntProperty(options={'HIDDEN', 'SKIP_SAVE'})
+        bpy.types.Armature.hubs_old_bones_length = IntProperty(
+            options={'HIDDEN', 'SKIP_SAVE'})
 
         register_gizmo_system()
 
     def unregister():
         if load_post in bpy.app.handlers.load_post:
             bpy.app.handlers.load_post.remove(load_post)
-
 
         unregister_gizmo_system()
 

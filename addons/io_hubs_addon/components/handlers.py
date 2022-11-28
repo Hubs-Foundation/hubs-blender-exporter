@@ -18,10 +18,10 @@ def version_update(dummy):
 
 
 def register():
-    if not migrate_components in bpy.app.handlers.load_post:
+    if migrate_components not in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.append(migrate_components)
 
-    if not version_update in bpy.app.handlers.save_pre:
+    if version_update not in bpy.app.handlers.save_pre:
         bpy.app.handlers.save_pre.append(version_update)
 
 

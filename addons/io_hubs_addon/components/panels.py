@@ -16,7 +16,7 @@ def draw_component(panel, context, obj, row, component_item):
     component_class = get_component_by_name(component_name)
     if component_class:
         panel_type = PanelType(panel.bl_context)
-        if not panel_type in component_class.get_panel_type():
+        if panel_type not in component_class.get_panel_type():
             return
 
         component_id = component_class.get_id()

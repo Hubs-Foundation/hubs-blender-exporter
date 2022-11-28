@@ -14,4 +14,6 @@ class Frustrum(HubsComponent):
     }
 
     culled: BoolProperty(
-        name="Culled", description="Ignore entities outside of the camera frustum. Frustum culling can cause problems with some animations", default=True)
+        name="Culled",
+        description="Ignore entities outside of the camera frustum. Frustum culling can cause problems with some animations",
+        default=True)

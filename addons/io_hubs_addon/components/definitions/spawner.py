@@ -15,7 +15,8 @@ class Spawner(HubsComponent):
     }
 
     src: StringProperty(
-        name="Model Source", description="The web address (URL) of the glTF to be spawned", default="https://mozilla.org")
+        name="Model Source", description="The web address (URL) of the glTF to be spawned",
+        default="https://mozilla.org")
 
     applyGravity: BoolProperty(
         name="Apply Gravity", description="Apply gravity to spawned object", default=False)

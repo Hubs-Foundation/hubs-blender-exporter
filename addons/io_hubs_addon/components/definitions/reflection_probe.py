@@ -120,10 +120,9 @@ class ReflectionProbeSceneProps(PropertyGroup):
     resolution_id: StringProperty(name='Current Resolution Id',
                                   default='256x128', options={'HIDDEN'})
 
-    use_compositor: BoolProperty(name="Use Compositor",
-                                 description="Controls whether the baked images will be processed by the compositor after baking",
-                                 default=False
-                                 )
+    use_compositor: BoolProperty(
+        name="Use Compositor",
+        description="Controls whether the baked images will be processed by the compositor after baking", default=False)
 
 
 class BakeProbeOperator(Operator):
@@ -354,15 +353,15 @@ class BakeProbeOperator(Operator):
 
         self.camera_data.cycles.longitude_min = -math.pi
         self.camera_data.cycles.longitude_max = math.pi
-        self.camera_data.cycles.latitude_min = -math.pi/2
-        self.camera_data.cycles.latitude_max = math.pi/2
+        self.camera_data.cycles.latitude_min = -math.pi / 2
+        self.camera_data.cycles.latitude_max = math.pi / 2
 
         self.camera_data.clip_start = probe.data.clip_start
         self.camera_data.clip_end = probe.data.clip_end
 
         self.camera_object.matrix_world = probe.matrix_world.copy()
-        self.camera_object.rotation_euler.x += math.pi/2
-        self.camera_object.rotation_euler.z += -math.pi/2
+        self.camera_object.rotation_euler.x += math.pi / 2
+        self.camera_object.rotation_euler.z += -math.pi / 2
 
         resolution = context.scene.hubs_scene_reflection_probe_properties.resolution
         (x, y) = [int(i) for i in resolution.split('x')]
@@ -727,9 +726,22 @@ class ReflectionProbe(HubsComponent):
         icon = 'LOCKED' if self.locked else 'UNLOCKED'
         row.prop(self, "locked", text='', icon=icon, toggle=True)
 
+        if not context.scene.hubs_component_environment_settings.envMapTexture:
+            row = layout.row()
+            row.alert = True
+            row.label(text="No scene environment map found.  Please add an environment map to the environment settings scene component for reflection probes to work in Hubs.",
+                      icon='ERROR')
+
+        if any(context.active_object.matrix_world.to_euler()):
+            row = layout.row()
+            row.alert = True
+            row.label(text="Rotation detected!  The reflection probe must have no rotation applied to it.",
+                      icon='ERROR')
+
         row = layout.row()
-        row.label(text="Resolution settings, as well as the option to bake all reflection probes at once, can be accessed from the scene settings.",
-                  icon='INFO')
+        row.label(
+            text="Resolution settings, as well as the option to bake all reflection probes at once, can be accessed from the scene settings.",
+            icon='INFO')
         row = layout.row(align=True)
         row.prop(self, "envMapTexture")
         row.operator("image.hubs_open_reflection_probe_envmap",
@@ -790,6 +802,13 @@ class ReflectionProbe(HubsComponent):
             col = row.box().column()
             row = col.row()
             row.label(text="Reflection Probes Resolution:")
+
+            if not context.scene.hubs_component_environment_settings.envMapTexture:
+                row = col.row()
+                row.alert = True
+                row.label(text="No scene environment map found.  Please add an environment map to the environment settings scene component for reflection probes to work in Hubs.",
+                          icon='ERROR')
+
             row = col.row()
             row.prop(context.scene.hubs_scene_reflection_probe_properties,
                      "resolution", text="")

@@ -17,13 +17,15 @@ class AudioZone(HubsComponent):
         'icon': 'MATCUBE'
     }
 
-    inOut: BoolProperty(name="In Out",
-                        description="The zone audio parameters affect the sources inside the zone when the listener is outside",
-                        default=True)
+    inOut: BoolProperty(
+        name="In Out",
+        description="The zone audio parameters affect the sources inside the zone when the listener is outside",
+        default=True)
 
-    outIn: BoolProperty(name="Out In",
-                        description="The zone audio parameters affect the sources outside the zone when the listener is inside",
-                        default=True)
+    outIn: BoolProperty(
+        name="Out In",
+        description="The zone audio parameters affect the sources outside the zone when the listener is inside",
+        default=True)
 
     @classmethod
     def update_gizmo(cls, ob, bone, target, gizmo):
