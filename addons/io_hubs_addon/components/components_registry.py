@@ -9,6 +9,7 @@ import inspect
 import os
 from os import listdir
 from os.path import join, isfile, isdir, dirname, realpath
+import pyclbr
 
 from .hubs_component import HubsComponent
 
@@ -101,7 +102,7 @@ def load_components_registry():
     __components_registry = {}
     for module in get_component_definitions():
         for _, member in inspect.getmembers(module):
-            if inspect.isclass(member) and issubclass(member, HubsComponent) and member != HubsComponent:
+            if inspect.isclass(member) and issubclass(member, HubsComponent) and module.__name__ == member.__module__:
                 if hasattr(module, 'register_module'):
                     module.register_module()
                 register_component(member)
