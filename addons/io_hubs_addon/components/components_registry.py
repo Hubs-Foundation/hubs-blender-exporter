@@ -9,7 +9,6 @@ import inspect
 import os
 from os import listdir
 from os.path import join, isfile, isdir, dirname, realpath
-import pyclbr
 
 from .hubs_component import HubsComponent
 
