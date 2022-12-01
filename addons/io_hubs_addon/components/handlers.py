@@ -114,7 +114,7 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
             title = override_report_title
 
         def report_migration():
-            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title=title, report_string='\n'.join(migration_report))
+            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title=title, report_string='\n\n'.join(migration_report))
         bpy.app.timers.register(report_migration)
 
 

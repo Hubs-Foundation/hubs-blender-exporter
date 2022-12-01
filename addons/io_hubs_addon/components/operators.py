@@ -250,7 +250,9 @@ class ViewReportInInfoEditor(Operator):
                             bpy.ops.info.select_pick(context_override, report_index=index, extend=False)
 
     def execute(self, context):
-        self.report({'INFO'}, f"Hubs {self.title}\n{self.report_string}\nEnd of Hubs {self.title}")
+        messages = self.report_string.split("\n\n")
+        info_report_string = '\n'.join([message.replace('\n', '  ') for message in messages])
+        self.report({'INFO'}, f"Hubs {self.title}\n{info_report_string}\nEnd of Hubs {self.title}")
         bpy.ops.screen.info_log_show()
         bpy.app.timers.register(self.highlight_info_report)
         return {'FINISHED'}
@@ -365,7 +367,7 @@ class ReportViewer(Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        self.reports = self.report_string.split("\n")
+        self.reports = self.report_string.split("\n\n")
         wm.hubs_report_scroll_index = 0
         wm.hubs_report_scroll_percentage = 0
         wm.hubs_report_last_title = self.title
