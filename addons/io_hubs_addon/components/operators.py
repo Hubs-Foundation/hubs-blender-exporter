@@ -250,7 +250,7 @@ class ViewReportInInfoEditor(Operator):
                             bpy.ops.info.select_pick(context_override, report_index=index, extend=False)
 
     def execute(self, context):
-        messages = self.report_string.split("\n\n")
+        messages = split_and_prefix_report_messages(self.report_string)
         info_report_string = '\n'.join([message.replace('\n', '  ') for message in messages])
         self.report({'INFO'}, f"Hubs {self.title}\n{info_report_string}\nEnd of Hubs {self.title}")
         bpy.ops.screen.info_log_show()
@@ -364,12 +364,15 @@ class ReportViewer(Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        self.reports = self.report_string.split("\n\n")
+        self.reports = split_and_prefix_report_messages(self.report_string)
         wm.hubs_report_scroll_index = 0
         wm.hubs_report_scroll_percentage = 0
         wm.hubs_report_last_title = self.title
         wm.hubs_report_last_report_string = self.report_string
         return wm.invoke_props_dialog(self, width=600)
+
+def split_and_prefix_report_messages(report_string):
+    return [f"{i+1:02d}   {message}" for i, message in enumerate(report_string.split("\n\n"))]
 
 def register():
     bpy.utils.register_class(AddHubsComponent)
