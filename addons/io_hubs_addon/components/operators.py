@@ -315,23 +315,24 @@ class ReportViewer(Operator):
         box = column.box()
 
         wm = context.window_manager
-        reports_length = len(self.reports)
-        reports_to_show = 5
-        maximum_scrolling = reports_length - reports_to_show
+        report_length = len(self.messages)
+        maximum_scrolling = len(self.report_display_blocks) - 1
         start_index = wm.hubs_report_scroll_index
-        end_index = start_index + reports_to_show
+        block_messages = self.report_display_blocks[start_index]
 
-        if end_index > reports_length:
-            end_index = reports_length
+        displayed_lines = 0
+        message_column = box.column()
+        for message in block_messages:
+            display_wrapped_text(message_column, message, heading_icon='INFO')
+            displayed_lines += len(message)
 
-        for report in self.reports[start_index:end_index]:
-            wrapped_report = wrap_text(report, max_length=90)
-            display_wrapped_text(box, wrapped_report, heading_icon='INFO')
-
-            box.separator()
+        # Add padding to the bottom of the report if needed (accounts for the formatting changes when there are only a few messages in the report).
+        while displayed_lines < self.lines_to_show:
+            display_wrapped_text(message_column, [""])
+            displayed_lines += 1
 
         scroll_column = row.column()
-        scroll_column.enabled = reports_length > reports_to_show
+        scroll_column.enabled = report_length > len(block_messages)
 
         scroll_up = scroll_column.row()
         scroll_up.enabled = start_index > 0
@@ -347,7 +348,7 @@ class ReportViewer(Operator):
 
         total_messages = column.row()
         total_messages.alignment = 'RIGHT'
-        total_messages.label(text=f"{reports_length} Messages")
+        total_messages.label(text=f"{report_length} Messages")
 
         scroll_percentage = column.row()
         scroll_percentage.enabled = False
@@ -362,13 +363,63 @@ class ReportViewer(Operator):
     def execute(self, context):
         return {'FINISHED'}
 
+    def init_report_display_blocks(self):
+        start_index = 0
+        self.report_display_blocks = {}
+
+        final_block = False
+        while start_index < len(self.messages) and not final_block:
+            block_messages = []
+            for message in self.messages[start_index:]:
+                wrapped_message = wrap_text(message, max_length=90)
+                block_messages.append(wrapped_message)
+
+            last_message = None
+            while True:
+                if len(block_messages) == 1:
+                    break
+
+                if len(block_messages) > self.messages_to_show:
+                    last_message = block_messages.pop()
+                elif sum([len(message) + 1 for message in block_messages]) - 1 > self.lines_to_show:
+                    # The +1 and -1 are used to account for padding lines between messages.
+                    last_message = block_messages.pop()
+                else:
+                    break
+
+            if last_message == None:
+                final_block = True
+
+            current_block_lines = sum([len(message) for message in block_messages])
+            needed_padding_lines = self.lines_to_show - current_block_lines
+
+            message_iter = iter(block_messages)
+            while needed_padding_lines > 0:
+                try:
+                    next(message_iter).append("")
+                except StopIteration:
+                    if len(self.messages) < 4:
+                        # Evenly spacing the messages doesn't look good if there are only a few messages in the report, so let any extra padding be added to the end when it's displayed.
+                        break
+
+                    message_iter = reversed(block_messages)
+                    next(message_iter).append("")
+
+                needed_padding_lines += -1
+
+            self.report_display_blocks[start_index] = block_messages
+            start_index += 1
+
     def invoke(self, context, event):
         wm = context.window_manager
-        self.reports = split_and_prefix_report_messages(self.report_string)
+        self.messages = split_and_prefix_report_messages(self.report_string)
+        self.lines_to_show = 15
+        self.messages_to_show = 5
         wm.hubs_report_scroll_index = 0
         wm.hubs_report_scroll_percentage = 0
         wm.hubs_report_last_title = self.title
         wm.hubs_report_last_report_string = self.report_string
+        self.init_report_display_blocks()
         return wm.invoke_props_dialog(self, width=600)
 
 def split_and_prefix_report_messages(report_string):
