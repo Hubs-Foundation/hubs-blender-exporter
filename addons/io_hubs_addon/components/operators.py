@@ -4,7 +4,7 @@ from bpy.types import Operator
 from functools import reduce
 
 from .types import PanelType, MigrationType
-from .utils import get_object_source, dash_to_title, has_component, add_component, remove_component, wrap_text
+from .utils import get_object_source, dash_to_title, has_component, add_component, remove_component, wrap_text, display_wrapped_text
 from .components_registry import get_components_registry, get_components_icons
 from ..preferences import get_addon_pref
 from .handlers import migrate_components
@@ -325,15 +325,8 @@ class ReportViewer(Operator):
             end_index = reports_length
 
         for report in self.reports[start_index:end_index]:
-            for i, text in enumerate(wrap_text(report, max_length=90)):
-                if i == 0:
-                    msg_row = box.row()
-                    msg_row.scale_y = 0.7
-                    msg_row.label(text=text, icon='INFO')
-                else:
-                    msg_row = box.row()
-                    msg_row.scale_y = 0.3
-                    msg_row.label(text=text, icon='BLANK1')
+            wrapped_report = wrap_text(report, max_length=90)
+            display_wrapped_text(box, wrapped_report, heading_icon='INFO')
 
             box.separator()
 

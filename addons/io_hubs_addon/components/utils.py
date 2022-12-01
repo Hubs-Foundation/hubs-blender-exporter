@@ -249,3 +249,18 @@ def wrap_text(text, max_length=70):
             wrapped_lines.append(text_line.rstrip())
 
     return wrapped_lines
+
+
+def display_wrapped_text(layout, wrapped_text, *, heading_icon='NONE'):
+    if not wrapped_text:
+        return
+
+    padding_icon = 'NONE' if heading_icon == 'NONE' else 'BLANK1'
+    text_column = layout.column()
+    text_column.scale_y = 0.7
+    for i, line in enumerate(wrapped_text):
+        if i == 0:
+            text_column.label(text=line, icon=heading_icon)
+        else:
+            text_column.label(text=line, icon=padding_icon)
+
