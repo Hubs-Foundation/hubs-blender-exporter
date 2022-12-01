@@ -345,6 +345,10 @@ class ReportViewer(Operator):
         op.increment = 1
         op.maximum = maximum_scrolling
 
+        total_messages = column.row()
+        total_messages.alignment = 'RIGHT'
+        total_messages.label(text=f"{reports_length} Messages")
+
         scroll_percentage = column.row()
         scroll_percentage.enabled = False
         scroll_percentage.prop(wm, "hubs_report_scroll_percentage", slider=True)
