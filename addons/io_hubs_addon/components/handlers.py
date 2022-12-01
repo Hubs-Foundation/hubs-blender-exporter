@@ -7,6 +7,7 @@ from .gizmos import update_gizmos
 from .types import MigrationType
 import io
 import sys
+import traceback
 
 previous_undo_steps_dump = ""
 previous_undo_step_index = 0
@@ -43,10 +44,12 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
             try:
                 was_migrated = migrate(
                     component, migration_type, scene, migration_report)
-            except:
+            except Exception as e:
                 was_migrated = True
                 error = f"Error: Migration failed for component {component.get_display_name()} on scene \"{scene.name_full}\""
-                migration_report.append(error)
+                migration_report.append(f"{error}\n{e} (See Blender's console for details)")
+                print(error)
+                traceback.print_exc()
 
             if bool(was_migrated and (scene.library or scene.override_library)):
                 link_migration_occurred = True
@@ -58,10 +61,12 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
             try:
                 was_migrated = migrate(
                     component, migration_type, ob, migration_report, ob=ob)
-            except:
+            except Exception as e:
                 was_migrated = True
                 error = f"Error: Migration failed for component {component.get_display_name()} on object \"{ob.name_full}\""
-                migration_report.append(error)
+                migration_report.append(f"{error}\n{e} (See Blender's console for details)")
+                print(error)
+                traceback.print_exc()
 
             if bool(was_migrated and (ob.library or ob.override_library)):
                 link_migration_occurred = True
@@ -74,10 +79,12 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
                     try:
                         was_migrated = migrate(
                             component, migration_type, bone, migration_report, ob=ob)
-                    except:
+                    except Exception as e:
                         was_migrated = True
                         error = f"Error: Migration failed for component {component.get_display_name()} on bone \"{bone.name}\" in \"{ob.name_full}\""
-                        migration_report.append(error)
+                        migration_report.append(f"{error}\n{e} (See Blender's console for details)")
+                        print(error)
+                        traceback.print_exc()
 
                     if bool(was_migrated and (ob.library or ob.override_library)):
                         link_migration_occurred = True
@@ -89,10 +96,12 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
             try:
                 was_migrated = migrate(
                     component, migration_type, material, migration_report)
-            except:
+            except Exception as e:
                 was_migrated = True
                 error = f"Error: Migration failed for component {component.get_display_name()} on material \"{material.name_full}\""
-                migration_report.append(error)
+                migration_report.append(f"{error}\n{e} (See Blender's console for details)")
+                print(error)
+                traceback.print_exc()
 
             if bool(was_migrated and (material.library or material.override_library)):
                 link_migration_occurred = True
