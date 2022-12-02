@@ -2,6 +2,9 @@
 
 This addon extends the glTF 2.0 exporter to support the `MOZ_hubs_components` and `MOZ_lightmap` extensions allowing you to add behavior to glTF assets for [Mozilla Hubs](https://hubs.mozilla.com).
 
+[![Tests](https://github.com/MozillaReality/hubs-blender-exporter/workflows/Test/badge.svg?branch=master&event=push)](https://github.com/MozillaReality/hubs-blender-exporter/actions?query=workflow%3ATest)
+[![Build](https://github.com/MozillaReality/hubs-blender-exporter/workflows/CI/badge.svg?branch=master&event=push)](https://github.com/MozillaReality/hubs-blender-exporter/actions?query=workflow%3ACI)
+
 # To Install
 
 Find the latest [release](https://github.com/MozillaReality/hubs-blender-exporter/releases) and download the add-on zip file.
