@@ -227,7 +227,7 @@ def undo_stack_handler(dummy=None):
             interim_undo_steps = [undo_steps[i] for i in range(start, stop)]
             step_type = 'DO'
 
-    except: # Fall back to just processing the current undo step.
+    except Exception: # Fall back to just processing the current undo step.
         print("Warning: Couldn't get the full range of undo steps to process.  Falling back to the current one.")
         interim_undo_steps = []
         step_type = 'DO'

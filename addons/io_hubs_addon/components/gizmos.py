@@ -237,7 +237,7 @@ def register_gizmos():
         HubsGizmoGroup.windows_processed = 0
         bpy.utils.register_class(CustomModelGizmo)
         bpy.utils.register_class(HubsGizmoGroup)
-    except:
+    except Exception:
         pass
 
 def unregister_gizmo_system():
@@ -262,7 +262,7 @@ def unregister_gizmos():
     try:
         bpy.utils.unregister_class(HubsGizmoGroup)
         bpy.utils.unregister_class(CustomModelGizmo)
-    except:
+    except Exception:
         pass
 
 def update_gizmos():
