@@ -4,12 +4,12 @@ from ..types import Category, PanelType, NodeType
 from ..utils import has_component
 from bpy.types import Object
 from ...io.utils import gather_joint_property, gather_node_property, delayed_gather
+from .video_texture_source import VideoTextureSource
 
 BLANK_ID = "pXph8WBzMu9fung"
 
 
 def filter_on_component(self, ob):
-    from .video_texture_source import VideoTextureSource
     dep_name = VideoTextureSource.get_name()
     if hasattr(ob, 'type') and ob.type == 'ARMATURE':
         if ob.mode == 'EDIT':
@@ -28,7 +28,6 @@ def get_bones(self, context):
     global bones
     bones = []
     count = 0
-    from .video_texture_source import VideoTextureSource
     dep_name = VideoTextureSource.get_name()
     bones.append((BLANK_ID, "Select a bone", "None", "BLANK", count))
     count += 1
@@ -108,7 +107,6 @@ class VideoTextureTarget(HubsComponent):
         options={'HIDDEN'})
 
     def draw(self, context, layout, panel):
-        from .video_texture_source import VideoTextureSource
         dep_name = VideoTextureSource.get_name()
 
         has_obj_component = False

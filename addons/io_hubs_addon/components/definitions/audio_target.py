@@ -5,12 +5,13 @@ from ..utils import has_component
 from ..types import Category, PanelType, NodeType
 from bpy.types import Object
 from ...io.utils import gather_joint_property, gather_node_property, delayed_gather
+from .audio_source import AudioSource
+
 
 BLANK_ID = "374e54CMHFCipSk"
 
 
 def filter_on_component(self, ob):
-    from .audio_source import AudioSource
     dep_name = AudioSource.get_name()
     if hasattr(ob, 'type') and ob.type == 'ARMATURE':
         if ob.mode == 'EDIT':
@@ -29,7 +30,6 @@ def get_bones(self, context):
     global bones
     bones = []
     count = 0
-    from .audio_source import AudioSource
     dep_name = AudioSource.get_name()
     bones.append((BLANK_ID, "Select a bone", "None", "BLANK", count))
     count += 1
@@ -120,7 +120,6 @@ class AudioTarget(HubsComponent):
         default=False)
 
     def draw(self, context, layout, panel):
-        from .audio_source import AudioSource
         dep_name = AudioSource.get_name()
 
         has_obj_component = False
