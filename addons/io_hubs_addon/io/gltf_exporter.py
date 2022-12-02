@@ -2,7 +2,6 @@ import bpy
 from bpy.props import PointerProperty, IntVectorProperty
 from ..components.components_registry import get_components_registry
 from .utils import gather_lightmap_texture_info
-from io_scene_gltf2.blender.com.gltf2_blender_extras import BLACK_LIST
 
 hubs_config = {
     "gltfExtensionName": "MOZ_hubs_components",
@@ -31,6 +30,8 @@ def get_version_string():
 
 
 def glTF2_pre_export_callback(export_settings):
+    from io_scene_gltf2.blender.com.gltf2_blender_extras import BLACK_LIST
+    BLACK_LIST.extend(glTF2ExportUserExtension.EXCLUDED_PROPERTIES)
     for ob in bpy.context.view_layer.objects:
         component_list = ob.hubs_component_list
 
@@ -59,21 +60,28 @@ def glTF2_post_export_callback(export_settings):
                     component = getattr(ob, component_class.get_id())
                     component.post_export(export_settings, ob)
 
+    from io_scene_gltf2.blender.com.gltf2_blender_extras import BLACK_LIST
+    for excluded_prop in glTF2ExportUserExtension.EXCLUDED_PROPERTIES:
+        if excluded_prop in BLACK_LIST:
+            BLACK_LIST.remove(excluded_prop)
+
 
 # This class name is specifically looked for by gltf-blender-io and it's hooks are automatically invoked on export
 
 
 class glTF2ExportUserExtension:
 
+    EXCLUDED_PROPERTIES = []
+
     @classmethod
     def add_excluded_property(cls, key):
-        if key not in BLACK_LIST:
-            BLACK_LIST.append(key)
+        if key not in glTF2ExportUserExtension.EXCLUDED_PROPERTIES:
+            glTF2ExportUserExtension.EXCLUDED_PROPERTIES.append(key)
 
     @classmethod
     def remove_excluded_property(cls, key):
-        if key in BLACK_LIST:
-            BLACK_LIST.remove(key)
+        if key in glTF2ExportUserExtension.EXCLUDED_PROPERTIES:
+            glTF2ExportUserExtension.EXCLUDED_PROPERTIES.remove(key)
 
     def __init__(self):
         # We need to wait until we create the gltf2UserExtension to import the gltf2 modules
@@ -188,16 +196,6 @@ class glTF2ExportUserExtension:
 
             self.was_used = True
 
-    @classmethod
-    def register(cls):
-        for _, component_class in get_components_registry().items():
-            cls.add_excluded_property(component_class.get_id())
-
-    @classmethod
-    def unregister(cls):
-        for _, component_class in get_components_registry().items():
-            cls.remove_excluded_property(component_class.get_id())
-
 
 class HubsComponentsExtensionProperties(bpy.types.PropertyGroup):
     enabled: bpy.props.BoolProperty(
@@ -266,7 +264,6 @@ def register():
     bpy.utils.register_class(HubsComponentsExtensionProperties)
     bpy.types.Scene.HubsComponentsExtensionProperties = PointerProperty(
         type=HubsComponentsExtensionProperties)
-    glTF2ExportUserExtension.register()
     glTF2ExportUserExtension.add_excluded_property("HubsComponentsExtensionProperties")
 
 
@@ -278,5 +275,4 @@ def unregister():
     if bpy.app.version < (3, 0, 0):
         gltf2_blender_export.__gather_gltf = orig_gather_gltf
     unregister_export_panel()
-    glTF2ExportUserExtension.unregister()
     glTF2ExportUserExtension.remove_excluded_property("HubsComponentsExtensionProperties")

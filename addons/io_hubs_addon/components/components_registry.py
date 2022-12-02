@@ -78,6 +78,9 @@ def register_component(component_class):
             PointerProperty(type=component_class)
         )
 
+    from ..io.gltf_exporter import glTF2ExportUserExtension
+    glTF2ExportUserExtension.add_excluded_property(component_class.get_id())
+
 
 def unregister_component(component_class):
     component_id = component_class.get_id()
@@ -91,6 +94,9 @@ def unregister_component(component_class):
         delattr(bpy.types.Material, component_id)
 
     bpy.utils.unregister_class(component_class)
+
+    from ..io.gltf_exporter import glTF2ExportUserExtension
+    glTF2ExportUserExtension.remove_excluded_property(component_class.get_id())
 
     print("Component unregistered: " + component_class.get_name())
 
