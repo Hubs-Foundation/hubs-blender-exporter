@@ -29,3 +29,4 @@ class Category(Enum):
 class MigrationType(Enum):
     GLOBAL = 'global'
     LOCAL = 'local'
+    REGISTRATION = 'registration'

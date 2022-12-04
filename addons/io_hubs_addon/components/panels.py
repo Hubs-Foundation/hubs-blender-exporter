@@ -142,7 +142,8 @@ def window_menu_addition(self, context):
 def object_menu_addition(self, context):
     layout = self.layout
     layout.separator()
-    layout.operator("wm.migrate_hubs_components")
+    op = layout.operator("wm.migrate_hubs_components")
+    op.is_registration = False
 
 def gizmo_display_popover_addition(self, context):
     layout = self.layout

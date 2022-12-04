@@ -34,10 +34,14 @@ def migrate(component, migration_type, host, migration_report, ob=None):
     return was_migrated
 
 
-def migrate_components(migration_type, *, do_update_gizmos=True, display_report=True, override_report_title=""):
+def migrate_components(migration_type, *, do_beta_versioning=False, do_update_gizmos=True, display_report=True, override_report_title=""):
     migration_report = []
     migrated_linked_components = []
     link_migration_occurred = False
+    display_registration_message = False
+
+    if do_beta_versioning:
+        display_registration_message |= handle_beta_versioning()
 
     for scene in bpy.data.scenes:
         for component in get_host_components(scene):
@@ -51,6 +55,7 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
                 print(error)
                 traceback.print_exc()
 
+            display_registration_message |= was_migrated
             if bool(was_migrated and (scene.library or scene.override_library)):
                 link_migration_occurred = True
                 component_info = f"{component.get_display_name()} component on scene \"{scene.name_full}\""
@@ -68,6 +73,7 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
                 print(error)
                 traceback.print_exc()
 
+            display_registration_message |= was_migrated
             if bool(was_migrated and (ob.library or ob.override_library)):
                 link_migration_occurred = True
                 component_info = f"{component.get_display_name()} component on object \"{ob.name_full}\""
@@ -86,6 +92,7 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
                         print(error)
                         traceback.print_exc()
 
+                    display_registration_message |= was_migrated
                     if bool(was_migrated and (ob.library or ob.override_library)):
                         link_migration_occurred = True
                         component_info = f"{component.get_display_name()} component on bone \"{bone.name}\" in \"{ob.name_full}\""
@@ -103,6 +110,7 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
                 print(error)
                 traceback.print_exc()
 
+            display_registration_message |= was_migrated
             if bool(was_migrated and (material.library or material.override_library)):
                 link_migration_occurred = True
                 component_info = f"{component.get_display_name()} component on material \"{material.name_full}\""
@@ -116,6 +124,9 @@ def migrate_components(migration_type, *, do_update_gizmos=True, display_report=
         migration_report.insert(0, "WARNING: A MIGRATION WAS PERFORMED ON LINKED COMPONENTS, THIS IS UNSTABLE AND MAY NOT BE PERMANENT.  RESAVE THE LINKED BLEND FILES WITH THE NEW VERSION TO AVOID THIS.")
         migration_report.append("MIGRATED LINKED COMPONENTS:")
         migration_report.extend(migrated_linked_components)
+
+    if migration_type == MigrationType.REGISTRATION and display_registration_message:
+        migration_report.insert(0, "WARNING: A MIGRATION WAS PERFORMED AFTER ADD-ON REGISTRATION.  AN UNDO STEP HAS BEEN ADDED TO STORE THE RESULTS OF THE MIGRATION.  IF YOU UNDO PAST THIS UNDO STEP YOU WILL HAVE TO INITIATE ANOTHER MIGRATION.\nRELOADING THE FILE WITH THE ADD-ON ALREADY ENABLED IS ADVISED.")
 
     if migration_report and display_report:
         title = "Component Migration Report"
@@ -149,14 +160,18 @@ def version_beta_components():
 
 
 def handle_beta_versioning():
+    did_versioning = False
     extension_properties = bpy.context.scene.HubsComponentsExtensionProperties
     if extension_properties:
         file_version = extension_properties.get('version')
         if file_version:
             if tuple(file_version) == (1, 0, 0):
+                did_versioning = True
                 version_beta_components()
 
             del bpy.context.scene.HubsComponentsExtensionProperties['version']
+
+    return did_versioning
 
 
 @persistent
@@ -170,8 +185,7 @@ def load_post(dummy):
     previous_window_setups = []
     file_loading = True
 
-    handle_beta_versioning()
-    migrate_components(MigrationType.GLOBAL)
+    migrate_components(MigrationType.GLOBAL, do_beta_versioning=True)
 
 
 def find_active_undo_step_index(undo_steps):

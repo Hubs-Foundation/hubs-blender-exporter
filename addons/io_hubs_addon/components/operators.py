@@ -1,5 +1,5 @@
 import bpy
-from bpy.props import StringProperty, IntProperty
+from bpy.props import StringProperty, IntProperty, BoolProperty
 from bpy.types import Operator
 from functools import reduce
 
@@ -193,8 +193,14 @@ class MigrateHubsComponents(Operator):
     bl_description = "Loops through all objects/components and attempts to migrate them to the current version based on their internal version"
     bl_options = {'REGISTER', 'UNDO'}
 
+    is_registration: BoolProperty(options={'HIDDEN'})
+
     def execute(self, context):
-        migrate_components(MigrationType.LOCAL)
+        if self.is_registration:
+            migrate_components(MigrationType.REGISTRATION, do_beta_versioning=True)
+        else:
+            migrate_components(MigrationType.LOCAL, do_beta_versioning=True)
+
         return {'FINISHED'}
 
 
