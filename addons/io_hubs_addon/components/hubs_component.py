@@ -141,7 +141,9 @@ class HubsComponent(PropertyGroup):
     def get_properties(cls):
         if hasattr(cls, '__annotations__'):
             # Python versions below 3.10 will sometimes return the base class' annotations if there are none in the subclass, so make sure only the subclass' annotations are returned.
-            return cls.__annotations__.keys() - HubsComponent.__annotations__.keys()
+            baseclass_properties = HubsComponent.__annotations__.keys()
+            subclass_properties = cls.__annotations__.keys()
+            return [prop for prop in subclass_properties if prop not in baseclass_properties]
         return {}
 
     @classmethod
