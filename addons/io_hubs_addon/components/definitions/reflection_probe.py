@@ -421,6 +421,10 @@ class OpenReflectionProbeEnvMap(Operator):
                 cls.poll_message_set(f"{cls.disabled_message}.")
             return False
 
+        probe_component = context.active_object.hubs_component_reflection_probe
+        if probe_component.locked:
+            return False
+
         return True
 
     def draw(self, context):
