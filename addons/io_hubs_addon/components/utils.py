@@ -21,7 +21,7 @@ def add_component(obj, component_name):
                 if not dep_exists:
                     add_component(obj, dep_name)
             else:
-                print("Dependecy '%s' from module '%s' not registered" %
+                print("Dependency '%s' from module '%s' not registered" %
                       (dep_name, component_name))
 
 
