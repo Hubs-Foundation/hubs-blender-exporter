@@ -3,7 +3,7 @@ from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 
 
-class AmbientLight(HubsComponent):
+class PersonalSpaceInvader(HubsComponent):
     _definition = {
         'name': 'personal-space-invader',
         'display_name': 'Personal Space Invader',

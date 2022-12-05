@@ -86,7 +86,8 @@ class AudioParams(HubsComponent):
         name="Cone Outer Gain",
         description="A double value describing the amount of volume reduction outside the cone defined by the coneOuterAngle attribute",
         default=0.0,
-        min=0.0)
+        min=0.0,
+        max=1.0)
 
     def gather(self, export_settings, object):
         if (self.overrideAudioSettings):
