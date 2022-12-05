@@ -5,6 +5,7 @@ from bpy.types import Image, PropertyGroup
 from ...components.utils import is_gpu_available
 
 from ...preferences import get_addon_pref
+from ...io.gltf_exporter import glTF2ExportUserExtension
 
 from ..components_registry import get_components_registry
 from ..hubs_component import HubsComponent
@@ -413,9 +414,11 @@ class ReflectionProbe(HubsComponent):
         bpy.utils.register_class(ReflectionProbeSceneProps)
         bpy.types.Scene.hubs_scene_reflection_probe_properties = PointerProperty(
             type=ReflectionProbeSceneProps)
+        glTF2ExportUserExtension.add_excluded_property("hubs_scene_reflection_probe_properties")
 
     @ staticmethod
     def unregister():
         bpy.utils.unregister_class(BakeProbeOperator)
         bpy.utils.unregister_class(ReflectionProbeSceneProps)
         del bpy.types.Scene.hubs_scene_reflection_probe_properties
+        glTF2ExportUserExtension.remove_excluded_property("hubs_scene_reflection_probe_properties")

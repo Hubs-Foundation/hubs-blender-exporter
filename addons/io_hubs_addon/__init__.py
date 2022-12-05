@@ -18,15 +18,15 @@ bl_info = {
 
 def register():
     preferences.register()
-    gltf_exporter.register()
     nodes.register()
     components.register()
+    gltf_exporter.register()
 
 
 def unregister():
+    gltf_exporter.unregister()
     components.unregister()
     nodes.unregister()
-    gltf_exporter.unregister()
     preferences.unregister()
 
 
