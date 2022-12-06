@@ -91,7 +91,8 @@ class VideoTextureTarget(HubsComponent):
         name="Source",
         description="The object with a video-texture-source component to pull video from",
         type=Object,
-        poll=filter_on_component)
+        poll=filter_on_component,
+        update=lambda self, context: setattr(self, 'bone', BLANK_ID))
 
     bone: EnumProperty(
         name="Bone",
