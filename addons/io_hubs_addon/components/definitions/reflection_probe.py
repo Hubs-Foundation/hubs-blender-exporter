@@ -682,8 +682,7 @@ class SelectMismatchedReflectionProbes(Operator):
                         mismatched_probe_indexes.append(i)
                         mismatched_probes.append(probe)
 
-            is_selected = (context.selected_objects ==
-                           mismatched_probes and not context.active_object)
+            is_selected = (context.selected_objects == mismatched_probes and not context.active_object)
             icon = 'RADIOBUT_ON' if is_selected else 'RADIOBUT_OFF'
             op = layout.operator(
                 SelectMismatchedReflectionProbes.bl_idname, text="Select All", icon=icon)
