@@ -112,3 +112,7 @@ def redraw_component_ui(context):
         for area in window.screen.areas:
             if area.type == 'PROPERTIES':
                 area.tag_redraw()
+
+
+def is_linked(datablock):
+    return datablock.library or datablock.override_library
