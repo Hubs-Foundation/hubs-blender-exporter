@@ -34,7 +34,7 @@ def get_bones(self, context):
     bones.append((BLANK_ID, "Select a bone", "None", "BLANK", count))
     count += 1
 
-    if self.srcNode.mode == 'EDIT':
+    if self.srcNode and self.srcNode.mode == 'EDIT':
         self.srcNode.update_from_editmode()
 
     found = False
