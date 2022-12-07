@@ -2,7 +2,7 @@ import bpy
 from bpy.props import PointerProperty, EnumProperty, StringProperty, BoolProperty, CollectionProperty
 from bpy.types import Image, PropertyGroup, Operator
 
-from ...components.utils import is_gpu_available
+from ...components.utils import is_gpu_available, redraw_component_ui, is_linked
 
 from ...preferences import get_addon_pref
 from ...io.gltf_exporter import glTF2ExportUserExtension
@@ -13,7 +13,6 @@ from ..types import Category, PanelType, NodeType
 from ..ui import add_link_indicator
 from ... import io
 from ...utils import rgetattr, rsetattr
-from ..utils import redraw_component_ui, is_linked
 import math
 import os
 
