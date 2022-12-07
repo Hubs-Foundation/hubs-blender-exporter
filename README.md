@@ -16,9 +16,9 @@ Click install and select the zip file of the latest release.
 
 <img width="780" alt="in blender prefs install addon" src="https://user-images.githubusercontent.com/4493657/102955927-dcc56900-448b-11eb-8bfa-07e68b31cffd.png">
 
-Ensure the hubs component exporter is checked and enabled.
+Ensure the Hubs add-on is checked and enabled.
 
-<img width="494" alt="hubs blender exporter installed" src="https://user-images.githubusercontent.com/4493657/102956859-c9b39880-448d-11eb-9f02-2f529f14c139.png">
+<img width="494" alt="hubs blender add-on installed" src="https://user-images.githubusercontent.com/4493657/102956859-c9b39880-448d-11eb-9f02-2f529f14c139.png">
 
 # Adding Components
 
@@ -34,13 +34,13 @@ To use a lightmap, create a `MOZ_lightmap` node from the `Add > Hubs` menu and h
 
 ![lightmap node](https://user-images.githubusercontent.com/130735/83931408-65c7bd80-a751-11ea-86b9-a2ae889ec5df.png)
 
-Note that for use in Hubs, you currently **MUST** use the second UV set, as ThreeJS is currently hardcoded to use that for lightmaps. This will likely be fixed in the future so the exporter does not enforce this.
+Note that for use in Hubs, you currently **MUST** use the second UV set, as ThreeJS is currently hardcoded to use that for lightmaps. This will likely be fixed in the future so the add-on does not enforce this.
 
 ![setting bake UV](https://user-images.githubusercontent.com/130735/83697782-b9e96b00-a5b4-11ea-986b-6690c69d8a3f.png)
 
 # Exporting
 
-This addon works in conjunction with the official glTF exporter, so exporting is done through it. Select "File > Export > glTF 2.0" and then ensure "Hubs Components" is enabled under "Extensions".
+This addon works in conjunction with the official glTF add-on, so exporting is done through it. Select "File > Export > glTF 2.0" and then ensure "Hubs Components" is enabled under "Extensions".
 
 ![gltf export window](https://user-images.githubusercontent.com/130735/84547591-be9ad700-acb8-11ea-8c58-7b1104f0a3a7.png)
 
