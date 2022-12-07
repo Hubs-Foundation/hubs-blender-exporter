@@ -2,7 +2,7 @@ import bpy
 from bpy.props import PointerProperty, EnumProperty, StringProperty, BoolProperty, CollectionProperty
 from bpy.types import Image, PropertyGroup, Operator
 
-from ...components.utils import is_gpu_available
+from ...components.utils import is_gpu_available, redraw_component_ui, is_linked
 
 from ...preferences import get_addon_pref
 from ...io.gltf_exporter import glTF2ExportUserExtension
@@ -10,9 +10,9 @@ from ...io.gltf_exporter import glTF2ExportUserExtension
 from ..components_registry import get_components_registry
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
+from ..ui import add_link_indicator
 from ... import io
 from ...utils import rgetattr, rsetattr
-from ..utils import redraw_component_ui, is_linked
 import math
 import os
 
@@ -750,8 +750,18 @@ class ReflectionProbe(HubsComponent):
         row.label(
             text="Resolution settings, as well as the option to bake all reflection probes at once, can be accessed from the scene settings.",
             icon='INFO')
+
         row = layout.row(align=True)
-        row.prop(self, "envMapTexture")
+        sub_row = row.row(align=True)
+        sub_row.prop(self, "envMapTexture")
+        if is_linked(context.active_object):
+            # Manually disable the PointerProperty, needed for Blender 3.2+.
+            sub_row.enabled = False
+
+        if is_linked(self.envMapTexture):
+            sub_row = row.row(align=True)
+            sub_row.enabled = False
+            add_link_indicator(sub_row, self.envMapTexture)
         row.operator("image.hubs_open_reflection_probe_envmap",
                      text='', icon='FILE_FOLDER')
 

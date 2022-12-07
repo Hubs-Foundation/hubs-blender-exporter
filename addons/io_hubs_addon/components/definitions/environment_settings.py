@@ -3,6 +3,8 @@ from bpy.types import Image
 from ...io.utils import gather_texture_property, gather_color_property
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
+from ..utils import is_linked
+from ..ui import add_link_indicator
 
 
 TOME_MAPPING = [("NoToneMapping", "None", "No tone mapping"),
@@ -81,8 +83,28 @@ class EnvironmentSettings(HubsComponent):
         layout.prop(data=self, property="enableHDRPipeline")
 
         layout.prop(data=self, property="backgroundColor")
-        layout.prop(data=self, property="backgroundTexture")
-        layout.prop(data=self, property="envMapTexture")
+
+        row = layout.row(align=True)
+        sub_row = row.row(align=True)
+        sub_row.prop(data=self, property="backgroundTexture")
+        if is_linked(context.scene):
+            # Manually disable the PointerProperty, needed for Blender 3.2+.
+            sub_row.enabled = False
+        if is_linked(self.backgroundTexture):
+            sub_row = row.row(align=True)
+            sub_row.enabled = False
+            add_link_indicator(sub_row, self.backgroundTexture)
+
+        row = layout.row(align=True)
+        sub_row = row.row(align=True)
+        sub_row.prop(data=self, property="envMapTexture")
+        if is_linked(context.scene):
+            # Manually disable the PointerProperty, needed for Blender 3.2+.
+            sub_row.enabled = False
+        if is_linked(self.envMapTexture):
+            sub_row = row.row(align=True)
+            sub_row.enabled = False
+            add_link_indicator(sub_row, self.envMapTexture)
 
         layout.prop(data=self, property="toneMapping")
         layout.prop(data=self, property="toneMappingExposure")

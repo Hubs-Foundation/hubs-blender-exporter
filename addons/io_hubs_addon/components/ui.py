@@ -1,4 +1,5 @@
 import bpy
+from bpy.props import StringProperty
 from .types import PanelType
 from .components_registry import get_component_by_name, get_components_registry
 from .utils import get_object_source, dash_to_title
@@ -86,6 +87,25 @@ def draw_components_list(panel, context):
     layout.separator()
 
 
+def add_link_indicator(layout, datablock):
+    if datablock.library:
+        library = datablock.library
+        icon = 'LINKED'
+    else:
+        library = datablock.override_library.reference.library
+        icon = 'LIBRARY_DATA_OVERRIDE'
+
+    tooltip = (
+        f"{datablock.name}\n"
+        f"\n"
+        f"Source Library:\n"
+        f"[{library.name}]\n"
+        f"{library.filepath}"
+    )
+    layout.operator("ui.hubs_tooltip_label", text='',
+                    icon=icon).tooltip = tooltip
+
+
 class HubsObjectPanel(bpy.types.Panel):
     bl_label = "Hubs"
     bl_idname = "OBJECT_PT_hubs"
@@ -133,11 +153,26 @@ class HubsBonePanel(bpy.types.Panel):
         draw_components_list(self, context)
 
 
+class TooltipLabel(bpy.types.Operator):
+    bl_idname = "ui.hubs_tooltip_label"
+    bl_label = "---"
+
+    tooltip: StringProperty(default=" ")
+
+    @ classmethod
+    def description(cls, context, properties):
+        return properties.tooltip
+
+    def execute(self, context):
+        return {'CANCELLED'}
+
+
 def register():
     bpy.utils.register_class(HubsObjectPanel)
     bpy.utils.register_class(HubsScenePanel)
     bpy.utils.register_class(HubsMaterialPanel)
     bpy.utils.register_class(HubsBonePanel)
+    bpy.utils.register_class(TooltipLabel)
 
 
 def unregister():
@@ -145,3 +180,4 @@ def unregister():
     bpy.utils.unregister_class(HubsScenePanel)
     bpy.utils.unregister_class(HubsMaterialPanel)
     bpy.utils.unregister_class(HubsBonePanel)
+    bpy.utils.unregister_class(TooltipLabel)
