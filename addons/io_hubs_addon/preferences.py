@@ -1,8 +1,6 @@
 import bpy
 from bpy.types import AddonPreferences
-from bpy.props import IntProperty, StringProperty
-from enum import Enum
-
+from bpy.props import IntProperty
 from .utils import get_addon_package
 
 
