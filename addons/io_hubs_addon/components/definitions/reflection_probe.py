@@ -126,10 +126,7 @@ class ReflectionProbeSceneProps(PropertyGroup):
         description="Controls whether the baked images will be processed by the compositor after baking", default=False)
 
 
-class BakeProbeOperator(Operator):
-    bl_idname = "render.hubs_render_reflection_probe"
-    bl_label = "Render Hubs Reflection Probe"
-
+class BakeProbeOperator():
     _timer = None
     done = False
     rendering = False
@@ -159,15 +156,6 @@ class BakeProbeOperator(Operator):
             description_text = "Bake all the unlocked/local reflection probes in the current view layer"
 
         return description_text
-
-    @ classmethod
-    def poll(cls, context):
-        if hasattr(context, 'bake_active_probe') and is_linked(context.active_object):
-            if bpy.app.version >= (3, 0, 0):
-                cls.poll_message_set(f"{cls.disabled_message}.")
-            return False
-
-        return not probe_baking and hasattr(bpy.context.scene, "cycles")
 
     def render_post(self, scene, depsgraph):
         print("Finished render")
@@ -390,6 +378,63 @@ class BakeProbeOperator(Operator):
 
         self.report({'INFO'}, 'Baking probe %s' % probe.name)
         self.probe_is_setup = True
+
+
+class BakeProbeOperatorActive(Operator, BakeProbeOperator):
+    bl_idname = "render.hubs_render_reflection_probe_active"
+    bl_label = "Render Active Hubs Reflection Probe"
+
+    def __init__(self) -> None:
+        super().__init__()
+
+        self.bake_mode = 'ACTIVE'
+
+    @ classmethod
+    def poll(cls, context):
+        if is_linked(context.active_object):
+            if bpy.app.version >= (3, 0, 0):
+                cls.poll_message_set(f"{cls.disabled_message}.")
+            return False
+
+        return not probe_baking and hasattr(bpy.context.scene, "cycles")
+
+
+class BakeProbeOperatorSelected(Operator, BakeProbeOperator):
+    bl_idname = "render.hubs_render_reflection_probe_selected"
+    bl_label = "Render Selected Hubs Reflection Probe"
+
+    def __init__(self) -> None:
+        super().__init__()
+
+        self.bake_mode = 'SELECTED'
+
+    @ classmethod
+    def poll(cls, context):
+        if all(is_linked(ob) for ob in context.selected_objects):
+            if bpy.app.version >= (3, 0, 0):
+                cls.poll_message_set(f"{cls.disabled_message}.")
+            return False
+
+        return not probe_baking and hasattr(bpy.context.scene, "cycles")
+
+
+class BakeProbeOperatorAll(Operator, BakeProbeOperator):
+    bl_idname = "render.hubs_render_reflection_probe_all"
+    bl_label = "Render All Hubs Reflection Probe"
+
+    def __init__(self) -> None:
+        super().__init__()
+
+        self.bake_mode = 'ALL'
+
+    @ classmethod
+    def poll(cls, context):
+        if all(is_linked(ob) for ob in get_probes(include_linked=True, include_locked=True)):
+            if bpy.app.version >= (3, 0, 0):
+                cls.poll_message_set(f"{cls.disabled_message}.")
+            return False
+
+        return not probe_baking and hasattr(bpy.context.scene, "cycles")
 
 
 class OpenReflectionProbeEnvMap(Operator):
@@ -785,13 +830,11 @@ class ReflectionProbe(HubsComponent):
 
         global bake_mode
         row = layout.row()
-        row.context_pointer_set("bake_active_probe", None)
         bake_msg = "Baking..." if probe_baking and bake_mode == 'ACTIVE' else "Bake"
         bake_op = row.operator(
-            "render.hubs_render_reflection_probe",
+            "render.hubs_render_reflection_probe_active",
             text=bake_msg
         )
-        bake_op.bake_mode = 'ACTIVE'
 
         if self.locked:
             row.enabled = False
@@ -863,16 +906,15 @@ class ReflectionProbe(HubsComponent):
             row = col.row()
             bake_msg = "Baking..." if probe_baking and bake_mode == 'ALL' else "Bake All"
             bake_op = row.operator(
-                "render.hubs_render_reflection_probe",
+                "render.hubs_render_reflection_probe_all",
                 text=bake_msg
             )
             bake_op.bake_mode = 'ALL'
             bake_msg = "Baking..." if probe_baking and bake_mode == 'SELECTED' else "Bake Selected"
             bake_op = row.operator(
-                "render.hubs_render_reflection_probe",
+                "render.hubs_render_reflection_probe_selected",
                 text=bake_msg
             )
-            bake_op.bake_mode = 'SELECTED'
 
             if not hasattr(bpy.context.scene, "cycles"):
                 row = col.row()
@@ -886,7 +928,9 @@ class ReflectionProbe(HubsComponent):
 
     @ staticmethod
     def register():
-        bpy.utils.register_class(BakeProbeOperator)
+        bpy.utils.register_class(BakeProbeOperatorActive)
+        bpy.utils.register_class(BakeProbeOperatorSelected)
+        bpy.utils.register_class(BakeProbeOperatorAll)
         bpy.utils.register_class(ReflectionProbeSceneProps)
         bpy.utils.register_class(OpenReflectionProbeEnvMap)
         bpy.utils.register_class(ImportReflectionProbeEnvMaps)
@@ -900,7 +944,9 @@ class ReflectionProbe(HubsComponent):
 
     @ staticmethod
     def unregister():
-        bpy.utils.unregister_class(BakeProbeOperator)
+        bpy.utils.unregister_class(BakeProbeOperatorActive)
+        bpy.utils.unregister_class(BakeProbeOperatorSelected)
+        bpy.utils.unregister_class(BakeProbeOperatorAll)
         bpy.utils.unregister_class(ReflectionProbeSceneProps)
         bpy.utils.unregister_class(OpenReflectionProbeEnvMap)
         bpy.utils.unregister_class(ImportReflectionProbeEnvMaps)
