@@ -139,7 +139,7 @@ if platform.system() == "Windows":
         # Get stdio from the CRT Blender's using (currently ships with Blender)
         libc = ctypes.windll.LoadLibrary('api-ms-win-crt-stdio-l1-1-0')
 
-        try: # Attempt to set up flushing for the C stdout.
+        try:  # Attempt to set up flushing for the C stdout.
             libc.__acrt_iob_func.restype = ctypes.POINTER(_FILE)
             stdout = libc.__acrt_iob_func(1)
 
@@ -149,27 +149,29 @@ if platform.system() == "Windows":
                 except:
                     print("Error: Unable to flush the C stdout")
 
-        except: # Fall back to flushing all open output streams.
+        except:  # Fall back to flushing all open output streams.
             print("Warning: Couldn't get the C stdout")
+
             def c_fflush():
                 try:
                     libc.fflush(None)
                 except:
                     print("Error: Unable to flush the C stdout")
 
-    except: # Warn and fail gracefully.  Flushing the C stdout is required because Windows switches to full buffering when redirected.
+    except:  # Warn and fail gracefully.  Flushing the C stdout is required because Windows switches to full buffering when redirected.
         print("Error: Unable to find the C runtime.")
+
         def c_fflush():
             print("Error: Unable to flush the C stdout")
 
-else: # Linux/Mac
-    try: # get the C runtime
+else:  # Linux/Mac
+    try:  # get the C runtime
         libc = ctypes.cdll.LoadLibrary(ctypes.util.find_library('c'))
 
-        try: # Attempt to set up flushing for the C stdout.
+        try:  # Attempt to set up flushing for the C stdout.
             if platform.system() == "Linux":
                 c_stdout = ctypes.POINTER(_FILE).in_dll(libc, 'stdout')
-            else: # Mac
+            else:  # Mac
                 c_stdout = ctypes.POINTER(_FILE).in_dll(libc, '__stdoutp')
 
             def c_fflush():
@@ -178,13 +180,15 @@ else: # Linux/Mac
                 except:
                     print("Warning: Unable to flush the C stdout.")
 
-        except: # The C stdout wasn't found.  This is unlikely to happen, but if it does then just skip flushing since Linux/Mac doesn't seem to strictly require a C-level flush to work.
+        except:  # The C stdout wasn't found.  This is unlikely to happen, but if it does then just skip flushing since Linux/Mac doesn't seem to strictly require a C-level flush to work.
             print("Warning: Couldn't get the C stdout.")
+
             def c_fflush():
                 pass
 
-    except: # The C runtime wasn't found.  This is unlikely to happen, but if it does then just skip flushing since Linux/Mac doesn't seem to strictly require a C-level flush to work.
+    except:  # The C runtime wasn't found.  This is unlikely to happen, but if it does then just skip flushing since Linux/Mac doesn't seem to strictly require a C-level flush to work.
         print("Warning: Unable to find the C runtime.")
+
         def c_fflush():
             pass
 
@@ -193,14 +197,14 @@ else: # Linux/Mac
 def redirect_c_stdout(binary_stream):
     stdout_file_descriptor = sys.stdout.fileno()
     original_stdout_file_descriptor_copy = os.dup(stdout_file_descriptor)
-    pipe_read_end, pipe_write_end = os.pipe() # os.pipe returns two file descriptors.
+    pipe_read_end, pipe_write_end = os.pipe()  # os.pipe returns two file descriptors.
 
     try:
         # Flush the C-level buffer of stdout before redirecting.  This should make sure that only the desired data is captured.
         c_fflush()
         # Redirect stdout to your pipe.
         os.dup2(pipe_write_end, stdout_file_descriptor)
-        yield # wait for input
+        yield  # wait for input
     finally:
         # Flush the C-level buffer of stdout before returning things to normal.  This seems to be mainly needed on Windows because it looks like Windows changes the buffering policy to be fully buffered when redirecting stdout.
         c_fflush()
@@ -216,6 +220,7 @@ def redirect_c_stdout(binary_stream):
         # Close the remaining open file descriptor.
         os.close(original_stdout_file_descriptor_copy)
 
+
 def get_host_components(host):
     for component_item in host.hubs_component_list.items:
         component_name = component_item.name
@@ -225,6 +230,7 @@ def get_host_components(host):
 
         component = getattr(host, component_class.get_id())
         yield component
+
 
 def wrap_text(text, max_length=70):
     '''Wraps text in a string so that the total characters in a single line doesn't exceed the specified maximum length.  Lines are broken by word, and the increased width of capital letters is accounted for so that the displayed line length is roughly the same regardless of case.  The maximum length is based on lowercase characters.'''
@@ -269,4 +275,3 @@ def display_wrapped_text(layout, wrapped_text, *, heading_icon='NONE'):
             text_column.label(text=line, icon=heading_icon)
         else:
             text_column.label(text=line, icon=padding_icon)
-

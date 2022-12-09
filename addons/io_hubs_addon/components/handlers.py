@@ -1,8 +1,7 @@
 import bpy
 from bpy.app.handlers import persistent
 from .components_registry import get_components_registry
-from .utils import redirect_c_stdout
-from .utils import get_host_components, is_linked
+from .utils import redirect_c_stdout, get_host_components, is_linked
 from .gizmos import update_gizmos
 from .types import MigrationType
 import io
@@ -34,7 +33,9 @@ def migrate(component, migration_type, host, migration_report, ob=None):
     return was_migrated
 
 
-def migrate_components(migration_type, *, do_beta_versioning=False, do_update_gizmos=True, display_report=True, override_report_title=""):
+def migrate_components(
+        migration_type, *, do_beta_versioning=False, do_update_gizmos=True, display_report=True,
+        override_report_title=""):
     migration_report = []
     migrated_linked_components = []
     link_migration_occurred = False
@@ -116,12 +117,13 @@ def migrate_components(migration_type, *, do_beta_versioning=False, do_update_gi
                 component_info = f"{component.get_display_name()} component on material \"{material.name_full}\""
                 migrated_linked_components.append(component_info)
 
-
     if do_update_gizmos:
         update_gizmos()
 
     if link_migration_occurred:
-        migration_report.insert(0, "WARNING: A MIGRATION WAS PERFORMED ON LINKED COMPONENTS, THIS IS UNSTABLE AND MAY NOT BE PERMANENT.  RESAVE THE LINKED BLEND FILES WITH THE NEW VERSION TO AVOID THIS.")
+        migration_report.insert(
+            0,
+            "WARNING: A MIGRATION WAS PERFORMED ON LINKED COMPONENTS, THIS IS UNSTABLE AND MAY NOT BE PERMANENT.  RESAVE THE LINKED BLEND FILES WITH THE NEW VERSION TO AVOID THIS.")
         migration_report.append("MIGRATED LINKED COMPONENTS:")
         migration_report.extend(migrated_linked_components)
 
@@ -200,7 +202,7 @@ def find_active_undo_step_index(undo_steps):
 
 
 @persistent
-def undo_stack_handler(dummy=None):
+def undo_stack_handler(dummy):
     global previous_undo_steps_dump
     global previous_undo_step_index
     global file_loading
@@ -229,19 +231,20 @@ def undo_stack_handler(dummy=None):
     undo_steps = undo_steps_dump.split("\n")[1:-1]
     undo_step_index = find_active_undo_step_index(undo_steps)
 
-    try: # Get the interim undo steps that need to be processed (can be more than one) and whether the change has been forward ('DO') or backward ('UNDO').  'UNDO' includes the previous index, while 'DO' does not.
-        if undo_step_index < previous_undo_step_index: # UNDO
+    # Get the interim undo steps that need to be processed (can be more than one) and whether the change has been forward ('DO') or backward ('UNDO').  'UNDO' includes the previous index, while 'DO' does not.
+    try:
+        if undo_step_index < previous_undo_step_index:  # UNDO
             start = previous_undo_step_index
             stop = undo_step_index
             interim_undo_steps = [undo_steps[i] for i in range(start, stop, -1)]
             step_type = 'UNDO'
-        else: # DO
+        else:  # DO
             start = previous_undo_step_index + 1
             stop = undo_step_index
             interim_undo_steps = [undo_steps[i] for i in range(start, stop)]
             step_type = 'DO'
 
-    except Exception: # Fall back to just processing the current undo step.
+    except Exception:  # Fall back to just processing the current undo step.
         print("Warning: Couldn't get the full range of undo steps to process.  Falling back to the current one.")
         interim_undo_steps = []
         step_type = 'DO'
@@ -274,11 +277,9 @@ def undo_stack_handler(dummy=None):
         if step_name in {'Add Hubs Component', 'Remove Hubs Component'}:
             task_scheduler.add('update_gizmos')
 
-
     # If the user has jumped ahead/back multiple undo steps, update the gizmos in case the number of objects/bones in the scene has remained the same, but gizmo objects have been added/removed.
     if abs(previous_undo_step_index - undo_step_index) > 1:
         task_scheduler.add('update_gizmos')
-
 
     # Handle the active undo step.  Migrations (or anything that modifies blend data) need to be handled here because the undo step in which they occurred holds the unmodified data, so the modifications need to be applied each time it becomes active.
     active_step_name = undo_steps[undo_step_index].split("name=")[-1][1:-1]
@@ -295,14 +296,14 @@ def undo_stack_handler(dummy=None):
         task_scheduler.add('migrate_components')
         display_report = (step_type == 'DO')
 
-
     # Execute the scheduled tasks.
     # Note: Blender seems to somehow be caching calls to update_gizmos, so having it as a scheduled task may not affect performance.  Calls to migrate_components are not cached by Blender.
     for task in task_scheduler:
         if task == 'update_gizmos':
             update_gizmos()
         elif task == 'migrate_components':
-            migrate_components(MigrationType.LOCAL, do_update_gizmos=False, display_report=display_report, override_report_title="Append/Link: Component Migration Report")
+            migrate_components(MigrationType.LOCAL, do_update_gizmos=False, display_report=display_report,
+                               override_report_title="Append/Link: Component Migration Report")
         else:
             print('Error: unrecognized task scheduled')
 

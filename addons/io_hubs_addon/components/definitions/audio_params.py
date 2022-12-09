@@ -120,7 +120,8 @@ class AudioParams(HubsComponent):
                     host_reference = f"\"{host.name}\" in \"{host.id_data.name_full}\""
                 else:
                     host_reference = f"\"{host.name_full}\""
-                migration_report.append(f"Warning: The Media Cone angles may not have migrated correctly for the Audio Params component on the {host_type} {host_reference}")
+                migration_report.append(
+                    f"Warning: The Media Cone angles may not have migrated correctly for the Audio Params component on the {host_type} {host_reference}")
 
         return migration_occurred
 

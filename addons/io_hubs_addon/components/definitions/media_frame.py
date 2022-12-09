@@ -121,19 +121,20 @@ class MediaFrame(HubsComponent):
     def migrate(self, migration_type, instance_version, host, migration_report, ob=None):
         migration_occurred = False
         if instance_version < (1, 0, 0):
-                migration_occurred = True
-                migrate_networked(host)
-                bounds = self.bounds.copy()
-                bounds = Vector((bounds.x, bounds.z, bounds.y))
-                self.bounds = bounds
+            migration_occurred = True
+            migrate_networked(host)
+            bounds = self.bounds.copy()
+            bounds = Vector((bounds.x, bounds.z, bounds.y))
+            self.bounds = bounds
 
-                if migration_type != MigrationType.GLOBAL or is_linked(ob):
-                    host_type = "bone" if hasattr(host, "tail") else "object"
-                    if host_type == "bone":
-                        host_reference = f"\"{host.name}\" in \"{host.id_data.name_full}\""
-                    else:
-                        host_reference = f"\"{host.name_full}\""
-                    migration_report.append(f"Warning: The Media Frame component's Y and Z bounds on the {host_type} {host_reference} may not have migrated correctly")
+            if migration_type != MigrationType.GLOBAL or is_linked(ob):
+                host_type = "bone" if hasattr(host, "tail") else "object"
+                if host_type == "bone":
+                    host_reference = f"\"{host.name}\" in \"{host.id_data.name_full}\""
+                else:
+                    host_reference = f"\"{host.name_full}\""
+                migration_report.append(
+                    f"Warning: The Media Frame component's Y and Z bounds on the {host_type} {host_reference} may not have migrated correctly")
 
         return migration_occurred
 

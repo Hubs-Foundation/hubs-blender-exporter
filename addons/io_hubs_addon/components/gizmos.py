@@ -80,7 +80,7 @@ class HubsGizmoGroup(GizmoGroup):
                 if component_name not in self.widgets:
                     self.widgets[component_name] = {}
 
-                host_key = ob.name_full+host.name
+                host_key = ob.name_full + host.name
                 if host_key not in self.widgets[component_name]:
                     self.widgets[component_name][host_key] = {
                         'ob': ob,
@@ -137,15 +137,15 @@ class HubsGizmoGroup(GizmoGroup):
                         if ob.mode == 'EDIT':
                             edit_bone = ob.data.edit_bones[host_name]
                             self.update_bone_gizmo(
-                                        component_name, ob, edit_bone, edit_bone, gizmo)
+                                component_name, ob, edit_bone, edit_bone, gizmo)
                         else:
                             bone = ob.data.bones[host_name]
                             pose_bone = ob.pose.bones[host_name]
                             self.update_bone_gizmo(
-                                        component_name, ob, bone, pose_bone, gizmo)
+                                component_name, ob, bone, pose_bone, gizmo)
                     else:
                         self.update_object_gizmo(
-                                component_name, ob, gizmo)
+                            component_name, ob, gizmo)
 
                 except ReferenceError:
                     # This shouldn't happen, but if objects and widgets have gotten out of sync refresh the whole system.

@@ -252,7 +252,8 @@ class ViewReportInInfoEditor(Operator):
                             context_override['region'] = region
                             # Find and select the last info message for each Info editor.
                             index = 0
-                            while bpy.ops.info.select_pick(context_override, report_index=index, extend=False) != {'CANCELLED'}:
+                            while bpy.ops.info.select_pick(
+                                    context_override, report_index=index, extend=False) != {'CANCELLED'}:
                                 index += 1
                             bpy.ops.info.select_pick(context_override, report_index=index, extend=False)
 
@@ -282,17 +283,17 @@ class ReportScroller(Operator):
     def invoke(self, context, event):
         wm = context.window_manager
 
-        if event.shift: # Jump to beginning/end
+        if event.shift:  # Jump to beginning/end
             if self.increment == -1:
                 wm.hubs_report_scroll_index = 0
                 wm.hubs_report_scroll_percentage = 0
                 return {'FINISHED'}
-            else: # 1
+            else:  # 1
                 wm.hubs_report_scroll_index = self.maximum
                 wm.hubs_report_scroll_percentage = 100
                 return {'FINISHED'}
 
-        else: # Increment/Decrement
+        else:  # Increment/Decrement
             current_scroll_index = wm.hubs_report_scroll_index
             if current_scroll_index + self.increment < 0:
                 return {'CANCELLED'}
@@ -429,8 +430,10 @@ class ReportViewer(Operator):
         self.init_report_display_blocks()
         return wm.invoke_props_dialog(self, width=600)
 
+
 def split_and_prefix_report_messages(report_string):
     return [f"{i+1:02d}   {message}" for i, message in enumerate(report_string.split("\n\n"))]
+
 
 def register():
     bpy.utils.register_class(AddHubsComponent)
@@ -442,7 +445,8 @@ def register():
     bpy.utils.register_class(ViewLastReport)
     bpy.utils.register_class(ViewReportInInfoEditor)
     bpy.types.WindowManager.hubs_report_scroll_index = IntProperty(default=0, min=0)
-    bpy.types.WindowManager.hubs_report_scroll_percentage = IntProperty(name = "Scroll Position", default=0, min=0, max=100, subtype='PERCENTAGE')
+    bpy.types.WindowManager.hubs_report_scroll_percentage = IntProperty(
+        name="Scroll Position", default=0, min=0, max=100, subtype='PERCENTAGE')
     bpy.types.WindowManager.hubs_report_last_title = StringProperty()
     bpy.types.WindowManager.hubs_report_last_report_string = StringProperty()
 

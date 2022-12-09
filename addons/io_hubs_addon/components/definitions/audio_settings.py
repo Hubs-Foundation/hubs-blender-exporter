@@ -124,6 +124,7 @@ class AudioSettings(HubsComponent):
                 self.mediaConeOuterAngle)
 
             if migration_type != MigrationType.GLOBAL or is_linked(host):
-                migration_report.append(f"Warning: The Media Cone angles may not have migrated correctly for the Audio Settings component on scene \"{host.name_full}\"")
+                migration_report.append(
+                    f"Warning: The Media Cone angles may not have migrated correctly for the Audio Settings component on scene \"{host.name_full}\"")
 
         return migration_occurred

@@ -37,7 +37,7 @@ class Spawner(HubsComponent):
             try:
                 self.applyGravity = self[
                     'mediaOptions']['applyGravity']
-            except Exception: # applyGravity was never saved, so it must have been left on the default value: False.
+            except Exception:  # applyGravity was never saved, so it must have been left on the default value: False.
                 self.applyGravity = False
 
         return migration_occurred

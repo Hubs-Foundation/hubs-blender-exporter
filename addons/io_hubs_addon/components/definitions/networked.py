@@ -2,7 +2,7 @@ from ..hubs_component import HubsComponent
 from bpy.props import StringProperty
 from ..types import PanelType, NodeType
 import uuid
-from ..utils import add_component, has_component
+from ..utils import add_component
 import bpy
 
 
