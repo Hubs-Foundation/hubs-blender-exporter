@@ -20,7 +20,10 @@ class Image(HubsComponent):
     src: StringProperty(
         name="Image URL", description="The web address of the image", default="https://mozilla.org")
 
-    controls: BoolProperty(name="Controls", description="When enabled, shows an \"open link\" button when hovering your cursor over it in Hubs that allows you to open the image in a new tab", default=True)
+    controls: BoolProperty(
+        name="Controls",
+        description="When enabled, shows an \"open link\" button when hovering your cursor over it in Hubs that allows you to open the image in a new tab",
+        default=True)
 
     alphaMode: EnumProperty(
         name="Transparency Mode",

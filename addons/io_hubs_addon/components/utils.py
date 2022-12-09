@@ -29,7 +29,7 @@ def add_component(obj, component_name):
                 if not dep_exists:
                     add_component(obj, dep_name)
             else:
-                print("Dependecy '%s' from module '%s' not registered" %
+                print("Dependency '%s' from module '%s' not registered" %
                       (dep_name, component_name))
 
 
@@ -121,6 +121,12 @@ def redraw_component_ui(context):
         for area in window.screen.areas:
             if area.type == 'PROPERTIES':
                 area.tag_redraw()
+
+
+def is_linked(datablock):
+    if not datablock:
+        return False
+    return datablock.library or datablock.override_library
 
 
 # Note: Set up stuff specifically for C FILE pointers so that they aren't truncated to 32 bits on 64 bit systems.

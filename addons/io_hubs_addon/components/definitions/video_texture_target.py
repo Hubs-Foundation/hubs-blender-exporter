@@ -1,15 +1,16 @@
 from bpy.props import BoolProperty, PointerProperty, EnumProperty, StringProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
-from ..utils import has_component
+from ..utils import has_component, is_linked
+from ..ui import add_link_indicator
 from bpy.types import Object
 from ...io.utils import gather_joint_property, gather_node_property, delayed_gather
+from .video_texture_source import VideoTextureSource
 
 BLANK_ID = "pXph8WBzMu9fung"
 
 
 def filter_on_component(self, ob):
-    from .video_texture_source import VideoTextureSource
     dep_name = VideoTextureSource.get_name()
     if hasattr(ob, 'type') and ob.type == 'ARMATURE':
         if ob.mode == 'EDIT':
@@ -28,7 +29,6 @@ def get_bones(self, context):
     global bones
     bones = []
     count = 0
-    from .video_texture_source import VideoTextureSource
     dep_name = VideoTextureSource.get_name()
     bones.append((BLANK_ID, "Select a bone", "None", "BLANK", count))
     count += 1
@@ -82,16 +82,19 @@ class VideoTextureTarget(HubsComponent):
     }
 
     targetBaseColorMap: BoolProperty(
-        name="Override Base Color Map", description="Causes the video texture to be displayed in place of the base color map", default=True)
+        name="Override Base Color Map",
+        description="Causes the video texture to be displayed in place of the base color map", default=True)
 
     targetEmissiveMap: BoolProperty(
-        name="Override Emissive Color Map", description="Causes the video texture to be displayed in place of the emissive map", default=False)
+        name="Override Emissive Color Map",
+        description="Causes the video texture to be displayed in place of the emissive map", default=False)
 
     srcNode: PointerProperty(
         name="Source",
         description="The object with a video-texture-source component to pull video from",
         type=Object,
-        poll=filter_on_component)
+        poll=filter_on_component,
+        update=lambda self, context: setattr(self, 'bone', BLANK_ID))
 
     bone: EnumProperty(
         name="Bone",
@@ -107,12 +110,20 @@ class VideoTextureTarget(HubsComponent):
         options={'HIDDEN'})
 
     def draw(self, context, layout, panel):
-        from .video_texture_source import VideoTextureSource
         dep_name = VideoTextureSource.get_name()
 
         has_obj_component = False
         has_bone_component = False
-        layout.prop(data=self, property="srcNode")
+        row = layout.row(align=True)
+        sub_row = row.row(align=True)
+        sub_row.prop(data=self, property="srcNode")
+        if is_linked(self.id_data):
+            # Manually disable the PointerProperty, needed for Blender 3.2+.
+            sub_row.enabled = False
+        if is_linked(self.srcNode):
+            sub_row = row.row(align=True)
+            sub_row.enabled = False
+            add_link_indicator(sub_row, self.srcNode)
         if hasattr(self.srcNode, 'type'):
             has_obj_component = has_component(self.srcNode, dep_name)
             if self.srcNode.type == 'ARMATURE':
@@ -125,12 +136,14 @@ class VideoTextureTarget(HubsComponent):
             col = layout.column()
             col.alert = True
             col.label(
-                text=f'The selected source doesn\'t have a {VideoTextureSource.get_display_name()} component', icon='ERROR')
+                text=f'The selected source doesn\'t have a {VideoTextureSource.get_display_name()} component',
+                icon='ERROR')
         elif self.srcNode and self.bone_id != BLANK_ID and not has_bone_component:
             col = layout.column()
             col.alert = True
             col.label(
-                text=f'The selected bone doesn\'t have a {VideoTextureSource.get_display_name()} component', icon='ERROR')
+                text=f'The selected bone doesn\'t have a {VideoTextureSource.get_display_name()} component',
+                icon='ERROR')
 
         layout.prop(data=self, property="targetBaseColorMap")
         layout.prop(data=self, property="targetEmissiveMap")

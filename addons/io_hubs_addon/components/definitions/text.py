@@ -78,23 +78,25 @@ class Text(HubsComponent):
         description="The width of an outline/halo to be drawn around each text glyph using the outlineColor and outlineOpacity. This can help improve readability when the text is displayed against a background of low or varying contrast.\n\n The width can be specified as either an absolute number in local units, or as a percentage string e.g. \"10%\" which is interpreted as a percentage of the fontSize",
         default="0")
 
-    outlineColor: FloatVectorProperty(name="Outline Color",
-                                      description="The color to use for the text outline when outlineWidth, outlineBlur, and/or outlineOffsetX/Y are set",
-                                      subtype='COLOR_GAMMA',
-                                      default=(0.0, 0.0, 0.0, 1.0),
-                                      size=4)
+    outlineColor: FloatVectorProperty(
+        name="Outline Color",
+        description="The color to use for the text outline when outlineWidth, outlineBlur, and/or outlineOffsetX/Y are set",
+        subtype='COLOR_GAMMA', default=(0.0, 0.0, 0.0, 1.0),
+        size=4)
 
     outlineBlur: StringProperty(name="Outline Blur",
                                 description="Specifies a blur radius applied to the outer edge of the text's outlineWidth. If the outlineWidth is zero, the blur will be applied at the glyph edge, like CSS's text-shadow blur radius. A blur plus a nonzero outlineWidth can give a solid outline with a fuzzy outer edge.\n\nThe blur radius can be specified as either an absolute number in local meters, or as a percentage string e.g. \"12%\" which is treated as a percentage of the fontSize",
                                 default="0")
 
-    outlineOffsetX: StringProperty(name="Outline X Offset",
-                                   description="This defines a horizontal offset of the text outline. Using an offset with outlineWidth: 0 creates a drop-shadow effect like CSS's text-shadow; also see outlineBlur.\n\n The offsets can be specified as either an absolute number in local units, or as a percentage string e.g. \"12%\" which is treated as a percentage of the fontSize",
-                                   default="0")
+    outlineOffsetX: StringProperty(
+        name="Outline X Offset",
+        description="This defines a horizontal offset of the text outline. Using an offset with outlineWidth: 0 creates a drop-shadow effect like CSS's text-shadow; also see outlineBlur.\n\n The offsets can be specified as either an absolute number in local units, or as a percentage string e.g. \"12%\" which is treated as a percentage of the fontSize",
+        default="0")
 
-    outlineOffsetY: StringProperty(name="Outline Y Offset",
-                                   description="This defines a vertical offset of the text outline. Using an offset with outlineWidth: 0 creates a drop-shadow effect like CSS's text-shadow; also see outlineBlur.\n\n The offsets can be specified as either an absolute number in local units, or as a percentage string e.g. \"12%\" which is treated as a percentage of the fontSize",
-                                   default="0")
+    outlineOffsetY: StringProperty(
+        name="Outline Y Offset",
+        description="This defines a vertical offset of the text outline. Using an offset with outlineWidth: 0 creates a drop-shadow effect like CSS's text-shadow; also see outlineBlur.\n\n The offsets can be specified as either an absolute number in local units, or as a percentage string e.g. \"12%\" which is treated as a percentage of the fontSize",
+        default="0")
 
     outlineOpacity: FloatProperty(
         name="Outline Opacity",
@@ -110,9 +112,10 @@ class Text(HubsComponent):
         max=1.0,
         default=1.0)
 
-    strokeWidth: StringProperty(name="Stroke Width",
-                                description="Sets the width of a stroke drawn inside the edge of each text glyph, using the strokeColor and strokeOpacity.\n\n The width can be specified as either an absolute number in local units, or as a percentage string e.g. \"10%\" which is interpreted as a percentage of the fontSize",
-                                default="0")
+    strokeWidth: StringProperty(
+        name="Stroke Width",
+        description="Sets the width of a stroke drawn inside the edge of each text glyph, using the strokeColor and strokeOpacity.\n\n The width can be specified as either an absolute number in local units, or as a percentage string e.g. \"10%\" which is interpreted as a percentage of the fontSize",
+        default="0")
 
     strokeColor: FloatVectorProperty(name="Stroke Color",
                                      description="The color of the text stroke, when strokeWidth is nonzero",
@@ -126,9 +129,10 @@ class Text(HubsComponent):
                                  max=1.0,
                                  default=1.0)
 
-    textIndent: FloatProperty(name="Text Indent",
-                              description="An indentation applied to the first character of each hard newline. Behaves like CSS text-indent",
-                              default=0.0)
+    textIndent: FloatProperty(
+        name="Text Indent",
+        description="An indentation applied to the first character of each hard newline. Behaves like CSS text-indent",
+        default=0.0)
 
     whiteSpace: EnumProperty(
         name="Wrapping",

@@ -94,7 +94,8 @@ class AudioSettings(HubsComponent):
         name="Media Cone Outer Gain",
         description="Media Cone Outer Gain",
         default=0.0,
-        min=0.0)
+        min=0.0,
+        max=1.0)
 
     def gather(self, export_settings, object):
         return {

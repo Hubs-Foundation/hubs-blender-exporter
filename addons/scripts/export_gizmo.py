@@ -26,24 +26,25 @@ def convert(objects):
     out += ')'
     return out
 
+
 class SaveGizmoOperator(Operator, ImportHelper):
 
     bl_idname = "hubs.save_gizmo"
     bl_label = "Save Gizmo"
-    
+
     filter_glob: StringProperty(
         default='*.py;',
         options={'HIDDEN'}
     )
 
     def execute(self, context):
-        """Save gizmo outout to a file."""       
+        """Save gizmo outout to a file."""
         gizmo = convert(context.selected_objects)
 
         f = open(self.filepath, "w")
         f.write(gizmo)
         f.close()
-        
+
         return {'FINISHED'}
 
 

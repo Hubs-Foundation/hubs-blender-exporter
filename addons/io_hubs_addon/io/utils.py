@@ -157,7 +157,8 @@ def gather_property(export_settings, blender_object, target, property_name):
 
     if isArray and property_definition.is_array:
         if property_definition.subtype.startswith('COLOR'):
-            return gather_color_property(export_settings, blender_object, target, property_name, property_definition.subtype)
+            return gather_color_property(
+                export_settings, blender_object, target, property_name, property_definition.subtype)
         else:
             return gather_vec_property(export_settings, blender_object, target, property_name)
 
@@ -231,7 +232,7 @@ def gather_joint_property(export_settings, blender_object, target, property_name
         else:
             vtree = export_settings['vtree']
             vnode = vtree.nodes[next((uuid for uuid in vtree.nodes if (
-                vtree.nodes[uuid].joint == joint)), None)]
+                vtree.nodes[uuid].blender_bone == joint)), None)]
             node = vnode.node or gltf2_blender_gather_joints.gather_joint_vnode(
                 vnode,
                 export_settings

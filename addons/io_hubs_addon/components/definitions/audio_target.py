@@ -1,16 +1,18 @@
 from email.policy import default
 from bpy.props import FloatProperty, BoolProperty, PointerProperty, EnumProperty, StringProperty
 from ..hubs_component import HubsComponent
-from ..utils import has_component
+from ..utils import has_component, is_linked
 from ..types import Category, PanelType, NodeType
+from ..ui import add_link_indicator
 from bpy.types import Object
 from ...io.utils import gather_joint_property, gather_node_property, delayed_gather
+from .audio_source import AudioSource
+
 
 BLANK_ID = "374e54CMHFCipSk"
 
 
 def filter_on_component(self, ob):
-    from .audio_source import AudioSource
     dep_name = AudioSource.get_name()
     if hasattr(ob, 'type') and ob.type == 'ARMATURE':
         if ob.mode == 'EDIT':
@@ -29,7 +31,6 @@ def get_bones(self, context):
     global bones
     bones = []
     count = 0
-    from .audio_source import AudioSource
     dep_name = AudioSource.get_name()
     bones.append((BLANK_ID, "Select a bone", "None", "BLANK", count))
     count += 1
@@ -87,7 +88,8 @@ class AudioTarget(HubsComponent):
         name="Source",
         description="The object with an audio-source component to pull audio from",
         type=Object,
-        poll=filter_on_component
+        poll=filter_on_component,
+        update=lambda self, context: setattr(self, 'bone', BLANK_ID)
     )
 
     bone: EnumProperty(
@@ -121,12 +123,21 @@ class AudioTarget(HubsComponent):
         default=False)
 
     def draw(self, context, layout, panel):
-        from .audio_source import AudioSource
         dep_name = AudioSource.get_name()
 
         has_obj_component = False
         has_bone_component = False
-        layout.prop(data=self, property="srcNode")
+        row = layout.row(align=True)
+        sub_row = row.row(align=True)
+        sub_row.prop(data=self, property="srcNode")
+        if is_linked(context.active_object):
+            # Manually disable the PointerProperty, needed for Blender 3.2+.
+            sub_row.enabled = False
+        if is_linked(self.srcNode):
+            sub_row = row.row(align=True)
+            sub_row.enabled = False
+            add_link_indicator(sub_row, self.srcNode)
+
         if hasattr(self.srcNode, 'type'):
             has_obj_component = has_component(self.srcNode, dep_name)
             if self.srcNode.type == 'ARMATURE':

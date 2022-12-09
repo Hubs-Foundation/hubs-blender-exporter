@@ -77,7 +77,7 @@ class HubsGizmoGroup(GizmoGroup):
                 continue
             gizmo = component_class.create_gizmo(host, self)
             if gizmo:
-                if not component_name in self.widgets:
+                if component_name not in self.widgets:
                     self.widgets[component_name] = {}
 
                 host_key = ob.name_full+host.name
@@ -87,7 +87,7 @@ class HubsGizmoGroup(GizmoGroup):
                         'host_name': host.name,
                         'host_type': host_type,
                         'gizmo': gizmo
-                        }
+                    }
 
     def setup(self, context):
         # A new instance of the gizmo group is instantiated, and setup is called once for each instance, for each open window.
@@ -157,6 +157,7 @@ objects_count = -1
 gizmo_system_registered = False
 msgbus_owners = []
 
+
 def msgbus_callback(*args):
     update_gizmos()
 
@@ -210,10 +211,10 @@ def register_gizmo_system():
     global gizmo_system_registered
     global msgbus_owners
 
-    if not undo_post in bpy.app.handlers.undo_post:
+    if undo_post not in bpy.app.handlers.undo_post:
         bpy.app.handlers.undo_post.append(
             undo_post)
-    if not redo_post in bpy.app.handlers.redo_post:
+    if redo_post not in bpy.app.handlers.redo_post:
         bpy.app.handlers.redo_post.append(
             redo_post)
 
@@ -227,9 +228,9 @@ def register_gizmo_system():
             notify=msgbus_callback,
         )
 
-
     register_gizmos()
     gizmo_system_registered = True
+
 
 def register_gizmos():
     try:
@@ -239,6 +240,7 @@ def register_gizmos():
         bpy.utils.register_class(HubsGizmoGroup)
     except Exception:
         pass
+
 
 def unregister_gizmo_system():
     global gizmo_system_registered
@@ -258,6 +260,7 @@ def unregister_gizmo_system():
     unregister_gizmos()
     gizmo_system_registered = False
 
+
 def unregister_gizmos():
     try:
         bpy.utils.unregister_class(HubsGizmoGroup)
@@ -265,23 +268,26 @@ def unregister_gizmos():
     except Exception:
         pass
 
+
 def update_gizmos():
     global gizmo_system_registered
     unregister_gizmos()
     register_gizmos() if gizmo_system_registered else register_gizmo_system()
+
 
 def register_functions():
     def register():
         global objects_count
         objects_count = -1
 
-        if not load_post in bpy.app.handlers.load_post:
+        if load_post not in bpy.app.handlers.load_post:
             bpy.app.handlers.load_post.append(load_post)
         if not depsgraph_update_post in bpy.app.handlers.depsgraph_update_post:
             bpy.app.handlers.depsgraph_update_post.append(
                 depsgraph_update_post)
 
-        bpy.types.Armature.hubs_old_bones_length = IntProperty(options={'HIDDEN', 'SKIP_SAVE'})
+        bpy.types.Armature.hubs_old_bones_length = IntProperty(
+            options={'HIDDEN', 'SKIP_SAVE'})
 
         register_gizmo_system()
 
@@ -291,7 +297,6 @@ def register_functions():
         if depsgraph_update_post in bpy.app.handlers.depsgraph_update_post:
             bpy.app.handlers.depsgraph_update_post.remove(
                 depsgraph_update_post)
-
 
         unregister_gizmo_system()
 
