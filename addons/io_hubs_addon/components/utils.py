@@ -126,7 +126,7 @@ def redraw_component_ui(context):
 def is_linked(datablock):
     if not datablock:
         return False
-    return datablock.library or datablock.override_library
+    return bool(datablock.library or datablock.override_library)
 
 
 # Note: Set up stuff specifically for C FILE pointers so that they aren't truncated to 32 bits on 64 bit systems.

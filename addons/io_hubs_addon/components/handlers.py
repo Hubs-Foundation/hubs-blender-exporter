@@ -2,7 +2,7 @@ import bpy
 from bpy.app.handlers import persistent
 from .components_registry import get_components_registry
 from .utils import redirect_c_stdout
-from .utils import get_host_components
+from .utils import get_host_components, is_linked
 from .gizmos import update_gizmos
 from .types import MigrationType
 import io
@@ -56,7 +56,7 @@ def migrate_components(migration_type, *, do_beta_versioning=False, do_update_gi
                 traceback.print_exc()
 
             display_registration_message |= was_migrated
-            if bool(was_migrated and (scene.library or scene.override_library)):
+            if was_migrated and is_linked(scene):
                 link_migration_occurred = True
                 component_info = f"{component.get_display_name()} component on scene \"{scene.name_full}\""
                 migrated_linked_components.append(component_info)
@@ -74,7 +74,7 @@ def migrate_components(migration_type, *, do_beta_versioning=False, do_update_gi
                 traceback.print_exc()
 
             display_registration_message |= was_migrated
-            if bool(was_migrated and (ob.library or ob.override_library)):
+            if was_migrated and is_linked(ob):
                 link_migration_occurred = True
                 component_info = f"{component.get_display_name()} component on object \"{ob.name_full}\""
                 migrated_linked_components.append(component_info)
@@ -93,7 +93,7 @@ def migrate_components(migration_type, *, do_beta_versioning=False, do_update_gi
                         traceback.print_exc()
 
                     display_registration_message |= was_migrated
-                    if bool(was_migrated and (ob.library or ob.override_library)):
+                    if was_migrated and is_linked(ob):
                         link_migration_occurred = True
                         component_info = f"{component.get_display_name()} component on bone \"{bone.name}\" in \"{ob.name_full}\""
                         migrated_linked_components.append(component_info)
@@ -111,7 +111,7 @@ def migrate_components(migration_type, *, do_beta_versioning=False, do_update_gi
                 traceback.print_exc()
 
             display_registration_message |= was_migrated
-            if bool(was_migrated and (material.library or material.override_library)):
+            if was_migrated and is_linked(material):
                 link_migration_occurred = True
                 component_info = f"{component.get_display_name()} component on material \"{material.name_full}\""
                 migrated_linked_components.append(component_info)
@@ -140,12 +140,12 @@ def migrate_components(migration_type, *, do_beta_versioning=False, do_update_gi
 
 def version_beta_components():
     for scene in bpy.data.scenes:
-        if not (scene.library or scene.override_library):
+        if not is_linked(scene):
             for component in get_host_components(scene):
                 component.instance_version = (1, 0, 0)
 
     for ob in bpy.data.objects:
-        if not (ob.library or ob.override_library):
+        if not is_linked(ob):
             for component in get_host_components(ob):
                 component.instance_version = (1, 0, 0)
             if ob.type == 'ARMATURE':
@@ -154,7 +154,7 @@ def version_beta_components():
                         component.instance_version = (1, 0, 0)
 
     for material in bpy.data.materials:
-        if not (material.library or material.override_library):
+        if not is_linked(material):
             for component in get_host_components(material):
                 component.instance_version = (1, 0, 0)
 
