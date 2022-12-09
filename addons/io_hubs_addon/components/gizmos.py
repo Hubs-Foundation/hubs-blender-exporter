@@ -272,6 +272,9 @@ def update_gizmos():
 
 def register_functions():
     def register():
+        global objects_count
+        objects_count = -1
+
         if not load_post in bpy.app.handlers.load_post:
             bpy.app.handlers.load_post.append(load_post)
         if not depsgraph_update_post in bpy.app.handlers.depsgraph_update_post:

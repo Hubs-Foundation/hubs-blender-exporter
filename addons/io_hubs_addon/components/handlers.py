@@ -326,6 +326,13 @@ def scene_and_view_layer_update_notifier(self, context):
 
 
 def register():
+    global previous_undo_steps_dump
+    global previous_undo_step_index
+    global previous_window_setups
+    previous_undo_steps_dump = ""
+    previous_undo_step_index = 0
+    previous_window_setups = []
+
     if not load_post in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.append(load_post)
 
