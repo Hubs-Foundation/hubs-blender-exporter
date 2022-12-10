@@ -194,6 +194,7 @@ class MigrateHubsComponents(Operator):
     bl_description = "Loops through all objects/components and attempts to migrate them to the current version based on their internal version"
     bl_options = {'REGISTER', 'UNDO'}
 
+    # For some reason using a default value with this property doesn't work properly, so the value must be manually specified each time.
     is_registration: BoolProperty(options={'HIDDEN'})
 
     def execute(self, context):
