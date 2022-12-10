@@ -95,7 +95,7 @@ class MorphAudioFeedback(HubsComponent):
     def poll(cls, context, panel_type):
         return context.object.type == 'MESH'
 
-    def migrate(self, migration_type, instance_version, host, migration_report, ob=None):
+    def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
         migration_occurred = False
         if instance_version < (1, 0, 0):
             migration_occurred = True
