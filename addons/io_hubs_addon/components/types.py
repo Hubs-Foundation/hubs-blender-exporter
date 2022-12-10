@@ -5,7 +5,6 @@ class PanelType(Enum):
     OBJECT = 'object'
     SCENE = 'scene'
     MATERIAL = 'material'
-    OBJECT_DATA = 'data'
     BONE = 'bone'
 
 
