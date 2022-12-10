@@ -35,6 +35,20 @@ class VideoTextureSource(HubsComponent):
             return [x for x in children_recursive(ob) if x.type == "CAMERA" and x.parent_bone == bone.name]
         return False
 
+    @classmethod
+    def get_unsupported_host_message(cls, panel_type, host):
+        if panel_type == PanelType.BONE:
+            host_reference = f"\"{host.name}\" in \"{host.id_data.name_full}\""
+            object_message = ""
+        else:
+            host_reference = f"\"{host.name_full}\""
+            object_message = " aren't cameras themselves and"
+
+        host_type = panel_type.value
+        message = f"Warning: Unsupported component on {host_type} {host_reference}, {host_type}s that{object_message} don't have a camera somewhere in their child hierarchy don't support {cls.get_display_name()} components"
+
+        return message
+
     def draw(self, context, layout, panel):
         super().draw(context, layout, panel)
         if not VideoTextureSource.poll(context, PanelType(panel.bl_context)):

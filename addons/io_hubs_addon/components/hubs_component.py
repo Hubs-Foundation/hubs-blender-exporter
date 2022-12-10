@@ -149,8 +149,19 @@ class HubsComponent(PropertyGroup):
     @classmethod
     def poll(cls, context, panel_type):
         '''This method will return true if this component's shown be shown or run.
-        This is currently called when checking if the component should be added to the components pop-up and when the components properties panel is drawn'''
+        This is currently called when checking if the component should be added to the components pop-up, when the components properties panel is drawn, and during migrations to warn about unsupported hosts.'''
         return True
+
+    @classmethod
+    def get_unsupported_host_message(cls, panel_type, host):
+        '''This method will return the message to use if this component isn't supported on this host.
+        This is currently called during migrations.'''
+        from .utils import get_host_reference_message
+        host_reference = get_host_reference_message(panel_type, host)
+        host_type = panel_type.value
+        message = f"Warning: Unsupported component on {host_type} {host_reference}, {host_type}s don't support {cls.get_display_name()} components"
+
+        return message
 
     @staticmethod
     def register():
