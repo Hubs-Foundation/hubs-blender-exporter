@@ -38,7 +38,7 @@ class AudioZone(HubsComponent):
         gizmo.matrix_basis = mat
 
     @classmethod
-    def create_gizmo(cls, ob, gizmo_group):
+    def create_gizmos(cls, ob, gizmo_group):
         gizmo = gizmo_group.gizmos.new(CustomModelGizmo.bl_idname)
         gizmo.object = ob
         setattr(gizmo, "hubs_gizmo_shape", box.SHAPE)
@@ -53,7 +53,7 @@ class AudioZone(HubsComponent):
         gizmo.color_highlight = (0.0, 0.8, 0.0)
         gizmo.alpha_highlight = 0.5
 
-        return gizmo
+        return [gizmo]
 
     @classmethod
     def migrate(cls, version):

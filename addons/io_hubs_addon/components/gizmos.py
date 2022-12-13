@@ -72,8 +72,8 @@ class HubsGizmoGroup(GizmoGroup):
             component_class = get_component_by_name(component_name)
             if not component_class:
                 continue
-            gizmo = component_class.create_gizmo(host, self)
-            if gizmo:
+            gizmos = component_class.create_gizmos(host, self)
+            if gizmos and len(gizmos) > 0:
                 if component_name not in self.widgets:
                     self.widgets[component_name] = {}
 
@@ -83,7 +83,7 @@ class HubsGizmoGroup(GizmoGroup):
                         'ob': ob,
                         'host_name': host.name,
                         'host_type': host_type,
-                        'gizmo': gizmo
+                        'gizmos': []
                     }
 
                     if host_type == 'OBJECT':
@@ -96,6 +96,8 @@ class HubsGizmoGroup(GizmoGroup):
                             args=(bpy.context,),
                             notify=msgbus_callback,
                         )
+                for gizmo in gizmos:
+                    self.widgets[component_name][host_key]['gizmos'].append(gizmo)
 
     def setup(self, context):
         self.widgets = {}
@@ -130,23 +132,24 @@ class HubsGizmoGroup(GizmoGroup):
         for component_name in self.widgets:
             components_widgets = self.widgets[component_name].copy()
             for widget in components_widgets.values():
-                gizmo = widget['gizmo']
+                gizmos = widget['gizmos']
                 ob = widget['ob']
                 host_name = widget['host_name']
-                if widget['host_type'] == 'BONE':
-                    # https://docs.blender.org/api/current/info_gotcha.html#editbones-posebones-bone-bones
-                    if ob.mode == 'EDIT':
-                        edit_bone = ob.data.edit_bones[host_name]
-                        self.update_bone_gizmo(
-                            component_name, ob, edit_bone, edit_bone, gizmo)
+                for gizmo in gizmos:
+                    if widget['host_type'] == 'BONE':
+                        # https://docs.blender.org/api/current/info_gotcha.html#editbones-posebones-bone-bones
+                        if ob.mode == 'EDIT':
+                            edit_bone = ob.data.edit_bones[host_name]
+                            self.update_bone_gizmo(
+                                component_name, ob, edit_bone, edit_bone, gizmo)
+                        else:
+                            bone = ob.data.bones[host_name]
+                            pose_bone = ob.pose.bones[host_name]
+                            self.update_bone_gizmo(
+                                component_name, ob, bone, pose_bone, gizmo)
                     else:
-                        bone = ob.data.bones[host_name]
-                        pose_bone = ob.pose.bones[host_name]
-                        self.update_bone_gizmo(
-                            component_name, ob, bone, pose_bone, gizmo)
-                else:
-                    self.update_object_gizmo(
-                        component_name, ob, gizmo)
+                        self.update_object_gizmo(
+                            component_name, ob, gizmo)
 
 
 global objects_count

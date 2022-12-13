@@ -64,7 +64,7 @@ class Waypoint(HubsComponent):
         gizmo.matrix_basis = mat
 
     @classmethod
-    def create_gizmo(cls, ob, gizmo_group):
+    def create_gizmos(cls, ob, gizmo_group):
         gizmo = gizmo_group.gizmos.new(CustomModelGizmo.bl_idname)
         gizmo.object = ob
         setattr(gizmo, "hubs_gizmo_shape", spawn_point.SHAPE)
@@ -78,7 +78,7 @@ class Waypoint(HubsComponent):
         gizmo.color_highlight = (0.8, 0.8, 0.8)
         gizmo.alpha_highlight = 1.0
 
-        return gizmo
+        return [gizmo]
 
     @classmethod
     def migrate(cls, version):

@@ -99,7 +99,7 @@ class MediaFrame(HubsComponent):
         gizmo.matrix_basis = mat
 
     @classmethod
-    def create_gizmo(cls, ob, gizmo_group):
+    def create_gizmos(cls, ob, gizmo_group):
         gizmo = gizmo_group.gizmos.new(MediaFrameGizmo.bl_idname)
         setattr(gizmo, "hubs_gizmo_shape", box.SHAPE)
         gizmo.setup()
@@ -115,7 +115,7 @@ class MediaFrame(HubsComponent):
         gizmo.target_set_prop(
             "bounds", ob.hubs_component_media_frame, "bounds")
 
-        return gizmo
+        return [gizmo]
 
     @classmethod
     def migrate(cls, version):

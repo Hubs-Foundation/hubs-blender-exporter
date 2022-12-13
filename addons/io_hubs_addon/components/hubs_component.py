@@ -62,7 +62,7 @@ class HubsComponent(PropertyGroup):
         pass
 
     @classmethod
-    def create_gizmo(cls, obj, gizmo_group):
+    def create_gizmos(cls, obj, gizmo_group):
         return None
 
     @classmethod
