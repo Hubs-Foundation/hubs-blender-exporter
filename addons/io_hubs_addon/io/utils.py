@@ -9,8 +9,6 @@ from io_scene_gltf2.io.com import gltf2_io
 from io_scene_gltf2.io.exp import gltf2_io_binary_data
 from io_scene_gltf2.io.exp import gltf2_io_image_data
 from io_scene_gltf2.blender.exp import gltf2_blender_image
-from io_scene_gltf2.blender.exp.gltf2_blender_gather_cache import cached
-from io_scene_gltf2.blender.exp import gltf2_blender_export_keys
 from typing import Optional, Tuple, Union
 from ..nodes.lightmap import MozLightmapNode
 
