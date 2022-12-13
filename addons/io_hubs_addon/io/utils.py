@@ -4,11 +4,11 @@ from io_scene_gltf2.blender.com import gltf2_blender_extras
 from io_scene_gltf2.blender.exp import gltf2_blender_gather_materials, gltf2_blender_gather_nodes, gltf2_blender_gather_joints
 from io_scene_gltf2.blender.exp import gltf2_blender_gather_texture_info, gltf2_blender_export_keys
 from io_scene_gltf2.blender.exp.gltf2_blender_gather_cache import cached
-from io_scene_gltf2.io.com.gltf2_io_extensions import Extension
-from io_scene_gltf2.io.com.gltf2_io import Texture, Image, TextureInfo
-from io_scene_gltf2.io.exp.gltf2_io_binary_data import BinaryData
-from io_scene_gltf2.io.exp.gltf2_io_image_data import ImageData
-from io_scene_gltf2.blender.exp.gltf2_blender_image import ExportImage
+from io_scene_gltf2.io.com import gltf2_io_extensions
+from io_scene_gltf2.io.com import gltf2_io
+from io_scene_gltf2.io.exp import gltf2_io_binary_data
+from io_scene_gltf2.io.exp import gltf2_io_image_data
+from io_scene_gltf2.blender.exp import gltf2_blender_image
 from io_scene_gltf2.blender.exp.gltf2_blender_gather_cache import cached
 from io_scene_gltf2.blender.exp import gltf2_blender_export_keys
 from typing import Optional, Tuple, Union
@@ -17,7 +17,7 @@ from ..nodes.lightmap import MozLightmapNode
 # gather_texture/image with HDR support via MOZ_texture_rgbe
 
 
-class HubsImageData(ImageData):
+class HubsImageData(gltf2_io_image_data.ImageData):
     @property
     def file_extension(self):
         if self._mime_type == "image/vnd.radiance":
@@ -25,7 +25,7 @@ class HubsImageData(ImageData):
         return super().file_extension
 
 
-class HubsExportImage(ExportImage):
+class HubsExportImage(gltf2_blender_image.ExportImage):
     @staticmethod
     def from_blender_image(image: bpy.types.Image):
         export_image = HubsExportImage()
@@ -90,9 +90,9 @@ def gather_image(blender_image, export_settings):
         buffer_view = None
     else:
         uri = None
-        buffer_view = BinaryData(data=data)
+        buffer_view = gltf2_io_binary_data.BinaryData(data=data)
 
-    return Image(
+    return gltf2_io.Image(
         buffer_view=buffer_view,
         extensions=None,
         extras=None,
@@ -118,7 +118,7 @@ def gather_texture(blender_image, export_settings):
 
     if is_hdr:
         ext_name = "MOZ_texture_rgbe"
-        texture_extensions[ext_name] = Extension(
+        texture_extensions[ext_name] = gltf2_io_extensions.Extension(
             name=ext_name,
             extension={
                 "source": image
@@ -128,7 +128,7 @@ def gather_texture(blender_image, export_settings):
 
     # export_user_extensions('gather_texture_hook', export_settings, texture, blender_shader_sockets)
 
-    return Texture(
+    return gltf2_io.Texture(
         extensions=texture_extensions,
         extras=None,
         name=None,
@@ -354,7 +354,7 @@ def gather_lightmap_texture_info(blender_material, export_settings):
     else:
         tex_transform, tex_coord, _ = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
             texture_socket, export_settings)
-    texture_info = TextureInfo(
+    texture_info = gltf2_io.TextureInfo(
         extensions=gltf2_blender_gather_texture_info.__gather_extensions(
             tex_transform, export_settings),
         extras=None,
