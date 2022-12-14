@@ -1,3 +1,5 @@
+from ..models import image
+from ..gizmos import CustomModelGizmo
 from bpy.props import EnumProperty, StringProperty, BoolProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
@@ -44,3 +46,20 @@ class Image(HubsComponent):
             migrate_networked(host)
 
         return migration_occurred
+
+    @classmethod
+    def create_gizmo(cls, ob, gizmo_group):
+        gizmo = gizmo_group.gizmos.new(CustomModelGizmo.bl_idname)
+        gizmo.object = ob
+        setattr(gizmo, "hubs_gizmo_shape", image.SHAPE)
+        gizmo.setup()
+        gizmo.use_draw_scale = False
+        gizmo.use_draw_modal = False
+        gizmo.color = (0.8, 0.8, 0.8)
+        gizmo.alpha = 0.5
+        gizmo.scale_basis = 1.0
+        gizmo.hide_select = True
+        gizmo.color_highlight = (0.8, 0.8, 0.8)
+        gizmo.alpha_highlight = 1.0
+
+        return gizmo
