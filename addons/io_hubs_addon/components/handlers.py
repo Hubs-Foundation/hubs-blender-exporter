@@ -30,7 +30,7 @@ def migrate(component, migration_type, panel_type, host, migration_report, ob=No
 
         component.instance_version = definition_version
 
-    if panel_type not in component.__class__.get_panel_type() or not component.__class__.poll(bpy.context, panel_type):
+    if panel_type not in component.__class__.get_panel_type() or not component.__class__.poll(panel_type, host, ob=ob):
         message = component.__class__.get_unsupported_host_message(panel_type, host)
         migration_report.append(message)
 

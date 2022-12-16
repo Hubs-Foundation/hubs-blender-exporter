@@ -882,8 +882,8 @@ class ReflectionProbe(HubsComponent):
                           icon='ERROR')
 
     @ classmethod
-    def poll(cls, context, panel_type):
-        return context.object.type == 'LIGHT_PROBE'
+    def poll(cls, panel_type, host, ob=None):
+        return host.type == 'LIGHT_PROBE'
 
     @ staticmethod
     def register():

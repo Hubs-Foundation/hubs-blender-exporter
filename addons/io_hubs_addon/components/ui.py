@@ -17,7 +17,7 @@ def draw_component(panel, context, obj, row, component_item):
     component_class = get_component_by_name(component_name)
     if component_class:
         panel_type = PanelType(panel.bl_context)
-        if panel_type not in component_class.get_panel_type() or not component_class.poll(context, panel_type):
+        if panel_type not in component_class.get_panel_type() or not component_class.poll(panel_type, obj, ob=context.object):
             col = row.box().column()
             top_row = col.row()
             top_row.label(

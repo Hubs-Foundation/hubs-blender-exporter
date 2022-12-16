@@ -24,15 +24,14 @@ class VideoTextureSource(HubsComponent):
         name="FPS", description="FPS", default=15)
 
     @classmethod
-    def poll(cls, context, panel_type):
-        ob = context.object
+    def poll(cls, panel_type, host, ob=None):
         if panel_type == PanelType.OBJECT:
             return hasattr(
-                ob, 'type') and (
-                ob.type == 'CAMERA' or [x for x in children_recursive(ob) if x.type == "CAMERA" and not x.parent_bone])
+                host, 'type') and (
+                host.type == 'CAMERA' or
+                [x for x in children_recursive(host) if x.type == "CAMERA" and not x.parent_bone])
         elif panel_type == PanelType.BONE:
-            bone = context.active_bone
-            return [x for x in children_recursive(ob) if x.type == "CAMERA" and x.parent_bone == bone.name]
+            return [x for x in children_recursive(ob) if x.type == "CAMERA" and x.parent_bone == host.name]
         return False
 
     @classmethod
@@ -48,11 +47,3 @@ class VideoTextureSource(HubsComponent):
         message = f"Warning: Unsupported component on {host_type} {host_reference}, {host_type}s that{object_message} don't have a camera somewhere in their child hierarchy don't support {cls.get_display_name()} components"
 
         return message
-
-    def draw(self, context, layout, panel):
-        super().draw(context, layout, panel)
-        if not VideoTextureSource.poll(context, PanelType(panel.bl_context)):
-            col = layout.column()
-            col.alert = True
-            col.label(text='No camera found in the object hierarchy',
-                      icon='ERROR')

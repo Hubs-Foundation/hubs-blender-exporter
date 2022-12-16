@@ -148,9 +148,10 @@ class HubsComponent(PropertyGroup):
         return {}
 
     @classmethod
-    def poll(cls, context, panel_type):
+    def poll(cls, panel_type, host, ob=None):
         '''This method will return true if this component's shown be shown or run.
-        This is currently called when checking if the component should be added to the components pop-up, when the components properties panel is drawn, and during migrations to warn about unsupported hosts.'''
+        This is currently called when checking if the component should be added to the components pop-up, when the components properties panel is drawn, and during migrations to warn about unsupported hosts.
+        The ob argument is guaranteed to be present only for objects/bones.'''
         return True
 
     @classmethod
