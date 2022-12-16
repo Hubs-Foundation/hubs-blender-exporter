@@ -278,9 +278,9 @@ def display_wrapped_text(layout, wrapped_text, *, heading_icon='NONE'):
             text_column.label(text=line, icon=padding_icon)
 
 
-def get_host_reference_message(panel_type, host):
+def get_host_reference_message(panel_type, host, ob=None):
     if panel_type == PanelType.BONE:
-        host_reference = f"\"{host.name}\" in \"{host.id_data.name_full}\""
+        host_reference = f"\"{host.name}\" in \"{ob.name_full}\""
     else:
         host_reference = f"\"{host.name_full}\""
 

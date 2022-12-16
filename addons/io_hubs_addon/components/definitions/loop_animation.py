@@ -728,7 +728,7 @@ class LoopAnimation(HubsComponent):
                     track.track_type = track_type
 
             if migration_warning:
-                host_reference = get_host_reference_message(panel_type, host)
+                host_reference = get_host_reference_message(panel_type, host, ob=ob)
                 migration_report.append(
                     f"Warning: The Loop Animation component on the {panel_type.value} {host_reference} may not have migrated correctly")
 

@@ -128,7 +128,7 @@ class MediaFrame(HubsComponent):
             self.bounds = bounds
 
             if migration_type != MigrationType.GLOBAL or is_linked(ob):
-                host_reference = get_host_reference_message(panel_type, host)
+                host_reference = get_host_reference_message(panel_type, host, ob=ob)
                 migration_report.append(
                     f"Warning: The Media Frame component's Y and Z bounds on the {panel_type.value} {host_reference} may not have migrated correctly")
 

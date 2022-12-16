@@ -155,11 +155,11 @@ class HubsComponent(PropertyGroup):
         return True
 
     @classmethod
-    def get_unsupported_host_message(cls, panel_type, host):
+    def get_unsupported_host_message(cls, panel_type, host, ob=None):
         '''This method will return the message to use if this component isn't supported on this host.
         This is currently called during migrations.'''
         from .utils import get_host_reference_message
-        host_reference = get_host_reference_message(panel_type, host)
+        host_reference = get_host_reference_message(panel_type, host, ob=ob)
         host_type = panel_type.value
         message = f"Warning: Unsupported component on {host_type} {host_reference}, {host_type}s don't support {cls.get_display_name()} components"
 
