@@ -22,7 +22,9 @@ class DirectionalLight(HubsComponent):
                                default=(1.0, 1.0, 1.0, 1.0),
                                size=4,
                                min=0,
-                               max=1)
+                               max=1,
+                               update=lambda x, y: update_gizmos())
+
 
     intensity: FloatProperty(name="Intensity",
                              description="Intensity",
@@ -62,7 +64,7 @@ class DirectionalLight(HubsComponent):
         gizmo.setup()
         gizmo.use_draw_scale = False
         gizmo.use_draw_modal = False
-        gizmo.color = (0.8, 0.8, 0.8)
+        gizmo.color = getattr(ob, cls.get_id()).color[:3]
         gizmo.alpha = 0.5
         gizmo.scale_basis = 1.0
         gizmo.hide_select = True
