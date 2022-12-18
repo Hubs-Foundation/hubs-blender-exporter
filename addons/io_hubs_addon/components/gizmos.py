@@ -147,8 +147,9 @@ class HubsGizmoGroup(GizmoGroup):
                         self.update_object_gizmo(
                             component_name, ob, gizmo)
 
-                except ReferenceError:
-                    # This shouldn't happen, but if objects and widgets have gotten out of sync refresh the whole system.
+                except (ReferenceError, KeyError):
+                    # ReferenceErrors shouldn't happen, but if objects and widgets have gotten out of sync refresh the whole system.
+                    # KeyErrors can happen when an object's armature is changed, so refresh the whole system for this as well.
                     bpy.app.timers.register(update_gizmos)
                     return
 

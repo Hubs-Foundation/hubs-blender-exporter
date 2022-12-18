@@ -129,7 +129,7 @@ class HubsComponent(PropertyGroup):
         The instance_version argument represents the version of the component that will be migrated from, as a tuple.
         The host argument is what the component is attached to, object/bone.
         The migration_report argument is a list that you can append messages to and they will be displayed to the user after the migration has finished.
-        The ob argument is used for bone migrations and is the armature object that the bone is part of.  Note: this is passed for object migrations as well.
+        The ob argument is used for bone migrations and is the armature object that the bone is part of.  Note: this is passed for object migrations as well, and will fall back to passing the armature if the object isn't available.
         Returns a boolean to indicate whether a migration was performed.
         '''
         return False
@@ -151,13 +151,14 @@ class HubsComponent(PropertyGroup):
     def poll(cls, panel_type, host, ob=None):
         '''This method will return true if this component's shown be shown or run.
         This is currently called when checking if the component should be added to the components pop-up, when the components properties panel is drawn, and during migrations to warn about unsupported hosts.
-        The ob argument is guaranteed to be present only for objects/bones.'''
+        The ob argument is guaranteed to be present only for objects/bones, although it will fall back to using the armature for bones if the object isn't available.'''
         return True
 
     @classmethod
     def get_unsupported_host_message(cls, panel_type, host, ob=None):
         '''This method will return the message to use if this component isn't supported on this host.
-        This is currently called during migrations.'''
+        This is currently called during migrations.
+        The ob argument will fall back to an armature for bones if an object isn't available.'''
         from .utils import get_host_reference_message
         host_reference = get_host_reference_message(panel_type, host, ob=ob)
         host_type = panel_type.value

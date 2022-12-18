@@ -127,7 +127,7 @@ class MediaFrame(HubsComponent):
             bounds = Vector((bounds.x, bounds.z, bounds.y))
             self.bounds = bounds
 
-            if migration_type != MigrationType.GLOBAL or is_linked(ob):
+            if migration_type != MigrationType.GLOBAL or is_linked(ob) or type(ob) == bpy.types.Armature:
                 host_reference = get_host_reference_message(panel_type, host, ob=ob)
                 migration_report.append(
                     f"Warning: The Media Frame component's Y and Z bounds on the {panel_type.value} {host_reference} may not have migrated correctly")
