@@ -72,9 +72,16 @@ class SpotLight(HubsComponent):
     shadowRadius: FloatProperty(name="Shadow Radius",
                                 description="Shadow Radius",
                                 default=1.0)
+
     @classmethod
-    def migrate(cls, version):
-        migrate_networked(cls.get_name())
+    def update_gizmo(cls, ob, bone, target, gizmo):
+        if bone:
+            mat = bone_matrix_world(ob, bone)
+        else:
+            mat = ob.matrix_world.copy()
+
+        gizmo.hide = not ob.visible_get()
+        gizmo.matrix_basis = mat
 
     @classmethod
     def create_gizmo(cls, ob, gizmo_group):

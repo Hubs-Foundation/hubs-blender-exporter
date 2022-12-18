@@ -48,6 +48,16 @@ class Image(HubsComponent):
         return migration_occurred
 
     @classmethod
+    def update_gizmo(cls, ob, bone, target, gizmo):
+        if bone:
+            mat = bone_matrix_world(ob, bone)
+        else:
+            mat = ob.matrix_world.copy()
+
+        gizmo.hide = not ob.visible_get()
+        gizmo.matrix_basis = mat
+
+    @classmethod
     def create_gizmo(cls, ob, gizmo_group):
         gizmo = gizmo_group.gizmos.new(CustomModelGizmo.bl_idname)
         gizmo.object = ob
