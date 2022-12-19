@@ -1,5 +1,5 @@
 from ..models import pointlight
-from ..gizmos import CustomModelGizmo, bone_matrix_world
+from ..gizmos import CustomModelGizmo, bone_matrix_world, update_gizmos
 from bpy.props import FloatVectorProperty, FloatProperty, BoolProperty, IntVectorProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
@@ -23,7 +23,7 @@ class PointLight(HubsComponent):
                                size=4,
                                min=0,
                                max=1,
-                               update=lambda x, y: update_gizmos())
+                               update=lambda self, context: update_gizmos())
 
     intensity: FloatProperty(name="Intensity",
                              description="Intensity",
