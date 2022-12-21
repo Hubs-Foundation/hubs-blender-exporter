@@ -1,11 +1,15 @@
 import bpy
-from bpy.props import FloatVectorProperty
+from bpy.props import FloatVectorProperty, PointerProperty, StringProperty, EnumProperty
+from bpy.types import Image
 from ..gizmos import bone_matrix_world, CustomModelGizmo
 from ..models import portal, box
 from ..types import Category, PanelType, NodeType
 from ..hubs_component import HubsComponent
-from mathutils import Matrix, Vector
-from bpy.types import (Gizmo)
+from ..utils import has_component
+from mathutils import Matrix
+from bpy.types import (Gizmo, Object)
+from ..utils import delayed_gather
+import uuid
 
 
 class PortalBoundsGizmo(Gizmo):
@@ -44,14 +48,25 @@ class PortalBoundsGizmo(Gizmo):
                 'TRIS', self.hubs_gizmo_shape)
 
 
+def filter_on_component(self, ob):
+    return has_component(ob, Portal.get_name()) and self.name != ob.hubs_component_portal.name
+
+
 class Portal(HubsComponent):
     _definition = {
         'name': 'portal',
         'display_name': 'Portal',
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
-        'panel_type': [PanelType.OBJECT, PanelType.BONE]
+        'panel_type': [PanelType.OBJECT, PanelType.BONE],
+        'icon': 'MESH_CIRCLE',
     }
+
+    name: StringProperty(
+        name="Name",
+        description="The name of the portal that will be shown int he tag",
+        default="Portal"
+    )
 
     bounds: FloatVectorProperty(
         name="Bounds",
@@ -67,7 +82,41 @@ class Portal(HubsComponent):
         subtype="COORDINATES",
         default=(0.0, 0.5, 0.0))
 
+    target_local: PointerProperty(
+        name="Target",
+        description="The other end of this portal",
+        type=Object,
+        poll=filter_on_component)
+
+    target_remote: StringProperty(
+        name="Target",
+        description="A url that pointing to another portal or waypoint")
+
+    image: PointerProperty(
+        name="Image",
+        description="An image of the remote portal to show on this portal",
+        type=Image
+    )
+
+    uuid: StringProperty(
+        name="Id",
+        description="Portal Id",
+        options={'HIDDEN'}
+    )
+
+    type: EnumProperty(
+        name="Type",
+        description="Portal Type",
+        items=[("local", "Local", "A portal whose target portal is in the same room"),
+               ("remove", "Remote", "A portal whose target portal is in a different room")],
+        default="local")
+
     @classmethod
+    def init(cls, obj):
+        obj.hubs_component_portal.name = obj.name
+        obj.hubs_component_portal.uuid = str(uuid.uuid4()).upper()
+
+    @ classmethod
     def update_gizmo(cls, ob, bone, target, gizmo):
         if isinstance(gizmo, PortalBoundsGizmo):
             gizmo.target_set_prop(
@@ -93,7 +142,7 @@ class Portal(HubsComponent):
 
         gizmo.hide = not ob.visible_get()
 
-    @classmethod
+    @ classmethod
     def create_gizmos(cls, ob, gizmo_group):
         bounds_gizmo = gizmo_group.gizmos.new(PortalBoundsGizmo.bl_idname)
         setattr(bounds_gizmo, "hubs_gizmo_shape", box.SHAPE)
@@ -126,10 +175,54 @@ class Portal(HubsComponent):
 
         return [bounds_gizmo, portal_gizmo]
 
-    @staticmethod
+    @ staticmethod
     def register():
         bpy.utils.register_class(PortalBoundsGizmo)
 
-    @staticmethod
+    @ staticmethod
     def unregister():
         bpy.utils.unregister_class(PortalBoundsGizmo)
+
+    def draw(self, context, layout, panel):
+        layout.prop(data=self, property="name")
+        layout.prop(data=self, property="type")
+        if self.type == 'local':
+            layout.prop(data=self, property="target_local")
+        else:
+            layout.prop(data=self, property="target_remote")
+            layout.prop(data=self, property="image")
+        layout.prop(data=self, property="bounds")
+        layout.prop(data=self, property="offset")
+
+    @delayed_gather
+    def gather(self, export_settings, object):
+        bounds = {
+            'x': self.bounds.x,
+            'y': self.bounds.y,
+            'z': self.bounds.z
+        }
+        offset = {
+            'x': self.offset.x,
+            'y': self.offset.y,
+            'z': self.offset.z
+        }
+        if export_settings['gltf_yup']:
+            bounds['y'] = self.bounds.z
+            bounds['z'] = self.bounds.y
+            offset['y'] = self.offset.z
+            offset['z'] = -self.offset.y
+
+        from ...io.utils import gather_texture_property
+        return {
+            'uuid': self.uuid,
+            'bounds': bounds,
+            'offset': offset,
+            'name': self.name,
+            'target': self.target_local.hubs_component_portal.uuid if self.type == 'local' else self.target_remote,
+            'image': gather_texture_property(
+                export_settings,
+                object,
+                self,
+                'image'),
+            'local': self.type == 'local'
+        }
