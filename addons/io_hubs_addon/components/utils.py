@@ -147,19 +147,20 @@ if platform.system() == "Windows":
             def c_fflush():
                 try:
                     libc.fflush(stdout)
-                except Exception as e:
+                except BaseException as e:
                     print("Error: Unable to flush the C stdout")
 
-        except Exception as e:  # Fall back to flushing all open output streams.
+        except BaseException as e:  # Fall back to flushing all open output streams.
             print("Warning: Couldn't get the C stdout")
 
             def c_fflush():
                 try:
                     libc.fflush(None)
-                except Exception as e:
+                except BaseException as e:
                     print("Error: Unable to flush the C stdout")
 
-    except Exception as e:  # Warn and fail gracefully.  Flushing the C stdout is required because Windows switches to full buffering when redirected.
+    # Warn and fail gracefully.  Flushing the C stdout is required because Windows switches to full buffering when redirected.
+    except BaseException as e:
         print("Error: Unable to find the C runtime.")
 
         def c_fflush():
@@ -178,18 +179,18 @@ else:  # Linux/Mac
             def c_fflush():
                 try:
                     libc.fflush(c_stdout)
-                except Exception as e:
+                except BaseException as e:
                     print("Warning: Unable to flush the C stdout.")
 
         # The C stdout wasn't found.  This is unlikely to happen, but if it does then just skip flushing since Linux/Mac doesn't seem to strictly require a C-level flush to work.
-        except Exception as e:
+        except BaseException as e:
             print("Warning: Couldn't get the C stdout.")
 
             def c_fflush():
                 pass
 
     # The C runtime wasn't found.  This is unlikely to happen, but if it does then just skip flushing since Linux/Mac doesn't seem to strictly require a C-level flush to work.
-    except Exception as e:
+    except BaseException as e:
         print("Warning: Unable to find the C runtime.")
 
         def c_fflush():
