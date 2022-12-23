@@ -110,7 +110,7 @@ class HubsComponent(PropertyGroup):
             if not self.bl_rna.properties[key].is_hidden:
                 layout.prop(data=self, property=key)
 
-    def pre_export(self, export_settings, object):
+    def pre_export(self, export_settings, host, ob=None):
         '''This is called by the exporter before starting the export process'''
         pass
 
@@ -118,7 +118,7 @@ class HubsComponent(PropertyGroup):
         '''This is called by the exporter and will return all the component properties by default'''
         return gather_properties(export_settings, object, self)
 
-    def post_export(self, export_settings, object):
+    def post_export(self, export_settings, host, ob=None):
         '''This is called by the exporter after the export process has finished'''
         pass
 
