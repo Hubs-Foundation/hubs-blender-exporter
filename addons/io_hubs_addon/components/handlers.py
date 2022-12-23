@@ -12,6 +12,8 @@ previous_undo_steps_dump = ""
 previous_undo_step_index = 0
 previous_window_setups = []
 file_loading = False
+msgbus_owners = []
+object_data_switched = False
 
 
 def migrate(component, migration_type, panel_type, host, migration_report, ob=None):
@@ -30,6 +32,17 @@ def migrate(component, migration_type, panel_type, host, migration_report, ob=No
 
         component.instance_version = definition_version
 
+    try:
+        unsupported_host = panel_type not in component.__class__.get_panel_type(
+        ) or not component.__class__.poll(panel_type, host, ob=ob)
+    except Exception:
+        # The poll likely failed on an armature without an object.
+        unsupported_host = True
+
+    if unsupported_host:
+        message = component.__class__.get_unsupported_host_message(panel_type, host, ob=ob)
+        migration_report.append(message)
+
     if instance_version > definition_version:
         host_reference = get_host_reference_message(panel_type, host, ob=ob)
         migration_report.append(
@@ -47,6 +60,7 @@ def migrate_components(
         override_report_title=""):
     migration_report = []
     migrated_linked_components = []
+    armature_objects = {}
     link_migration_occurred = False
     display_registration_message = False
 
@@ -90,23 +104,33 @@ def migrate_components(
                 migrated_linked_components.append(component_info)
 
         if ob.type == 'ARMATURE':
-            for bone in ob.data.bones:
-                for component in get_host_components(bone):
-                    try:
-                        was_migrated = migrate(
-                            component, migration_type, PanelType.BONE, bone, migration_report, ob=ob)
-                    except Exception as e:
-                        was_migrated = True
-                        error = f"Error: Migration failed for component {component.get_display_name()} on bone \"{bone.name}\" in \"{ob.name_full}\""
-                        migration_report.append(f"{error}\n{e} (See Blender's console for details)")
-                        print(error)
-                        traceback.print_exc()
+            if ob.mode == 'EDIT':
+                ob.update_from_editmode()
 
-                    display_registration_message |= was_migrated
-                    if was_migrated and is_linked(ob):
-                        link_migration_occurred = True
-                        component_info = f"{component.get_display_name()} component on bone \"{bone.name}\" in \"{ob.name_full}\""
-                        migrated_linked_components.append(component_info)
+            armature_name = ob.data.name_full
+            if armature_name not in armature_objects:
+                # Store the first object to use this armature for later when armatures are migrated (armatures can only be migrated once anyway)
+                armature_objects[armature_name] = ob
+
+    for armature in bpy.data.armatures:
+        ob = armature_objects.get(armature.name_full, armature)
+        for bone in armature.bones:
+            for component in get_host_components(bone):
+                try:
+                    was_migrated = migrate(
+                        component, migration_type, PanelType.BONE, bone, migration_report, ob=ob)
+                except Exception as e:
+                    was_migrated = True
+                    error = f"Error: Migration failed for component {component.get_display_name()} on bone \"{bone.name}\" in \"{ob.name_full}\""
+                    migration_report.append(f"{error}\n{e} (See Blender's console for details)")
+                    print(error)
+                    traceback.print_exc()
+
+                display_registration_message |= was_migrated
+                if was_migrated and is_linked(ob):
+                    link_migration_occurred = True
+                    component_info = f"{component.get_display_name()} component on bone \"{bone.name}\" in \"{ob.name_full}\""
+                    migrated_linked_components.append(component_info)
 
     for material in bpy.data.materials:
         for component in get_host_components(material):
@@ -197,6 +221,7 @@ def load_post(dummy):
     file_loading = True
 
     migrate_components(MigrationType.GLOBAL, do_beta_versioning=True)
+    register_msgbus()
 
 
 def find_active_undo_step_index(undo_steps):
@@ -211,10 +236,11 @@ def find_active_undo_step_index(undo_steps):
 
 
 @persistent
-def undo_stack_handler(dummy):
+def undo_stack_handler(dummy, depsgraph):
     global previous_undo_steps_dump
     global previous_undo_step_index
     global file_loading
+    global object_data_switched
 
     # Return if Blender isn't in a fully loaded state. (Prevents Blender crashing)
     if file_loading and not bpy.context.space_data:
@@ -305,6 +331,12 @@ def undo_stack_handler(dummy):
         task_scheduler.add('migrate_components')
         display_report = (step_type == 'DO')
 
+    # Handle specific depsgraph updates.
+    if depsgraph.id_type_updated('ARMATURE') and object_data_switched:
+        # Update gizmos when switching the armature for an object.
+        object_data_switched = False
+        task_scheduler.add('update_gizmos')
+
     # Execute the scheduled tasks.
     # Note: Blender seems to somehow be caching calls to update_gizmos, so having it as a scheduled task may not affect performance.  Calls to migrate_components are not cached by Blender.
     for task in task_scheduler:
@@ -335,6 +367,23 @@ def scene_and_view_layer_update_notifier(self, context):
         previous_window_setups = current_window_setups
 
 
+def register_msgbus():
+    global msgbus_owners
+    owner = object()
+    msgbus_owners.append(owner)
+
+    def msgbus_update(*args):
+        global object_data_switched
+        object_data_switched = True
+
+    bpy.msgbus.subscribe_rna(
+        key=(bpy.types.Object, "data"),
+        owner=owner,
+        args=(bpy.context,),
+        notify=msgbus_update,
+    )
+
+
 def register():
     global previous_undo_steps_dump
     global previous_undo_step_index
@@ -351,8 +400,12 @@ def register():
 
     bpy.types.TOPBAR_HT_upper_bar.append(scene_and_view_layer_update_notifier)
 
+    register_msgbus()
+
 
 def unregister():
+    global msgbus_owners
+
     if load_post in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.remove(load_post)
 
@@ -360,3 +413,7 @@ def unregister():
         bpy.app.handlers.depsgraph_update_post.remove(undo_stack_handler)
 
     bpy.types.TOPBAR_HT_upper_bar.remove(scene_and_view_layer_update_notifier)
+
+    for owner in msgbus_owners:
+        bpy.msgbus.clear_by_owner(owner)
+    msgbus_owners.clear()

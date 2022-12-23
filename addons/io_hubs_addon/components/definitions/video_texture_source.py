@@ -1,4 +1,4 @@
-from ..utils import children_recursive
+from ..utils import children_recursive, get_host_reference_message
 from bpy.props import IntVectorProperty, IntProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
@@ -36,11 +36,10 @@ class VideoTextureSource(HubsComponent):
 
     @classmethod
     def get_unsupported_host_message(cls, panel_type, host, ob=None):
+        host_reference = get_host_reference_message(panel_type, host, ob=ob)
         if panel_type == PanelType.BONE:
-            host_reference = f"\"{host.name}\" in \"{ob.name_full}\""
             object_message = ""
         else:
-            host_reference = f"\"{host.name_full}\""
             object_message = " aren't cameras themselves and"
 
         host_type = panel_type.value
