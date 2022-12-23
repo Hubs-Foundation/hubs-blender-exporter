@@ -3,7 +3,7 @@ from bpy.props import BoolProperty, FloatProperty, EnumProperty
 from ..hubs_component import HubsComponent
 from ..types import PanelType, NodeType, MigrationType
 from ..utils import is_linked
-from ..consts import DISTACE_MODELS, MAX_ANGLE
+from ..consts import DISTANCE_MODELS, MAX_ANGLE
 from math import degrees, radians
 
 AUDIO_TYPES = [("pannernode", "Positional audio (pannernode)",

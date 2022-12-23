@@ -3,7 +3,7 @@ from bpy.props import FloatProperty, EnumProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType, MigrationType
 from ..utils import is_linked
-from ..consts import DISTACE_MODELS, MAX_ANGLE
+from ..consts import DISTANCE_MODELS, MAX_ANGLE
 from math import degrees, radians
 
 
