@@ -3,7 +3,7 @@ from bpy.props import FloatProperty, EnumProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType, MigrationType
 from ..utils import is_linked
-from ..consts import DISTACE_MODELS, MAX_ANGLE
+from ..consts import DISTANCE_MODELS, MAX_ANGLE
 from math import degrees, radians
 
 
@@ -21,7 +21,7 @@ class AudioSettings(HubsComponent):
     avatarDistanceModel: EnumProperty(
         name="Avatar Distance Model",
         description="Avatar Distance Model",
-        items=DISTACE_MODELS,
+        items=DISTANCE_MODELS,
         default="inverse")
 
     avatarRolloffFactor: FloatProperty(
@@ -52,7 +52,7 @@ class AudioSettings(HubsComponent):
     mediaDistanceModel: EnumProperty(
         name="Media Distance Model",
         description="Media Distance Model",
-        items=DISTACE_MODELS,
+        items=DISTANCE_MODELS,
         default="inverse")
 
     mediaRolloffFactor: FloatProperty(
