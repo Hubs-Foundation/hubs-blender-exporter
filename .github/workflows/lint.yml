@@ -1,0 +1,48 @@
+name: Lint
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v3
+      - name: Python Linter
+        uses: weibullguy/python-lint-plus@v1.9.0
+        with:
+          python-root-list: 'addons'
+          use-black: false
+          use-yapf: false
+          use-isort: false
+          use-docformatter: false
+          use-pycodestyle: true
+          use-autopep8: false
+          use-pydocstyle: false
+          use-mypy: false
+          use-pylint: false
+          use-flake8: false
+          use-mccabe: false
+          use-radon: false
+          use-rstcheck: false
+          use-check-manifest: false
+          use-pyroma: false
+          extra-black-options: ''
+          extra-yapf-options: ''
+          extra-isort-options: ''
+          extra-docformatter-options: ''
+          # This should work with **/models but it doesn't
+          extra-pycodestyle-options: '--exclude=models --ignore=E501,W504'
+          extra-pydocstyle-options: ''
+          extra-mypy-options: ''
+          extra-pylint-options: ''
+          extra-flake8-options: ''
+          extra-mccabe-options: ''
+          extra-radon-options: ''
+          extra-rstcheck-options: ''
+          extra-manifest-options: ''
+          extra-pyroma-options: ''
