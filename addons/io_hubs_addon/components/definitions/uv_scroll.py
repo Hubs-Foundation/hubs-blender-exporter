@@ -27,8 +27,8 @@ class UVScroll(HubsComponent):
                                    default=[0, 0])
 
     @classmethod
-    def poll(cls, context, panel_type):
-        return hasattr(context.object.data, 'materials')
+    def poll(cls, panel_type, host, ob=None):
+        return hasattr(ob.data, 'materials')
 
     def draw(self, context, layout, panel):
         has_texture = False
