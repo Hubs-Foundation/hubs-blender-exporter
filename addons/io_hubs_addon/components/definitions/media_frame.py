@@ -172,7 +172,7 @@ class MediaFrame(HubsComponent):
                 col = layout.column()
                 col.alert = True
                 col.label(
-                    text="The media-frame object, and it's parents, scale needs to be [1,1,1]", icon='ERROR')
+                    text="The media-frame object, and its parents' scale need to be [1,1,1]", icon='ERROR')
 
                 break
 
