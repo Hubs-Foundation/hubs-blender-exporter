@@ -122,9 +122,10 @@ class HubsComponent(PropertyGroup):
         '''This is called by the exporter after the export process has finished'''
         pass
 
-    def migrate(self, migration_type, instance_version, host, migration_report, ob=None):
+    def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
         '''This is called when an object component needs to migrate the data from previous add-on versions.
         The migration_type argument is the type of migration, GLOBAL represents file loads, and LOCAL represents things like append/link.
+        The panel_type argument is used to determine what data-block the component is on.
         The instance_version argument represents the version of the component that will be migrated from, as a tuple.
         The host argument is what the component is attached to, object/bone.
         The migration_report argument is a list that you can append messages to and they will be displayed to the user after the migration has finished.
@@ -147,10 +148,22 @@ class HubsComponent(PropertyGroup):
         return {}
 
     @classmethod
-    def poll(cls, context, panel_type):
+    def poll(cls, panel_type, host, ob=None):
         '''This method will return true if this component's shown be shown or run.
-        This is currently called when checking if the component should be added to the components pop-up and when the components properties panel is drawn'''
+        This is currently called when checking if the component should be added to the components pop-up, when the components properties panel is drawn, and during migrations to warn about unsupported hosts.
+        The ob argument is guaranteed to be present only for objects/bones.'''
         return True
+
+    @classmethod
+    def get_unsupported_host_message(cls, panel_type, host, ob=None):
+        '''This method will return the message to use if this component isn't supported on this host.
+        This is currently called during migrations.'''
+        from .utils import get_host_reference_message
+        host_reference = get_host_reference_message(panel_type, host, ob=ob)
+        host_type = panel_type.value
+        message = f"Warning: Unsupported component on {host_type} {host_reference}, {host_type}s don't support {cls.get_display_name()} components"
+
+        return message
 
     @staticmethod
     def register():

@@ -4,7 +4,7 @@ from bpy.props import StringProperty, CollectionProperty, IntProperty, BoolPrope
 from bpy.types import PropertyGroup, Menu, Operator
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
-from ..utils import redraw_component_ui
+from ..utils import redraw_component_ui, get_host_reference_message
 
 msgbus_owners = []
 
@@ -683,7 +683,7 @@ class LoopAnimation(HubsComponent):
 
         unregister_msgbus()
 
-    def migrate(self, migration_type, instance_version, host, migration_report, ob=None):
+    def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
         migration_occurred = False
         if instance_version < (1, 0, 0):
             migration_occurred = True
@@ -714,13 +714,9 @@ class LoopAnimation(HubsComponent):
                     track.track_type = track_type
 
             if migration_warning:
-                host_type = "bone" if hasattr(host, "tail") else "object"
-                if host_type == "bone":
-                    host_reference = f"\"{host.name}\" in \"{host.id_data.name_full}\""
-                else:
-                    host_reference = f"\"{host.name_full}\""
+                host_reference = get_host_reference_message(panel_type, host, ob=ob)
                 migration_report.append(
-                    f"Warning: The Loop Animation component on the {host_type} {host_reference} may not have migrated correctly")
+                    f"Warning: The Loop Animation component on the {panel_type.value} {host_reference} may not have migrated correctly")
 
         return migration_occurred
 

@@ -2,7 +2,7 @@ import bpy
 from bpy.props import BoolProperty, FloatProperty, EnumProperty
 from ..hubs_component import HubsComponent
 from ..types import PanelType, NodeType, MigrationType
-from ..utils import is_linked
+from ..utils import is_linked, get_host_reference_message
 from ..consts import DISTACE_MODELS, MAX_ANGLE
 from math import degrees, radians
 
@@ -105,7 +105,7 @@ class AudioParams(HubsComponent):
                 'coneOuterGain': self.coneOuterGain
             }
 
-    def migrate(self, migration_type, instance_version, host, migration_report, ob=None):
+    def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
         migration_occurred = False
         if instance_version < (1, 0, 0):
             migration_occurred = True
@@ -115,13 +115,9 @@ class AudioParams(HubsComponent):
                 self.coneOuterAngle)
 
             if migration_type != MigrationType.GLOBAL or is_linked(ob):
-                host_type = "bone" if hasattr(host, "tail") else "object"
-                if host_type == "bone":
-                    host_reference = f"\"{host.name}\" in \"{host.id_data.name_full}\""
-                else:
-                    host_reference = f"\"{host.name_full}\""
+                host_reference = get_host_reference_message(panel_type, host, ob=ob)
                 migration_report.append(
-                    f"Warning: The Media Cone angles may not have migrated correctly for the Audio Params component on the {host_type} {host_reference}")
+                    f"Warning: The Media Cone angles may not have migrated correctly for the Audio Params component on the {panel_type.value} {host_reference}")
 
         return migration_occurred
 

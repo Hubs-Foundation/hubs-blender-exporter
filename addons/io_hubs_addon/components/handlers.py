@@ -3,7 +3,7 @@ from bpy.app.handlers import persistent
 from .components_registry import get_components_registry
 from .utils import redirect_c_stdout, get_host_components, is_linked
 from .gizmos import update_gizmos
-from .types import MigrationType
+from .types import MigrationType, PanelType
 import io
 import sys
 import traceback
@@ -14,14 +14,14 @@ previous_window_setups = []
 file_loading = False
 
 
-def migrate(component, migration_type, host, migration_report, ob=None):
+def migrate(component, migration_type, panel_type, host, migration_report, ob=None):
     instance_version = tuple(component.instance_version)
     definition_version = component.__class__.get_definition_version()
     was_migrated = False
 
     if instance_version < definition_version:
         was_migrated = component.migrate(
-            migration_type, instance_version, host, migration_report, ob=ob)
+            migration_type, panel_type, instance_version, host, migration_report, ob=ob)
 
         if type(was_migrated) != bool:
             print(f"Warning: the {component.get_display_name()} component didn't return whether a migration occurred.")
@@ -29,6 +29,10 @@ def migrate(component, migration_type, host, migration_report, ob=None):
             was_migrated = True
 
         component.instance_version = definition_version
+
+    if panel_type not in component.__class__.get_panel_type() or not component.__class__.poll(panel_type, host, ob=ob):
+        message = component.__class__.get_unsupported_host_message(panel_type, host, ob=ob)
+        migration_report.append(message)
 
     return was_migrated
 
@@ -48,7 +52,7 @@ def migrate_components(
         for component in get_host_components(scene):
             try:
                 was_migrated = migrate(
-                    component, migration_type, scene, migration_report)
+                    component, migration_type, PanelType.SCENE, scene, migration_report)
             except Exception as e:
                 was_migrated = True
                 error = f"Error: Migration failed for component {component.get_display_name()} on scene \"{scene.name_full}\""
@@ -66,7 +70,7 @@ def migrate_components(
         for component in get_host_components(ob):
             try:
                 was_migrated = migrate(
-                    component, migration_type, ob, migration_report, ob=ob)
+                    component, migration_type, PanelType.OBJECT, ob, migration_report, ob=ob)
             except Exception as e:
                 was_migrated = True
                 error = f"Error: Migration failed for component {component.get_display_name()} on object \"{ob.name_full}\""
@@ -85,7 +89,7 @@ def migrate_components(
                 for component in get_host_components(bone):
                     try:
                         was_migrated = migrate(
-                            component, migration_type, bone, migration_report, ob=ob)
+                            component, migration_type, PanelType.BONE, bone, migration_report, ob=ob)
                     except Exception as e:
                         was_migrated = True
                         error = f"Error: Migration failed for component {component.get_display_name()} on bone \"{bone.name}\" in \"{ob.name_full}\""
@@ -103,7 +107,7 @@ def migrate_components(
         for component in get_host_components(material):
             try:
                 was_migrated = migrate(
-                    component, migration_type, material, migration_report)
+                    component, migration_type, PanelType.MATERIAL, material, migration_report)
             except Exception as e:
                 was_migrated = True
                 error = f"Error: Migration failed for component {component.get_display_name()} on material \"{material.name_full}\""
