@@ -33,7 +33,7 @@ def get_bones(self, context):
     bones.append((BLANK_ID, "Select a bone", "None", "BLANK", count))
     count += 1
 
-    if self.srcNode.mode == 'EDIT':
+    if self.srcNode and self.srcNode.mode == 'EDIT':
         self.srcNode.update_from_editmode()
 
     found = False
@@ -77,7 +77,8 @@ class VideoTextureTarget(HubsComponent):
         'category': Category.MEDIA,
         'node_type': NodeType.MATERIAL,
         'panel_type': [PanelType.MATERIAL],
-        'icon': 'IMAGE_DATA'
+        'icon': 'IMAGE_DATA',
+        'version': (1, 0, 0)
     }
 
     targetBaseColorMap: BoolProperty(

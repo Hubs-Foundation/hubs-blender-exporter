@@ -66,6 +66,9 @@ class HubsGizmoGroup(GizmoGroup):
     bl_region_type = 'WINDOW'
     bl_options = {'3D', 'PERSISTENT', 'SHOW_MODAL_ALL', 'SELECT'}
 
+    has_widgets = False
+    windows_processed = 0
+
     def add_gizmo(self, ob, host, host_type):
         for component_item in host.hubs_component_list.items:
             component_name = component_item.name
@@ -77,7 +80,7 @@ class HubsGizmoGroup(GizmoGroup):
                 if component_name not in self.widgets:
                     self.widgets[component_name] = {}
 
-                host_key = ob.name + host.name
+                host_key = ob.name_full + host.name
                 if host_key not in self.widgets[component_name]:
                     self.widgets[component_name][host_key] = {
                         'ob': ob,
@@ -86,21 +89,11 @@ class HubsGizmoGroup(GizmoGroup):
                         'gizmo': gizmo
                     }
 
-                    if host_type == 'OBJECT':
-                        owner = object()
-                        msgbus_owners.append(owner)
-                        subscribe_to = host.path_resolve("name", False)
-                        bpy.msgbus.subscribe_rna(
-                            key=subscribe_to,
-                            owner=owner,
-                            args=(bpy.context,),
-                            notify=msgbus_callback,
-                        )
-
     def setup(self, context):
+        # A new instance of the gizmo group is instantiated, and setup is called once for each instance, for each open window.
         self.widgets = {}
 
-        for ob in bpy.data.objects:
+        for ob in context.scene.objects:
             self.add_gizmo(ob, ob, 'OBJECT')
             if ob.type == 'ARMATURE':
                 if ob.mode == 'EDIT':
@@ -110,11 +103,15 @@ class HubsGizmoGroup(GizmoGroup):
                     for bone in ob.data.bones:
                         self.add_gizmo(ob, bone, 'BONE')
 
-        if not self.widgets:
-            unregister_gizmo_system()
-            return
+        if self.widgets:
+            HubsGizmoGroup.has_widgets = True
 
-        self.refresh(context)
+        HubsGizmoGroup.windows_processed += 1
+
+        if HubsGizmoGroup.windows_processed == len(context.window_manager.windows):
+            if not HubsGizmoGroup.has_widgets:
+                bpy.app.timers.register(unregister_gizmo_system)
+                return
 
     def update_gizmo(self, component_name, ob, bone, target, gizmo):
         component_class = get_component_by_name(component_name)
@@ -128,28 +125,35 @@ class HubsGizmoGroup(GizmoGroup):
 
     def refresh(self, context):
         for component_name in self.widgets:
-            components_widgets = self.widgets[component_name].copy()
-            for widget in components_widgets.values():
+            component_widgets = self.widgets[component_name].copy()
+            for widget in component_widgets.values():
                 gizmo = widget['gizmo']
                 ob = widget['ob']
                 host_name = widget['host_name']
-                if widget['host_type'] == 'BONE':
-                    # https://docs.blender.org/api/current/info_gotcha.html#editbones-posebones-bone-bones
-                    if ob.mode == 'EDIT':
-                        edit_bone = ob.data.edit_bones[host_name]
-                        self.update_bone_gizmo(
-                            component_name, ob, edit_bone, edit_bone, gizmo)
+
+                try:
+                    if widget['host_type'] == 'BONE':
+                        # https://docs.blender.org/api/current/info_gotcha.html#editbones-posebones-bone-bones
+                        if ob.mode == 'EDIT':
+                            edit_bone = ob.data.edit_bones[host_name]
+                            self.update_bone_gizmo(
+                                component_name, ob, edit_bone, edit_bone, gizmo)
+                        else:
+                            bone = ob.data.bones[host_name]
+                            pose_bone = ob.pose.bones[host_name]
+                            self.update_bone_gizmo(
+                                component_name, ob, bone, pose_bone, gizmo)
                     else:
-                        bone = ob.data.bones[host_name]
-                        pose_bone = ob.pose.bones[host_name]
-                        self.update_bone_gizmo(
-                            component_name, ob, bone, pose_bone, gizmo)
-                else:
-                    self.update_object_gizmo(
-                        component_name, ob, gizmo)
+                        self.update_object_gizmo(
+                            component_name, ob, gizmo)
+
+                except ReferenceError:
+                    # This shouldn't happen, but if objects and widgets have gotten out of sync refresh the whole system.
+                    bpy.app.timers.register(update_gizmos)
+                    return
 
 
-global objects_count
+objects_count = -1
 gizmo_system_registered = False
 msgbus_owners = []
 
@@ -171,21 +175,34 @@ def redo_post(dummy):
 @persistent
 def depsgraph_update_post(dummy):
     global objects_count
-    if bpy.context.mode == 'OBJECT':
-        if len(bpy.data.objects) != objects_count:
-            update_gizmos()
-        objects_count = len(bpy.data.objects)
-    elif bpy.context.mode == 'EDIT_ARMATURE':
-        for ob in bpy.context.objects_in_mode:
-            if len(ob.data.edit_bones) != ob.data.hubs_old_bones_length:
-                update_gizmos()
-            ob.data.hubs_old_bones_length = len(ob.data.edit_bones)
+    do_gizmo_update = False
+    open_scenes_object_count = 0
+    wm = bpy.context.window_manager
+    for window in wm.windows:
+        open_scenes_object_count += len(window.scene.objects)
+        active_object = window.view_layer.objects.active
+        if active_object:
+            if active_object.type == 'ARMATURE' and active_object.mode == 'EDIT':
+                edited_objects = set(window.view_layer.objects.selected)
+                edited_objects.add(active_object)
+                for ob in edited_objects:
+                    if len(ob.data.edit_bones) != ob.data.hubs_old_bones_length:
+                        do_gizmo_update = True
+                        ob.data.hubs_old_bones_length = len(ob.data.edit_bones)
+
+    if open_scenes_object_count != objects_count:
+        do_gizmo_update = True
+
+    objects_count = open_scenes_object_count
+
+    if do_gizmo_update:
+        update_gizmos()
 
 
 @persistent
 def load_post(dummy):
     global objects_count
-    objects_count = len(bpy.data.objects)
+    objects_count = -1
     unregister_gizmo_system()
     register_gizmo_system()
 
@@ -194,9 +211,6 @@ def register_gizmo_system():
     global gizmo_system_registered
     global msgbus_owners
 
-    if depsgraph_update_post not in bpy.app.handlers.depsgraph_update_post:
-        bpy.app.handlers.depsgraph_update_post.append(
-            depsgraph_update_post)
     if undo_post not in bpy.app.handlers.undo_post:
         bpy.app.handlers.undo_post.append(
             undo_post)
@@ -220,6 +234,8 @@ def register_gizmo_system():
 
 def register_gizmos():
     try:
+        HubsGizmoGroup.has_widgets = False
+        HubsGizmoGroup.windows_processed = 0
         bpy.utils.register_class(CustomModelGizmo)
         bpy.utils.register_class(HubsGizmoGroup)
     except Exception:
@@ -230,9 +246,6 @@ def unregister_gizmo_system():
     global gizmo_system_registered
     global msgbus_owners
 
-    if depsgraph_update_post in bpy.app.handlers.depsgraph_update_post:
-        bpy.app.handlers.depsgraph_update_post.remove(
-            depsgraph_update_post)
     if undo_post in bpy.app.handlers.undo_post:
         bpy.app.handlers.undo_post.remove(
             undo_post)
@@ -264,8 +277,14 @@ def update_gizmos():
 
 def register_functions():
     def register():
+        global objects_count
+        objects_count = -1
+
         if load_post not in bpy.app.handlers.load_post:
             bpy.app.handlers.load_post.append(load_post)
+        if not depsgraph_update_post in bpy.app.handlers.depsgraph_update_post:
+            bpy.app.handlers.depsgraph_update_post.append(
+                depsgraph_update_post)
 
         bpy.types.Armature.hubs_old_bones_length = IntProperty(
             options={'HIDDEN', 'SKIP_SAVE'})
@@ -275,6 +294,9 @@ def register_functions():
     def unregister():
         if load_post in bpy.app.handlers.load_post:
             bpy.app.handlers.load_post.remove(load_post)
+        if depsgraph_update_post in bpy.app.handlers.depsgraph_update_post:
+            bpy.app.handlers.depsgraph_update_post.remove(
+                depsgraph_update_post)
 
         unregister_gizmo_system()
 

@@ -1,8 +1,9 @@
 import bpy
 from bpy.props import BoolProperty, FloatProperty, EnumProperty
 from ..hubs_component import HubsComponent
-from ..types import PanelType, NodeType
-from ..consts import DISTANCE_MODELS, MAX_ANGLE
+from ..types import PanelType, NodeType, MigrationType
+from ..utils import is_linked
+from ..consts import DISTACE_MODELS, MAX_ANGLE
 from math import degrees, radians
 
 AUDIO_TYPES = [("pannernode", "Positional audio (pannernode)",
@@ -16,7 +17,8 @@ class AudioParams(HubsComponent):
         'name': 'audio-params',
         'display_name': 'Audio Params',
         'node_type': NodeType.NODE,
-        'panel_type': [PanelType.OBJECT, PanelType.BONE]
+        'panel_type': [PanelType.OBJECT, PanelType.BONE],
+        'version': (1, 0, 0)
     }
 
     overrideAudioSettings: BoolProperty(
@@ -103,22 +105,25 @@ class AudioParams(HubsComponent):
                 'coneOuterGain': self.coneOuterGain
             }
 
-    @classmethod
-    def migrate(cls, version):
-        if version < (1, 0, 0):
-            def migrate_data(ob):
-                if cls.get_name() in ob.hubs_component_list.items:
-                    ob.hubs_component_audio_params.coneInnerAngle = radians(
-                        ob.hubs_component_audio_params.coneInnerAngle)
-                    ob.hubs_component_audio_params.coneOuterAngle = radians(
-                        ob.hubs_component_audio_params.coneOuterAngle)
+    def migrate(self, migration_type, instance_version, host, migration_report, ob=None):
+        migration_occurred = False
+        if instance_version < (1, 0, 0):
+            migration_occurred = True
+            self.coneInnerAngle = radians(
+                self.coneInnerAngle)
+            self.coneOuterAngle = radians(
+                self.coneOuterAngle)
 
-            for ob in bpy.data.objects:
-                migrate_data(ob)
+            if migration_type != MigrationType.GLOBAL or is_linked(ob):
+                host_type = "bone" if hasattr(host, "tail") else "object"
+                if host_type == "bone":
+                    host_reference = f"\"{host.name}\" in \"{host.id_data.name_full}\""
+                else:
+                    host_reference = f"\"{host.name_full}\""
+                migration_report.append(
+                    f"Warning: The Media Cone angles may not have migrated correctly for the Audio Params component on the {host_type} {host_reference}")
 
-                if ob.type == 'ARMATURE':
-                    for bone in ob.data.bones:
-                        migrate_data(bone)
+        return migration_occurred
 
     def draw(self, context, layout, panel):
         layout.prop(data=self, property="overrideAudioSettings")

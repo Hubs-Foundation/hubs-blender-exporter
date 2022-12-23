@@ -10,7 +10,8 @@ class Skybox(HubsComponent):
         'category': Category.SCENE,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
-        'icon': 'MAT_SPHERE_SKY'
+        'icon': 'MAT_SPHERE_SKY',
+        'version': (1, 0, 0)
     }
 
     azimuth: FloatProperty(name="Time of Day",

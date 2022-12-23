@@ -11,7 +11,8 @@ class SpotLight(HubsComponent):
         'category': Category.LIGHTS,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
-        'icon': 'LIGHT_SPOT'
+        'icon': 'LIGHT_SPOT',
+        'version': (1, 0, 0)
     }
 
     color: FloatVectorProperty(name="Color",

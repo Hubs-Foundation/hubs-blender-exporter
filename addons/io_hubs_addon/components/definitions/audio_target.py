@@ -35,7 +35,7 @@ def get_bones(self, context):
     bones.append((BLANK_ID, "Select a bone", "None", "BLANK", count))
     count += 1
 
-    if self.srcNode.mode == 'EDIT':
+    if self.srcNode and self.srcNode.mode == 'EDIT':
         self.srcNode.update_from_editmode()
 
     found = False
@@ -80,7 +80,8 @@ class AudioTarget(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'deps': ['audio-params'],
-        'icon': 'SPEAKER'
+        'icon': 'SPEAKER',
+        'version': (1, 0, 0)
     }
 
     srcNode: PointerProperty(

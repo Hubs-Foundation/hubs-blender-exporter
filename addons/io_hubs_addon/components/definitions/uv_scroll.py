@@ -10,7 +10,8 @@ class UVScroll(HubsComponent):
         'category': Category.ANIMATION,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT],
-        'icon': 'TEXTURE_DATA'
+        'icon': 'TEXTURE_DATA',
+        'version': (1, 0, 0)
     }
 
     speed: FloatVectorProperty(name="Speed",

@@ -1,3 +1,4 @@
+import bpy
 from .io import gltf_exporter
 from . import (nodes, components)
 from . import preferences
@@ -21,6 +22,14 @@ def register():
     nodes.register()
     components.register()
     gltf_exporter.register()
+
+    # Migrate components if the add-on is enabled in the middle of a session.
+    if bpy.context.preferences.is_dirty:
+        def registration_migration():
+            # Passing True as the first argument of the operator forces an undo step to be created.
+            bpy.ops.wm.migrate_hubs_components(
+                True, is_registration=True)
+        bpy.app.timers.register(registration_migration)
 
 
 def unregister():

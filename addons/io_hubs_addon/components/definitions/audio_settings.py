@@ -1,8 +1,9 @@
 import bpy
 from bpy.props import FloatProperty, EnumProperty
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType, NodeType
-from ..consts import DISTANCE_MODELS, MAX_ANGLE
+from ..types import Category, PanelType, NodeType, MigrationType
+from ..utils import is_linked
+from ..consts import DISTACE_MODELS, MAX_ANGLE
 from math import degrees, radians
 
 
@@ -13,7 +14,8 @@ class AudioSettings(HubsComponent):
         'category': Category.SCENE,
         'node_type': NodeType.SCENE,
         'panel_type': [PanelType.SCENE],
-        'icon': 'SPEAKER'
+        'icon': 'SPEAKER',
+        'version': (1, 0, 0)
     }
 
     avatarDistanceModel: EnumProperty(
@@ -112,12 +114,17 @@ class AudioSettings(HubsComponent):
             'mediaConeOuterGain': self.mediaConeOuterGain,
         }
 
-    @classmethod
-    def migrate(cls, version):
-        if version < (1, 0, 0):
-            for scene in bpy.data.scenes:
-                if cls.get_name() in scene.hubs_component_list.items:
-                    scene.hubs_component_audio_settings.mediaConeInnerAngle = radians(
-                        scene.hubs_component_audio_settings.mediaConeInnerAngle)
-                    scene.hubs_component_audio_settings.mediaConeOuterAngle = radians(
-                        scene.hubs_component_audio_settings.mediaConeOuterAngle)
+    def migrate(self, migration_type, instance_version, host, migration_report, ob=None):
+        migration_occurred = False
+        if instance_version < (1, 0, 0):
+            migration_occurred = True
+            self.mediaConeInnerAngle = radians(
+                self.mediaConeInnerAngle)
+            self.mediaConeOuterAngle = radians(
+                self.mediaConeOuterAngle)
+
+            if migration_type != MigrationType.GLOBAL or is_linked(host):
+                migration_report.append(
+                    f"Warning: The Media Cone angles may not have migrated correctly for the Audio Settings component on scene \"{host.name_full}\"")
+
+        return migration_occurred
