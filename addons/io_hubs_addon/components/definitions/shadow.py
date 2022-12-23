@@ -10,7 +10,8 @@ class Shadow(HubsComponent):
         'category': Category.OBJECT,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT],
-        'icon': 'MOD_MASK'
+        'icon': 'MOD_MASK',
+        'version': (1, 0, 0)
     }
 
     cast: BoolProperty(

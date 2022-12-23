@@ -9,7 +9,8 @@ class NavMesh(HubsComponent):
         'category': Category.SCENE,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT],
-        'icon': 'GRID'
+        'icon': 'GRID',
+        'version': (1, 0, 0)
     }
 
     @classmethod

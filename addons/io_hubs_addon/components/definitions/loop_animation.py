@@ -588,7 +588,8 @@ class LoopAnimation(HubsComponent):
         'category': Category.ANIMATION,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
-        'icon': 'LOOP_BACK'
+        'icon': 'LOOP_BACK',
+        'version': (1, 0, 0)
     }
 
     tracks_list: CollectionProperty(
@@ -696,44 +697,46 @@ class LoopAnimation(HubsComponent):
 
         unregister_msgbus()
 
-    @classmethod
-    def migrate(cls, version):
-        if version < (1, 0, 0):
-            def migrate_data(ob, host):
-                if cls.get_name() in host.hubs_component_list.items:
-                    tracks = host.hubs_component_loop_animation.clip.split(",")
-                    for track_name in tracks:
-                        try:
-                            nla_track = ob.animation_data.nla_tracks[track_name]
-                            track_type = "object"
-                        except (AttributeError, KeyError):
-                            try:
-                                nla_track = ob.data.shape_keys.animation_data.nla_tracks[track_name]
-                                track_type = "shape_key"
-                            except (AttributeError, KeyError):
-                                track = host.hubs_component_loop_animation.tracks_list.add()
-                                track.name = track_name
-                                continue
+    def migrate(self, migration_type, instance_version, host, migration_report, ob=None):
+        migration_occurred = False
+        if instance_version < (1, 0, 0):
+            migration_occurred = True
+            migration_warning = False
+            tracks = self.clip.split(",")
+            for track_name in tracks:
+                try:
+                    nla_track = ob.animation_data.nla_tracks[track_name]
+                    track_type = "object"
+                except (AttributeError, KeyError):
+                    try:
+                        nla_track = ob.data.shape_keys.animation_data.nla_tracks[track_name]
+                        track_type = "shape_key"
+                    except (AttributeError, KeyError):
+                        track = self.tracks_list.add()
+                        track.name = track_name
+                        migration_warning = True
+                        continue
 
-                        if not has_track(host.hubs_component_loop_animation.tracks_list, nla_track):
-                            track = host.hubs_component_loop_animation.tracks_list.add()
-                            strip_name = get_strip_name(nla_track)
-                            action_name = get_action_name(nla_track)
-                            track.name = get_display_name(
-                                nla_track.name, strip_name)
-                            track.track_name = nla_track.name
-                            track.strip_name = strip_name if is_default_name(
-                                nla_track.name) else ''
-                            track.action_name = action_name if is_default_name(
-                                nla_track.name) else ''
-                            track.track_type = track_type
+                if not has_track(self.tracks_list, nla_track):
+                    track = self.tracks_list.add()
+                    strip_name = get_strip_name(nla_track)
+                    action_name = get_action_name(nla_track)
+                    track.name = get_display_name(nla_track.name, strip_name)
+                    track.track_name = nla_track.name
+                    track.strip_name = strip_name if is_default_name(nla_track.name) else ''
+                    track.action_name = action_name if is_default_name(nla_track.name) else ''
+                    track.track_type = track_type
 
-            for ob in bpy.data.objects:
-                migrate_data(ob, ob)
+            if migration_warning:
+                host_type = "bone" if hasattr(host, "tail") else "object"
+                if host_type == "bone":
+                    host_reference = f"\"{host.name}\" in \"{host.id_data.name_full}\""
+                else:
+                    host_reference = f"\"{host.name_full}\""
+                migration_report.append(
+                    f"Warning: The Loop Animation component on the {host_type} {host_reference} may not have migrated correctly")
 
-                if ob.type == 'ARMATURE':
-                    for bone in ob.data.bones:
-                        migrate_data(ob, bone)
+        return migration_occurred
 
 
 def register_module():

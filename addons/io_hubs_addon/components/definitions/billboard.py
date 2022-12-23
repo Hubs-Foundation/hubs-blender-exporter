@@ -10,7 +10,8 @@ class Billboard(HubsComponent):
         'category': Category.OBJECT,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
-        'icon': 'IMAGE_PLANE'
+        'icon': 'IMAGE_PLANE',
+        'version': (1, 0, 0)
     }
 
     onlyY: BoolProperty(

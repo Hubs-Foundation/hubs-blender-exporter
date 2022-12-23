@@ -167,12 +167,35 @@ class TooltipLabel(bpy.types.Operator):
         return {'CANCELLED'}
 
 
+def window_menu_addition(self, context):
+    layout = self.layout
+    layout.separator()
+    layout.operator("wm.hubs_view_last_report")
+
+
+def object_menu_addition(self, context):
+    layout = self.layout
+    layout.separator()
+    op = layout.operator("wm.migrate_hubs_components")
+    op.is_registration = False
+
+
+def gizmo_display_popover_addition(self, context):
+    layout = self.layout
+    layout.separator()
+    layout.operator("wm.update_hubs_gizmos")
+
+
 def register():
     bpy.utils.register_class(HubsObjectPanel)
     bpy.utils.register_class(HubsScenePanel)
     bpy.utils.register_class(HubsMaterialPanel)
     bpy.utils.register_class(HubsBonePanel)
     bpy.utils.register_class(TooltipLabel)
+
+    bpy.types.TOPBAR_MT_window.append(window_menu_addition)
+    bpy.types.VIEW3D_MT_object.append(object_menu_addition)
+    bpy.types.VIEW3D_PT_gizmo_display.append(gizmo_display_popover_addition)
 
 
 def unregister():
@@ -181,3 +204,7 @@ def unregister():
     bpy.utils.unregister_class(HubsMaterialPanel)
     bpy.utils.unregister_class(HubsBonePanel)
     bpy.utils.unregister_class(TooltipLabel)
+
+    bpy.types.TOPBAR_MT_window.remove(window_menu_addition)
+    bpy.types.VIEW3D_MT_object.remove(object_menu_addition)
+    bpy.types.VIEW3D_PT_gizmo_display.remove(gizmo_display_popover_addition)

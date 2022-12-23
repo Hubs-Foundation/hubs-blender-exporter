@@ -10,7 +10,8 @@ class PointLight(HubsComponent):
         'category': Category.LIGHTS,
         'node_type': NodeType. NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
-        'icon': 'LIGHT_POINT'
+        'icon': 'LIGHT_POINT',
+        'version': (1, 0, 0)
     }
 
     color: FloatVectorProperty(name="Color",

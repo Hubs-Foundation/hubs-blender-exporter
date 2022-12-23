@@ -1,4 +1,5 @@
 from bpy.types import PropertyGroup
+from bpy.props import IntVectorProperty
 from ..io.utils import gather_properties
 from .types import Category, PanelType, NodeType
 
@@ -18,8 +19,15 @@ class HubsComponent(PropertyGroup):
         # The dependencies of this component (by id). They will be added as a result of adding this component.
         'deps': [],
         # Name of the icon to load. It can be a image file in the icons directory or one of the Blender builtin icons id
-        'icon': 'icon.png'
+        'icon': 'icon.png',
+        # Version of the component. This will be used to trigger component migrations.
+        'version': (0, 0, 1)
     }
+
+    # Properties defined here are for internal use and won't be displayed by default in components or exported.
+
+    # The internal version of the component.  This is first set when a component is added and is updated during migrations, if necessary.
+    instance_version: IntVectorProperty(size=3)
 
     @classmethod
     def __get_definition(cls, key, default):
@@ -57,9 +65,18 @@ class HubsComponent(PropertyGroup):
         return cls.get_category().value
 
     @classmethod
+    def get_definition_version(cls):
+        return cls.__get_definition('version', (0, 0, 0))
+
+    @classmethod
     def init(cls, obj):
         '''Called right after the component is added to give the component a chance to initialize'''
         pass
+
+    @classmethod
+    def init_instance_version(cls, obj):
+        component = getattr(obj, cls.get_id())
+        component.instance_version = cls.get_definition_version()
 
     @classmethod
     def create_gizmo(cls, obj, gizmo_group):
@@ -89,7 +106,7 @@ class HubsComponent(PropertyGroup):
 
     def draw(self, context, layout, panel):
         '''Draw method to be called by the panel. The base class method will print all the component properties'''
-        for key in self.__annotations__.keys():
+        for key in self.get_properties():
             if not self.bl_rna.properties[key].is_hidden:
                 layout.prop(data=self, property=key)
 
@@ -105,6 +122,17 @@ class HubsComponent(PropertyGroup):
         '''This is called by the exporter after the export process has finished'''
         pass
 
+    def migrate(self, migration_type, instance_version, host, migration_report, ob=None):
+        '''This is called when an object component needs to migrate the data from previous add-on versions.
+        The migration_type argument is the type of migration, GLOBAL represents file loads, and LOCAL represents things like append/link.
+        The instance_version argument represents the version of the component that will be migrated from, as a tuple.
+        The host argument is what the component is attached to, object/bone.
+        The migration_report argument is a list that you can append messages to and they will be displayed to the user after the migration has finished.
+        The ob argument is used for bone migrations and is the armature object that the bone is part of.  Note: this is passed for object migrations as well.
+        Returns a boolean to indicate whether a migration was performed.
+        '''
+        return False
+
     @classmethod
     def draw_global(cls, context, layout, panel):
         '''Draw method to be called by the panel. This can be used to draw global component properties in a panel before the component properties.'''
@@ -112,15 +140,11 @@ class HubsComponent(PropertyGroup):
     @classmethod
     def get_properties(cls):
         if hasattr(cls, '__annotations__'):
-            return cls.__annotations__.keys()
+            # Python versions below 3.10 will sometimes return the base class' annotations if there are none in the subclass, so make sure only the subclass' annotations are returned.
+            baseclass_properties = HubsComponent.__annotations__.keys()
+            subclass_properties = cls.__annotations__.keys()
+            return [prop for prop in subclass_properties if prop not in baseclass_properties]
         return {}
-
-    @classmethod
-    def migrate(cls, version):
-        '''This is called when a new file is loaded to give the components a chance to migrate the data from previous add-on versions.
-        The addon version used when the blend was last saved, as a tuple.
-        '''
-        pass
 
     @classmethod
     def poll(cls, context, panel_type):

@@ -11,7 +11,8 @@ class ParticleEmitter(HubsComponent):
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
-        'icon': 'PARTICLES'
+        'icon': 'PARTICLES',
+        'version': (1, 0, 0)
     }
 
     src: StringProperty(

@@ -25,7 +25,8 @@ class EnvironmentSettings(HubsComponent):
         'category': Category.SCENE,
         'node_type': NodeType.SCENE,
         'panel_type': [PanelType.SCENE],
-        'icon': 'WORLD'
+        'icon': 'WORLD',
+        'version': (1, 0, 0)
     }
 
     toneMapping: EnumProperty(

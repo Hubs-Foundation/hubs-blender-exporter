@@ -1,12 +1,14 @@
 import bpy
-from bpy.props import StringProperty
+from bpy.props import StringProperty, IntProperty, BoolProperty
 from bpy.types import Operator
 from functools import reduce
 
-from .types import PanelType
-from .utils import get_object_source, dash_to_title, has_component, add_component, remove_component
+from .types import PanelType, MigrationType
+from .utils import get_object_source, dash_to_title, has_component, add_component, remove_component, wrap_text, display_wrapped_text
 from .components_registry import get_components_registry, get_components_icons
 from ..preferences import get_addon_pref
+from .handlers import migrate_components
+from .gizmos import update_gizmos
 
 
 class AddHubsComponent(Operator):
@@ -25,7 +27,9 @@ class AddHubsComponent(Operator):
         obj = get_object_source(context, self.panel_type)
         add_component(obj, self.component_name)
 
+        # Redraw panel and trigger depsgraph update
         context.area.tag_redraw()
+        context.window_manager.update_tag()
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -177,15 +181,287 @@ class RemoveHubsComponent(Operator):
             return
         obj = get_object_source(context, self.panel_type)
         remove_component(obj, self.component_name)
+
+        # Redraw panel and trigger depsgraph update
         context.area.tag_redraw()
+        context.window_manager.update_tag()
         return {'FINISHED'}
+
+
+class MigrateHubsComponents(Operator):
+    bl_idname = "wm.migrate_hubs_components"
+    bl_label = "Migrate Hubs Components"
+    bl_description = "Loops through all objects/components and attempts to migrate them to the current version based on their internal version"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # For some reason using a default value with this property doesn't work properly, so the value must be manually specified each time.
+    is_registration: BoolProperty(options={'HIDDEN'})
+
+    def execute(self, context):
+        if self.is_registration:
+            migrate_components(MigrationType.REGISTRATION, do_beta_versioning=True)
+        else:
+            migrate_components(MigrationType.LOCAL, do_beta_versioning=True)
+
+        return {'FINISHED'}
+
+
+class UpdateHubsGizmos(Operator):
+    bl_idname = "wm.update_hubs_gizmos"
+    bl_label = "Refresh Hubs Gizmos"
+    bl_description = "Force a re-evaluation of all objects/components and update their gizmos"
+
+    def execute(self, context):
+        update_gizmos()
+        return {'FINISHED'}
+
+
+class ViewLastReport(Operator):
+    bl_idname = "wm.hubs_view_last_report"
+    bl_label = "View Last Hubs Report"
+    bl_description = "Show the latest Hubs report in the Hubs Report Viewer"
+
+    @classmethod
+    def poll(cls, context):
+        wm = context.window_manager
+        return wm.hubs_report_last_title and wm.hubs_report_last_report_string
+
+    def execute(self, context):
+        wm = context.window_manager
+        title = wm.hubs_report_last_title
+        report_string = wm.hubs_report_last_report_string
+        bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title=title, report_string=report_string)
+        return {'FINISHED'}
+
+
+class ViewReportInInfoEditor(Operator):
+    bl_idname = "wm.hubs_view_report_in_info_editor"
+    bl_label = "View Report in the Info Editor"
+    bl_description = "Save the Hubs report to the Info Editor and open it for viewing"
+
+    title: StringProperty(default="")
+    report_string: StringProperty()
+
+    def highlight_info_report(self):
+        context_override = bpy.context.copy()
+        for window in bpy.context.window_manager.windows:
+            for area in window.screen.areas:
+                if area.type == 'INFO':
+                    for region in area.regions:
+                        if region.type == 'WINDOW':
+                            context_override['area'] = area
+                            context_override['region'] = region
+                            # Find and select the last info message for each Info editor.
+                            index = 0
+                            while bpy.ops.info.select_pick(
+                                    context_override, report_index=index, extend=False) != {'CANCELLED'}:
+                                index += 1
+                            bpy.ops.info.select_pick(context_override, report_index=index, extend=False)
+
+    def execute(self, context):
+        messages = split_and_prefix_report_messages(self.report_string)
+        info_report_string = '\n'.join([message.replace('\n', '  ') for message in messages])
+        self.report({'INFO'}, f"Hubs {self.title}\n{info_report_string}\nEnd of Hubs {self.title}")
+        bpy.ops.screen.info_log_show()
+        bpy.app.timers.register(self.highlight_info_report)
+        return {'FINISHED'}
+
+
+class ReportScroller(Operator):
+    bl_idname = "wm.hubs_report_scroller"
+    bl_label = "Hubs Report Scroller"
+
+    increment: IntProperty()
+    maximum: IntProperty()
+
+    @classmethod
+    def description(self, context, properties):
+        if properties.increment == -1:
+            return "Scroll up one line.\nShift+Click to scroll to the beginning"
+        if properties.increment == 1:
+            return "Scroll down one line.\nShift+Click to scroll to the end"
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+
+        if event.shift:  # Jump to beginning/end
+            if self.increment == -1:
+                wm.hubs_report_scroll_index = 0
+                wm.hubs_report_scroll_percentage = 0
+                return {'FINISHED'}
+            else:  # 1
+                wm.hubs_report_scroll_index = self.maximum
+                wm.hubs_report_scroll_percentage = 100
+                return {'FINISHED'}
+
+        else:  # Increment/Decrement
+            current_scroll_index = wm.hubs_report_scroll_index
+            if current_scroll_index + self.increment < 0:
+                return {'CANCELLED'}
+            elif current_scroll_index + self.increment > self.maximum:
+                return {'CANCELLED'}
+            else:
+                wm.hubs_report_scroll_index += self.increment
+                current_scroll_index = wm.hubs_report_scroll_index
+                wm.hubs_report_scroll_percentage = current_scroll_index * 100 // self.maximum
+                return {'FINISHED'}
+
+
+class ReportViewer(Operator):
+    bl_idname = "wm.hubs_report_viewer"
+    bl_label = "Hubs Report Viewer"
+
+    title: StringProperty(default="")
+    report_string: StringProperty()
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.label(text=self.title)
+
+        row = layout.row()
+        column = row.column()
+        box = column.box()
+
+        wm = context.window_manager
+        report_length = len(self.messages)
+        maximum_scrolling = len(self.report_display_blocks) - 1
+        start_index = wm.hubs_report_scroll_index
+        block_messages = self.report_display_blocks[start_index]
+
+        displayed_lines = 0
+        message_column = box.column()
+        for message in block_messages:
+            display_wrapped_text(message_column, message, heading_icon='INFO')
+            displayed_lines += len(message)
+
+        # Add padding to the bottom of the report if needed (accounts for the formatting changes when there are only a few messages in the report).
+        while displayed_lines < self.lines_to_show:
+            display_wrapped_text(message_column, [""])
+            displayed_lines += 1
+
+        scroll_column = row.column()
+        scroll_column.enabled = report_length > len(block_messages)
+
+        scroll_up = scroll_column.row()
+        scroll_up.enabled = start_index > 0
+        op = scroll_up.operator(ReportScroller.bl_idname, text="", icon="TRIA_UP")
+        op.increment = -1
+        op.maximum = maximum_scrolling
+
+        scroll_down = scroll_column.row()
+        scroll_down.enabled = start_index < maximum_scrolling
+        op = scroll_down.operator(ReportScroller.bl_idname, text="", icon="TRIA_DOWN")
+        op.increment = 1
+        op.maximum = maximum_scrolling
+
+        total_messages = column.row()
+        total_messages.alignment = 'RIGHT'
+        total_messages.label(text=f"{report_length} Messages")
+
+        scroll_percentage = column.row()
+        scroll_percentage.enabled = False
+        scroll_percentage.prop(wm, "hubs_report_scroll_percentage", slider=True)
+
+        layout.separator()
+
+        op = layout.operator(ViewReportInInfoEditor.bl_idname)
+        op.title = self.title
+        op.report_string = self.report_string
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+    def init_report_display_blocks(self):
+        start_index = 0
+        self.report_display_blocks = {}
+
+        final_block = False
+        while start_index < len(self.messages) and not final_block:
+            block_messages = []
+            for message in self.messages[start_index:]:
+                wrapped_message = wrap_text(message, max_length=90)
+                block_messages.append(wrapped_message)
+
+            last_message = None
+            while True:
+                if len(block_messages) == 1:
+                    break
+
+                if len(block_messages) > self.messages_to_show:
+                    last_message = block_messages.pop()
+                elif sum([len(message) + 1 for message in block_messages]) - 1 > self.lines_to_show:
+                    # The +1 and -1 are used to account for padding lines between messages.
+                    last_message = block_messages.pop()
+                else:
+                    break
+
+            if last_message == None:
+                final_block = True
+
+            current_block_lines = sum([len(message) for message in block_messages])
+            needed_padding_lines = self.lines_to_show - current_block_lines
+
+            message_iter = iter(block_messages)
+            while needed_padding_lines > 0:
+                try:
+                    next(message_iter).append("")
+                except StopIteration:
+                    if len(self.messages) < 4:
+                        # Evenly spacing the messages doesn't look good if there are only a few messages in the report, so let any extra padding be added to the end when it's displayed.
+                        break
+
+                    message_iter = reversed(block_messages)
+                    next(message_iter).append("")
+
+                needed_padding_lines += -1
+
+            self.report_display_blocks[start_index] = block_messages
+            start_index += 1
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        self.messages = split_and_prefix_report_messages(self.report_string)
+        self.lines_to_show = 15
+        self.messages_to_show = 5
+        wm.hubs_report_scroll_index = 0
+        wm.hubs_report_scroll_percentage = 0
+        wm.hubs_report_last_title = self.title
+        wm.hubs_report_last_report_string = self.report_string
+        self.init_report_display_blocks()
+        return wm.invoke_props_dialog(self, width=600)
+
+
+def split_and_prefix_report_messages(report_string):
+    return [f"{i+1:02d}   {message}" for i, message in enumerate(report_string.split("\n\n"))]
 
 
 def register():
     bpy.utils.register_class(AddHubsComponent)
     bpy.utils.register_class(RemoveHubsComponent)
+    bpy.utils.register_class(MigrateHubsComponents)
+    bpy.utils.register_class(UpdateHubsGizmos)
+    bpy.utils.register_class(ReportViewer)
+    bpy.utils.register_class(ReportScroller)
+    bpy.utils.register_class(ViewLastReport)
+    bpy.utils.register_class(ViewReportInInfoEditor)
+    bpy.types.WindowManager.hubs_report_scroll_index = IntProperty(default=0, min=0)
+    bpy.types.WindowManager.hubs_report_scroll_percentage = IntProperty(
+        name="Scroll Position", default=0, min=0, max=100, subtype='PERCENTAGE')
+    bpy.types.WindowManager.hubs_report_last_title = StringProperty()
+    bpy.types.WindowManager.hubs_report_last_report_string = StringProperty()
 
 
 def unregister():
     bpy.utils.unregister_class(AddHubsComponent)
     bpy.utils.unregister_class(RemoveHubsComponent)
+    bpy.utils.unregister_class(MigrateHubsComponents)
+    bpy.utils.unregister_class(UpdateHubsGizmos)
+    bpy.utils.unregister_class(ReportViewer)
+    bpy.utils.unregister_class(ReportScroller)
+    bpy.utils.unregister_class(ViewLastReport)
+    bpy.utils.unregister_class(ViewReportInInfoEditor)
+    del bpy.types.WindowManager.hubs_report_scroll_index
+    del bpy.types.WindowManager.hubs_report_scroll_percentage
+    del bpy.types.WindowManager.hubs_report_last_title
+    del bpy.types.WindowManager.hubs_report_last_report_string

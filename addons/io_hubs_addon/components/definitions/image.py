@@ -13,7 +13,8 @@ class Image(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'FILE_IMAGE',
-        'deps': ['networked']
+        'deps': ['networked'],
+        'version': (1, 0, 0)
     }
 
     src: StringProperty(
@@ -36,6 +37,10 @@ class Image(HubsComponent):
         items=PROJECTION_MODE,
         default="flat")
 
-    @classmethod
-    def migrate(cls, version):
-        migrate_networked(cls.get_name())
+    def migrate(self, migration_type, instance_version, host, migration_report, ob=None):
+        migration_occurred = False
+        if instance_version < (1, 0, 0):
+            migration_occurred = True
+            migrate_networked(host)
+
+        return migration_occurred

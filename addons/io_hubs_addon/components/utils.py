@@ -2,6 +2,12 @@ import bpy
 from .components_registry import get_component_by_name
 from .gizmos import update_gizmos
 from mathutils import Vector
+from contextlib import contextmanager
+import os
+import sys
+import platform
+import ctypes
+import ctypes.util
 
 V_S1 = Vector((1.0, 1.0, 1.0))
 
@@ -12,7 +18,9 @@ def add_component(obj, component_name):
 
     component_class = get_component_by_name(component_name)
     if component_class:
-        update_gizmos()
+        if 'create_gizmo' in component_class.__dict__:
+            update_gizmos()
+        component_class.init_instance_version(obj)
         component_class.init(obj)
         for dep_name in component_class.get_deps():
             dep_class = get_component_by_name(dep_name)
@@ -33,7 +41,8 @@ def remove_component(obj, component_name):
     component_class = get_component_by_name(component_name)
     if component_class:
         del obj[component_class.get_id()]
-        update_gizmos()
+        if 'create_gizmo' in component_class.__dict__:
+            update_gizmos()
         for dep_name in component_class.get_deps():
             dep_class = get_component_by_name(dep_name)
             dep_name = dep_class.get_name()
@@ -117,4 +126,152 @@ def redraw_component_ui(context):
 def is_linked(datablock):
     if not datablock:
         return False
-    return datablock.library or datablock.override_library
+    return bool(datablock.library or datablock.override_library)
+
+
+# Note: Set up stuff specifically for C FILE pointers so that they aren't truncated to 32 bits on 64 bit systems.
+class _FILE(ctypes.Structure):
+    """opaque C FILE type"""
+
+
+if platform.system() == "Windows":
+    try:
+        # Get stdio from the CRT Blender's using (currently ships with Blender)
+        libc = ctypes.windll.LoadLibrary('api-ms-win-crt-stdio-l1-1-0')
+
+        try:  # Attempt to set up flushing for the C stdout.
+            libc.__acrt_iob_func.restype = ctypes.POINTER(_FILE)
+            stdout = libc.__acrt_iob_func(1)
+
+            def c_fflush():
+                try:
+                    libc.fflush(stdout)
+                except:
+                    print("Error: Unable to flush the C stdout")
+
+        except:  # Fall back to flushing all open output streams.
+            print("Warning: Couldn't get the C stdout")
+
+            def c_fflush():
+                try:
+                    libc.fflush(None)
+                except:
+                    print("Error: Unable to flush the C stdout")
+
+    except:  # Warn and fail gracefully.  Flushing the C stdout is required because Windows switches to full buffering when redirected.
+        print("Error: Unable to find the C runtime.")
+
+        def c_fflush():
+            print("Error: Unable to flush the C stdout")
+
+else:  # Linux/Mac
+    try:  # get the C runtime
+        libc = ctypes.cdll.LoadLibrary(ctypes.util.find_library('c'))
+
+        try:  # Attempt to set up flushing for the C stdout.
+            if platform.system() == "Linux":
+                c_stdout = ctypes.POINTER(_FILE).in_dll(libc, 'stdout')
+            else:  # Mac
+                c_stdout = ctypes.POINTER(_FILE).in_dll(libc, '__stdoutp')
+
+            def c_fflush():
+                try:
+                    libc.fflush(c_stdout)
+                except:
+                    print("Warning: Unable to flush the C stdout.")
+
+        except:  # The C stdout wasn't found.  This is unlikely to happen, but if it does then just skip flushing since Linux/Mac doesn't seem to strictly require a C-level flush to work.
+            print("Warning: Couldn't get the C stdout.")
+
+            def c_fflush():
+                pass
+
+    except:  # The C runtime wasn't found.  This is unlikely to happen, but if it does then just skip flushing since Linux/Mac doesn't seem to strictly require a C-level flush to work.
+        print("Warning: Unable to find the C runtime.")
+
+        def c_fflush():
+            pass
+
+
+@contextmanager
+def redirect_c_stdout(binary_stream):
+    stdout_file_descriptor = sys.stdout.fileno()
+    original_stdout_file_descriptor_copy = os.dup(stdout_file_descriptor)
+    pipe_read_end, pipe_write_end = os.pipe()  # os.pipe returns two file descriptors.
+
+    try:
+        # Flush the C-level buffer of stdout before redirecting.  This should make sure that only the desired data is captured.
+        c_fflush()
+        # Redirect stdout to your pipe.
+        os.dup2(pipe_write_end, stdout_file_descriptor)
+        yield  # wait for input
+    finally:
+        # Flush the C-level buffer of stdout before returning things to normal.  This seems to be mainly needed on Windows because it looks like Windows changes the buffering policy to be fully buffered when redirecting stdout.
+        c_fflush()
+        # Redirect stdout back to the original file descriptor.
+        os.dup2(original_stdout_file_descriptor_copy, stdout_file_descriptor)
+        # Close the write end of the pipe to allow reading.
+        os.close(pipe_write_end)
+        # Read what was written to the pipe and pass it to the binary stream for use outside this function.
+        pipe_reader = os.fdopen(pipe_read_end, 'rb')
+        binary_stream.write(pipe_reader.read())
+        # Close the reader, also closes the pipe_read_end file descriptor.
+        pipe_reader.close()
+        # Close the remaining open file descriptor.
+        os.close(original_stdout_file_descriptor_copy)
+
+
+def get_host_components(host):
+    for component_item in host.hubs_component_list.items:
+        component_name = component_item.name
+        component_class = get_component_by_name(component_name)
+        if not component_class:
+            continue
+
+        component = getattr(host, component_class.get_id())
+        yield component
+
+
+def wrap_text(text, max_length=70):
+    '''Wraps text in a string so that the total characters in a single line doesn't exceed the specified maximum length.  Lines are broken by word, and the increased width of capital letters is accounted for so that the displayed line length is roughly the same regardless of case.  The maximum length is based on lowercase characters.'''
+    wrapped_lines = []
+
+    for section in text.split('\n'):
+        text_line = ''
+        line_length = 0
+        words = section.split(' ')
+
+        for word in words:
+            word_length = 0
+            for char in word:
+                word_length += 1
+                if char.isupper():
+                    word_length += 0.25
+
+            if line_length + word_length < max_length:
+                text_line += word + ' '
+                line_length += word_length + 1
+
+            else:
+                wrapped_lines.append(text_line.rstrip())
+                text_line = word + ' '
+                line_length = word_length + 1
+
+        if text_line.rstrip():
+            wrapped_lines.append(text_line.rstrip())
+
+    return wrapped_lines
+
+
+def display_wrapped_text(layout, wrapped_text, *, heading_icon='NONE'):
+    if not wrapped_text:
+        return
+
+    padding_icon = 'NONE' if heading_icon == 'NONE' else 'BLANK1'
+    text_column = layout.column()
+    text_column.scale_y = 0.7
+    for i, line in enumerate(wrapped_text):
+        if i == 0:
+            text_column.label(text=line, icon=heading_icon)
+        else:
+            text_column.label(text=line, icon=padding_icon)

@@ -10,7 +10,8 @@ class Frustrum(HubsComponent):
         'category': Category.OBJECT,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT],
-        'icon': 'IMAGE_PLANE'
+        'icon': 'IMAGE_PLANE',
+        'version': (1, 0, 0)
     }
 
     culled: BoolProperty(

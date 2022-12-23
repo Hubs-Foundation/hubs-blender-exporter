@@ -10,7 +10,8 @@ class Fog(HubsComponent):
         'category': Category.SCENE,
         'node_type': NodeType.SCENE,
         'panel_type': [PanelType.SCENE],
-        'icon': 'MOD_OCEAN'
+        'icon': 'MOD_OCEAN',
+        'version': (1, 0, 0)
     }
 
     type: EnumProperty(

@@ -65,7 +65,8 @@ class MorphAudioFeedback(HubsComponent):
         'category': Category.AVATAR,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT],
-        'icon': 'MOD_SMOOTH'
+        'icon': 'MOD_SMOOTH',
+        'version': (1, 0, 0)
     }
 
     name: StringProperty(
@@ -94,16 +95,16 @@ class MorphAudioFeedback(HubsComponent):
     def poll(cls, context, panel_type):
         return context.object.type == 'MESH'
 
-    @classmethod
-    def migrate(cls, version):
-        if version < (1, 0, 0):
-            for ob in bpy.data.objects:
-                if cls.get_name() in ob.hubs_component_list.items:
-                    component = ob.hubs_component_morph_audio_feedback
-                    shape_keys = get_object_shape_keys(component, ob)
-                    list_ids = list(map(lambda x: x[0], shape_keys))
-                    if component.name not in list_ids:
-                        component.name = component.name
+    def migrate(self, migration_type, instance_version, host, migration_report, ob=None):
+        migration_occurred = False
+        if instance_version < (1, 0, 0):
+            migration_occurred = True
+            shape_keys = get_object_shape_keys(self, host)
+            list_ids = list(map(lambda x: x[0], shape_keys))
+            if not self.name in list_ids:
+                self.name = self.name
+
+        return migration_occurred
 
     def draw(self, context, layout, panel):
         layout.prop(data=self, property="shape_key")
