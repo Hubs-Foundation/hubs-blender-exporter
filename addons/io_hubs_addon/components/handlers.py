@@ -1,7 +1,7 @@
 import bpy
 from bpy.app.handlers import persistent
 from .components_registry import get_components_registry
-from .utils import redirect_c_stdout, get_host_components, is_linked
+from .utils import redirect_c_stdout, get_host_components, is_linked, get_host_reference_message
 from .gizmos import update_gizmos
 from .types import MigrationType, PanelType
 import io
@@ -40,6 +40,15 @@ def migrate(component, migration_type, panel_type, host, migration_report, ob=No
         unsupported_host = True
 
     if unsupported_host:
+        message = component.__class__.get_unsupported_host_message(panel_type, host, ob=ob)
+        migration_report.append(message)
+
+    if instance_version > definition_version:
+        host_reference = get_host_reference_message(panel_type, host, ob=ob)
+        migration_report.append(
+            f"Warning: The {component.get_display_name()} component on the {panel_type.value} {host_reference} is from a future version v{instance_version} and may not be correct.")
+
+    if panel_type not in component.__class__.get_panel_type() or not component.__class__.poll(panel_type, host, ob=ob):
         message = component.__class__.get_unsupported_host_message(panel_type, host, ob=ob)
         migration_report.append(message)
 
