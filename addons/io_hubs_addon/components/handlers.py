@@ -361,7 +361,7 @@ def scene_and_view_layer_update_notifier(self, context):
     - Switching the view layer - if the last action was also a view layer switch"""
     global previous_window_setups
     wm = context.window_manager
-    current_window_setups = [w.scene.name+w.view_layer.name for w in wm.windows]
+    current_window_setups = [w.scene.name + w.view_layer.name for w in wm.windows]
     if sorted(current_window_setups) != sorted(previous_window_setups):
         bpy.app.timers.register(update_gizmos)
         previous_window_setups = current_window_setups
@@ -392,10 +392,10 @@ def register():
     previous_undo_step_index = 0
     previous_window_setups = []
 
-    if not load_post in bpy.app.handlers.load_post:
+    if load_post not in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.append(load_post)
 
-    if not undo_stack_handler in bpy.app.handlers.depsgraph_update_post:
+    if undo_stack_handler not in bpy.app.handlers.depsgraph_update_post:
         bpy.app.handlers.depsgraph_update_post.append(undo_stack_handler)
 
     bpy.types.TOPBAR_HT_upper_bar.append(scene_and_view_layer_update_notifier)

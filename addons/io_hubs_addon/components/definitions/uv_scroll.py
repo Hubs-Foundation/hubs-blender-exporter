@@ -34,7 +34,7 @@ class UVScroll(HubsComponent):
         has_texture = False
         for material in context.object.data.materials:
             for node in material.node_tree.nodes:
-                if node.type == 'TEX_IMAGE' and node.image != None:
+                if node.type == 'TEX_IMAGE' and node.image is not None:
                     has_texture = True
 
         super().draw(context, layout, panel)

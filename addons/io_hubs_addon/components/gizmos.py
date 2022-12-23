@@ -283,7 +283,7 @@ def register_functions():
 
         if load_post not in bpy.app.handlers.load_post:
             bpy.app.handlers.load_post.append(load_post)
-        if not depsgraph_update_post in bpy.app.handlers.depsgraph_update_post:
+        if depsgraph_update_post not in bpy.app.handlers.depsgraph_update_post:
             bpy.app.handlers.depsgraph_update_post.append(
                 depsgraph_update_post)
 

@@ -397,7 +397,7 @@ class ReportViewer(Operator):
                 else:
                     break
 
-            if last_message == None:
+            if last_message is None:
                 final_block = True
 
             current_block_lines = sum([len(message) for message in block_messages])

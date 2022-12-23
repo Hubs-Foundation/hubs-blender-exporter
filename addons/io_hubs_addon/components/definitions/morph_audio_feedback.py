@@ -101,7 +101,7 @@ class MorphAudioFeedback(HubsComponent):
             migration_occurred = True
             shape_keys = get_object_shape_keys(self, host)
             list_ids = list(map(lambda x: x[0], shape_keys))
-            if not self.name in list_ids:
+            if self.name not in list_ids:
                 self.name = self.name
 
         return migration_occurred
