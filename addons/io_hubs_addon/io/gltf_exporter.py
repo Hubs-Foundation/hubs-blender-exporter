@@ -2,6 +2,8 @@ import bpy
 from bpy.props import PointerProperty, IntVectorProperty
 from ..components.components_registry import get_components_registry
 from .utils import gather_lightmap_texture_info
+from ..components.utils import get_host_components
+import traceback
 
 hubs_config = {
     "gltfExtensionName": "MOZ_hubs_components",
@@ -29,36 +31,49 @@ def get_version_string():
     return str(bl_info['version'][0]) + '.' + str(bl_info['version'][1]) + '.' + str(bl_info['version'][2])
 
 
+def export_callback(callback_method, export_settings):
+    for scene in bpy.data.scenes:
+        for component in get_host_components(scene):
+            component_callback = getattr(component, callback_method)
+            try:
+                component_callback(export_settings, scene)
+            except Exception:
+                traceback.print_exc()
+
+    for ob in bpy.data.objects:
+        for component in get_host_components(ob):
+            component_callback = getattr(component, callback_method)
+            try:
+                component_callback(export_settings, ob, ob)
+            except Exception:
+                traceback.print_exc()
+
+        if ob.type == 'ARMATURE':
+            for bone in ob.data.bones:
+                for component in get_host_components(bone):
+                    component_callback = getattr(component, callback_method)
+                    try:
+                        component_callback(export_settings, bone, ob)
+                    except Exception:
+                        traceback.print_exc()
+
+    for material in bpy.data.materials:
+        for component in get_host_components(material):
+            component_callback = getattr(component, callback_method)
+            try:
+                component_callback(export_settings, material)
+            except Exception:
+                traceback.print_exc()
+
+
 def glTF2_pre_export_callback(export_settings):
     from io_scene_gltf2.blender.com.gltf2_blender_extras import BLACK_LIST
     BLACK_LIST.extend(glTF2ExportUserExtension.EXCLUDED_PROPERTIES)
-    for ob in bpy.context.view_layer.objects:
-        component_list = ob.hubs_component_list
-
-        registered_hubs_components = get_components_registry()
-
-        if component_list.items:
-            for component_item in component_list.items:
-                component_name = component_item.name
-                if component_name in registered_hubs_components:
-                    component_class = registered_hubs_components[component_name]
-                    component = getattr(ob, component_class.get_id())
-                    component.pre_export(export_settings, ob)
+    export_callback("pre_export", export_settings)
 
 
 def glTF2_post_export_callback(export_settings):
-    for ob in bpy.context.view_layer.objects:
-        component_list = ob.hubs_component_list
-
-        registered_hubs_components = get_components_registry()
-
-        if component_list.items:
-            for component_item in component_list.items:
-                component_name = component_item.name
-                if component_name in registered_hubs_components:
-                    component_class = registered_hubs_components[component_name]
-                    component = getattr(ob, component_class.get_id())
-                    component.post_export(export_settings, ob)
+    export_callback("post_export", export_settings)
 
     from io_scene_gltf2.blender.com.gltf2_blender_extras import BLACK_LIST
     for excluded_prop in glTF2ExportUserExtension.EXCLUDED_PROPERTIES:

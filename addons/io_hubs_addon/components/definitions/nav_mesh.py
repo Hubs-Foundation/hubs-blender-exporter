@@ -14,5 +14,5 @@ class NavMesh(HubsComponent):
     }
 
     @classmethod
-    def poll(cls, context, panel_type):
-        return context.object.type == 'MESH'
+    def poll(cls, panel_type, host, ob=None):
+        return host.type == 'MESH'

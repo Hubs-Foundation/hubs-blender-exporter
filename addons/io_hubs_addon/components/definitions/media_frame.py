@@ -5,7 +5,7 @@ from ..gizmos import bone_matrix_world
 from ..models import box
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType, MigrationType
-from ..utils import V_S1, is_linked
+from ..utils import V_S1, is_linked, get_host_reference_message
 from .networked import migrate_networked
 from mathutils import Matrix, Vector
 
@@ -118,7 +118,7 @@ class MediaFrame(HubsComponent):
 
         return gizmo
 
-    def migrate(self, migration_type, instance_version, host, migration_report, ob=None):
+    def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
         migration_occurred = False
         if instance_version < (1, 0, 0):
             migration_occurred = True
@@ -127,14 +127,10 @@ class MediaFrame(HubsComponent):
             bounds = Vector((bounds.x, bounds.z, bounds.y))
             self.bounds = bounds
 
-            if migration_type != MigrationType.GLOBAL or is_linked(ob):
-                host_type = "bone" if hasattr(host, "tail") else "object"
-                if host_type == "bone":
-                    host_reference = f"\"{host.name}\" in \"{host.id_data.name_full}\""
-                else:
-                    host_reference = f"\"{host.name_full}\""
+            if migration_type != MigrationType.GLOBAL or is_linked(ob) or type(ob) == bpy.types.Armature:
+                host_reference = get_host_reference_message(panel_type, host, ob=ob)
                 migration_report.append(
-                    f"Warning: The Media Frame component's Y and Z bounds on the {host_type} {host_reference} may not have migrated correctly")
+                    f"Warning: The Media Frame component's Y and Z bounds on the {panel_type.value} {host_reference} may not have migrated correctly")
 
         return migration_occurred
 

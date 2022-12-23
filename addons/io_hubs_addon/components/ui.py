@@ -17,7 +17,18 @@ def draw_component(panel, context, obj, row, component_item):
     component_class = get_component_by_name(component_name)
     if component_class:
         panel_type = PanelType(panel.bl_context)
-        if panel_type not in component_class.get_panel_type():
+        if panel_type not in component_class.get_panel_type() or not component_class.poll(panel_type, obj, ob=context.object):
+            col = row.box().column()
+            top_row = col.row()
+            top_row.label(
+                text=f"Unsupported host for component '{component_class.get_display_name()}'", icon="ERROR")
+            remove_component_operator = top_row.operator(
+                "wm.remove_hubs_component",
+                text="",
+                icon="X"
+            )
+            remove_component_operator.component_name = component_name
+            remove_component_operator.panel_type = panel.bl_context
             return
 
         component_id = component_class.get_id()

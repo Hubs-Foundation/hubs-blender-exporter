@@ -4,9 +4,9 @@ from bpy.props import StringProperty, CollectionProperty, IntProperty, BoolPrope
 from bpy.types import PropertyGroup, Menu, Operator
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
-from ..utils import redraw_component_ui
+from ..utils import redraw_component_ui, get_host_reference_message
 
-msgbus_owner = None
+msgbus_owners = []
 
 
 class TrackPropertyType(PropertyGroup):
@@ -81,42 +81,28 @@ class Errors():
 
 
 def register_msgbus():
-    global msgbus_owner
+    global msgbus_owners
 
-    if msgbus_owner:
+    if msgbus_owners:
         return
 
-    msgbus_owner = object()
-
-    bpy.msgbus.subscribe_rna(
-        key=(bpy.types.NlaTrack, "name"),
-        owner=msgbus_owner,
-        args=(bpy.context,),
-        notify=redraw_component_ui,
-    )
-
-    bpy.msgbus.subscribe_rna(
-        key=(bpy.types.NlaStrip, "name"),
-        owner=msgbus_owner,
-        args=(bpy.context,),
-        notify=redraw_component_ui,
-    )
-
-    bpy.msgbus.subscribe_rna(
-        key=(bpy.types.Action, "name"),
-        owner=msgbus_owner,
-        args=(bpy.context,),
-        notify=redraw_component_ui,
-    )
+    for animtype in [bpy.types.NlaTrack, bpy.types.NlaStrip, bpy.types.Action]:
+        owner = object()
+        msgbus_owners.append(owner)
+        bpy.msgbus.subscribe_rna(
+            key=(animtype, "name"),
+            owner=owner,
+            args=(bpy.context,),
+            notify=redraw_component_ui,
+        )
 
 
 def unregister_msgbus():
-    global msgbus_owner
-    if not msgbus_owner:
-        return
+    global msgbus_owners
 
-    bpy.msgbus.clear_by_owner(msgbus_owner)
-    msgbus_owner = None
+    for owner in msgbus_owners:
+        bpy.msgbus.clear_by_owner(owner)
+    msgbus_owners.clear()
 
 
 @persistent
@@ -673,9 +659,9 @@ class LoopAnimation(HubsComponent):
         if load_post not in bpy.app.handlers.load_post:
             bpy.app.handlers.load_post.append(load_post)
         if undo_redo_post not in bpy.app.handlers.undo_post:
-            bpy.app.handlers.load_post.append(undo_redo_post)
+            bpy.app.handlers.undo_post.append(undo_redo_post)
         if undo_redo_post not in bpy.app.handlers.redo_post:
-            bpy.app.handlers.load_post.append(undo_redo_post)
+            bpy.app.handlers.redo_post.append(undo_redo_post)
 
         register_msgbus()
 
@@ -691,13 +677,13 @@ class LoopAnimation(HubsComponent):
         if load_post in bpy.app.handlers.load_post:
             bpy.app.handlers.load_post.remove(load_post)
         if undo_redo_post in bpy.app.handlers.undo_post:
-            bpy.app.handlers.load_post.remove(undo_redo_post)
+            bpy.app.handlers.undo_post.remove(undo_redo_post)
         if undo_redo_post in bpy.app.handlers.redo_post:
-            bpy.app.handlers.load_post.remove(undo_redo_post)
+            bpy.app.handlers.redo_post.remove(undo_redo_post)
 
         unregister_msgbus()
 
-    def migrate(self, migration_type, instance_version, host, migration_report, ob=None):
+    def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
         migration_occurred = False
         if instance_version < (1, 0, 0):
             migration_occurred = True
@@ -728,13 +714,9 @@ class LoopAnimation(HubsComponent):
                     track.track_type = track_type
 
             if migration_warning:
-                host_type = "bone" if hasattr(host, "tail") else "object"
-                if host_type == "bone":
-                    host_reference = f"\"{host.name}\" in \"{host.id_data.name_full}\""
-                else:
-                    host_reference = f"\"{host.name_full}\""
+                host_reference = get_host_reference_message(panel_type, host, ob=ob)
                 migration_report.append(
-                    f"Warning: The Loop Animation component on the {host_type} {host_reference} may not have migrated correctly")
+                    f"Warning: The Loop Animation component on the {panel_type.value} {host_reference} may not have migrated correctly")
 
         return migration_occurred
 
