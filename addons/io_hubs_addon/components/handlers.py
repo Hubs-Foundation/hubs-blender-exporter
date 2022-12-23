@@ -37,7 +37,14 @@ def migrate(component, migration_type, panel_type, host, migration_report, ob=No
         migration_report.append(
             f"Warning: The {component.get_display_name()} component on the {panel_type.value} {host_reference} is from a future version v{instance_version} and may not be correct.")
 
-    if panel_type not in component.__class__.get_panel_type() or not component.__class__.poll(panel_type, host, ob=ob):
+    try:
+        unsupported_host = panel_type not in component.__class__.get_panel_type(
+        ) or not component.__class__.poll(panel_type, host, ob=ob)
+    except Exception:
+        # The poll likely failed on an armature without an object.
+        unsupported_host = True
+
+    if unsupported_host:
         message = component.__class__.get_unsupported_host_message(panel_type, host, ob=ob)
         migration_report.append(message)
 
