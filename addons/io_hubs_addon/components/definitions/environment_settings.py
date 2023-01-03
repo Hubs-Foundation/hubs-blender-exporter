@@ -1,6 +1,5 @@
 from bpy.props import FloatProperty, EnumProperty, FloatVectorProperty, PointerProperty, BoolProperty
 from bpy.types import Image
-from ...io.utils import gather_texture_property, gather_color_property
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ..utils import is_linked
@@ -121,6 +120,7 @@ class EnvironmentSettings(HubsComponent):
                 layout.prop(data=self, property="bloomSmoothing")
 
     def gather(self, export_settings, object):
+        from ...io.utils import gather_texture_property, gather_color_property
         output = {
             'toneMapping': self.toneMapping,
             'toneMappingExposure': self.toneMappingExposure,

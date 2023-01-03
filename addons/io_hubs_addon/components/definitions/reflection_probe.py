@@ -4,14 +4,10 @@ from bpy.types import Image, PropertyGroup, Operator
 
 from ...components.utils import is_gpu_available, redraw_component_ui, is_linked
 
-from ...preferences import get_addon_pref
-from ...io.gltf_exporter import glTF2ExportUserExtension
-
 from ..components_registry import get_components_registry
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ..ui import add_link_indicator
-from ... import io
 from ...utils import rgetattr, rsetattr
 import math
 import os
@@ -804,11 +800,12 @@ class ReflectionProbe(HubsComponent):
                       icon='ERROR')
 
     def gather(self, export_settings, object):
+        from ...io.utils import gather_texture
         return {
             "size": object.data.influence_distance,
             "envMapTexture": {
                 "__mhc_link_type": "texture",
-                "index": io.utils.gather_texture(self.envMapTexture, export_settings)
+                "index": gather_texture(self.envMapTexture, export_settings)
             }
         }
 
@@ -897,6 +894,7 @@ class ReflectionProbe(HubsComponent):
             type=ReflectionProbeSceneProps)
         bpy.types.TOPBAR_MT_file_import.append(import_menu_draw)
         bpy.types.TOPBAR_MT_file_export.append(export_menu_draw)
+        from ...io.gltf_exporter import glTF2ExportUserExtension
         glTF2ExportUserExtension.add_excluded_property("hubs_scene_reflection_probe_properties")
 
     @ staticmethod
@@ -910,4 +908,5 @@ class ReflectionProbe(HubsComponent):
         del bpy.types.Scene.hubs_scene_reflection_probe_properties
         bpy.types.TOPBAR_MT_file_import.remove(import_menu_draw)
         bpy.types.TOPBAR_MT_file_export.remove(export_menu_draw)
+        from ...io.gltf_exporter import glTF2ExportUserExtension
         glTF2ExportUserExtension.remove_excluded_property("hubs_scene_reflection_probe_properties")

@@ -1,7 +1,6 @@
 import bpy
-from bpy.props import PointerProperty, IntVectorProperty
+from bpy.props import PointerProperty
 from ..components.components_registry import get_components_registry
-from .utils import gather_lightmap_texture_info
 from ..components.utils import get_host_components
 import traceback
 
@@ -150,6 +149,7 @@ class glTF2ExportUserExtension:
         self.add_hubs_components(
             gltf2_object, blender_material, export_settings)
 
+        from .utils import gather_lightmap_texture_info
         if blender_material.node_tree and blender_material.use_nodes:
             lightmap_texture_info = gather_lightmap_texture_info(
                 blender_material, export_settings)

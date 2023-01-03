@@ -52,16 +52,6 @@ class HubsExportImage(gltf2_blender_image.ExportImage):
             "HDR images must be saved as a .hdr file before exporting")
 
 
-def delayed_gather(func):
-    """ It delays the gather until all resources are available """
-    def wrapper_delayed_gather(*args, **kwargs):
-        def gather():
-            return func(*args, **kwargs)
-        gather.delayed_gather = True
-        return gather
-    return wrapper_delayed_gather
-
-
 @cached
 def gather_image(blender_image, export_settings):
     if not blender_image:
