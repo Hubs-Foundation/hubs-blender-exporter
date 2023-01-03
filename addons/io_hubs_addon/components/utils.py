@@ -226,6 +226,8 @@ def redirect_c_stdout(binary_stream):
 
 
 def get_host_components(host):
+    # Note: this used to be a generator but we detected some issues in Mac so we reverted to returning an array.
+    components = []
     for component_item in host.hubs_component_list.items:
         component_name = component_item.name
         component_class = get_component_by_name(component_name)
@@ -233,7 +235,8 @@ def get_host_components(host):
             continue
 
         component = getattr(host, component_class.get_id())
-        yield component
+        components.append(component)
+    return components
 
 
 def wrap_text(text, max_length=70):
