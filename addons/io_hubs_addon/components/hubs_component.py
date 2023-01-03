@@ -1,6 +1,5 @@
 from bpy.types import PropertyGroup
 from bpy.props import IntVectorProperty
-from ..io.utils import gather_properties
 from .types import Category, PanelType, NodeType
 
 
@@ -116,6 +115,7 @@ class HubsComponent(PropertyGroup):
 
     def gather(self, export_settings, object):
         '''This is called by the exporter and will return all the component properties by default'''
+        from ..io.utils import gather_properties
         return gather_properties(export_settings, object, self)
 
     def post_export(self, export_settings, host, ob=None):

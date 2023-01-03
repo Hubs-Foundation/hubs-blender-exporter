@@ -5,7 +5,7 @@ from ..utils import has_component, is_linked
 from ..types import Category, PanelType, NodeType
 from ..ui import add_link_indicator
 from bpy.types import Object
-from ...io.utils import gather_joint_property, gather_node_property, delayed_gather
+from ...utils import delayed_gather
 from .audio_source import AudioSource
 
 
@@ -163,6 +163,7 @@ class AudioTarget(HubsComponent):
 
     @delayed_gather
     def gather(self, export_settings, object):
+        from ...io.utils import gather_joint_property, gather_node_property
         return {
             'srcNode': gather_joint_property(export_settings, self.srcNode, self, 'bone') if self.bone_id != BLANK_ID else gather_node_property(
                 export_settings, object, self, 'srcNode'),

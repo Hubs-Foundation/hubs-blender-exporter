@@ -4,7 +4,7 @@ from ..types import Category, PanelType, NodeType
 from ..utils import has_component, is_linked
 from ..ui import add_link_indicator
 from bpy.types import Object
-from ...io.utils import gather_joint_property, gather_node_property, delayed_gather
+from ...utils import delayed_gather
 from .video_texture_source import VideoTextureSource
 
 BLANK_ID = "pXph8WBzMu9fung"
@@ -157,7 +157,7 @@ class VideoTextureTarget(HubsComponent):
 
     @delayed_gather
     def gather(self, export_settings, object):
-
+        from ...io.utils import gather_joint_property, gather_node_property
         return {
             'targetBaseColorMap': self.targetBaseColorMap,
             'targetEmissiveMap': self.targetEmissiveMap,

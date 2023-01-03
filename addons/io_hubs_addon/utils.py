@@ -14,3 +14,13 @@ def rgetattr(obj, attr, *args):
     def _getattr(obj, attr):
         return getattr(obj, attr, *args)
     return functools.reduce(_getattr, [obj] + attr.split('.'))
+
+
+def delayed_gather(func):
+    """ It delays the gather until all resources are available """
+    def wrapper_delayed_gather(*args, **kwargs):
+        def gather():
+            return func(*args, **kwargs)
+        gather.delayed_gather = True
+        return gather
+    return wrapper_delayed_gather
