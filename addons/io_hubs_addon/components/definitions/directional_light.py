@@ -25,7 +25,6 @@ class DirectionalLight(HubsComponent):
                                max=1,
                                update=lambda self, context: update_gizmos())
 
-
     intensity: FloatProperty(name="Intensity",
                              description="Intensity",
                              default=1.0)
@@ -44,7 +43,6 @@ class DirectionalLight(HubsComponent):
     shadowRadius: FloatProperty(name="Shadow Radius",
                                 description="Shadow Radius",
                                 default=1.0)
-
 
     @classmethod
     def update_gizmo(cls, ob, bone, target, gizmo):
