@@ -1,4 +1,4 @@
-from ..models import spotlight
+from ..models import spot_light
 from ..gizmos import CustomModelGizmo, bone_matrix_world, update_gizmos
 from bpy.props import FloatVectorProperty, FloatProperty, BoolProperty, IntVectorProperty
 from ..hubs_component import HubsComponent
@@ -88,7 +88,7 @@ class SpotLight(HubsComponent):
     def create_gizmo(cls, ob, gizmo_group):
         gizmo = gizmo_group.gizmos.new(CustomModelGizmo.bl_idname)
         gizmo.object = ob
-        setattr(gizmo, "hubs_gizmo_shape", spotlight.SHAPE)
+        setattr(gizmo, "hubs_gizmo_shape", spot_light.SHAPE)
         gizmo.setup()
         gizmo.use_draw_scale = False
         gizmo.use_draw_modal = False
