@@ -8,7 +8,7 @@ from ..hubs_component import HubsComponent
 from ..utils import has_component
 from mathutils import Matrix
 from bpy.types import (Gizmo, Object)
-from ..utils import delayed_gather
+from ...io.utils import delayed_gather
 import uuid
 
 
