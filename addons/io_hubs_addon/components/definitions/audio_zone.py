@@ -14,16 +14,19 @@ class AudioZone(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'deps': ['networked', 'audio-params'],
-        'icon': 'MATCUBE'
+        'icon': 'MATCUBE',
+        'version': (1, 0, 0)
     }
 
-    inOut: BoolProperty(name="In Out",
-                        description="The zone audio parameters affect the sources inside the zone when the listener is outside",
-                        default=True)
+    inOut: BoolProperty(
+        name="In Out",
+        description="The zone audio parameters affect the sources inside the zone when the listener is outside",
+        default=True)
 
-    outIn: BoolProperty(name="Out In",
-                        description="The zone audio parameters affect the sources outside the zone when the listener is inside",
-                        default=True)
+    outIn: BoolProperty(
+        name="Out In",
+        description="The zone audio parameters affect the sources outside the zone when the listener is inside",
+        default=True)
 
     @classmethod
     def update_gizmo(cls, ob, bone, target, gizmo):
@@ -53,6 +56,10 @@ class AudioZone(HubsComponent):
 
         return gizmo
 
-    @classmethod
-    def migrate(cls, version):
-        migrate_networked(cls.get_name())
+    def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
+        migration_occurred = False
+        if instance_version < (1, 0, 0):
+            migration_occurred = True
+            migrate_networked(host)
+
+        return migration_occurred

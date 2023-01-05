@@ -5,11 +5,10 @@ from bpy.types import PropertyGroup, Menu, Operator
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ...io.utils import import_component, assign_property
-from ..utils import redraw_component_ui
+from ..utils import redraw_component_ui, get_host_reference_message
 from ...io.utils import delayed_gather
 
-
-msgbus_owner = None
+msgbus_owners = []
 
 
 class TrackPropertyType(PropertyGroup):
@@ -45,24 +44,24 @@ class Errors():
 
     @classmethod
     def log(cls, track, error_type, error_message, severity='Error'):
-        has_error = cls._errors.get(track.track_type+track.name, '')
+        has_error = cls._errors.get(track.track_type + track.name, '')
         if not has_error:
-            cls._errors[track.track_type+track.name] = {
+            cls._errors[track.track_type + track.name] = {
                 'type': error_type, 'message': error_message, 'severity': severity}
 
-    @classmethod
+    @ classmethod
     def get(cls, track):
-        return cls._errors.get(track.track_type+track.name, '')
+        return cls._errors.get(track.track_type + track.name, '')
 
-    @classmethod
+    @ classmethod
     def clear(cls):
         cls._errors.clear()
 
-    @classmethod
+    @ classmethod
     def are_present(cls):
         return bool(cls._errors)
 
-    @classmethod
+    @ classmethod
     def display_error(cls, layout, error):
         message_lines = error['message'].split('\n')
         padding = layout.row(align=False)
@@ -84,51 +83,37 @@ class Errors():
 
 
 def register_msgbus():
-    global msgbus_owner
+    global msgbus_owners
 
-    if msgbus_owner:
+    if msgbus_owners:
         return
 
-    msgbus_owner = object()
-
-    bpy.msgbus.subscribe_rna(
-        key=(bpy.types.NlaTrack, "name"),
-        owner=msgbus_owner,
-        args=(bpy.context,),
-        notify=redraw_component_ui,
-    )
-
-    bpy.msgbus.subscribe_rna(
-        key=(bpy.types.NlaStrip, "name"),
-        owner=msgbus_owner,
-        args=(bpy.context,),
-        notify=redraw_component_ui,
-    )
-
-    bpy.msgbus.subscribe_rna(
-        key=(bpy.types.Action, "name"),
-        owner=msgbus_owner,
-        args=(bpy.context,),
-        notify=redraw_component_ui,
-    )
+    for animtype in [bpy.types.NlaTrack, bpy.types.NlaStrip, bpy.types.Action]:
+        owner = object()
+        msgbus_owners.append(owner)
+        bpy.msgbus.subscribe_rna(
+            key=(animtype, "name"),
+            owner=owner,
+            args=(bpy.context,),
+            notify=redraw_component_ui,
+        )
 
 
 def unregister_msgbus():
-    global msgbus_owner
-    if not msgbus_owner:
-        return
+    global msgbus_owners
 
-    bpy.msgbus.clear_by_owner(msgbus_owner)
-    msgbus_owner = None
+    for owner in msgbus_owners:
+        bpy.msgbus.clear_by_owner(owner)
+    msgbus_owners.clear()
 
 
-@persistent
+@ persistent
 def load_post(dummy):
     unregister_msgbus()
     register_msgbus()
 
 
-@persistent
+@ persistent
 def undo_redo_post(dummy):
     unregister_msgbus()
     register_msgbus()
@@ -157,7 +142,7 @@ def get_action_name(nla_track):
 
 
 def get_menu_id(nla_track, track_type, display_name):
-    return display_name if not is_default_name(nla_track.name) else track_type+display_name
+    return display_name if not is_default_name(nla_track.name) else track_type + display_name
 
 
 def is_unique_action(animation_data, target_nla_track):
@@ -265,8 +250,10 @@ def is_useable_nla_track(animation_data, nla_track, track):
         return False
 
     if not is_unique_action(animation_data, nla_track):
-        Errors.log(track, 'NON_UNIQUE_ACTION',
-                   "This strip/track contains an action that is present in multiple\nstrips/tracks on this object and may not export correctly.", severity="Warning")
+        Errors.log(
+            track, 'NON_UNIQUE_ACTION',
+            "This strip/track contains an action that is present in multiple\nstrips/tracks on this object and may not export correctly.",
+            severity="Warning")
         return False
 
     return True
@@ -354,7 +341,7 @@ class TracksList(bpy.types.UIList):
                 row.context_pointer_set('hubs_component', data)
                 row.context_pointer_set('track', item)
                 row.menu(UpdateTrackContextMenu.bl_idname,
-                         text=item.name+spacer, icon='ERROR')
+                         text=item.name + spacer, icon='ERROR')
             row = split.row(align=True)
             row.emboss = 'UI_EMBOSS_NONE_OR_STATUS' if bpy.app.version < (
                 3, 0, 0) else 'NONE_OR_STATUS'
@@ -501,7 +488,8 @@ class UpdateTrackContextMenu(Menu):
                 track_type = "object"
                 menu_id = get_menu_id(nla_track, track_type, display_name)
 
-                if menu_id not in menu_tracks and not has_track(hubs_component.tracks_list, nla_track, invalid_track=track):
+                if menu_id not in menu_tracks and not has_track(
+                        hubs_component.tracks_list, nla_track, invalid_track=track):
                     row = layout.row(align=False)
                     row.context_pointer_set('track', track)
 
@@ -526,7 +514,8 @@ class UpdateTrackContextMenu(Menu):
                 track_type = "shape_key"
                 menu_id = get_menu_id(nla_track, track_type, display_name)
 
-                if menu_id not in menu_tracks and not has_track(hubs_component.tracks_list, nla_track, invalid_track=track):
+                if menu_id not in menu_tracks and not has_track(
+                        hubs_component.tracks_list, nla_track, invalid_track=track):
                     row = layout.row(align=False)
                     row.context_pointer_set('track', track)
 
@@ -617,7 +606,8 @@ class LoopAnimation(HubsComponent):
         'category': Category.ANIMATION,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
-        'icon': 'LOOP_BACK'
+        'icon': 'LOOP_BACK',
+        'version': (1, 0, 0)
     }
 
     tracks_list: CollectionProperty(
@@ -680,12 +670,12 @@ class LoopAnimation(HubsComponent):
             final_track_names.append(track.track_name if not is_default_name(
                 track.track_name) else track.action_name)
 
-        fps = bpy.context.scene.render.fps/bpy.context.scene.render.fps_base
+        fps = bpy.context.scene.render.fps / bpy.context.scene.render.fps_base
 
         return {
             'clip': ",".join(
                 final_track_names),
-            'startOffset': self.startOffset/fps,
+            'startOffset': self.startOffset / fps,
             'timeScale': self.timeScale
         }
 
@@ -698,12 +688,12 @@ class LoopAnimation(HubsComponent):
         bpy.utils.register_class(AddTrackOperator)
         bpy.utils.register_class(RemoveTrackOperator)
 
-        if not load_post in bpy.app.handlers.load_post:
+        if load_post not in bpy.app.handlers.load_post:
             bpy.app.handlers.load_post.append(load_post)
-        if not undo_redo_post in bpy.app.handlers.undo_post:
-            bpy.app.handlers.load_post.append(undo_redo_post)
-        if not undo_redo_post in bpy.app.handlers.redo_post:
-            bpy.app.handlers.load_post.append(undo_redo_post)
+        if undo_redo_post not in bpy.app.handlers.undo_post:
+            bpy.app.handlers.undo_post.append(undo_redo_post)
+        if undo_redo_post not in bpy.app.handlers.redo_post:
+            bpy.app.handlers.redo_post.append(undo_redo_post)
 
         register_msgbus()
 
@@ -719,24 +709,11 @@ class LoopAnimation(HubsComponent):
         if load_post in bpy.app.handlers.load_post:
             bpy.app.handlers.load_post.remove(load_post)
         if undo_redo_post in bpy.app.handlers.undo_post:
-            bpy.app.handlers.load_post.remove(undo_redo_post)
+            bpy.app.handlers.undo_post.remove(undo_redo_post)
         if undo_redo_post in bpy.app.handlers.redo_post:
-            bpy.app.handlers.load_post.remove(undo_redo_post)
+            bpy.app.handlers.redo_post.remove(undo_redo_post)
 
         unregister_msgbus()
-
-    @classmethod
-    def migrate(cls, version):
-        if version < (1, 0, 0):
-            for ob in bpy.data.objects:
-                tracks = ob.hubs_component_loop_animation.clip.split(",")
-                migrate_data(tracks, ob)
-
-                if ob.type == 'ARMATURE':
-                    for bone in ob.data.bones:
-                        tracks = bone.hubs_component_loop_animation.clip.split(
-                            ",")
-                        migrate_data(tracks, ob, bone)
 
     @classmethod
     @delayed_gather
@@ -751,6 +728,43 @@ class LoopAnimation(HubsComponent):
             else:
                 assign_property(gltf.vnodes, blender_component,
                                 property_name, property_value)
+
+    def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
+        migration_occurred = False
+        if instance_version < (1, 0, 0):
+            migration_occurred = True
+            migration_warning = False
+            tracks = self.clip.split(",")
+            for track_name in tracks:
+                try:
+                    nla_track = ob.animation_data.nla_tracks[track_name]
+                    track_type = "object"
+                except (AttributeError, KeyError):
+                    try:
+                        nla_track = ob.data.shape_keys.animation_data.nla_tracks[track_name]
+                        track_type = "shape_key"
+                    except (AttributeError, KeyError):
+                        track = self.tracks_list.add()
+                        track.name = track_name
+                        migration_warning = True
+                        continue
+
+                if not has_track(self.tracks_list, nla_track):
+                    track = self.tracks_list.add()
+                    strip_name = get_strip_name(nla_track)
+                    action_name = get_action_name(nla_track)
+                    track.name = get_display_name(nla_track.name, strip_name)
+                    track.track_name = nla_track.name
+                    track.strip_name = strip_name if is_default_name(nla_track.name) else ''
+                    track.action_name = action_name if is_default_name(nla_track.name) else ''
+                    track.track_type = track_type
+
+            if migration_warning:
+                host_reference = get_host_reference_message(panel_type, host, ob=ob)
+                migration_report.append(
+                    f"Warning: The Loop Animation component on the {panel_type.value} {host_reference} may not have migrated correctly")
+
+        return migration_occurred
 
 
 def register_module():

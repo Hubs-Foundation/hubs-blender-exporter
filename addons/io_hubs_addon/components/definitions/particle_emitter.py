@@ -11,11 +11,13 @@ class ParticleEmitter(HubsComponent):
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
-        'icon': 'PARTICLES'
+        'icon': 'PARTICLES',
+        'version': (1, 0, 0)
     }
 
     src: StringProperty(
-        name="Image Source", description="The web address (URL) of the image to use for each particle", default="https://mozilla.org")
+        name="Image Source", description="The web address (URL) of the image to use for each particle",
+        default="https://mozilla.org")
 
     startColor: FloatVectorProperty(name="Start Color",
                                     description="Start Color",

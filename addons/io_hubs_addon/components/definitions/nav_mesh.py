@@ -9,9 +9,10 @@ class NavMesh(HubsComponent):
         'category': Category.SCENE,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT],
-        'icon': 'GRID'
+        'icon': 'GRID',
+        'version': (1, 0, 0)
     }
 
     @classmethod
-    def poll(cls, context, panel_type):
-        return context.object.type == 'MESH'
+    def poll(cls, panel_type, host, ob=None):
+        return host.type == 'MESH'

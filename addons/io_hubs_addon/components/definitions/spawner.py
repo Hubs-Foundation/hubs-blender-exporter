@@ -12,11 +12,13 @@ class Spawner(HubsComponent):
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
-        'icon': 'MOD_PARTICLE_INSTANCE'
+        'icon': 'MOD_PARTICLE_INSTANCE',
+        'version': (1, 0, 0)
     }
 
     src: StringProperty(
-        name="Model Source", description="The web address (URL) of the glTF to be spawned", default="https://mozilla.org")
+        name="Model Source", description="The web address (URL) of the glTF to be spawned",
+        default="https://mozilla.org")
 
     applyGravity: BoolProperty(
         name="Apply Gravity", description="Apply gravity to spawned object", default=False)
@@ -29,20 +31,17 @@ class Spawner(HubsComponent):
             }
         }
 
-    @classmethod
-    def migrate(cls, version):
-        if version < (1, 0, 0):
-            def migrate_data(ob):
-                if cls.get_name() in ob.hubs_component_list.items:
-                    ob.hubs_component_spawner.applyGravity = ob.hubs_component_spawner[
-                        'mediaOptions']['applyGravity']
+    def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
+        migration_occurred = False
+        if instance_version < (1, 0, 0):
+            migration_occurred = True
+            try:
+                self.applyGravity = self[
+                    'mediaOptions']['applyGravity']
+            except Exception:  # applyGravity was never saved, so it must have been left on the default value: False.
+                self.applyGravity = False
 
-            for ob in bpy.data.objects:
-                migrate_data(ob)
-
-                if ob.type == 'ARMATURE':
-                    for bone in ob.data.bones:
-                        migrate_data(bone)
+        return migration_occurred
 
     @classmethod
     def gather_import(cls, gltf, blender_object, component_name, component_value):

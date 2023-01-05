@@ -1,10 +1,11 @@
 from bpy.props import FloatProperty, EnumProperty, FloatVectorProperty, PointerProperty, BoolProperty
 from bpy.types import Image
-from ...io.utils import import_component, assign_property, gather_texture_property, gather_color_property
+from ...io.utils import import_component, assign_property
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
+from ..utils import is_linked
+from ..ui import add_link_indicator
 import bpy
-from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
 
 
 TOME_MAPPING = [("NoToneMapping", "None", "No tone mapping"),
@@ -25,7 +26,8 @@ class EnvironmentSettings(HubsComponent):
         'category': Category.SCENE,
         'node_type': NodeType.SCENE,
         'panel_type': [PanelType.SCENE],
-        'icon': 'WORLD'
+        'icon': 'WORLD',
+        'version': (1, 0, 0)
     }
 
     toneMapping: EnumProperty(
@@ -68,20 +70,43 @@ class EnvironmentSettings(HubsComponent):
         default=False
     )
     bloomThreshold: FloatProperty(
-        name="Threshold", description="Values brighter than this in the final render (before tone mapping) will have bloom applied to them. The threshold is applied starting at 1, so a value of 0 will cover all 'HDR' values. You can specify a number below 0 to have bloom effect SDR values (not recommended)", default=1.0, min=0.0, soft_min=1.0)
+        name="Threshold",
+        description="Values brighter than this in the final render (before tone mapping) will have bloom applied to them. The threshold is applied starting at 1, so a value of 0 will cover all 'HDR' values. You can specify a number below 0 to have bloom effect SDR values (not recommended)",
+        default=1.0, min=0.0, soft_min=1.0)
     bloomIntensity: FloatProperty(
         name="Intensity", description="Scales the intensity of the bloom effect", default=1.0, min=0.0)
     bloomRadius: FloatProperty(
         name="Radius", description="Spread distance of the bloom effect", default=0.6, min=0.0, soft_max=1.0)
-    bloomSmoothing: FloatProperty(
-        name="Smoothing", description="Makes transition between under/over-threshold more gradual.", default=0.025, min=0.0, soft_max=1.0)
+    bloomSmoothing: FloatProperty(name="Smoothing",
+                                  description="Makes transition between under/over-threshold more gradual.",
+                                  default=0.025, min=0.0, soft_max=1.0)
 
     def draw(self, context, layout, panel):
         layout.prop(data=self, property="enableHDRPipeline")
 
         layout.prop(data=self, property="backgroundColor")
-        layout.prop(data=self, property="backgroundTexture")
-        layout.prop(data=self, property="envMapTexture")
+
+        row = layout.row(align=True)
+        sub_row = row.row(align=True)
+        sub_row.prop(data=self, property="backgroundTexture")
+        if is_linked(context.scene):
+            # Manually disable the PointerProperty, needed for Blender 3.2+.
+            sub_row.enabled = False
+        if is_linked(self.backgroundTexture):
+            sub_row = row.row(align=True)
+            sub_row.enabled = False
+            add_link_indicator(sub_row, self.backgroundTexture)
+
+        row = layout.row(align=True)
+        sub_row = row.row(align=True)
+        sub_row.prop(data=self, property="envMapTexture")
+        if is_linked(context.scene):
+            # Manually disable the PointerProperty, needed for Blender 3.2+.
+            sub_row.enabled = False
+        if is_linked(self.envMapTexture):
+            sub_row = row.row(align=True)
+            sub_row.enabled = False
+            add_link_indicator(sub_row, self.envMapTexture)
 
         layout.prop(data=self, property="toneMapping")
         layout.prop(data=self, property="toneMappingExposure")
@@ -97,6 +122,7 @@ class EnvironmentSettings(HubsComponent):
                 layout.prop(data=self, property="bloomSmoothing")
 
     def gather(self, export_settings, object):
+        from ...io.utils import gather_texture_property, gather_color_property
         output = {
             'toneMapping': self.toneMapping,
             'toneMappingExposure': self.toneMappingExposure,
@@ -143,6 +169,7 @@ class EnvironmentSettings(HubsComponent):
             else:
                 source = gltf_texture.source
 
+            from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
             BlenderImage.create(
                 gltf, source)
             pyimg = gltf.data.images[source]
