@@ -7,7 +7,7 @@ from ...components.utils import is_gpu_available, redraw_component_ui, is_linked
 
 from ..components_registry import get_components_registry
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType, NodeType
+from ..types import Category, PanelType, NodeType, MigrationType
 from ..ui import add_link_indicator
 from ...utils import rgetattr, rsetattr
 from ..models import reflection_probe
@@ -785,6 +785,10 @@ class ReflectionProbe(HubsComponent):
                 row.label(text=f"{envmap_resolution} EnvMap doesn't match the scene probe resolution.",
                           icon='ERROR')
 
+        layout.prop(self, "influence_distance")
+        layout.prop(self, "clipStart")
+        layout.prop(self, "clipEnd")
+
         global bake_mode
         row = layout.row()
         row.context_pointer_set("bake_active_probe", None)
@@ -816,24 +820,20 @@ class ReflectionProbe(HubsComponent):
             }
         }
 
-    @classmethod
-    def create_gizmo(cls, ob, gizmo_group):
-        gizmo = gizmo_group.gizmos.new(ReflectionProbeGizmo.bl_idname)
-        setattr(gizmo, "hubs_gizmo_shape", reflection_probe.SHAPE)
-        gizmo.setup()
-        gizmo.use_draw_scale = False
-        gizmo.use_draw_modal = False
-        gizmo.color = (0.5, 0.8, 0.2)
-        gizmo.alpha = 1.0
-        gizmo.scale_basis = 1.0
-        gizmo.hide_select = True
-        gizmo.color_highlight = (0.5, 0.8, 0.2)
-        gizmo.alpha_highlight = 0.5
+    def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
+        migration_occurred = False
 
-        gizmo.target_set_prop(
-            "influence_distance", ob.hubs_component_reflection_probe, "influence_distance")
+        if self.type == 'LIGHT_PROBE' and instance_version < (1, 0, 1):
+            self.influence_distance = self.data.influence_distance
+            self.clipStart = self.data.clip_start
+            self.clipEnd = self.data.clip_end
 
-        return gizmo
+            if migration_type != MigrationType.GLOBAL or is_linked(ob) or type(ob) == bpy.types.Armature:
+                host_reference = get_host_reference_message(panel_type, host, ob=ob)
+                migration_report.append(
+                    f"Warning: The Reflection Probe component's influence_distance, clip_start and clip_end properties on the {panel_type.value} {host_reference} may not have migrated correctly")
+
+        return migration_occurred
 
     @ classmethod
     def draw_global(cls, context, layout, panel):
@@ -904,9 +904,25 @@ class ReflectionProbe(HubsComponent):
                 row.label(text="Baking requires Cycles addon to be enabled.",
                           icon='ERROR')
 
-    @ classmethod
-    def poll(cls, panel_type, host, ob=None):
-        return host.type == 'LIGHT_PROBE'
+    @classmethod
+    def create_gizmo(cls, ob, gizmo_group):
+        gizmo = gizmo_group.gizmos.new(ReflectionProbeGizmo.bl_idname)
+        setattr(gizmo, "hubs_gizmo_shape", reflection_probe.SHAPE)
+        gizmo.setup()
+        gizmo.use_draw_scale = False
+        gizmo.use_draw_modal = False
+        gizmo.color = (0.5, 0.8, 0.2)
+        gizmo.alpha = 1.0
+        gizmo.scale_basis = 1.0
+        gizmo.hide_select = True
+        gizmo.color_highlight = (0.5, 0.8, 0.2)
+        gizmo.alpha_highlight = 0.5
+
+        gizmo.target_set_prop(
+            "influence_distance", ob.hubs_component_reflection_probe, "influence_distance")
+
+        return gizmo
+
 
     @ staticmethod
     def register():
