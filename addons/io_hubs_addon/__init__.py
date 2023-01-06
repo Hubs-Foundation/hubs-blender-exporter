@@ -1,5 +1,5 @@
 from . import preferences
-from .io import gltf_exporter, gltf_importer, panels
+from .io import gltf_exporter, gltf_importer
 from . import (nodes, components)
 from .io import gltf_exporter
 import bpy
@@ -53,4 +53,4 @@ if bpy.app.version > (3, 0, 0):
 
 
 def register_panel():
-    return panels.register_panels()
+    return gltf_exporter.register_export_panel()

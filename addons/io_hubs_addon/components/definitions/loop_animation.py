@@ -6,7 +6,7 @@ from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ...io.utils import import_component, assign_property
 from ..utils import redraw_component_ui, get_host_reference_message
-from ...io.utils import delayed_gather
+from ...utils import delayed_gather
 
 msgbus_owners = []
 

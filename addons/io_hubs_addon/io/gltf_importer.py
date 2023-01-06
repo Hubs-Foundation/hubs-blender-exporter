@@ -1,5 +1,5 @@
 import bpy
-from io_scene_gltf2.io.com.gltf2_io_extensions import Extension
+from bpy.props import BoolProperty, PointerProperty
 from io_scene_gltf2.blender.imp.gltf2_blender_node import BlenderNode
 from io_scene_gltf2.blender.imp.gltf2_blender_material import BlenderMaterial
 from io_scene_gltf2.blender.imp.gltf2_blender_scene import BlenderScene
@@ -110,9 +110,10 @@ def store_bones_for_import(gltf, vnode):
 class glTF2ImportUserExtension:
 
     def __init__(self):
+        from io_scene_gltf2.io.com.gltf2_io_extensions import Extension
         self.extensions = [
             Extension(name=EXTENSION_NAME, extension={}, required=True)]
-        self.properties = bpy.context.scene.hubs_import_properties
+        self.properties = bpy.context.scene.HubsComponentsExtensionImportProperties
         global delayed_gathers
         delayed_gathers = []
 
@@ -154,7 +155,8 @@ class glTF2ImportUserExtension:
         # We handle this case by case in each component's gather_import override.
         pass
 
-    def gather_import_texture_after_hook(self, gltf_texture, node_tree, mh, tex_info, location, label, color_socket, alpha_socket, is_data, gltf):
+    def gather_import_texture_after_hook(
+            self, gltf_texture, node_tree, mh, tex_info, location, label, color_socket, alpha_socket, is_data, gltf):
         # As of Blender 3.2.0 the importer doesn't import textures that are not referenced by a material socket image.
         # We handle this case by case in each component's gather_import override.
         pass
@@ -235,12 +237,74 @@ def patched_BlenderScene_create(gltf):
     call_delayed_gathers()
 
 
+class HubsGLTFImportPanel(bpy.types.Panel):
+
+    bl_idname = "HBA_PT_Import_Panel"
+    bl_label = "Hubs Import Panel"
+    bl_space_type = 'FILE_BROWSER'
+    bl_region_type = 'TOOL_PROPS'
+    bl_label = "Hubs Components"
+    bl_parent_id = "GLTF_PT_import_user_extensions"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        sfile = context.space_data
+        operator = sfile.active_operator
+        return operator.bl_idname == "IMPORT_SCENE_OT_gltf"
+
+    def draw_header(self, context):
+        props = bpy.context.scene.HubsComponentsExtensionImportProperties
+        self.layout.prop(props, 'enabled', text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        props = bpy.context.scene.HubsComponentsExtensionImportProperties
+        layout.active = props.enabled
+
+        box = layout.box()
+        box.label(text="No options yet")
+
+
+class HubsImportProperties(bpy.types.PropertyGroup):
+    enabled: BoolProperty(
+        name="Import Hubs Components",
+        description='Import Hubs components from the glTF file',
+        default=True
+    )
+
+# called by gltf-blender-io after it has loaded
+
+
+def register_import_panel():
+    try:
+        bpy.utils.register_class(HubsGLTFImportPanel)
+    except Exception:
+        pass
+    return unregister_import_panel
+
+
+def unregister_import_panel():
+    # Since panel is registered on demand, it is possible it is not registered
+    try:
+        bpy.utils.unregister_class(HubsGLTFImportPanel)
+    except Exception:
+        pass
+
+
 def register():
     print("Register glTF Importer")
     if bpy.app.version < (3, 1, 0):
         BlenderNode.create_object = patched_BlenderNode_create_object
         BlenderMaterial.create = patched_BlenderMaterial_create
         BlenderScene.create = patched_BlenderScene_create
+    register_import_panel()
+    bpy.utils.register_class(HubsImportProperties)
+    bpy.types.Scene.HubsComponentsExtensionImportProperties = PointerProperty(
+        type=HubsImportProperties)
 
 
 def unregister():
@@ -249,3 +313,6 @@ def unregister():
         BlenderNode.create_object = orig_BlenderNode_create_object
         BlenderMaterial.create = orig_BlenderMaterial_create
         BlenderScene.create = orig_BlenderScene_create
+    del bpy.types.Scene.HubsComponentsExtensionImportProperties
+    bpy.utils.unregister_class(HubsImportProperties)
+    unregister_import_panel()

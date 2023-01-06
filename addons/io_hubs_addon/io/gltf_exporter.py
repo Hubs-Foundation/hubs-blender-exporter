@@ -134,14 +134,14 @@ class glTF2ExportUserExtension:
         if not self.properties.enabled:
             return
 
-        self.add_hubs_components(gltf2_object, blender_scene, export_settings)
+        self.export_hubs_components(gltf2_object, blender_scene, export_settings)
         self.call_delayed_gathers()
 
     def gather_node_hook(self, gltf2_object, blender_object, export_settings):
         if not self.properties.enabled:
             return
 
-        self.add_hubs_components(gltf2_object, blender_object, export_settings)
+        self.export_hubs_components(gltf2_object, blender_object, export_settings)
 
     def gather_material_hook(self, gltf2_object, blender_material, export_settings):
         if not self.properties.enabled:
@@ -272,7 +272,8 @@ def unregister_export_panel():
 
 
 def register():
-    print("Register GLTF Exporter")
+    print("Register glTF Exporter")
+    register_export_panel()
     if bpy.app.version < (3, 0, 0):
         gltf2_blender_export.__gather_gltf = patched_gather_gltf
     bpy.utils.register_class(HubsComponentsExtensionProperties)
@@ -282,7 +283,10 @@ def register():
 
 
 def unregister():
-    print("Unregister GLTF Exporter")
+    print("Unregister glTF Exporter")
+    unregister_export_panel()
+    del bpy.types.Scene.HubsComponentsExtensionProperties
+    bpy.utils.unregister_class(HubsComponentsExtensionProperties)
     if bpy.app.version < (3, 0, 0):
         gltf2_blender_export.__gather_gltf = orig_gather_gltf
     unregister_export_panel()

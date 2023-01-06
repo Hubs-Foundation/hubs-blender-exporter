@@ -8,6 +8,7 @@ from ..components_registry import get_components_registry
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ..ui import add_link_indicator
+from ...io.utils import import_component, assign_property
 from ...utils import rgetattr, rsetattr
 import math
 import os
@@ -881,6 +882,32 @@ class ReflectionProbe(HubsComponent):
     @ classmethod
     def poll(cls, panel_type, host, ob=None):
         return host.type == 'LIGHT_PROBE'
+
+    @classmethod
+    def gather_import(cls, gltf, blender_object, component_name, component_value):
+        blender_component = import_component(
+            component_name, blender_object)
+        images = {}
+        from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
+        for gltf_texture in gltf.data.textures:
+            extensions = gltf_texture.extensions
+            source = None
+            if extensions:
+                MOZ_texture_rgbe = extensions.get('MOZ_texture_rgbe')
+                if MOZ_texture_rgbe:
+                    source = MOZ_texture_rgbe['source']
+                    BlenderImage.create(gltf, source)
+                    pyimg = gltf.data.images[source]
+                    blender_image_name = pyimg.blender_image_name
+                    images[source] = blender_image_name
+        for property_name, property_value in component_value.items():
+            if isinstance(property_value, dict) and property_value['__mhc_link_type'] == "texture":
+                blender_image_name = images[property_value['index']]
+                blender_image = bpy.data.images[blender_image_name]
+                setattr(blender_component, property_name, blender_image)
+            else:
+                assign_property(gltf.vnodes, blender_component,
+                                property_name, property_value)
 
     @ staticmethod
     def register():
