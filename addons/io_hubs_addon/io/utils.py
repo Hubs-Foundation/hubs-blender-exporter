@@ -387,10 +387,10 @@ def import_component(component_name, blender_object):
 
 def set_color_from_hex(blender_component, property_name, hexcolor):
     hexcolor = hexcolor.lstrip('#')
-    rgb_int = [int(hexcolor[i:i+2], 16) for i in (0, 2, 4)]
+    rgb_int = [int(hexcolor[i:i + 2], 16) for i in (0, 2, 4)]
 
     for x, value in enumerate(rgb_int):
-        rgb_float = value/255 if value > 0 else 0
+        rgb_float = value / 255 if value > 0 else 0
         getattr(blender_component, property_name)[x] = rgb_float
 
 
