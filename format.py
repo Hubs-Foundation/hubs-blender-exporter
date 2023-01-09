@@ -1,6 +1,5 @@
 import subprocess
 import sys
-import os
 from shutil import which
 
 if which("autopep8") is None:
