@@ -167,6 +167,34 @@ if platform.system() == "Windows":
         def c_fflush():
             print("Error: Unable to flush the C stdout")
 
+    @contextmanager
+    def redirect_c_stdout(binary_stream):
+        stdout_file_descriptor = sys.stdout.fileno()
+        original_stdout_file_descriptor_copy = os.dup(stdout_file_descriptor)
+        tmpf = tempfile.NamedTemporaryFile(mode='w+b', buffering=0, delete=False)
+
+        try:
+            # Flush the C-level buffer of stdout before redirecting.  This should make sure that only the desired data is captured.
+            c_fflush()
+            # Redirect stdout to your pipe.
+            os.dup2(tmpf.fileno(), stdout_file_descriptor)
+            yield  # wait for input
+        finally:
+            # Flush the C-level buffer of stdout before returning things to normal.  This seems to be mainly needed on Windows because it looks like Windows changes the buffering policy to be fully buffered when redirecting stdout.
+            c_fflush()
+            # Redirect stdout back to the original file descriptor.
+            os.dup2(original_stdout_file_descriptor_copy, stdout_file_descriptor)
+            # Open the temp file in read mode
+            tmpf.close()
+            tmpf = open(tmpf.name, 'rb', 0)
+            binary_stream.write(tmpf.read())
+            # Close the remaining open file descriptor.
+            os.close(original_stdout_file_descriptor_copy)
+            # Close and remove the temp file
+            tmpf.close()
+            os.remove(tmpf.name)
+
+
 else:  # Linux/Mac
     try:  # get the C runtime
         libc = ctypes.cdll.LoadLibrary(ctypes.util.find_library('c'))
@@ -197,33 +225,32 @@ else:  # Linux/Mac
         def c_fflush():
             pass
 
+    @contextmanager
+    def redirect_c_stdout(binary_stream):
+        stdout_file_descriptor = sys.stdout.fileno()
+        original_stdout_file_descriptor_copy = os.dup(stdout_file_descriptor)
+        pipe_read_end, pipe_write_end = os.pipe()  # os.pipe returns two file descriptors.
 
-@contextmanager
-def redirect_c_stdout(binary_stream):
-    stdout_file_descriptor = sys.stdout.fileno()
-    original_stdout_file_descriptor_copy = os.dup(stdout_file_descriptor)
-    tmpf = tempfile.NamedTemporaryFile(mode='w+b', buffering=0, delete=False)
-
-    try:
-        # Flush the C-level buffer of stdout before redirecting.  This should make sure that only the desired data is captured.
-        c_fflush()
-        # Redirect stdout to your pipe.
-        os.dup2(tmpf.fileno(), stdout_file_descriptor)
-        yield  # wait for input
-    finally:
-        # Flush the C-level buffer of stdout before returning things to normal.  This seems to be mainly needed on Windows because it looks like Windows changes the buffering policy to be fully buffered when redirecting stdout.
-        c_fflush()
-        # Redirect stdout back to the original file descriptor.
-        os.dup2(original_stdout_file_descriptor_copy, stdout_file_descriptor)
-        # Open the temp file in read mode
-        tmpf.close()
-        tmpf = open(tmpf.name, 'rb', 0)
-        binary_stream.write(tmpf.read())
-        # Close the remaining open file descriptor.
-        os.close(original_stdout_file_descriptor_copy)
-        # Close and remove the temp file
-        tmpf.close()
-        os.remove(tmpf.name)
+        try:
+            # Flush the C-level buffer of stdout before redirecting.  This should make sure that only the desired data is captured.
+            c_fflush()
+            # Redirect stdout to your pipe.
+            os.dup2(pipe_write_end, stdout_file_descriptor)
+            yield  # wait for input
+        finally:
+            # Flush the C-level buffer of stdout before returning things to normal.  This seems to be mainly needed on Windows because it looks like Windows changes the buffering policy to be fully buffered when redirecting stdout.
+            c_fflush()
+            # Redirect stdout back to the original file descriptor.
+            os.dup2(original_stdout_file_descriptor_copy, stdout_file_descriptor)
+            # Close the write end of the pipe to allow reading.
+            os.close(pipe_write_end)
+            # Read what was written to the pipe and pass it to the binary stream for use outside this function.
+            pipe_reader = os.fdopen(pipe_read_end, 'rb')
+            binary_stream.write(pipe_reader.read())
+            # Close the reader, also closes the pipe_read_end file descriptor.
+            pipe_reader.close()
+            # Close the remaining open file descriptor.
+            os.close(original_stdout_file_descriptor_copy)
 
 
 def get_host_components(host):
