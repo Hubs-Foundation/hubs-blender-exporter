@@ -210,7 +210,7 @@ class HubsSceneViewOperator(bpy.types.Operator):
                 options.add_argument('ignore-certificate-errors')
                 web_driver = webdriver.Chrome(service_log_path=os.devnull, chrome_options=options)
 
-            web_driver.get('https://hubs.local:8080/viewer.html')
+            web_driver.get(get_addon_pref(context).viewer_url)
 
         refresh_scene_viewer()
 

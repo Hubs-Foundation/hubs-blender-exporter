@@ -93,6 +93,8 @@ class HubsPreferences(AddonPreferences):
 
     viewer_available: BoolProperty()
 
+    viewer_url: StringProperty(default="https://hubs.local:8080/viewer.html")
+
     browser: EnumProperty(
         name="Choose a viewer browser", description="Type",
         items=[("Firefox", "Firefox", "Use Firefox as the viewer browser"),
@@ -117,6 +119,8 @@ class HubsPreferences(AddonPreferences):
         row.label(
             text="Selenium module found."
             if viewer_available else "Selenium module not found. Selenium is required to run the viewer")
+        row = box.row()
+        row.prop(self, "viewer_url")
         row = box.row()
         if viewer_available:
             op = row.operator(UninstallDepsOperator.bl_idname,
