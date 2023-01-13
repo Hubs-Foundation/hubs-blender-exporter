@@ -200,18 +200,15 @@ class HubsSceneViewOperator(bpy.types.Operator):
         if not web_driver or not isWebdriverAlive(web_driver):
             browser = get_addon_pref(context).browser
             from selenium import webdriver
+            import os
             if browser == "Firefox":
-                web_driver = webdriver.Firefox()
+                profile = webdriver.FirefoxProfile()
+                profile.accept_untrusted_certs = True
+                web_driver = webdriver.Firefox(service_log_path=os.devnull, firefox_profile=profile)
             else:
-                web_driver = webdriver.Chrome()
-
-            # disable the OS file picker
-            web_driver.execute_script("""
-                document.addEventListener('click', function(evt) {
-                if (evt.target.type === 'file')
-                    evt.preventDefault();
-                }, true)
-                """)
+                options = webdriver.ChromeOptions()
+                options.add_argument('ignore-certificate-errors')
+                web_driver = webdriver.Chrome(service_log_path=os.devnull, chrome_options=options)
 
             web_driver.get('https://hubs.local:8080/viewer.html')
 
