@@ -142,6 +142,72 @@ class HubsObjectPanel(bpy.types.Panel):
         draw_components_list(self, context)
 
 
+def export_scene():
+    try:
+        import os
+        import sys
+        extension = '.glb'
+        output_dir = "/Users"
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        args = {
+            # Settings from "Remember Export Settings"
+            **dict(bpy.context.scene.get('glTF2ExportSettings', {})),
+
+            'export_format': ('GLB' if extension == '.glb' else 'GLTF_SEPARATE'),
+            'filepath': os.path.join("/Users/manuelmartin/Documents/3D/hubs/", "scene.glb"),
+            'export_cameras': True,
+            'export_lights': True,
+            'export_extras': True,
+            'use_visible': True
+        }
+        bpy.ops.export_scene.gltf(**args)
+    except Exception as err:
+        print(err, file=sys.stderr)
+
+
+web_driver = None
+
+
+def refresh_scene_viewer():
+    import os
+    from selenium.webdriver.common.by import By
+    web_driver.find_element(
+        By.XPATH, "//input[@type='file']").send_keys(os.path.join("/Users/manuelmartin/Documents/3D/hubs/", "scene.glb"))
+
+
+class HubsSceneViewOperator(bpy.types.Operator):
+    bl_idname = "hubs_scene.view_scene"
+    bl_label = "Remove Track"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        export_scene()
+
+        global web_driver
+        if not web_driver:
+            from selenium import webdriver
+            web_driver = webdriver.Firefox()
+            # driver = webdriver.Chrome(executable_path='chromedriver.exe')
+            # for selenium4 do this ( if above line gives error) run the next two lines:
+            ## service = Service(executable_path='C:\Program Files\Chrome Driver\chromedriver.exe')
+            # driver = webdriver.Chrome(service=service)driver.implicitly_wait(15)
+
+            # disable the OS file picker
+            web_driver.execute_script("""
+                document.addEventListener('click', function(evt) {
+                if (evt.target.type === 'file')
+                    evt.preventDefault();
+                }, true)
+                """)
+
+            web_driver.get('https://hubs.local:8080/viewer.html')
+
+        refresh_scene_viewer()
+
+        return {'FINISHED'}
+
+
 class HubsScenePanel(bpy.types.Panel):
     bl_label = 'Hubs'
     bl_idname = "SCENE_PT_hubs"
@@ -152,6 +218,8 @@ class HubsScenePanel(bpy.types.Panel):
     def draw(self, context):
         draw_component_global(self, context)
         layout = self.layout
+        layout.separator()
+        layout.operator(HubsSceneViewOperator.bl_idname, text='View scene')
         layout.separator()
         draw_components_list(self, context)
 
@@ -212,6 +280,7 @@ def gizmo_display_popover_addition(self, context):
 
 
 def register():
+    bpy.utils.register_class(HubsSceneViewOperator)
     bpy.utils.register_class(HubsObjectPanel)
     bpy.utils.register_class(HubsScenePanel)
     bpy.utils.register_class(HubsMaterialPanel)
@@ -229,7 +298,12 @@ def unregister():
     bpy.utils.unregister_class(HubsMaterialPanel)
     bpy.utils.unregister_class(HubsBonePanel)
     bpy.utils.unregister_class(TooltipLabel)
+    bpy.utils.unregister_class(HubsSceneViewOperator)
 
     bpy.types.TOPBAR_MT_window.remove(window_menu_addition)
     bpy.types.VIEW3D_MT_object.remove(object_menu_addition)
     bpy.types.VIEW3D_PT_gizmo_display.remove(gizmo_display_popover_addition)
+
+    global web_driver
+    if web_driver:
+        web_driver.close()
