@@ -3,6 +3,7 @@ from bpy.props import StringProperty
 from .types import PanelType
 from .components_registry import get_component_by_name, get_components_registry
 from .utils import get_object_source, is_linked
+from ..preferences import get_addon_pref, isViewerAvailable
 
 
 def draw_component_global(panel, context):
@@ -142,6 +143,9 @@ class HubsObjectPanel(bpy.types.Panel):
         draw_components_list(self, context)
 
 
+EXPORT_TMP_FILE_NAME = "__hubs_tmp_scene_.glb"
+
+
 def export_scene():
     try:
         import os
@@ -155,7 +159,7 @@ def export_scene():
             **dict(bpy.context.scene.get('glTF2ExportSettings', {})),
 
             'export_format': ('GLB' if extension == '.glb' else 'GLTF_SEPARATE'),
-            'filepath': os.path.join("/Users/manuelmartin/Documents/3D/hubs/", "scene.glb"),
+            'filepath': os.path.join(bpy.app.tempdir, EXPORT_TMP_FILE_NAME),
             'export_cameras': True,
             'export_lights': True,
             'export_extras': True,
@@ -173,7 +177,15 @@ def refresh_scene_viewer():
     import os
     from selenium.webdriver.common.by import By
     web_driver.find_element(
-        By.XPATH, "//input[@type='file']").send_keys(os.path.join("/Users/manuelmartin/Documents/3D/hubs/", "scene.glb"))
+        By.XPATH, "//input[@type='file']").send_keys(os.path.join(bpy.app.tempdir, EXPORT_TMP_FILE_NAME))
+
+
+def isWebdriverAlive(driver):
+    try:
+        driver.current_url
+        return True
+    except:
+        return False
 
 
 class HubsSceneViewOperator(bpy.types.Operator):
@@ -185,13 +197,13 @@ class HubsSceneViewOperator(bpy.types.Operator):
         export_scene()
 
         global web_driver
-        if not web_driver:
+        if not web_driver or not isWebdriverAlive(web_driver):
+            browser = get_addon_pref(context).browser
             from selenium import webdriver
-            web_driver = webdriver.Firefox()
-            # driver = webdriver.Chrome(executable_path='chromedriver.exe')
-            # for selenium4 do this ( if above line gives error) run the next two lines:
-            ## service = Service(executable_path='C:\Program Files\Chrome Driver\chromedriver.exe')
-            # driver = webdriver.Chrome(service=service)driver.implicitly_wait(15)
+            if browser == "Firefox":
+                web_driver = webdriver.Firefox()
+            else:
+                web_driver = webdriver.Chrome()
 
             # disable the OS file picker
             web_driver.execute_script("""
@@ -208,6 +220,28 @@ class HubsSceneViewOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class HUBS_PT_ToolsPanel(bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Hubs panel"
+    bl_category = "Hubs"
+    bl_context = 'objectmode'
+
+    def draw(self, context):
+        layout = self.layout
+        box = layout.box()
+        row = box.row()
+        row.label(text="Scene viewer:")
+        if isViewerAvailable():
+            row = box.row()
+            row.operator(HubsSceneViewOperator.bl_idname, text='View scene')
+        else:
+            row = box.row()
+            row.alert = True
+            row.label(
+                text="Selenium needs to be installed for the viewer functionality. Install from preferences.")
+
+
 class HubsScenePanel(bpy.types.Panel):
     bl_label = 'Hubs'
     bl_idname = "SCENE_PT_hubs"
@@ -217,9 +251,6 @@ class HubsScenePanel(bpy.types.Panel):
 
     def draw(self, context):
         draw_component_global(self, context)
-        layout = self.layout
-        layout.separator()
-        layout.operator(HubsSceneViewOperator.bl_idname, text='View scene')
         layout.separator()
         draw_components_list(self, context)
 
@@ -286,6 +317,7 @@ def register():
     bpy.utils.register_class(HubsMaterialPanel)
     bpy.utils.register_class(HubsBonePanel)
     bpy.utils.register_class(TooltipLabel)
+    bpy.utils.register_class(HUBS_PT_ToolsPanel)
 
     bpy.types.TOPBAR_MT_window.append(window_menu_addition)
     bpy.types.VIEW3D_MT_object.append(object_menu_addition)
@@ -299,11 +331,12 @@ def unregister():
     bpy.utils.unregister_class(HubsBonePanel)
     bpy.utils.unregister_class(TooltipLabel)
     bpy.utils.unregister_class(HubsSceneViewOperator)
+    bpy.utils.unregister_class(HUBS_PT_ToolsPanel)
 
     bpy.types.TOPBAR_MT_window.remove(window_menu_addition)
     bpy.types.VIEW3D_MT_object.remove(object_menu_addition)
     bpy.types.VIEW3D_PT_gizmo_display.remove(gizmo_display_popover_addition)
 
     global web_driver
-    if web_driver:
+    if web_driver and isWebdriverAlive(web_driver):
         web_driver.close()

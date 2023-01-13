@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import AddonPreferences
-from bpy.props import IntProperty, StringProperty
+from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty
 from .utils import get_addon_package
 import platform
 from os.path import join, dirname, realpath
@@ -25,6 +25,56 @@ def get_recast_lib_path():
     return join(recast_lib, file_name)
 
 
+class InstallDepsOperator(bpy.types.Operator):
+    bl_idname = "pref.hubs_prefs_install_dep"
+    bl_label = "Install a python dependency through pip"
+    bl_property = "dep_name"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    dep_name: StringProperty(default=" ")
+
+    def execute(self, context):
+        import subprocess
+        import sys
+
+        subprocess.run([sys.executable, '-m', 'ensurepip'],
+                       capture_output=True, text=True, input="y")
+        subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'],
+                       capture_output=True, text=True, input="y")
+        subprocess.run([sys.executable, '-m', 'pip', 'install', self.dep_name],
+                       capture_output=True, text=True, input="y")
+
+        return {'FINISHED'}
+
+
+class UninstallDepsOperator(bpy.types.Operator):
+    bl_idname = "pref.hubs_prefs_uninstall_dep"
+    bl_label = "Uninstall a python dependency through pip"
+    bl_property = "dep_name"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    dep_name: StringProperty(default=" ")
+
+    def execute(self, context):
+        import subprocess
+        import sys
+
+        subprocess.run([sys.executable, '-m', 'ensurepip'],
+                       capture_output=False, text=True, input="y")
+        subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'],
+                       capture_output=True, text=True, input="y")
+        subprocess.run([sys.executable, '-m', 'pip', 'uninstall', self.dep_name],
+                       capture_output=True, text=True, input="y")
+
+        return {'FINISHED'}
+
+
+def isViewerAvailable():
+    import importlib
+    selenium_loader = importlib.find_loader('selenium')
+    return selenium_loader is not None
+
+
 class HubsPreferences(AddonPreferences):
     bl_idname = __package__
 
@@ -41,6 +91,14 @@ class HubsPreferences(AddonPreferences):
         default=get_recast_lib_path()
     )
 
+    viewer_available: BoolProperty()
+
+    browser: EnumProperty(
+        name="Choose a viewer browser", description="Type",
+        items=[("Firefox", "Firefox", "Use Firefox as the viewer browser"),
+               ("Chrome", "Chrome", "Use Chrome as the viewer browser")],
+        default="Firefox")
+
     def draw(self, context):
         layout = self.layout
         box = layout.box()
@@ -48,10 +106,35 @@ class HubsPreferences(AddonPreferences):
         box.row().prop(self, "row_length")
         box.row().prop(self, "recast_lib_path")
 
+        viewer_available = isViewerAvailable()
+        box = layout.box()
+        box.label(text="Viewer configuration")
+        if viewer_available:
+            row = box.row()
+            row.prop(self, "browser")
+        row = box.row()
+        row.alert = not viewer_available
+        row.label(
+            text="Selenium module found."
+            if viewer_available else "Selenium module not found. Selenium is required to run the viewer")
+        row = box.row()
+        if viewer_available:
+            op = row.operator(UninstallDepsOperator.bl_idname,
+                              text="Uninstall selenium dependencies")
+            op.dep_name = "selenium"
+        else:
+            op = row.operator(InstallDepsOperator.bl_idname,
+                              text="Install selenium dependencies")
+            op.dep_name = "selenium"
+
 
 def register():
     bpy.utils.register_class(HubsPreferences)
+    bpy.utils.register_class(InstallDepsOperator)
+    bpy.utils.register_class(UninstallDepsOperator)
 
 
 def unregister():
+    bpy.utils.unregister_class(UninstallDepsOperator)
+    bpy.utils.unregister_class(InstallDepsOperator)
     bpy.utils.unregister_class(HubsPreferences)
