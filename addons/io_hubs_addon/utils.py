@@ -24,3 +24,10 @@ def delayed_gather(func):
         gather.delayed_gather = True
         return gather
     return wrapper_delayed_gather
+
+
+def get_user_python_path():
+    import sys
+    import subprocess
+    result = subprocess.run([sys.executable, '-m', 'site', '--user-site'], capture_output=True, text=True, input="y")
+    return result.stdout.strip("\n")

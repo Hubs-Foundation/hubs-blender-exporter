@@ -39,7 +39,8 @@ class InstallDepsOperator(bpy.types.Operator):
 
         subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'],
                        capture_output=False, text=True, input="y")
-        subprocess.run([sys.executable, '-m', 'pip', 'install', self.dep_name, '-t', 'lib'],
+        from .utils import get_user_python_path
+        subprocess.run([sys.executable, '-m', 'pip', 'install', self.dep_name, '-t', get_user_python_path()],
                        capture_output=False, text=True, input="y")
 
         return {'FINISHED'}

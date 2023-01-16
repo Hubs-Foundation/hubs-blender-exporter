@@ -1,3 +1,4 @@
+from .utils import get_user_python_path
 import sys
 import bpy
 from .io import gltf_exporter
@@ -18,7 +19,7 @@ bl_info = {
     "category": "Generic"
 }
 
-sys.path.insert(0, 'lib')
+sys.path.insert(0, get_user_python_path())
 
 
 def register():
