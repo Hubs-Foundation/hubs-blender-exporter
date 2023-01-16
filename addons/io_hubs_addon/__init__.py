@@ -3,7 +3,7 @@ from .io import gltf_exporter
 from . import (nodes, components)
 from . import preferences
 bl_info = {
-    "name": "Hubs Blender Addon",
+    "name": "Hubs Blender Addon Test",
     "author": "Mozilla Hubs",
     "description": "Tools for developing GLTF assets for Mozilla Hubs",
     "blender": (3, 1, 2),
