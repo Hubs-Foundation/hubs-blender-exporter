@@ -163,7 +163,8 @@ def export_scene():
             'export_cameras': True,
             'export_lights': True,
             'export_extras': True,
-            'use_visible': True
+            'use_visible': True,
+            'export_apply': True
         }
         bpy.ops.export_scene.gltf(**args)
     except Exception as err:
@@ -248,7 +249,6 @@ class HubsScenePanel(bpy.types.Panel):
 
     def draw(self, context):
         draw_component_global(self, context)
-        layout.separator()
         draw_components_list(self, context)
 
 

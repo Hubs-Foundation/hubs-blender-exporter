@@ -1,3 +1,4 @@
+import sys
 import bpy
 from .io import gltf_exporter
 from . import (nodes, components)
@@ -16,6 +17,8 @@ bl_info = {
     "warning": "",
     "category": "Generic"
 }
+
+sys.path.insert(0, 'lib')
 
 
 def register():

@@ -37,12 +37,10 @@ class InstallDepsOperator(bpy.types.Operator):
         import subprocess
         import sys
 
-        subprocess.run([sys.executable, '-m', 'ensurepip'],
-                       capture_output=True, text=True, input="y")
         subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'],
-                       capture_output=True, text=True, input="y")
-        subprocess.run([sys.executable, '-m', 'pip', 'install', self.dep_name],
-                       capture_output=True, text=True, input="y")
+                       capture_output=False, text=True, input="y")
+        subprocess.run([sys.executable, '-m', 'pip', 'install', self.dep_name, '-t', 'lib'],
+                       capture_output=False, text=True, input="y")
 
         return {'FINISHED'}
 
@@ -62,16 +60,16 @@ class UninstallDepsOperator(bpy.types.Operator):
         subprocess.run([sys.executable, '-m', 'ensurepip'],
                        capture_output=False, text=True, input="y")
         subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'],
-                       capture_output=True, text=True, input="y")
+                       capture_output=False, text=True, input="y")
         subprocess.run([sys.executable, '-m', 'pip', 'uninstall', self.dep_name],
-                       capture_output=True, text=True, input="y")
+                       capture_output=False, text=True, input="y")
 
         return {'FINISHED'}
 
 
 def isViewerAvailable():
     import importlib
-    selenium_loader = importlib.find_loader('selenium')
+    selenium_loader = importlib.util.find_spec('selenium')
     return selenium_loader is not None
 
 
