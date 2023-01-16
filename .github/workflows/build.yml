@@ -12,8 +12,6 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
       - name: Python Linter
         uses: weibullguy/python-lint-plus@v1.9.0
         with:
@@ -58,8 +56,6 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
       # Finds latest Blender build, and outputs the hosted build's download URL.
       - name: Find latest Blender build
         id: blender_version
@@ -117,8 +113,6 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
       - name: Update build number
         run: |
           sed -i'' 's/"dev_build"/${{ github.run_number }}/g' $GITHUB_WORKSPACE/addons/io_hubs_addon/__init__.py
