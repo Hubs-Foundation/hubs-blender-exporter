@@ -171,28 +171,25 @@ if platform.system() == "Windows":
     def redirect_c_stdout(binary_stream):
         stdout_file_descriptor = sys.stdout.fileno()
         original_stdout_file_descriptor_copy = os.dup(stdout_file_descriptor)
-        tmpf = tempfile.NamedTemporaryFile(mode='w+b', buffering=0, delete=False)
-
         try:
             # Flush the C-level buffer of stdout before redirecting.  This should make sure that only the desired data is captured.
             c_fflush()
+            #  Move the file pointer to the start of the file
+            __stack_tmp_file.seek(0)
             # Redirect stdout to your pipe.
-            os.dup2(tmpf.fileno(), stdout_file_descriptor)
+            os.dup2(__stack_tmp_file.fileno(), stdout_file_descriptor)
             yield  # wait for input
         finally:
             # Flush the C-level buffer of stdout before returning things to normal.  This seems to be mainly needed on Windows because it looks like Windows changes the buffering policy to be fully buffered when redirecting stdout.
             c_fflush()
             # Redirect stdout back to the original file descriptor.
             os.dup2(original_stdout_file_descriptor_copy, stdout_file_descriptor)
-            # Open the temp file in read mode
-            tmpf.close()
-            tmpf = open(tmpf.name, 'rb', 0)
-            binary_stream.write(tmpf.read())
+            # Truncate file to the written amount of bytes
+            __stack_tmp_file.truncate()
+            # Write back to the input stream
+            binary_stream.write(__stack_tmp_file.read())
             # Close the remaining open file descriptor.
             os.close(original_stdout_file_descriptor_copy)
-            # Close and remove the temp file
-            tmpf.close()
-            os.remove(tmpf.name)
 
 
 else:  # Linux/Mac
@@ -321,3 +318,19 @@ def get_host_reference_message(panel_type, host, ob=None):
         host_reference = f"\"{host.name_full}\""
 
     return host_reference
+
+
+if platform.system() == "Windows":
+    __stack_tmp_file = None
+
+
+def register():
+    if platform.system() == "Windows":
+        global __stack_tmp_file
+        __stack_tmp_file = tempfile.NamedTemporaryFile(mode='r+b', buffering=0, delete=False, dir=bpy.app.tempdir)
+
+
+def unregister():
+    if platform.system() == "Windows":
+        __stack_tmp_file.close()
+        os.unlink(__stack_tmp_file.name)
