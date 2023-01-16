@@ -305,14 +305,19 @@ def get_host_reference_message(panel_type, host, ob=None):
     return host_reference
 
 
-__stack_tmp_file = None
+if platform.system() == "Windows":
+    __stack_tmp_file = None
 
 
 def register():
-    global __stack_tmp_file
-    __stack_tmp_file = tempfile.NamedTemporaryFile(mode='w+b', buffering=0, delete=False, dir=bpy.app.tempdir)
+    if platform.system() == "Windows":
+        global __stack_tmp_file
+        __stack_tmp_file = tempfile.NamedTemporaryFile(
+            mode='r+b', buffering=0, delete=False, dir=bpy.app.tempdir)
 
 
 def unregister():
-    __stack_tmp_file.close()
-    os.unlink(__stack_tmp_file.name)
+    if platform.system() == "Windows":
+        global __stack_tmp_file
+        __stack_tmp_file.close()
+        os.unlink(__stack_tmp_file.name)
