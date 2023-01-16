@@ -176,7 +176,6 @@ if platform.system() == "Windows":
         def c_fflush():
             print("Error: Unable to flush the C stdout")
 
-
 else:  # Linux/Mac
     try:  # get the C runtime
         libc = ctypes.cdll.LoadLibrary(ctypes.util.find_library('c'))
@@ -305,19 +304,15 @@ def get_host_reference_message(panel_type, host, ob=None):
     return host_reference
 
 
-if platform.system() == "Windows":
-    __stack_tmp_file = None
+__stack_tmp_file = None
 
 
 def register():
-    if platform.system() == "Windows":
-        global __stack_tmp_file
-        __stack_tmp_file = tempfile.NamedTemporaryFile(
-            mode='r+b', buffering=0, delete=False, dir=bpy.app.tempdir)
+    global __stack_tmp_file
+    __stack_tmp_file = tempfile.NamedTemporaryFile(
+        mode='w+b', buffering=0, delete=False, dir=bpy.app.tempdir)
 
 
 def unregister():
-    if platform.system() == "Windows":
-        global __stack_tmp_file
-        __stack_tmp_file.close()
-        os.unlink(__stack_tmp_file.name)
+    __stack_tmp_file.close()
+    os.unlink(__stack_tmp_file.name)

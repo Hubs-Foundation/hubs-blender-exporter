@@ -1,8 +1,7 @@
-from . import (handlers, gizmos, components_registry, ui, operators, utils)
+from . import (handlers, gizmos, components_registry, ui, operators)
 
 
 def register():
-    utils.register()
     handlers.register()
     gizmos.register()
     components_registry.register()
@@ -16,4 +15,3 @@ def unregister():
     components_registry.unregister()
     gizmos.unregister()
     handlers.unregister()
-    utils.unregister()
