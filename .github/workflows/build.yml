@@ -115,7 +115,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Update build number
         run: |
-          sed -i'' 's/"dev_build"/${{ github.run_number }}/g' $GITHUB_WORKSPACE/addons/io_hubs_addon/__init__.py
+          sed -i'' 's/"dev_build"/$((${{ github.run_number }}+100))/g' $GITHUB_WORKSPACE/addons/io_hubs_addon/__init__.py
       - name: Upload addon artifacts
         uses: actions/upload-artifact@v3
         with:
