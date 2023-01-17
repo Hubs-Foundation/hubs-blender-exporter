@@ -823,7 +823,7 @@ class ReflectionProbe(HubsComponent):
     def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
         migration_occurred = False
 
-        if self.type == 'LIGHT_PROBE' and instance_version < (1, 0, 1):
+        if host.type == 'LIGHT_PROBE' and instance_version < (1, 0, 1):
             self.influence_distance = self.data.influence_distance
             self.clipStart = self.data.clip_start
             self.clipEnd = self.data.clip_end
