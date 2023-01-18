@@ -186,6 +186,8 @@ if platform.system() == "Windows":
             os.dup2(original_stdout_file_descriptor_copy, stdout_file_descriptor)
             # Truncate file to the written amount of bytes
             __stack_tmp_file.truncate()
+            #  Move the file pointer to the start of the file
+            __stack_tmp_file.seek(0)
             # Write back to the input stream
             binary_stream.write(__stack_tmp_file.read())
             # Close the remaining open file descriptor.
@@ -327,7 +329,7 @@ if platform.system() == "Windows":
 def register():
     if platform.system() == "Windows":
         global __stack_tmp_file
-        __stack_tmp_file = tempfile.NamedTemporaryFile(mode='r+b', buffering=0, delete=False, dir=bpy.app.tempdir)
+        __stack_tmp_file = tempfile.NamedTemporaryFile(mode='w+b', buffering=0, delete=False, dir=bpy.app.tempdir)
 
 
 def unregister():
