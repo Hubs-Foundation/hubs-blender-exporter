@@ -167,32 +167,6 @@ if platform.system() == "Windows":
         def c_fflush():
             print("Error: Unable to flush the C stdout")
 
-    @contextmanager
-    def redirect_c_stdout(binary_stream):
-        stdout_file_descriptor = sys.stdout.fileno()
-        original_stdout_file_descriptor_copy = os.dup(stdout_file_descriptor)
-        try:
-            # Flush the C-level buffer of stdout before redirecting.  This should make sure that only the desired data is captured.
-            c_fflush()
-            #  Move the file pointer to the start of the file
-            __stack_tmp_file.seek(0)
-            # Redirect stdout to your pipe.
-            os.dup2(__stack_tmp_file.fileno(), stdout_file_descriptor)
-            yield  # wait for input
-        finally:
-            # Flush the C-level buffer of stdout before returning things to normal.  This seems to be mainly needed on Windows because it looks like Windows changes the buffering policy to be fully buffered when redirecting stdout.
-            c_fflush()
-            # Redirect stdout back to the original file descriptor.
-            os.dup2(original_stdout_file_descriptor_copy, stdout_file_descriptor)
-            # Truncate file to the written amount of bytes
-            __stack_tmp_file.truncate()
-            #  Move the file pointer to the start of the file
-            __stack_tmp_file.seek(0)
-            # Write back to the input stream
-            binary_stream.write(__stack_tmp_file.read())
-            # Close the remaining open file descriptor.
-            os.close(original_stdout_file_descriptor_copy)
-
 
 else:  # Linux/Mac
     try:  # get the C runtime
@@ -224,32 +198,32 @@ else:  # Linux/Mac
         def c_fflush():
             pass
 
-    @contextmanager
-    def redirect_c_stdout(binary_stream):
-        stdout_file_descriptor = sys.stdout.fileno()
-        original_stdout_file_descriptor_copy = os.dup(stdout_file_descriptor)
-        pipe_read_end, pipe_write_end = os.pipe()  # os.pipe returns two file descriptors.
 
-        try:
-            # Flush the C-level buffer of stdout before redirecting.  This should make sure that only the desired data is captured.
-            c_fflush()
-            # Redirect stdout to your pipe.
-            os.dup2(pipe_write_end, stdout_file_descriptor)
-            yield  # wait for input
-        finally:
-            # Flush the C-level buffer of stdout before returning things to normal.  This seems to be mainly needed on Windows because it looks like Windows changes the buffering policy to be fully buffered when redirecting stdout.
-            c_fflush()
-            # Redirect stdout back to the original file descriptor.
-            os.dup2(original_stdout_file_descriptor_copy, stdout_file_descriptor)
-            # Close the write end of the pipe to allow reading.
-            os.close(pipe_write_end)
-            # Read what was written to the pipe and pass it to the binary stream for use outside this function.
-            pipe_reader = os.fdopen(pipe_read_end, 'rb')
-            binary_stream.write(pipe_reader.read())
-            # Close the reader, also closes the pipe_read_end file descriptor.
-            pipe_reader.close()
-            # Close the remaining open file descriptor.
-            os.close(original_stdout_file_descriptor_copy)
+@contextmanager
+def redirect_c_stdout(binary_stream):
+    stdout_file_descriptor = sys.stdout.fileno()
+    original_stdout_file_descriptor_copy = os.dup(stdout_file_descriptor)
+    try:
+        # Flush the C-level buffer of stdout before redirecting.  This should make sure that only the desired data is captured.
+        c_fflush()
+        #  Move the file pointer to the start of the file
+        __stack_tmp_file.seek(0)
+        # Redirect stdout to your pipe.
+        os.dup2(__stack_tmp_file.fileno(), stdout_file_descriptor)
+        yield  # wait for input
+    finally:
+        # Flush the C-level buffer of stdout before returning things to normal.  This seems to be mainly needed on Windows because it looks like Windows changes the buffering policy to be fully buffered when redirecting stdout.
+        c_fflush()
+        # Redirect stdout back to the original file descriptor.
+        os.dup2(original_stdout_file_descriptor_copy, stdout_file_descriptor)
+        # Truncate file to the written amount of bytes
+        __stack_tmp_file.truncate()
+        #  Move the file pointer to the start of the file
+        __stack_tmp_file.seek(0)
+        # Write back to the input stream
+        binary_stream.write(__stack_tmp_file.read())
+        # Close the remaining open file descriptor.
+        os.close(original_stdout_file_descriptor_copy)
 
 
 def get_host_components(host):
@@ -322,17 +296,14 @@ def get_host_reference_message(panel_type, host, ob=None):
     return host_reference
 
 
-if platform.system() == "Windows":
-    __stack_tmp_file = None
+__stack_tmp_file = None
 
 
 def register():
-    if platform.system() == "Windows":
-        global __stack_tmp_file
-        __stack_tmp_file = tempfile.NamedTemporaryFile(mode='w+b', buffering=0, delete=False, dir=bpy.app.tempdir)
+    global __stack_tmp_file
+    __stack_tmp_file = tempfile.NamedTemporaryFile(mode='w+b', buffering=0, delete=False, dir=bpy.app.tempdir)
 
 
 def unregister():
-    if platform.system() == "Windows":
-        __stack_tmp_file.close()
-        os.unlink(__stack_tmp_file.name)
+    __stack_tmp_file.close()
+    os.unlink(__stack_tmp_file.name)
