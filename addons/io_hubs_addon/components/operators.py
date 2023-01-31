@@ -463,13 +463,14 @@ class CopyHubsComponent(Operator):
         selected_objects = None
         if self.panel_type == PanelType.OBJECT.value:
             src_obj = context.active_object
-            selected_objects = context.selected_objects
+            selected_objects = [ob for ob in context.selected_objects if ob is not src_obj]
         elif self.panel_type == PanelType.BONE.value:
             src_obj = context.active_bone
             selected_objects = self.get_selected_bones(context)
         elif self.panel_type == PanelType.MATERIAL.value:
             src_obj = context.active_object.active_material
-            selected_objects = [ob.active_material for ob in context.selected_objects if ob.active_material is not None]
+            selected_objects = [ob.active_material for ob in context.selected_objects
+                                if ob.active_material is not None and ob.active_material is not src_obj]
 
         component_class = get_component_by_name(self.component_name)
         component_id = component_class.get_id()
