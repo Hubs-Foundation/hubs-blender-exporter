@@ -3,7 +3,8 @@ from bpy.props import StringProperty
 from .types import PanelType
 from .components_registry import get_component_by_name, get_components_registry
 from .utils import get_object_source, is_linked
-from ..preferences import get_addon_pref, isViewerAvailable
+from ..preferences import get_addon_pref
+from ..utils import isModuleAvailable
 
 
 def draw_component_global(panel, context):
@@ -205,11 +206,13 @@ class HubsSceneViewOperator(bpy.types.Operator):
             if browser == "Firefox":
                 profile = webdriver.FirefoxProfile()
                 profile.accept_untrusted_certs = True
-                web_driver = webdriver.Firefox(service_log_path=os.devnull, firefox_profile=profile)
+                web_driver = webdriver.Firefox(
+                    service_log_path=os.devnull, firefox_profile=profile)
             else:
                 options = webdriver.ChromeOptions()
                 options.add_argument('ignore-certificate-errors')
-                web_driver = webdriver.Chrome(service_log_path=os.devnull, chrome_options=options)
+                web_driver = webdriver.Chrome(
+                    service_log_path=os.devnull, chrome_options=options)
 
             web_driver.get(get_addon_pref(context).viewer_url)
 
@@ -230,7 +233,7 @@ class HUBS_PT_ToolsPanel(bpy.types.Panel):
         box = layout.box()
         row = box.row()
         row.label(text="Scene viewer:")
-        if isViewerAvailable():
+        if isModuleAvailable("selenium"):
             row = box.row()
             row.operator(HubsSceneViewOperator.bl_idname, text='View scene')
         else:

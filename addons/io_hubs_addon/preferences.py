@@ -1,7 +1,7 @@
 import bpy
 from bpy.types import AddonPreferences
-from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty
-from .utils import get_addon_package
+from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, CollectionProperty
+from .utils import get_addon_package, isModuleAvailable
 import platform
 from os.path import join, dirname, realpath
 
@@ -25,13 +25,17 @@ def get_recast_lib_path():
     return join(recast_lib, file_name)
 
 
+class DepsProperty(bpy.types.PropertyGroup):
+    name: StringProperty(default=" ")
+
+
 class InstallDepsOperator(bpy.types.Operator):
     bl_idname = "pref.hubs_prefs_install_dep"
     bl_label = "Install a python dependency through pip"
     bl_property = "dep_name"
     bl_options = {'REGISTER', 'UNDO'}
 
-    dep_name: StringProperty(default=" ")
+    dep_names: CollectionProperty(type=DepsProperty)
 
     def execute(self, context):
         import subprocess
@@ -40,8 +44,10 @@ class InstallDepsOperator(bpy.types.Operator):
         subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'],
                        capture_output=False, text=True, input="y")
         from .utils import get_user_python_path
-        subprocess.run([sys.executable, '-m', 'pip', 'install', self.dep_name, '-t', get_user_python_path()],
-                       capture_output=False, text=True, input="y")
+        subprocess.run(
+            [sys.executable, '-m', 'pip', 'install', *[name for name, _ in self.dep_names.items()],
+             '-t', get_user_python_path()],
+            capture_output=False, text=True, input="y")
 
         return {'FINISHED'}
 
@@ -52,7 +58,7 @@ class UninstallDepsOperator(bpy.types.Operator):
     bl_property = "dep_name"
     bl_options = {'REGISTER', 'UNDO'}
 
-    dep_name: StringProperty(default=" ")
+    dep_names: CollectionProperty(type=DepsProperty)
 
     def execute(self, context):
         import subprocess
@@ -62,16 +68,12 @@ class UninstallDepsOperator(bpy.types.Operator):
                        capture_output=False, text=True, input="y")
         subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'],
                        capture_output=False, text=True, input="y")
-        subprocess.run([sys.executable, '-m', 'pip', 'uninstall', self.dep_name],
-                       capture_output=False, text=True, input="y")
+        subprocess.run(
+            [sys.executable, '-m', 'pip', 'uninstall', *
+                [name for name, _ in self.dep_names.items()]],
+            capture_output=False, text=True, input="y")
 
         return {'FINISHED'}
-
-
-def isViewerAvailable():
-    import importlib
-    selenium_loader = importlib.util.find_spec('selenium')
-    return selenium_loader is not None
 
 
 class HubsPreferences(AddonPreferences):
@@ -91,7 +93,7 @@ class HubsPreferences(AddonPreferences):
     )
 
     viewer_available: BoolProperty()
-
+    viewer_enabled: BoolProperty(default=True)
     viewer_url: StringProperty(default="https://hubs.local:8080/viewer.html")
 
     browser: EnumProperty(
@@ -107,21 +109,26 @@ class HubsPreferences(AddonPreferences):
         box.row().prop(self, "row_length")
         box.row().prop(self, "recast_lib_path")
 
-        viewer_available = isViewerAvailable()
+        selenium_available = isModuleAvailable("selenium")
+        websockets_available = isModuleAvailable("websockets")
+        modules_available = selenium_available and websockets_available
         box = layout.box()
         box.label(text="Viewer configuration")
-        if viewer_available:
+        box.prop(self, "viewer_enabled")
+        if modules_available:
             row = box.row()
             row.prop(self, "browser")
         row = box.row()
-        row.alert = not viewer_available
+        row.alert = not modules_available
         row.label(
-            text="Selenium module found."
-            if viewer_available else "Selenium module not found. Selenium is required to run the viewer")
+            text="Modules found."
+            if modules_available else
+            "Selenium and websockets modules not found. These modules are required to run the viewer")
         row = box.row()
         row.prop(self, "viewer_url")
         row = box.row()
-        if viewer_available:
+
+        if self.viewer_available:
             op = row.operator(UninstallDepsOperator.bl_idname,
                               text="Uninstall selenium dependencies")
             op.dep_name = "selenium"
@@ -130,8 +137,20 @@ class HubsPreferences(AddonPreferences):
                               text="Install selenium dependencies")
             op.dep_name = "selenium"
 
+        if modules_available:
+            op = row.operator(UninstallDepsOperator.bl_idname,
+                              text="Uninstall dependencies (selenium, websockets)")
+            op.dep_names.add().name = "selenium"
+            op.dep_names.add().name = "websockets"
+        else:
+            op = row.operator(InstallDepsOperator.bl_idname,
+                              text="Install dependencies (selenium, websockets")
+            op.dep_names.add().name = "selenium"
+            op.dep_names.add().name = "websockets"
+
 
 def register():
+    bpy.utils.register_class(DepsProperty)
     bpy.utils.register_class(HubsPreferences)
     bpy.utils.register_class(InstallDepsOperator)
     bpy.utils.register_class(UninstallDepsOperator)
@@ -141,3 +160,4 @@ def unregister():
     bpy.utils.unregister_class(UninstallDepsOperator)
     bpy.utils.unregister_class(InstallDepsOperator)
     bpy.utils.unregister_class(HubsPreferences)
+    bpy.utils.unregister_class(DepsProperty)

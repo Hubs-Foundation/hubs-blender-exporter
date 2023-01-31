@@ -31,3 +31,9 @@ def get_user_python_path():
     import subprocess
     result = subprocess.run([sys.executable, '-m', 'site', '--user-site'], capture_output=True, text=True, input="y")
     return result.stdout.strip("\n")
+
+
+def isModuleAvailable(name):
+    import importlib
+    loader = importlib.util.find_spec(name)
+    return loader is not None
