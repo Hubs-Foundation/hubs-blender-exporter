@@ -93,8 +93,10 @@ class HubsPreferences(AddonPreferences):
     )
 
     viewer_available: BoolProperty()
-    viewer_enabled: BoolProperty(default=True)
-    viewer_url: StringProperty(default="https://hubs.local:8080/viewer.html")
+    viewer_enabled: BoolProperty(
+        name="Enabled", description="Is the viewer enabled?", default=True)
+    viewer_url: StringProperty(name="Viewer Url", description="Url of the viewer page to use",
+                               default="https://hubs.local:8080/viewer.html")
 
     browser: EnumProperty(
         name="Choose a viewer browser", description="Type",
