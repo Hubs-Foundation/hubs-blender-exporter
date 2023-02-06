@@ -51,17 +51,14 @@ def draw_component(panel, context, obj, row, component_item):
         top_row.label(text=display_name)
 
         if has_properties:
-            is_valid_object_copy = panel_type == PanelType.OBJECT and context.mode == "OBJECT"
-            is_valid_bone_copy = panel_type == PanelType.BONE and context.mode in ("POSE", "EDIT_ARMATURE")
-            is_valid_material_copy = panel_type == PanelType.MATERIAL and context.mode == "OBJECT"
-            if is_valid_object_copy or is_valid_bone_copy or is_valid_material_copy:
-                copy_component_operator = top_row.operator(
-                    "wm.copy_hubs_component",
-                    text="",
-                    icon="PASTEDOWN"
-                )
-                copy_component_operator.component_name = component_name
-                copy_component_operator.panel_type = panel.bl_context
+            top_row.context_pointer_set("panel", panel)
+            copy_component_operator = top_row.operator(
+                "wm.copy_hubs_component",
+                text="",
+                icon="PASTEDOWN"
+            )
+            copy_component_operator.component_name = component_name
+            copy_component_operator.panel_type = panel.bl_context
 
         if not component_class.is_dep_only():
             remove_component_operator = top_row.operator(

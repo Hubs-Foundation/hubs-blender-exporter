@@ -445,6 +445,14 @@ class CopyHubsComponent(Operator):
     panel_type: StringProperty(name="panel_type")
     component_name: StringProperty(name="component_name")
 
+    @classmethod
+    def poll(cls, context):
+        panel = getattr(context, 'panel')
+        panel_type = PanelType(panel.bl_context)
+        return panel_type == PanelType.OBJECT and context.mode == "OBJECT" \
+            or panel_type == PanelType.BONE and context.mode in ("POSE", "EDIT_ARMATURE") \
+            or panel_type == PanelType.MATERIAL and context.mode == "OBJECT"
+
     def get_selected_bones(self, context):
         selected_bones = context.selected_pose_bones if context.mode == "POSE" else context.selected_editable_bones
         selected_armatures = [sel_ob for sel_ob in context.selected_objects if sel_ob.type == "ARMATURE"]
