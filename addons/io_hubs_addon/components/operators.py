@@ -440,6 +440,7 @@ def split_and_prefix_report_messages(report_string):
 class CopyHubsComponent(Operator):
     bl_idname = "wm.copy_hubs_component"
     bl_label = "Copy component from active object"
+    bl_options = {'REGISTER', 'UNDO'}
 
     panel_type: StringProperty(name="panel_type")
     component_name: StringProperty(name="component_name")
