@@ -102,6 +102,20 @@ class ParticleEmitter(HubsComponent):
     angularVelocity: FloatProperty(
         name="Angular Velocity", description="Angular Velocity", unit="VELOCITY", default=0.0)
 
+    def gather(self, export_settings, object):
+        props = super().gather(export_settings, object)
+        props['startVelocity'] = {
+            'x': self.startVelocity[0],
+            'y': self.startVelocity[2] if export_settings['gltf_yup'] else self.startVelocity[1],
+            'z': self.startVelocity[1] if export_settings['gltf_yup'] else self.startVelocity[2],
+        }
+        props['endVelocity'] = {
+            'x': self.endVelocity[0],
+            'y': self.endVelocity[2] if export_settings['gltf_yup'] else self.endVelocity[1],
+            'z': self.endVelocity[1] if export_settings['gltf_yup'] else self.endVelocity[2],
+        }
+        return props
+
     @classmethod
     def update_gizmo(cls, ob, bone, target, gizmo):
         if bone:
