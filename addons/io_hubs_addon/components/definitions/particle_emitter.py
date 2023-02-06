@@ -2,7 +2,7 @@ from bpy.props import FloatProperty, EnumProperty, FloatVectorProperty, StringPr
 from ..hubs_component import HubsComponent
 from ..types import Category, NodeType, PanelType
 from ..consts import INTERPOLATION_MODES
-from ..gizmos import CustomModelGizmo, bone_matrix_world
+from ..gizmos import CustomModelGizmo, bone_matrix_world, update_gizmos
 from ..models import particle_emitter
 
 
@@ -27,7 +27,8 @@ class ParticleEmitter(HubsComponent):
                                     default=(1.0, 1.0, 1.0, 1.0),
                                     size=4,
                                     min=0,
-                                    max=1)
+                                    max=1,
+                                    update=lambda self, context: update_gizmos())
 
     middleColor: FloatVectorProperty(name="Middle Color",
                                      description="Middle Color",
@@ -134,7 +135,7 @@ class ParticleEmitter(HubsComponent):
         gizmo.setup()
         gizmo.use_draw_scale = False
         gizmo.use_draw_modal = False
-        gizmo.color = (0.8, 0.8, 0.8)
+        gizmo.color = getattr(ob, cls.get_id()).startColor[:3]
         gizmo.alpha = 0.5
         gizmo.scale_basis = 1.0
         gizmo.hide_select = True
