@@ -447,9 +447,7 @@ class CopyHubsComponent(Operator):
 
     def get_selected_bones(self, context):
         selected_bones = context.selected_pose_bones if context.mode == "POSE" else context.selected_editable_bones
-        selected_armatures = [
-            sel_ob for sel_ob in context.selected_objects
-            if sel_ob.type == "ARMATURE" and sel_ob is not context.active_object]
+        selected_armatures = [sel_ob for sel_ob in context.selected_objects if sel_ob.type == "ARMATURE"]
         selected_objects = []
         for armature in selected_armatures:
             armature_bones = armature.pose.bones if context.mode == "POSE" else armature.data.edit_bones
