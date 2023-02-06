@@ -17,53 +17,25 @@ class ParticleEmitter(HubsComponent):
         'version': (1, 0, 0)
     }
 
+    particleCount: IntProperty(
+        name="Particle Count", description="Particle Count", subtype="UNSIGNED", default=100)
+
     src: StringProperty(
         name="Image Source", description="The web address (URL) of the image to use for each particle",
-        default="https://mozilla.org")
+        default="https://hmc-assets.reticulum.io/spoke/assets/images/dot-75db99b125fe4e9afbe58696320bea73.png")
 
-    startColor: FloatVectorProperty(name="Start Color",
-                                    description="Start Color",
-                                    subtype='COLOR_GAMMA',
-                                    default=(1.0, 1.0, 1.0, 1.0),
-                                    size=4,
-                                    min=0,
-                                    max=1,
-                                    update=lambda self, context: update_gizmos())
+    ageRandomness: FloatProperty(
+        name="Age Randomness", description="Age Randomness", default=10.0)
 
-    middleColor: FloatVectorProperty(name="Middle Color",
-                                     description="Middle Color",
-                                     subtype='COLOR_GAMMA',
-                                     default=(1.0, 1.0, 1.0, 1.0),
-                                     size=4,
-                                     min=0,
-                                     max=1)
+    lifetime: FloatProperty(
+        name="Lifetime", description="Lifetime", unit="TIME", subtype="TIME", default=5.0)
 
-    endColor: FloatVectorProperty(name="End Color",
-                                  description="End Color",
-                                  subtype='COLOR_GAMMA',
-                                  default=(1.0, 1.0, 1.0, 1.0),
-                                  size=4,
-                                  min=0,
-                                  max=1)
-
-    startOpacity: FloatProperty(
-        name="Start Opacity", description="Start Opacity", default=1.0)
-
-    middleOpacity: FloatProperty(
-        name="Middle Opacity", description="Middle Opacity", default=1.0)
-
-    endOpacity: FloatProperty(
-        name="End Opacity", description="end Opacity", default=1.0)
+    lifetimeRandomness: FloatProperty(
+        name="Lifetime Randomness", description="Lifetime Randomness", default=5.0)
 
     sizeCurve: EnumProperty(
         name="Size Curve",
         description="Size Curve",
-        items=INTERPOLATION_MODES,
-        default="linear")
-
-    colorCurve: EnumProperty(
-        name="Color Curve",
-        description="Color Curve",
         items=INTERPOLATION_MODES,
         default="linear")
 
@@ -76,29 +48,57 @@ class ParticleEmitter(HubsComponent):
     sizeRandomness: FloatProperty(
         name="Size Randomness", description="Size Randomness", default=0.0)
 
-    ageRandomness: FloatProperty(
-        name="Age Randomness", description="Age Randomness", default=10.0)
+    colorCurve: EnumProperty(
+        name="Color Curve",
+        description="Color Curve",
+        items=INTERPOLATION_MODES,
+        default="linear")
 
-    lifetime: FloatProperty(
-        name="Lifetime", description="Lifetime", unit="TIME", subtype="TIME", default=5.0)
+    startColor: FloatVectorProperty(name="Start Color",
+                                    description="Start Color",
+                                    subtype='COLOR_GAMMA',
+                                    default=(1.0, 1.0, 1.0, 1.0),
+                                    size=4,
+                                    min=0,
+                                    max=1,
+                                    update=lambda self, context: update_gizmos())
 
-    lifetimeRandomness: FloatProperty(
-        name="Lifetime Randomness", description="Lifetime Randomness", default=5.0)
+    startOpacity: FloatProperty(
+        name="Start Opacity", description="Start Opacity", default=1.0)
 
-    particleCount: IntProperty(
-        name="Particle Count", description="Particle Count", subtype="UNSIGNED", default=100)
+    middleColor: FloatVectorProperty(name="Middle Color",
+                                     description="Middle Color",
+                                     subtype='COLOR_GAMMA',
+                                     default=(1.0, 1.0, 1.0, 1.0),
+                                     size=4,
+                                     min=0,
+                                     max=1)
 
-    startVelocity: FloatVectorProperty(
-        name="Start Velocity", description="Start Velocity", unit="VELOCITY", subtype="XYZ", default=(0.0, 0.0, 0.5))
+    middleOpacity: FloatProperty(
+        name="Middle Opacity", description="Middle Opacity", default=1.0)
 
-    endVelocity: FloatVectorProperty(
-        name="End Velocity", description="End Velocity", unit="VELOCITY", subtype="XYZ", default=(0.0, 0.0, 0.0))
+    endColor: FloatVectorProperty(name="End Color",
+                                  description="End Color",
+                                  subtype='COLOR_GAMMA',
+                                  default=(1.0, 1.0, 1.0, 1.0),
+                                  size=4,
+                                  min=0,
+                                  max=1)
+
+    endOpacity: FloatProperty(
+        name="End Opacity", description="end Opacity", default=1.0)
 
     velocityCurve: EnumProperty(
         name="Velocity Curve",
         description="Velocity Curve",
         items=INTERPOLATION_MODES,
         default="linear")
+
+    startVelocity: FloatVectorProperty(
+        name="Start Velocity", description="Start Velocity", unit="VELOCITY", subtype="XYZ", default=(0.0, 0.0, 0.5))
+
+    endVelocity: FloatVectorProperty(
+        name="End Velocity", description="End Velocity", unit="VELOCITY", subtype="XYZ", default=(0.0, 0.0, 0.5))
 
     angularVelocity: FloatProperty(
         name="Angular Velocity", description="Angular Velocity", unit="VELOCITY", default=0.0)
