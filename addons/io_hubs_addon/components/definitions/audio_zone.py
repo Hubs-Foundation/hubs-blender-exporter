@@ -28,6 +28,11 @@ class AudioZone(HubsComponent):
         description="The zone audio parameters affect the sources outside the zone when the listener is inside",
         default=True)
 
+    dynamic: BoolProperty(
+        name="Dynamic",
+        description="Wether or not this audio-zone will be movable",
+        default=False)
+
     @classmethod
     def update_gizmo(cls, ob, bone, target, gizmo):
         if bone:
