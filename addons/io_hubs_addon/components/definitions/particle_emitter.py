@@ -95,10 +95,10 @@ class ParticleEmitter(HubsComponent):
         default="linear")
 
     startVelocity: FloatVectorProperty(
-        name="Start Velocity", description="Start Velocity", unit="VELOCITY", subtype="XYZ", default=(0.0, 0.0, 0.5))
+        name="Start Velocity", description="Start Velocity", unit="LENGTH", subtype="XYZ", default=(0.0, 0.0, 0.5))
 
     endVelocity: FloatVectorProperty(
-        name="End Velocity", description="End Velocity", unit="VELOCITY", subtype="XYZ", default=(0.0, 0.0, 0.5))
+        name="End Velocity", description="End Velocity", unit="LENGTH", subtype="XYZ", default=(0.0, 0.0, 0.5))
 
     angularVelocity: FloatProperty(
         name="Angular Velocity", description="Angular Velocity", unit="VELOCITY", default=0.0)
