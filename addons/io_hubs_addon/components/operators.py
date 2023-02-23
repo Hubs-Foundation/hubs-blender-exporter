@@ -445,39 +445,42 @@ class CopyHubsComponent(Operator):
     panel_type: StringProperty(name="panel_type")
     component_name: StringProperty(name="component_name")
 
-    @classmethod
-    def poll(cls, context):
-        panel = getattr(context, 'panel')
-        panel_type = PanelType(panel.bl_context)
-        return panel_type == PanelType.OBJECT and context.mode == "OBJECT" \
-            or panel_type == PanelType.BONE and context.mode in ("POSE", "EDIT_ARMATURE") \
-            or panel_type == PanelType.MATERIAL and context.mode == "OBJECT"
-
     def get_selected_bones(self, context):
         selected_bones = context.selected_pose_bones if context.mode == "POSE" else context.selected_editable_bones
         selected_armatures = [sel_ob for sel_ob in context.selected_objects if sel_ob.type == "ARMATURE"]
-        selected_bones = []
+        selected_hosts = []
         for armature in selected_armatures:
             armature_bones = armature.pose.bones if context.mode == "POSE" else armature.data.edit_bones
             target_armature_bones = armature.data.bones if context.mode == "POSE" else armature.data.edit_bones
             target_bones = [bone for bone in armature_bones if bone in selected_bones]
             for target_bone in target_bones:
-                selected_bones.append(*[bone for bone in target_armature_bones if target_bone.name == bone.name])
-        return selected_bones
+                selected_hosts.append(*[bone for bone in target_armature_bones if target_bone.name == bone.name])
+        return selected_hosts
+
+    def get_selected_hosts(self, context):
+        selected_hosts = []
+        for host in context.selected_objects:
+            if host.type == "ARMATURE" and context.mode != "OBJECT":
+                selected_hosts.append(*self.get_selected_bones(context))
+            else:
+                selected_hosts.append(host)
+
+        return selected_hosts
 
     def execute(self, context):
         src_host = None
-        selected_hosts = None
+        selected_hosts = self.get_selected_hosts(context)
         if self.panel_type == PanelType.OBJECT.value:
             src_host = context.active_object
-            selected_hosts = [ob for ob in context.selected_objects if ob is not src_host]
+            selected_hosts = self.get_selected_hosts(context)
         elif self.panel_type == PanelType.BONE.value:
             src_host = context.active_bone
-            selected_hosts = self.get_selected_bones(context)
+            selected_hosts = self.get_selected_hosts(context)
         elif self.panel_type == PanelType.MATERIAL.value:
             src_host = context.active_object.active_material
-            selected_hosts = [ob.active_material for ob in context.selected_objects
-                              if ob.active_material is not None and ob.active_material is not src_host]
+            selected_hosts = [
+                ob.active_material for ob in context.selected_objects
+                if ob.active_material and ob.active_material is not None and ob.active_material is not src_host]
 
         component_class = get_component_by_name(self.component_name)
         component_id = component_class.get_id()
