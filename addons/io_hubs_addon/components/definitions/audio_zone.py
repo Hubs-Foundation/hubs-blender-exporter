@@ -30,7 +30,7 @@ class AudioZone(HubsComponent):
 
     dynamic: BoolProperty(
         name="Dynamic",
-        description="Wether or not this audio-zone will be movable",
+        description="Whether or not this audio-zone will be movable",
         default=False)
 
     @classmethod
