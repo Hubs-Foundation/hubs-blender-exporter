@@ -456,37 +456,37 @@ class CopyHubsComponent(Operator):
     def get_selected_bones(self, context):
         selected_bones = context.selected_pose_bones if context.mode == "POSE" else context.selected_editable_bones
         selected_armatures = [sel_ob for sel_ob in context.selected_objects if sel_ob.type == "ARMATURE"]
-        selected_objects = []
+        selected_bones = []
         for armature in selected_armatures:
             armature_bones = armature.pose.bones if context.mode == "POSE" else armature.data.edit_bones
             target_armature_bones = armature.data.bones if context.mode == "POSE" else armature.data.edit_bones
             target_bones = [bone for bone in armature_bones if bone in selected_bones]
             for target_bone in target_bones:
-                selected_objects.append(*[bone for bone in target_armature_bones if target_bone.name == bone.name])
-        return selected_objects
+                selected_bones.append(*[bone for bone in target_armature_bones if target_bone.name == bone.name])
+        return selected_bones
 
     def execute(self, context):
-        src_obj = None
-        selected_objects = None
+        src_host = None
+        selected_hosts = None
         if self.panel_type == PanelType.OBJECT.value:
-            src_obj = context.active_object
-            selected_objects = [ob for ob in context.selected_objects if ob is not src_obj]
+            src_host = context.active_object
+            selected_hosts = [ob for ob in context.selected_objects if ob is not src_host]
         elif self.panel_type == PanelType.BONE.value:
-            src_obj = context.active_bone
-            selected_objects = self.get_selected_bones(context)
+            src_host = context.active_bone
+            selected_hosts = self.get_selected_bones(context)
         elif self.panel_type == PanelType.MATERIAL.value:
-            src_obj = context.active_object.active_material
-            selected_objects = [ob.active_material for ob in context.selected_objects
-                                if ob.active_material is not None and ob.active_material is not src_obj]
+            src_host = context.active_object.active_material
+            selected_hosts = [ob.active_material for ob in context.selected_objects
+                              if ob.active_material is not None and ob.active_material is not src_host]
 
         component_class = get_component_by_name(self.component_name)
         component_id = component_class.get_id()
-        for dest_obj in selected_objects:
-            if not has_component(dest_obj, self.component_name):
-                add_component(dest_obj, self.component_name)
+        for dest_host in selected_hosts:
+            if not has_component(dest_host, self.component_name):
+                add_component(dest_host, self.component_name)
 
-            for key, value in src_obj[component_id].items():
-                dest_obj[component_id][key] = value
+            for key, value in src_host[component_id].items():
+                dest_host[component_id][key] = value
 
         return {'FINISHED'}
 
