@@ -460,14 +460,14 @@ class CopyHubsComponent(Operator):
             target_armature_bones = armature.data.bones if context.mode == "POSE" else armature.data.edit_bones
             target_bones = [bone for bone in armature_bones if bone in selected_bones]
             for target_bone in target_bones:
-                selected_hosts.append(*[bone for bone in target_armature_bones if target_bone.name == bone.name])
+                selected_hosts.extend([bone for bone in target_armature_bones if target_bone.name == bone.name])
         return selected_hosts
 
     def get_selected_hosts(self, context):
         selected_hosts = []
         for host in context.selected_objects:
             if host.type == "ARMATURE" and context.mode != "OBJECT":
-                selected_hosts.append(*self.get_selected_bones(context))
+                selected_hosts.extend(self.get_selected_bones(context))
             else:
                 selected_hosts.append(host)
 
@@ -475,7 +475,7 @@ class CopyHubsComponent(Operator):
 
     def execute(self, context):
         src_host = None
-        selected_hosts = self.get_selected_hosts(context)
+        selected_hosts = []
         if self.panel_type == PanelType.OBJECT.value:
             src_host = context.active_object
             selected_hosts = self.get_selected_hosts(context)
