@@ -51,6 +51,7 @@ def draw_component(panel, context, obj, row, component_item):
         top_row.label(text=display_name)
 
         if has_properties:
+            top_row.context_pointer_set("panel", panel)
             copy_component_operator = top_row.operator(
                 "wm.copy_hubs_component",
                 text="",
