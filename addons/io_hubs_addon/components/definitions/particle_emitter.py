@@ -1,9 +1,12 @@
 from bpy.props import FloatProperty, EnumProperty, FloatVectorProperty, StringProperty, IntProperty
 from ..hubs_component import HubsComponent
-from ..types import Category, NodeType, PanelType
+from ..types import Category, NodeType, PanelType, MigrationType
 from ..consts import INTERPOLATION_MODES
 from ..gizmos import CustomModelGizmo, bone_matrix_world, update_gizmos
 from ..models import particle_emitter
+from ..utils import is_linked, get_host_reference_message
+import bpy
+from mathutils import Vector
 
 
 class ParticleEmitter(HubsComponent):
@@ -14,7 +17,7 @@ class ParticleEmitter(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'PARTICLES',
-        'version': (1, 0, 0)
+        'version': (1, 1, 0)
     }
 
     particleCount: IntProperty(
@@ -116,6 +119,25 @@ class ParticleEmitter(HubsComponent):
             'z': self.endVelocity[1] if export_settings['gltf_yup'] else self.endVelocity[2],
         }
         return props
+
+    def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
+        migration_occurred = False
+        if instance_version < (1, 1, 0):
+            migration_occurred = True
+            startVelocity = self.startVelocity.copy()
+            startVelocity = Vector((startVelocity.x, startVelocity.z, startVelocity.y))
+            self.startVelocity = startVelocity
+
+            endVelocity = self.endVelocity.copy()
+            endVelocity = Vector((endVelocity.x, endVelocity.z, endVelocity.y))
+            self.endVelocity = endVelocity
+
+            if migration_type != MigrationType.GLOBAL or is_linked(ob) or type(ob) == bpy.types.Armature:
+                host_reference = get_host_reference_message(panel_type, host, ob=ob)
+                migration_report.append(
+                    f"Warning: The Particle Emitter component's Y and Z on startVelocity and endVelocity on the {panel_type.value} {host_reference} may not have migrated correctly")
+
+        return migration_occurred
 
     @classmethod
     def update_gizmo(cls, ob, bone, target, gizmo):
