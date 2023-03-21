@@ -32,7 +32,7 @@ class Image(HubsComponent):
         description="Transparency Mode",
         items=TRANSPARENCY_MODE,
         default="opaque")
-    
+
     alphaCutoff: FloatProperty(
         name="Alpha Cutoff",
         description="Pixels with alpha values lower than this will be transparent on Binary transparency mode",
