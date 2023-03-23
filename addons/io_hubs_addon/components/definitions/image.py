@@ -1,6 +1,6 @@
 from ..models import image
 from ..gizmos import CustomModelGizmo
-from bpy.props import EnumProperty, StringProperty, BoolProperty
+from bpy.props import EnumProperty, FloatProperty, StringProperty, BoolProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ..consts import PROJECTION_MODE, TRANSPARENCY_MODE
@@ -32,6 +32,11 @@ class Image(HubsComponent):
         description="Transparency Mode",
         items=TRANSPARENCY_MODE,
         default="opaque")
+
+    alphaCutoff: FloatProperty(
+        name="Alpha Cutoff",
+        description="Pixels with alpha values lower than this will be transparent on Binary transparency mode",
+        default=0.5)
 
     projection: EnumProperty(
         name="Projection",
