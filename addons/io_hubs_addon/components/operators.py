@@ -5,7 +5,7 @@ from functools import reduce
 
 from .types import PanelType, MigrationType
 from .utils import get_object_source, dash_to_title, has_component, add_component, remove_component, wrap_text, display_wrapped_text
-from .components_registry import get_components_registry, get_components_icons
+from .components_registry import get_components_registry, get_components_icons, get_component_by_name
 from ..preferences import get_addon_pref
 from .handlers import migrate_components
 from .gizmos import update_gizmos
@@ -437,6 +437,69 @@ def split_and_prefix_report_messages(report_string):
     return [f"{i+1:02d}   {message}" for i, message in enumerate(report_string.split("\n\n"))]
 
 
+class CopyHubsComponent(Operator):
+    bl_idname = "wm.copy_hubs_component"
+    bl_label = "Copy component from active object"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    panel_type: StringProperty(name="panel_type")
+    component_name: StringProperty(name="component_name")
+
+    @classmethod
+    def poll(cls, context):
+        panel = getattr(context, 'panel')
+        panel_type = PanelType(panel.bl_context)
+        return panel_type != PanelType.SCENE
+
+    def get_selected_bones(self, context):
+        selected_bones = context.selected_pose_bones if context.mode == "POSE" else context.selected_editable_bones
+        selected_armatures = [sel_ob for sel_ob in context.selected_objects if sel_ob.type == "ARMATURE"]
+        selected_hosts = []
+        for armature in selected_armatures:
+            armature_bones = armature.pose.bones if context.mode == "POSE" else armature.data.edit_bones
+            target_armature_bones = armature.data.bones if context.mode == "POSE" else armature.data.edit_bones
+            target_bones = [bone for bone in armature_bones if bone in selected_bones]
+            for target_bone in target_bones:
+                selected_hosts.extend([bone for bone in target_armature_bones if target_bone.name == bone.name])
+        return selected_hosts
+
+    def get_selected_hosts(self, context):
+        selected_hosts = []
+        for host in context.selected_objects:
+            if host.type == "ARMATURE" and context.mode != "OBJECT":
+                selected_hosts.extend(self.get_selected_bones(context))
+            else:
+                selected_hosts.append(host)
+
+        return selected_hosts
+
+    def execute(self, context):
+        src_host = None
+        selected_hosts = []
+        if self.panel_type == PanelType.OBJECT.value:
+            src_host = context.active_object
+            selected_hosts = self.get_selected_hosts(context)
+        elif self.panel_type == PanelType.BONE.value:
+            src_host = context.active_bone
+            selected_hosts = self.get_selected_hosts(context)
+        elif self.panel_type == PanelType.MATERIAL.value:
+            src_host = context.active_object.active_material
+            selected_hosts = [
+                ob.active_material for ob in context.selected_objects
+                if ob.active_material and ob.active_material is not None and ob.active_material is not src_host]
+
+        component_class = get_component_by_name(self.component_name)
+        component_id = component_class.get_id()
+        for dest_host in selected_hosts:
+            if not has_component(dest_host, self.component_name):
+                add_component(dest_host, self.component_name)
+
+            for key, value in src_host[component_id].items():
+                dest_host[component_id][key] = value
+
+        return {'FINISHED'}
+
+
 def register():
     bpy.utils.register_class(AddHubsComponent)
     bpy.utils.register_class(RemoveHubsComponent)
@@ -446,6 +509,7 @@ def register():
     bpy.utils.register_class(ReportScroller)
     bpy.utils.register_class(ViewLastReport)
     bpy.utils.register_class(ViewReportInInfoEditor)
+    bpy.utils.register_class(CopyHubsComponent)
     bpy.types.WindowManager.hubs_report_scroll_index = IntProperty(default=0, min=0)
     bpy.types.WindowManager.hubs_report_scroll_percentage = IntProperty(
         name="Scroll Position", default=0, min=0, max=100, subtype='PERCENTAGE')
@@ -462,6 +526,7 @@ def unregister():
     bpy.utils.unregister_class(ReportScroller)
     bpy.utils.unregister_class(ViewLastReport)
     bpy.utils.unregister_class(ViewReportInInfoEditor)
+    bpy.utils.unregister_class(CopyHubsComponent)
     del bpy.types.WindowManager.hubs_report_scroll_index
     del bpy.types.WindowManager.hubs_report_scroll_percentage
     del bpy.types.WindowManager.hubs_report_last_title
