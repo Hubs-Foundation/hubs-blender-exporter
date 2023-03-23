@@ -350,13 +350,13 @@ describe('Exporter', function () {
             "velocityCurve":"linear",
             "startVelocity":{
               "x":0,
-              "y":0.5,
-              "z":0
+              "y":0,
+              "z":0.5
             },
             "endVelocity":{
               "x":0,
-              "y":0.5,
-              "z":0
+              "y":0,
+              "z":0.5
             },
             "angularVelocity":0
           }
