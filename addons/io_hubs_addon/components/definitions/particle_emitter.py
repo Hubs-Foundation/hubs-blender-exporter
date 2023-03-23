@@ -132,11 +132,6 @@ class ParticleEmitter(HubsComponent):
             endVelocity = Vector((endVelocity.x, endVelocity.z, endVelocity.y))
             self.endVelocity = endVelocity
 
-            if migration_type != MigrationType.GLOBAL or is_linked(ob) or type(ob) == bpy.types.Armature:
-                host_reference = get_host_reference_message(panel_type, host, ob=ob)
-                migration_report.append(
-                    f"Warning: The Particle Emitter component's Y and Z on startVelocity and endVelocity on the {panel_type.value} {host_reference} may not have migrated correctly")
-
         return migration_occurred
 
     @classmethod
