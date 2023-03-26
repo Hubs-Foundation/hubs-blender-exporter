@@ -467,7 +467,9 @@ class GenerateNavMesh(Operator):
             else:
                 return {'FINISHED'}
 
-        bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked": False, "mode": 'TRANSLATION'}, TRANSFORM_OT_translate={"value": (0, 0, 0), "orient_axis_ortho": 'X', "orient_type": 'GLOBAL', "orient_matrix": ((0, 0, 0), (0, 0, 0), (0, 0, 0)), "orient_matrix_type": 'GLOBAL', "constraint_axis": (False, False, False), "mirror": False})
+        bpy.ops.object.mode_set(mode="OBJECT")
+        bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked": False, "mode": 'TRANSLATION'}, TRANSFORM_OT_translate={"value": (0, 0, 0), "orient_axis_ortho": 'X', "orient_type": 'GLOBAL', "orient_matrix": (
+            (0, 0, 0), (0, 0, 0), (0, 0, 0)), "orient_matrix_type": 'GLOBAL', "constraint_axis": (False, False, False), "mirror": False})
 
         # Check if there's more than one selected object. If so, join them all together.
         if len(objs) > 1:
@@ -477,8 +479,37 @@ class GenerateNavMesh(Operator):
         obj = bpy.context.active_object
 
         bpy.ops.object.make_single_user(object=True, obdata=True)
+
+        # Apply all current modifiers
+        if len(bpy.context.active_object.modifiers) > 0:
+            for modifier in bpy.context.active_object.modifiers:
+                bpy.ops.object.modifier_apply(modifier=modifier.name)
+
         bpy.ops.object.transform_apply(
             location=False, rotation=True, scale=True)
+
+        # Solidify modifier - TODO
+
+        # bpy.ops.object.modifier_add(type='SOLIDIFY')
+        # bpy.context.object.modifiers["Solidify"].thickness = 1
+        # bpy.ops.object.modifier_apply(modifier="Solidify")
+
+        # # # Remesh modifier   - TODO
+
+        # bpy.ops.object.modifier_add(type='REMESH')
+        # bpy.context.object.modifiers["Remesh"].voxel_size = .1
+        # bpy.context.object.modifiers["Remesh"].adaptivity = 0
+        # bpy.ops.object.modifier_apply(modifier="Remesh")
+
+        # # Post-modifier cleanup   - TODO
+
+        # bpy.ops.object.mode_set(mode="EDIT")
+        # bpy.ops.mesh.select_all(action='SELECT')
+        # bpy.ops.mesh.dissolve_limited(
+        #     angle_limit=0.0872665, use_dissolve_boundaries=False, delimit={'NORMAL'})
+        # bpy.ops.mesh.quads_convert_to_tris(
+        #     quad_method='BEAUTY', ngon_method='BEAUTY')
+        # bpy.ops.object.mode_set(mode="OBJECT")
 
         # Begin bmesh ops
         bm = bmesh.new()
@@ -491,7 +522,7 @@ class GenerateNavMesh(Operator):
         # Get a list of steep faces
         not_walkable = list()
         for f in bm.faces:
-            if f.normal[2] < 0.75:
+            if f.normal[2] < 0.6:
                 not_walkable.append(f)
             f.smooth = True
         bmesh.ops.delete(bm, geom=not_walkable, context='FACES')
@@ -508,10 +539,11 @@ class GenerateNavMesh(Operator):
         bmesh.ops.triangulate(bm, faces=bm.faces,
                               quad_method="BEAUTY", ngon_method="BEAUTY")
 
-        # Cleanup - remove any vertices that aren't connected to a face
-        verts = [v for v in bm.verts if not v.link_faces]
-        for v in verts:
-            bm.verts.remove(v)
+        bm.verts.index_update()
+        bm.edges.index_update()
+        bm.faces.index_update()
+
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1.0)
 
         # Finalize
         me_nav = bpy.data.meshes.new("NavMesh")
@@ -522,6 +554,11 @@ class GenerateNavMesh(Operator):
         obj.select_set(True)
         bpy.ops.wm.add_hubs_component(
             panel_type="object", component_name="nav-mesh")
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.mesh.delete_loose()
+        bpy.ops.mesh.select_all(action='DESELECT')
+        bpy.ops.object.mode_set(mode="OBJECT")
 
         # Navmesh material
         if "navmesh" not in bpy.data.materials.keys():
