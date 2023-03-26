@@ -520,8 +520,6 @@ class GenerateNavMesh(Operator):
         obj.data = me_nav
         obj.name = "Navigation Mesh"
         obj.select_set(True)
-        bpy.context.collection.objects.link(obj)
-        bpy.context.view_layer.objects.active = obj
         bpy.ops.wm.add_hubs_component(
             panel_type="object", component_name="nav-mesh")
 
