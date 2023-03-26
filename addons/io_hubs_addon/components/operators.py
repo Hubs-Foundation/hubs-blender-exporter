@@ -5,7 +5,7 @@ from functools import reduce
 
 from .types import PanelType, MigrationType
 from .utils import get_object_source, dash_to_title, has_component, add_component, remove_component, wrap_text, display_wrapped_text
-from .components_registry import get_components_registry, get_components_icons, get_component_by_name
+from .components_registry import get_components_registry, get_components_icons
 from ..preferences import get_addon_pref
 from .handlers import migrate_components
 from .gizmos import update_gizmos
@@ -200,7 +200,8 @@ class MigrateHubsComponents(Operator):
 
     def execute(self, context):
         if self.is_registration:
-            migrate_components(MigrationType.REGISTRATION, do_beta_versioning=True)
+            migrate_components(MigrationType.REGISTRATION,
+                               do_beta_versioning=True)
         else:
             migrate_components(MigrationType.LOCAL, do_beta_versioning=True)
 
@@ -231,7 +232,8 @@ class ViewLastReport(Operator):
         wm = context.window_manager
         title = wm.hubs_report_last_title
         report_string = wm.hubs_report_last_report_string
-        bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title=title, report_string=report_string)
+        bpy.ops.wm.hubs_report_viewer(
+            'INVOKE_DEFAULT', title=title, report_string=report_string)
         return {'FINISHED'}
 
 
@@ -257,12 +259,15 @@ class ViewReportInInfoEditor(Operator):
                             while bpy.ops.info.select_pick(
                                     context_override, report_index=index, extend=False) != {'CANCELLED'}:
                                 index += 1
-                            bpy.ops.info.select_pick(context_override, report_index=index, extend=False)
+                            bpy.ops.info.select_pick(
+                                context_override, report_index=index, extend=False)
 
     def execute(self, context):
         messages = split_and_prefix_report_messages(self.report_string)
-        info_report_string = '\n'.join([message.replace('\n', '  ') for message in messages])
-        self.report({'INFO'}, f"Hubs {self.title}\n{info_report_string}\nEnd of Hubs {self.title}")
+        info_report_string = '\n'.join(
+            [message.replace('\n', '  ') for message in messages])
+        self.report(
+            {'INFO'}, f"Hubs {self.title}\n{info_report_string}\nEnd of Hubs {self.title}")
         bpy.ops.screen.info_log_show()
         bpy.app.timers.register(self.highlight_info_report)
         return {'FINISHED'}
@@ -346,13 +351,15 @@ class ReportViewer(Operator):
 
         scroll_up = scroll_column.row()
         scroll_up.enabled = start_index > 0
-        op = scroll_up.operator(ReportScroller.bl_idname, text="", icon="TRIA_UP")
+        op = scroll_up.operator(ReportScroller.bl_idname,
+                                text="", icon="TRIA_UP")
         op.increment = -1
         op.maximum = maximum_scrolling
 
         scroll_down = scroll_column.row()
         scroll_down.enabled = start_index < maximum_scrolling
-        op = scroll_down.operator(ReportScroller.bl_idname, text="", icon="TRIA_DOWN")
+        op = scroll_down.operator(
+            ReportScroller.bl_idname, text="", icon="TRIA_DOWN")
         op.increment = 1
         op.maximum = maximum_scrolling
 
@@ -362,7 +369,8 @@ class ReportViewer(Operator):
 
         scroll_percentage = column.row()
         scroll_percentage.enabled = False
-        scroll_percentage.prop(wm, "hubs_report_scroll_percentage", slider=True)
+        scroll_percentage.prop(
+            wm, "hubs_report_scroll_percentage", slider=True)
 
         layout.separator()
 
@@ -400,7 +408,8 @@ class ReportViewer(Operator):
             if last_message is None:
                 final_block = True
 
-            current_block_lines = sum([len(message) for message in block_messages])
+            current_block_lines = sum([len(message)
+                                      for message in block_messages])
             needed_padding_lines = self.lines_to_show - current_block_lines
 
             message_iter = iter(block_messages)
@@ -433,71 +442,102 @@ class ReportViewer(Operator):
         return wm.invoke_props_dialog(self, width=600)
 
 
-def split_and_prefix_report_messages(report_string):
-    return [f"{i+1:02d}   {message}" for i, message in enumerate(report_string.split("\n\n"))]
-
-
-class CopyHubsComponent(Operator):
-    bl_idname = "wm.copy_hubs_component"
-    bl_label = "Copy component from active object"
+class GenerateNavMesh(Operator):
+    bl_idname = "object.generate_hubs_navmesh"
+    bl_label = "Generate Hubs Navigation Mesh"
     bl_options = {'REGISTER', 'UNDO'}
 
-    panel_type: StringProperty(name="panel_type")
-    component_name: StringProperty(name="component_name")
-
-    @classmethod
-    def poll(cls, context):
-        panel = getattr(context, 'panel')
-        panel_type = PanelType(panel.bl_context)
-        return panel_type != PanelType.SCENE
-
-    def get_selected_bones(self, context):
-        selected_bones = context.selected_pose_bones if context.mode == "POSE" else context.selected_editable_bones
-        selected_armatures = [sel_ob for sel_ob in context.selected_objects if sel_ob.type == "ARMATURE"]
-        selected_hosts = []
-        for armature in selected_armatures:
-            armature_bones = armature.pose.bones if context.mode == "POSE" else armature.data.edit_bones
-            target_armature_bones = armature.data.bones if context.mode == "POSE" else armature.data.edit_bones
-            target_bones = [bone for bone in armature_bones if bone in selected_bones]
-            for target_bone in target_bones:
-                selected_hosts.extend([bone for bone in target_armature_bones if target_bone.name == bone.name])
-        return selected_hosts
-
-    def get_selected_hosts(self, context):
-        selected_hosts = []
-        for host in context.selected_objects:
-            if host.type == "ARMATURE" and context.mode != "OBJECT":
-                selected_hosts.extend(self.get_selected_bones(context))
-            else:
-                selected_hosts.append(host)
-
-        return selected_hosts
-
     def execute(self, context):
-        src_host = None
-        selected_hosts = []
-        if self.panel_type == PanelType.OBJECT.value:
-            src_host = context.active_object
-            selected_hosts = self.get_selected_hosts(context)
-        elif self.panel_type == PanelType.BONE.value:
-            src_host = context.active_bone
-            selected_hosts = self.get_selected_hosts(context)
-        elif self.panel_type == PanelType.MATERIAL.value:
-            src_host = context.active_object.active_material
-            selected_hosts = [
-                ob.active_material for ob in context.selected_objects
-                if ob.active_material and ob.active_material is not None and ob.active_material is not src_host]
+        import bmesh
 
-        component_class = get_component_by_name(self.component_name)
-        component_id = component_class.get_id()
-        for dest_host in selected_hosts:
-            if not has_component(dest_host, self.component_name):
-                add_component(dest_host, self.component_name)
+        objs = bpy.context.selected_objects
 
-            for key, value in src_host[component_id].items():
-                dest_host[component_id][key] = value
+        # Check if any objects are selected. If none, abort.
+        if len(objs) == 0:
+            return {'FINISHED'}
+
+        # Make sure there's a mesh object set as active. If not, check if it's a meta object. If yes, convert it to mesh. If not, abort
+        for obj in objs:
+            if obj is not None:
+                if obj.type != "MESH":
+                    if obj.type == "META":
+                        bpy.ops.object.convert(target='MESH')
+                    else:
+                        return {'FINISHED'}
+            else:
+                return {'FINISHED'}
+
+        bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked": False, "mode": 'TRANSLATION'}, TRANSFORM_OT_translate={"value": (0, 0, 0), "orient_axis_ortho": 'X', "orient_type": 'GLOBAL', "orient_matrix": ((0, 0, 0), (0, 0, 0), (0, 0, 0)), "orient_matrix_type": 'GLOBAL', "constraint_axis": (False, False, False), "mirror": False})
+
+        # Check if there's more than one selected object. If so, join them all together.
+        if len(objs) > 1:
+            bpy.ops.object.join()
+
+        bpy.context.view_layer.objects.active = bpy.context.selected_objects[0]
+        obj = bpy.context.active_object
+
+        bpy.ops.object.make_single_user(object=True, obdata=True)
+        bpy.ops.object.transform_apply(
+            location=False, rotation=True, scale=True)
+
+        # Begin bmesh ops
+        bm = bmesh.new()
+        bm.from_mesh(obj.data)
+
+        bm.faces.ensure_lookup_table()
+        bm.edges.ensure_lookup_table()
+        bm.verts.ensure_lookup_table()
+
+        # Get a list of steep faces
+        not_walkable = list()
+        for f in bm.faces:
+            if f.normal[2] < 0.75:
+                not_walkable.append(f)
+            f.smooth = True
+        bmesh.ops.delete(bm, geom=not_walkable, context='FACES')
+        bmesh.ops.holes_fill(bm, edges=bm.edges, sides=6)
+
+        bm.verts.index_update()
+        bm.edges.index_update()
+        bm.faces.index_update()
+
+        # Lower the polygon count
+        bmesh.ops.dissolve_limit(
+            bm, angle_limit=0.0872665, use_dissolve_boundaries=False, verts=bm.verts, edges=bm.edges, delimit={"NORMAL"})
+        bmesh.ops.connect_verts_concave(bm, faces=bm.faces)
+        bmesh.ops.triangulate(bm, faces=bm.faces,
+                              quad_method="BEAUTY", ngon_method="BEAUTY")
+
+        # Cleanup - remove any vertices that aren't connected to a face
+        verts = [v for v in bm.verts if not v.link_faces]
+        for v in verts:
+            bm.verts.remove(v)
+
+        # Finalize
+        me_nav = bpy.data.meshes.new("NavMesh")
+        bm.to_mesh(me_nav)
+        bm.free()
+        obj.data = me_nav
+        obj.name = "Navigation Mesh"
+        obj.select_set(True)
+        bpy.context.collection.objects.link(obj)
+        bpy.context.view_layer.objects.active = obj
+        bpy.ops.wm.add_hubs_component(
+            panel_type="object", component_name="nav-mesh")
+
+        # Navmesh material
+        if "navmesh" not in bpy.data.materials.keys():
+            bpy.data.materials.new("navmesh")
+        bpy.context.active_object.data.materials.append(
+            bpy.data.materials["navmesh"])
+        bpy.context.active_object.data.materials[0].diffuse_color = (
+            1, 0, 0.78315, 1)
 
         return {'FINISHED'}
+
+
+def split_and_prefix_report_messages(report_string):
+    return [f"{i+1:02d}   {message}" for i, message in enumerate(report_string.split("\n\n"))]
 
 
 def register():
@@ -509,8 +549,8 @@ def register():
     bpy.utils.register_class(ReportScroller)
     bpy.utils.register_class(ViewLastReport)
     bpy.utils.register_class(ViewReportInInfoEditor)
-    bpy.utils.register_class(CopyHubsComponent)
-    bpy.types.WindowManager.hubs_report_scroll_index = IntProperty(default=0, min=0)
+    bpy.types.WindowManager.hubs_report_scroll_index = IntProperty(
+        default=0, min=0)
     bpy.types.WindowManager.hubs_report_scroll_percentage = IntProperty(
         name="Scroll Position", default=0, min=0, max=100, subtype='PERCENTAGE')
     bpy.types.WindowManager.hubs_report_last_title = StringProperty()
@@ -526,7 +566,6 @@ def unregister():
     bpy.utils.unregister_class(ReportScroller)
     bpy.utils.unregister_class(ViewLastReport)
     bpy.utils.unregister_class(ViewReportInInfoEditor)
-    bpy.utils.unregister_class(CopyHubsComponent)
     del bpy.types.WindowManager.hubs_report_scroll_index
     del bpy.types.WindowManager.hubs_report_scroll_percentage
     del bpy.types.WindowManager.hubs_report_last_title
