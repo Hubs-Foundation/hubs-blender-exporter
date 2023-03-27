@@ -32,7 +32,7 @@ class SpotLight(HubsComponent):
 
     range: FloatProperty(name="Range",
                          description="Range",
-                         default=1.0)
+                         default=0.0)
 
     decay: FloatProperty(name="Decay",
                          description="Decay",
@@ -56,7 +56,7 @@ class SpotLight(HubsComponent):
 
     decay: FloatProperty(name="Decay",
                          description="Decay",
-                         default=1.0)
+                         default=2.0)
 
     castShadow: BoolProperty(
         name="Cast Shadow", description="Cast Shadow", default=True)
@@ -68,7 +68,7 @@ class SpotLight(HubsComponent):
 
     shadowBias: FloatProperty(name="Shadow Bias",
                               description="Shadow Bias",
-                              default=1.0)
+                              default=0.0)
 
     shadowRadius: FloatProperty(name="Shadow Radius",
                                 description="Shadow Radius",

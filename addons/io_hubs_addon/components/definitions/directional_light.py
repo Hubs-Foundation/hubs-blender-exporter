@@ -38,7 +38,7 @@ class DirectionalLight(HubsComponent):
 
     shadowBias: FloatProperty(name="Shadow Bias",
                               description="Shadow Bias",
-                              default=1.0)
+                              default=0.0)
 
     shadowRadius: FloatProperty(name="Shadow Radius",
                                 description="Shadow Radius",
