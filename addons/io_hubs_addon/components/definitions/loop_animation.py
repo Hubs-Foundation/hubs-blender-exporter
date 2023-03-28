@@ -310,8 +310,9 @@ def is_valid_regular_track(ob, track):
 
 
 def is_valid_shape_key_action(ob, track):
-    if hasattr(ob.data, 'shape_keys') and ob.data.shape_keys.animation_data.action and is_usable_action(track):
-        return track.name == ob.data.shape_keys.animation_data.action.name
+    if hasattr(ob.data, 'shape_keys') and ob.data.shape_keys and ob.data.shape_keys.animation_data.action:
+        if is_usable_action(track):
+            return track.name == ob.data.shape_keys.animation_data.action.name
     return False
 
 
