@@ -1,6 +1,6 @@
 import bpy
 from bpy.app.handlers import persistent
-from bpy.props import StringProperty, CollectionProperty, IntProperty, BoolProperty, EnumProperty, FloatProperty
+from bpy.props import StringProperty, CollectionProperty, IntProperty, EnumProperty, FloatProperty
 from bpy.types import PropertyGroup, Menu, Operator
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
@@ -40,26 +40,26 @@ class TrackPropertyType(PropertyGroup):
 class Errors():
     _errors = {}
 
-    @classmethod
+    @ classmethod
     def log(cls, track, error_type, error_message, severity='Error'):
         has_error = cls._errors.get(track.track_type + track.name, '')
         if not has_error:
             cls._errors[track.track_type + track.name] = {
                 'type': error_type, 'message': error_message, 'severity': severity}
 
-    @classmethod
+    @ classmethod
     def get(cls, track):
         return cls._errors.get(track.track_type + track.name, '')
 
-    @classmethod
+    @ classmethod
     def clear(cls):
         cls._errors.clear()
 
-    @classmethod
+    @ classmethod
     def are_present(cls):
         return bool(cls._errors)
 
-    @classmethod
+    @ classmethod
     def display_error(cls, layout, error):
         message_lines = error['message'].split('\n')
         padding = layout.row(align=False)
@@ -105,13 +105,13 @@ def unregister_msgbus():
     msgbus_owners.clear()
 
 
-@persistent
+@ persistent
 def load_post(dummy):
     unregister_msgbus()
     register_msgbus()
 
 
-@persistent
+@ persistent
 def undo_redo_post(dummy):
     unregister_msgbus()
     register_msgbus()
@@ -178,6 +178,16 @@ def has_track(tracks_list, nla_track, invalid_track=None):
             if track.track_name == nla_track.name and track != invalid_track:
                 exists = True
                 break
+
+    return exists
+
+
+def has_action(tracks_list, action, invalid_action=None):
+    exists = False
+    for track in tracks_list:
+        if track.name == action.name and track != invalid_action:
+            exists = True
+            break
 
     return exists
 
@@ -257,32 +267,83 @@ def is_useable_nla_track(animation_data, nla_track, track):
     return True
 
 
-def is_valid_regular_track(ob, track):
+def is_usable_action(track):
+    action_name = track.name
+
+    if action_name == '':
+        Errors.log(track, 'FORBIDDEN_NAME', "Action names can't be nothing.")
+        return False
+
+    forbidden_chars = [",", " "]
+    if any([c for c in forbidden_chars if c in action_name]):
+        Errors.log(track, 'FORBIDDEN_NAME', "Custom action names can't contain commas or spaces.")
+        return False
+
+    return True
+
+
+def is_valid_regular_action(ob, track):
+    if ob.animation_data and ob.animation_data.action and is_usable_action(track):
+        return track.name == ob.animation_data.action.name
+    return False
+
+
+def is_valid_regular_nla_track(ob, track):
     if ob.animation_data:
         for nla_track in ob.animation_data.nla_tracks:
             if is_matching_track("object", nla_track, track):
                 if is_useable_nla_track(ob.animation_data, nla_track, track):
                     return True
+    return False
 
-                return False
+
+def is_valid_regular_track(ob, track):
+    if is_valid_regular_action(ob, track):
+        return True
+
+    elif is_valid_regular_nla_track(ob, track):
+        return True
 
     Errors.log(track, 'NOT_FOUND', "Track not found.  Did you mean:")
 
     return False
 
 
-def is_valid_shape_key_track(ob, track):
+def is_valid_shape_key_action(ob, track):
+    if hasattr(ob.data, 'shape_keys') and ob.data.shape_keys.animation_data.action and is_usable_action(track):
+        return track.name == ob.data.shape_keys.animation_data.action.name
+    return False
+
+
+def is_valid_shape_key_nla_track(ob, track):
     if hasattr(ob.data, 'shape_keys') and ob.data.shape_keys and ob.data.shape_keys.animation_data:
         for nla_track in ob.data.shape_keys.animation_data.nla_tracks:
             if is_matching_track("shape_key", nla_track, track):
                 if is_useable_nla_track(ob.data.shape_keys.animation_data, nla_track, track):
                     return True
+    return False
 
-                return False
+
+def is_valid_shape_key_track(ob, track):
+    if is_valid_shape_key_action(ob, track):
+        return True
+
+    elif is_valid_shape_key_nla_track(ob, track):
+        return True
 
     Errors.log(track, 'NOT_FOUND', "Track not found.  Did you mean:")
 
     return False
+
+
+def get_animation_name(ob, track):
+    if is_valid_regular_action(ob, track) or is_valid_shape_key_action(ob, track):
+        return track.name
+    elif is_valid_regular_nla_track(ob, track) or is_valid_shape_key_nla_track(ob, track):
+        return track.track_name if not is_default_name(
+            track.track_name) else track.action_name
+    else:
+        return track.name
 
 
 class TracksList(bpy.types.UIList):
@@ -400,7 +461,7 @@ class RemoveTrackOperator(Operator):
     bl_label = "Remove Track"
     bl_options = {'REGISTER', 'UNDO'}
 
-    @classmethod
+    @ classmethod
     def poll(cls, context):
         panel_type = PanelType(context.panel.bl_context)
         ob = context.object
@@ -449,6 +510,25 @@ class UpdateTrackContextMenu(Menu):
             layout.separator()
 
         if ob.animation_data:
+            if ob.animation_data.action:
+                action = ob.animation_data.action
+                action_name = action.name
+                track_type = "object"
+                menu_id = action_name
+
+                if menu_id not in menu_tracks and not has_action(
+                        hubs_component.tracks_list, action, invalid_action=action):
+                    row = layout.row(align=False)
+                    row.context_pointer_set('track', track)
+                    update_track = row.operator(UpdateTrack.bl_idname,
+                                                icon='OBJECT_DATA', text=action_name)
+                    update_track.name = action_name
+                    update_track.action_name = action_name
+                    update_track.track_type = track_type
+
+                    no_tracks = False
+                    menu_tracks.append(menu_id)
+
             for _, nla_track in enumerate(ob.animation_data.nla_tracks):
                 strip_name = get_strip_name(nla_track)
                 action_name = get_action_name(nla_track)
@@ -475,6 +555,25 @@ class UpdateTrackContextMenu(Menu):
                     menu_tracks.append(menu_id)
 
         if hasattr(ob.data, 'shape_keys') and ob.data.shape_keys and ob.data.shape_keys.animation_data:
+            if ob.data.shape_keys.animation_data.action:
+                action = ob.data.shape_keys.animation_data.action
+                action_name = action.name
+                track_type = "shape_key"
+                menu_id = action_name
+
+                if menu_id not in menu_tracks and not has_action(
+                        hubs_component.tracks_list, action, invalid_action=action):
+                    row = layout.row(align=False)
+                    row.context_pointer_set('track', track)
+                    update_track = row.operator(UpdateTrack.bl_idname,
+                                                icon='SHAPEKEY_DATA', text=action_name)
+                    update_track.name = action_name
+                    update_track.action_name = action_name
+                    update_track.track_type = track_type
+
+                    no_tracks = False
+                    menu_tracks.append(menu_id)
+
             for _, nla_track in enumerate(ob.data.shape_keys.animation_data.nla_tracks):
                 strip_name = get_strip_name(nla_track)
                 action_name = get_action_name(nla_track)
@@ -518,6 +617,22 @@ class TracksContextMenu(Menu):
         component_tracks_list = host.hubs_component_loop_animation.tracks_list
 
         if ob.animation_data:
+            if ob.animation_data.action:
+                action = ob.animation_data.action
+                action_name = action.name
+                menu_id = action_name
+
+                if menu_id not in menu_tracks and not has_action(component_tracks_list, action):
+                    add_track = layout.operator(AddTrackOperator.bl_idname,
+                                                icon='OBJECT_DATA', text=action_name)
+                    add_track.name = action_name
+                    add_track.action_name = action_name
+                    add_track.track_type = "object"
+                    add_track.panel_type = panel_type.value
+
+                    no_tracks = False
+                    menu_tracks.append(menu_id)
+
             for _, nla_track in enumerate(ob.animation_data.nla_tracks):
                 strip_name = get_strip_name(nla_track)
                 action_name = get_action_name(nla_track)
@@ -541,6 +656,22 @@ class TracksContextMenu(Menu):
                     menu_tracks.append(menu_id)
 
         if hasattr(ob.data, 'shape_keys') and ob.data.shape_keys and ob.data.shape_keys.animation_data:
+            if ob.data.shape_keys.animation_data.action:
+                action = ob.data.shape_keys.animation_data.action
+                action_name = action.name
+                menu_id = action_name
+
+                if menu_id not in menu_tracks and not has_action(component_tracks_list, action):
+                    add_track = layout.operator(AddTrackOperator.bl_idname,
+                                                icon='OBJECT_DATA', text=action_name)
+                    add_track.name = action_name
+                    add_track.action_name = action_name
+                    add_track.track_type = "shape_key"
+                    add_track.panel_type = panel_type.value
+
+                    no_tracks = False
+                    menu_tracks.append(menu_id)
+
             for _, nla_track in enumerate(ob.data.shape_keys.animation_data.nla_tracks):
                 strip_name = get_strip_name(nla_track)
                 action_name = get_action_name(nla_track)
@@ -575,7 +706,7 @@ class LoopAnimation(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'LOOP_BACK',
-        'version': (1, 0, 0)
+        'version': (1, 1, 0)
     }
 
     tracks_list: CollectionProperty(
@@ -635,8 +766,7 @@ class LoopAnimation(HubsComponent):
     def gather(self, export_settings, object):
         final_track_names = []
         for track in object.hubs_component_loop_animation.tracks_list.values():
-            final_track_names.append(track.track_name if not is_default_name(
-                track.track_name) else track.action_name)
+            final_track_names.append(get_animation_name(object, track))
 
         fps = bpy.context.scene.render.fps / bpy.context.scene.render.fps_base
 
@@ -647,7 +777,7 @@ class LoopAnimation(HubsComponent):
             'timeScale': self.timeScale
         }
 
-    @staticmethod
+    @ staticmethod
     def register():
         bpy.utils.register_class(TracksList)
         bpy.utils.register_class(UpdateTrackContextMenu)
@@ -665,7 +795,7 @@ class LoopAnimation(HubsComponent):
 
         register_msgbus()
 
-    @staticmethod
+    @ staticmethod
     def unregister():
         bpy.utils.unregister_class(TracksList)
         bpy.utils.unregister_class(UpdateTrackContextMenu)
