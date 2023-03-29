@@ -75,8 +75,8 @@ class recast_polyMesh(ctypes.Structure):
                 ("npolys", c_int),                          # The number of polygons.
                 ("maxpolys", c_int),                        # The number of allocated polygons.
                 ("nvp", c_int),                             # The maximum number of vertices per polygon.
-                ("bmin", c_float*3),                        # The minimum bounds in world space. [(x, y, z)]
-                ("bmax", c_float*3),                        # The maximum bounds in world space. [(x, y, z)]
+                ("bmin", c_float * 3),                        # The minimum bounds in world space. [(x, y, z)]
+                ("bmax", c_float * 3),                        # The maximum bounds in world space. [(x, y, z)]
                 ("cs", c_float),                            # The size of each cell. (On the xz-plane.)
                 ("ch", c_float),                            # The height of each cell. (The minimum increment along the y-axis.)
                 # The AABB border size used to generate the source data from which the mesh was derived.
@@ -148,7 +148,7 @@ def extractTriangulatedInputMeshList(objects, matrix, verts_offset, verts, tris,
     for ob in objects:
         if ob.instance_type == 'COLLECTION':
             subobjects = objects_from_collection(bpy.data.objects, ob.name)
-            parent_matrix = matrix@ob.matrix_world
+            parent_matrix = matrix @ ob.matrix_world
             verts_offset = extractTriangulatedInputMeshList(
                 subobjects, parent_matrix, verts_offset, verts, tris, depsgraph)
 
@@ -157,7 +157,7 @@ def extractTriangulatedInputMeshList(objects, matrix, verts_offset, verts, tris,
 
         bm = bmesh.new()
         bm.from_object(ob, depsgraph)
-        real_matrix_world = matrix@ob.matrix_world
+        real_matrix_world = matrix @ ob.matrix_world
         bmesh.ops.transform(bm, matrix=real_matrix_world, verts=bm.verts)
 
         tm = bmesh.ops.triangulate(bm, faces=bm.faces[:])
@@ -211,33 +211,33 @@ def createMesh(dmesh_holder, obj=None):
 
     nverts = (int)(dmesh_holder.dmesh.contents.nverts)
     for i in range(nverts):
-        x = dmesh_holder.dmesh.contents.verts[i*3+0]
-        y = dmesh_holder.dmesh.contents.verts[i*3+1]
-        z = dmesh_holder.dmesh.contents.verts[i*3+2]
+        x = dmesh_holder.dmesh.contents.verts[i * 3 + 0]
+        y = dmesh_holder.dmesh.contents.verts[i * 3 + 1]
+        z = dmesh_holder.dmesh.contents.verts[i * 3 + 2]
         v = reswap(Vector([x, y, z]))
         bm.verts.new(v)  # add a new vert
     bm.verts.ensure_lookup_table()
 
     nmeshes = (int)(dmesh_holder.dmesh.contents.nmeshes)
     for j in range(nmeshes):
-        baseVerts = dmesh_holder.dmesh.contents.meshes[j*4+0]
-        meshNVerts = dmesh_holder.dmesh.contents.meshes[j*4+1]
-        baseTri = dmesh_holder.dmesh.contents.meshes[j*4+2]
-        meshNTris = dmesh_holder.dmesh.contents.meshes[j*4+3]
+        baseVerts = dmesh_holder.dmesh.contents.meshes[j * 4 + 0]
+        meshNVerts = dmesh_holder.dmesh.contents.meshes[j * 4 + 1]
+        baseTri = dmesh_holder.dmesh.contents.meshes[j * 4 + 2]
+        meshNTris = dmesh_holder.dmesh.contents.meshes[j * 4 + 3]
         meshVertsList = []
         # if len(meshVertsList) >= 3:
         #    bm.faces.new(meshVertsList)
 
         for i in range(meshNTris):
-            i1 = dmesh_holder.dmesh.contents.tris[(baseTri+i)*4+0] + baseVerts
-            i2 = dmesh_holder.dmesh.contents.tris[(baseTri+i)*4+1] + baseVerts
-            i3 = dmesh_holder.dmesh.contents.tris[(baseTri+i)*4+2] + baseVerts
-            flags = dmesh_holder.dmesh.contents.tris[(baseTri+i)*4+3]
-            #print("face = (%i, %i, %i)" % (i1, i2, i3))
+            i1 = dmesh_holder.dmesh.contents.tris[(baseTri + i) * 4 + 0] + baseVerts
+            i2 = dmesh_holder.dmesh.contents.tris[(baseTri + i) * 4 + 1] + baseVerts
+            i3 = dmesh_holder.dmesh.contents.tris[(baseTri + i) * 4 + 2] + baseVerts
+            flags = dmesh_holder.dmesh.contents.tris[(baseTri + i) * 4 + 3]
+            # print("face = (%i, %i, %i)" % (i1, i2, i3))
             bm.faces.new((bm.verts[i1], bm.verts[i2], bm.verts[i3]))  # add a new vert
 
     # Recast: The vertex indices in the triangle array are local to the sub-mesh, not global. To translate into an global index in the vertices array, the values must be offset by the sub-mesh's base vertex index.
-    #ntris = (int)(dmesh_holder.dmesh.contents.ntris)
+    # ntris = (int)(dmesh_holder.dmesh.contents.ntris)
     # for i in range(ntris):
     #    i1 = dmesh_holder.dmesh.contents.tris[i*3+0]
     #    i2 = dmesh_holder.dmesh.contents.tris[i*3+1]
@@ -294,15 +294,15 @@ class ReacastNavmeshGenerateOperator(bpy.types.Operator):
         verts, tris = extractTriangulatedInputMesh()
         vertsCount = len(verts)
         trisCount = len(tris)
-        nverts = (int)(len(verts)/3)
-        ntris = (int)(len(tris)/3)
+        nverts = (int)(len(verts) / 3)
+        ntris = (int)(len(tris) / 3)
         recastData = recastDataFromBlender(bpy.context.scene)
 
         prevWorkingDir = os.getcwd()
         nextWorkingDir = os.path.dirname(libpathr)
         os.chdir(nextWorkingDir)
         try:
-            l = ctypes.CDLL(libpathr)
+            recast = ctypes.CDLL(libpathr)
         except OSError as e:
             tracebackStr = traceback.format_exc()
             self.report(
@@ -318,27 +318,27 @@ class ReacastNavmeshGenerateOperator(bpy.types.Operator):
         print("ntris %i" % ntris)
         print("cell size %f" % recastData.cellsize)
 
-        #print("verts: %s" % str(verts))
-        #print("tris: %s" % str(tris))
+        # print("verts: %s" % str(verts))
+        # print("tris: %s" % str(tris))
 
         pmesh = recast_polyMesh_holder()
         dmesh = recast_polyMeshDetail_holder()
         nreportMsg = 128
         reportMsg = ctypes.create_string_buffer(b'\000' * nreportMsg)     # 128 chars mutable text
-        l.buildNavMesh.argtypes = [
+        recast.buildNavMesh.argtypes = [
             ctypes.POINTER(RecastData),
             c_int, c_float * vertsCount, c_int, c_int * trisCount, ctypes.POINTER(recast_polyMesh_holder),
             ctypes.POINTER(recast_polyMeshDetail_holder),
             ctypes.c_char_p, c_int]
-        l.buildNavMesh.restype = c_int
-        l.freeNavMesh.argtypes = [
+        recast.buildNavMesh.restype = c_int
+        recast.freeNavMesh.argtypes = [
             ctypes.POINTER(recast_polyMesh_holder),
             ctypes.POINTER(recast_polyMeshDetail_holder),
             ctypes.c_char_p, c_int]
-        l.freeNavMesh.restype = c_int
+        recast.freeNavMesh.restype = c_int
 
-        ok = l.buildNavMesh(recastData, nverts, (c_float*vertsCount)(*verts), ntris,
-                            (c_int*trisCount)(*tris), pmesh, dmesh, reportMsg, nreportMsg)
+        ok = recast.buildNavMesh(recastData, nverts, (c_float * vertsCount)(* verts), ntris,
+                                 (c_int * trisCount)(*tris), pmesh, dmesh, reportMsg, nreportMsg)
         print("Report msg: %s" % reportMsg.raw)
         if not ok:
             self.report({'ERROR'}, 'buildNavMesh C++ error: %s' % reportMsg.value)
@@ -346,14 +346,14 @@ class ReacastNavmeshGenerateOperator(bpy.types.Operator):
         if not dmesh.dmesh:
             self.report({'ERROR'}, 'buildNavMesh C++ error: %s' % 'No recast_polyMeshDetail')
         else:
-            #print("ABC %i" % pmesh.pmesh.contents.nverts)
-            #dmeshv1 = dmesh.dmesh.contents.verts[0]
-            #print("dmeshv1 %f" % dmeshv1)
+            # print("ABC %i" % pmesh.pmesh.contents.nverts)
+            # dmeshv1 = dmesh.dmesh.contents.verts[0]
+            # print("dmeshv1 %f" % dmeshv1)
 
             createMesh(dmesh, obj=navMesh)
 
         # what was allocated in C/C++ should be also deallocated there
-        l.freeNavMesh(pmesh, dmesh, reportMsg, nreportMsg)
+        recast.freeNavMesh(pmesh, dmesh, reportMsg, nreportMsg)
 
         return {'FINISHED'}
 
@@ -362,77 +362,77 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
     # based on https://docs.blender.org/api/2.79/bpy.types.SceneGameRecastData.html
     cell_size: FloatProperty(
         name="cell_size",
-        #description="A float property",
+        # description="A float property",
         default=0.3,
         min=0.0,
         max=30.0)
 
     cell_height: FloatProperty(
         name="cell_height",
-        #description="A float property",
+        # description="A float property",
         default=0.2,
         min=0.0,
         max=30.0)
 
     agent_height: FloatProperty(
         name="agent_height",
-        #description="A float property",
+        # description="A float property",
         default=2.0,
         min=0.0,
         max=30.0)
 
     agent_radius: FloatProperty(
         name="agent_radius",
-        #description="A float property",
+        # description="A float property",
         default=0.6,
         min=0.0,
         max=30.0)
 
     slope_max: FloatProperty(
         name="slope_max",
-        #description="A float property",
+        # description="A float property",
         default=0.785398,
         min=0.0,
         max=1.5708)
 
     climb_max: FloatProperty(
         name="climb_max",
-        #description="A float property",
+        # description="A float property",
         default=0.9,
         min=0.0,
         max=30.0)
 
     region_min_size: FloatProperty(
         name="region_min_size",
-        #description="A float property",
+        # description="A float property",
         default=8.0,
         min=0.0,
         max=30.0)
 
     region_merge_size: FloatProperty(
         name="region_merge_size",
-        #description="A float property",
+        # description="A float property",
         default=20.0,
         min=0.0,
         max=30.0)
 
     edge_max_error: FloatProperty(
         name="edge_max_error",
-        #description="A float property",
+        # description="A float property",
         default=1.3,
         min=0.0,
         max=30.0)
 
     edge_max_len: FloatProperty(
         name="edge_max_len",
-        #description="A float property",
+        # description="A float property",
         default=12.0,
         min=0.0,
         max=30.0)
 
     verts_per_poly: IntProperty(
         name="verts_per_poly",
-        #description="A integer property",
+        # description="A integer property",
         default=6,
         min=3,
         max=10
@@ -440,14 +440,14 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
 
     sample_dist: FloatProperty(
         name="sample_dist",
-        #description="A float property",
+        # description="A float property",
         default=6.0,
         min=0.0,
         max=30.0)
 
     sample_max_error: FloatProperty(
         name="sample_max_error",
-        #description="A float property",
+        # description="A float property",
         default=1.0,
         min=0.0,
         max=30.0)
