@@ -31,10 +31,13 @@ class HubsExportImage(gltf2_blender_image.ExportImage):
             export_image.fill_image(image, dst_chan=chan, src_chan=chan)
         return export_image
 
-    def encode(self, mime_type: Optional[str]) -> Union[Tuple[bytes, bool], bytes]:
+    def encode(self, mime_type: Optional[str], export_settings) -> Union[Tuple[bytes, bool], bytes]:
         if mime_type == "image/vnd.radiance":
             return self.encode_from_image_hdr(self.blender_image())
-        return super().encode(mime_type)
+        if bpy.app.version < (3, 5, 0):
+            return super().encode(mime_type)
+        else:
+            return super().encode(mime_type, export_settings)
 
     # TODO this should allow conversion from other HDR formats (namely EXR),
     # in memory images, and combining separate channels like SDR images
@@ -68,7 +71,7 @@ def gather_image(blender_image, export_settings):
     else:
         mime_type = "image/jpeg"
 
-    data = HubsExportImage.from_blender_image(blender_image).encode(mime_type)
+    data = HubsExportImage.from_blender_image(blender_image).encode(mime_type, export_settings)
 
     if type(data) == tuple:
         data = data[0]
