@@ -15,7 +15,7 @@ jobs:
       - name: Python Linter
         uses: weibullguy/python-lint-plus@v1.9.0
         with:
-          python-root-list: 'addons'
+          python-root-list: "addons"
           use-black: false
           use-yapf: false
           use-isort: false
@@ -31,28 +31,28 @@ jobs:
           use-rstcheck: false
           use-check-manifest: false
           use-pyroma: false
-          extra-black-options: ''
-          extra-yapf-options: ''
-          extra-isort-options: ''
-          extra-docformatter-options: ''
+          extra-black-options: ""
+          extra-yapf-options: ""
+          extra-isort-options: ""
+          extra-docformatter-options: ""
           # This should work with **/models but it doesn't
-          extra-pycodestyle-options: '--exclude=models --ignore=E501,W504'
-          extra-pydocstyle-options: ''
-          extra-mypy-options: ''
-          extra-pylint-options: ''
-          extra-flake8-options: ''
-          extra-mccabe-options: ''
-          extra-radon-options: ''
-          extra-rstcheck-options: ''
-          extra-manifest-options: ''
-          extra-pyroma-options: ''
+          extra-pycodestyle-options: "--exclude=models --ignore=E501,W504"
+          extra-pydocstyle-options: ""
+          extra-mypy-options: ""
+          extra-pylint-options: ""
+          extra-flake8-options: ""
+          extra-mccabe-options: ""
+          extra-radon-options: ""
+          extra-rstcheck-options: ""
+          extra-manifest-options: ""
+          extra-pyroma-options: ""
 
   test:
     needs: lint
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        version: ["3.4.0", "3.3.1", "2.93.9"]
+        version: ["3.5.0", "3.4.0", "3.3.1", "2.93.9"]
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v3
