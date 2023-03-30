@@ -87,6 +87,9 @@ class EnvironmentSettings(HubsComponent):
         row = layout.row(align=True)
         sub_row = row.row(align=True)
         sub_row.prop(data=self, property="backgroundTexture")
+        sub_row.context_pointer_set("hubs_component", self)
+        op = sub_row.operator("image.hubs_open_image", text='', icon='FILE_FOLDER')
+        op.target_property = "backgroundTexture"
         if is_linked(context.scene):
             # Manually disable the PointerProperty, needed for Blender 3.2+.
             sub_row.enabled = False
@@ -98,6 +101,10 @@ class EnvironmentSettings(HubsComponent):
         row = layout.row(align=True)
         sub_row = row.row(align=True)
         sub_row.prop(data=self, property="envMapTexture")
+        sub_row.context_pointer_set("hubs_component", self)
+        op = sub_row.operator("image.hubs_open_image", text='', icon='FILE_FOLDER')
+        op.target_property = "envMapTexture"
+
         if is_linked(context.scene):
             # Manually disable the PointerProperty, needed for Blender 3.2+.
             sub_row.enabled = False
