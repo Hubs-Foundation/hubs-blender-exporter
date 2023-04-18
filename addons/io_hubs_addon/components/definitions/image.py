@@ -36,7 +36,9 @@ class Image(HubsComponent):
     alphaCutoff: FloatProperty(
         name="Alpha Cutoff",
         description="Pixels with alpha values lower than this will be transparent on Binary transparency mode",
-        default=0.5)
+        default=0.5,
+        min=0.0,
+        max=1.0)
 
     projection: EnumProperty(
         name="Projection",
