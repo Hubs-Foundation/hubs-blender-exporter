@@ -46,6 +46,14 @@ class Image(HubsComponent):
         items=PROJECTION_MODE,
         default="flat")
 
+    def draw(self, context, layout, panel_type):
+        layout.prop(self, "src")
+        layout.prop(self, "controls")
+        layout.prop(self, "alphaMode")
+        if self.alphaMode == "mask":
+            layout.prop(self, "alphaCutoff")
+        layout.prop(self, "projection")
+
     def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
         migration_occurred = False
         if instance_version < (1, 0, 0):
