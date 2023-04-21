@@ -39,7 +39,6 @@ class TextGizmo(Gizmo):
         rot_offset = Matrix.Rotation(radians(90), 4, 'X').to_4x4()
         loc, rot, scale = self.host.matrix_basis.decompose()
         scale = scale * text_size
-        print("scale: ", scale)
         mat_out = (Matrix.Translation(loc)
                 @ rot.normalized().to_matrix().to_4x4() @ rot_offset
                 @ Matrix.Diagonal(scale).to_4x4())
@@ -62,7 +61,7 @@ class TextGizmo(Gizmo):
         text_split = text.split(breaker) if breaker == " " else list(text)
 
         block_w = 0
-        #block_blueprint = {}
+        block_blueprint = {}
 
         if self.whitespace_map[self.component.whiteSpace]:
             for word in text_split:
@@ -74,13 +73,10 @@ class TextGizmo(Gizmo):
                     new_line = [line.pop()]
                     text_w, text_h = blf.dimensions(font_id, breaker.join(line))
                     block_w = text_w if not block_w else block_w
-                    # block_blueprint[line_count] = {
-                    #     "line":breaker.join(line),
-                    #     "position": (anchor * block_w, line_count * line_count_modifier)
-                    #     }
-                    blf.position(font_id, anchor * block_w, line_count * line_count_modifier, 0)
-                    blf.color(font_id, text_color[0], text_color[1], text_color[2], 1)
-                    blf.draw(font_id, breaker.join(line))
+                    block_blueprint[line_count] = {
+                        "line_text":breaker.join(line),
+                        "position": (anchor * block_w, line_count * line_count_modifier)
+                        }
                     line = new_line
                     line_count += 1
 
@@ -88,13 +84,26 @@ class TextGizmo(Gizmo):
                 text_w, text_h = blf.dimensions(font_id, breaker.join(line))
                 block_w = text_w if not block_w else block_w
                 print("w: ", text_w)
-                # block_blueprint[line_count] = {
-                #         "line":breaker.join(line),
-                #         "position": (anchor * block_w, line_count * line_count_modifier)
-                #         }
-                blf.position(font_id, anchor * block_w, line_count * line_count_modifier, 0)
+                block_blueprint[line_count] = {
+                        "line_text":breaker.join(line),
+                        "position": (anchor * block_w, line_count * line_count_modifier)
+                        }
+
+            print(block_blueprint)
+            anchorY_map = {
+                "top": line_count_modifier,
+                "top-baseline": 0,
+                "middle": [line["position"][1] for line in block_blueprint.values()][-1] * 0.5 * -1 + (line_count_modifier / 4),
+                "bottom-baseline": [line["position"][1] for line in block_blueprint.values()][-1] * -1,
+                "bottom": [line["position"][1] for line in block_blueprint.values()][-1] * -1 - (line_count_modifier / 2)
+                }
+
+            offset = anchorY_map[self.component.anchorY]
+
+            for line in block_blueprint.values():
+                blf.position(font_id, line["position"][0], line["position"][1] + offset, 0)
                 blf.color(font_id, text_color[0], text_color[1], text_color[2], 1)
-                blf.draw(font_id, breaker.join(line))
+                blf.draw(font_id, line["line_text"])
 
         else:
             text_w, text_h = blf.dimensions(font_id, text)
