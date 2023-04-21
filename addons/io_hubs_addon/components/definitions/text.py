@@ -1,4 +1,6 @@
-import bpy, blf, gpu
+import bpy
+import blf
+import gpu
 from bpy.props import FloatProperty, EnumProperty, FloatVectorProperty, StringProperty
 from bpy.types import Gizmo
 from math import radians
@@ -8,7 +10,6 @@ from ..types import Category, PanelType, NodeType
 from ..gizmos import bone_matrix_world
 
 
-
 class TextGizmo(Gizmo):
     """Text gizmo"""
     bl_idname = "GIZMO_GT_hba_text_gizmo"
@@ -16,18 +17,18 @@ class TextGizmo(Gizmo):
     anchorX_map = {
         "left": 0,
         "center": -0.5,
-        "right":-1
-        }
+        "right": -1
+    }
 
     breaker_map = {
         "normal": " ",
         "break-word": ""
-        }
+    }
 
     whitespace_map = {
         "normal": True,
         "nowrap": False
-        }
+    }
 
     def __init__(self):
         self.component = None
@@ -40,8 +41,8 @@ class TextGizmo(Gizmo):
         loc, rot, scale = self.host.matrix_basis.decompose()
         scale = scale * text_size
         mat_out = (Matrix.Translation(loc)
-                @ rot.normalized().to_matrix().to_4x4() @ rot_offset
-                @ Matrix.Diagonal(scale).to_4x4())
+                   @ rot.normalized().to_matrix().to_4x4() @ rot_offset
+                   @ Matrix.Diagonal(scale).to_4x4())
         gpu.matrix.multiply_matrix(mat_out)
 
     def draw(self, context):
@@ -74,9 +75,9 @@ class TextGizmo(Gizmo):
                     text_w, text_h = blf.dimensions(font_id, breaker.join(line))
                     block_w = text_w if not block_w else block_w
                     block_blueprint[line_count] = {
-                        "line_text":breaker.join(line),
+                        "line_text": breaker.join(line),
                         "position": (anchor * block_w, line_count * line_count_modifier)
-                        }
+                    }
                     line = new_line
                     line_count += 1
 
@@ -85,18 +86,18 @@ class TextGizmo(Gizmo):
                 block_w = text_w if not block_w else block_w
                 print("w: ", text_w)
                 block_blueprint[line_count] = {
-                        "line_text":breaker.join(line),
-                        "position": (anchor * block_w, line_count * line_count_modifier)
-                        }
+                    "line_text": breaker.join(line),
+                    "position": (anchor * block_w, line_count * line_count_modifier)
+                }
 
             print(block_blueprint)
             anchorY_map = {
-                "top": line_count_modifier,
-                "top-baseline": 0,
-                "middle": [line["position"][1] for line in block_blueprint.values()][-1] * 0.5 * -1 + (line_count_modifier / 4),
+                "top": line_count_modifier, "top-baseline": 0,
+                "middle": [line["position"][1] for line in block_blueprint.values()][-1] * 0.5 * -1 +
+                (line_count_modifier / 4),
                 "bottom-baseline": [line["position"][1] for line in block_blueprint.values()][-1] * -1,
-                "bottom": [line["position"][1] for line in block_blueprint.values()][-1] * -1 - (line_count_modifier / 2)
-                }
+                "bottom": [line["position"][1] for line in block_blueprint.values()][-1] * -1 -
+                (line_count_modifier / 2)}
 
             offset = anchorY_map[self.component.anchorY]
 
@@ -112,6 +113,7 @@ class TextGizmo(Gizmo):
             blf.draw(font_id, text)
 
         gpu.matrix.pop()
+
 
 class Text(HubsComponent):
     _definition = {
@@ -326,4 +328,3 @@ class Text(HubsComponent):
         gizmo.use_draw_modal = False
 
         return gizmo
-
