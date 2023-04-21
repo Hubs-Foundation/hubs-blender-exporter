@@ -5,6 +5,7 @@ from .components_registry import get_component_by_name
 from bpy.app.handlers import persistent
 from math import radians
 from mathutils import Matrix
+import gpu
 
 
 def gizmo_update(obj, gizmo):

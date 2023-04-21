@@ -1,7 +1,108 @@
+import bpy, blf, gpu
 from bpy.props import FloatProperty, EnumProperty, FloatVectorProperty, StringProperty
+from bpy.types import Gizmo
+from math import radians
+from mathutils import Matrix, Vector
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
+from ..gizmos import bone_matrix_world
 
+
+
+class TextGizmo(Gizmo):
+    """Text gizmo"""
+    bl_idname = "GIZMO_GT_hba_text_gizmo"
+
+    anchorX_map = {
+        "left": 0,
+        "center": -0.5,
+        "right":-1
+        }
+
+    breaker_map = {
+        "normal": " ",
+        "break-word": ""
+        }
+
+    whitespace_map = {
+        "normal": True,
+        "nowrap": False
+        }
+
+    def __init__(self):
+        self.component = None
+        self.host = None
+
+    def _update_matrix(self):
+        gpu.matrix.push()
+        text_size = self.component.fontSize * 0.009
+        rot_offset = Matrix.Rotation(radians(90), 4, 'X').to_4x4()
+        loc, rot, scale = self.host.matrix_basis.decompose()
+        scale = scale * text_size
+        print("scale: ", scale)
+        mat_out = (Matrix.Translation(loc)
+                @ rot.normalized().to_matrix().to_4x4() @ rot_offset
+                @ Matrix.Diagonal(scale).to_4x4())
+        gpu.matrix.multiply_matrix(mat_out)
+
+    def draw(self, context):
+        self._update_matrix()
+
+        text_size = self.component.fontSize * 9
+
+        text = self.component.value
+        text_color = self.component.color[:3]
+        font_id = 0
+        blf.size(font_id, 100, 72)
+        anchor = self.anchorX_map[self.component.anchorX]
+        line = []
+        line_count = 0
+        line_count_modifier = (self.component.lineHeight * 100) * -1
+        breaker = self.breaker_map[self.component.overflowWrap]
+        text_split = text.split(breaker) if breaker == " " else list(text)
+
+        block_w = 0
+        #block_blueprint = {}
+
+        if self.whitespace_map[self.component.whiteSpace]:
+            for word in text_split:
+                line.append(word)
+                text_w, text_h = blf.dimensions(font_id, breaker.join(line))
+                print("mwc: ", text_w * text_size)
+                if text_w * text_size > self.component.maxWidth * 1000:
+                    print("w: ", text_w)
+                    new_line = [line.pop()]
+                    text_w, text_h = blf.dimensions(font_id, breaker.join(line))
+                    block_w = text_w if not block_w else block_w
+                    # block_blueprint[line_count] = {
+                    #     "line":breaker.join(line),
+                    #     "position": (anchor * block_w, line_count * line_count_modifier)
+                    #     }
+                    blf.position(font_id, anchor * block_w, line_count * line_count_modifier, 0)
+                    blf.color(font_id, text_color[0], text_color[1], text_color[2], 1)
+                    blf.draw(font_id, breaker.join(line))
+                    line = new_line
+                    line_count += 1
+
+            if line:
+                text_w, text_h = blf.dimensions(font_id, breaker.join(line))
+                block_w = text_w if not block_w else block_w
+                print("w: ", text_w)
+                # block_blueprint[line_count] = {
+                #         "line":breaker.join(line),
+                #         "position": (anchor * block_w, line_count * line_count_modifier)
+                #         }
+                blf.position(font_id, anchor * block_w, line_count * line_count_modifier, 0)
+                blf.color(font_id, text_color[0], text_color[1], text_color[2], 1)
+                blf.draw(font_id, breaker.join(line))
+
+        else:
+            text_w, text_h = blf.dimensions(font_id, text)
+            blf.position(font_id, anchor * text_w, 0, 0)
+            blf.color(font_id, text_color[0], text_color[1], text_color[2], 1)
+            blf.draw(font_id, text)
+
+        gpu.matrix.pop()
 
 class Text(HubsComponent):
     _definition = {
@@ -73,7 +174,7 @@ class Text(HubsComponent):
     lineHeight: FloatProperty(
         name="Line Height",
         description="Sets the height of each line of text. If 0, a reasonable height based on the chosen font's ascender/descender metrics will be used, otherwise it is interpreted as a multiple of the fontSize",
-        default=0.0)
+        default=1.0)
 
     outlineWidth: StringProperty(
         name="Outline Width",
@@ -186,3 +287,34 @@ class Text(HubsComponent):
                ("ltr", "Left to Right", "Order text left to right"),
                ("rtl", "Right to Left", "Order text right to left")],
         default="auto")
+
+    @staticmethod
+    def register():
+        bpy.utils.register_class(TextGizmo)
+
+    @staticmethod
+    def unregister():
+        bpy.utils.unregister_class(TextGizmo)
+
+    @classmethod
+    def update_gizmo(cls, ob, bone, target, gizmo):
+        return
+        if bone:
+            mat = bone_matrix_world(ob, bone)
+        else:
+            mat = ob.matrix_world.copy()
+
+        gizmo.hide = not ob.visible_get()
+        gizmo.matrix_basis = mat
+
+    @classmethod
+    def create_gizmo(cls, ob, gizmo_group):
+        component = getattr(ob, cls.get_id())
+        gizmo = gizmo_group.gizmos.new(TextGizmo.bl_idname)
+        gizmo.component = component
+        gizmo.host = ob
+        gizmo.use_draw_scale = False
+        gizmo.use_draw_modal = False
+
+        return gizmo
+
