@@ -192,8 +192,8 @@ def extractTriangulatedInputMesh():
     return (verts, tris)
 
 
-def createMesh(dmesh_holder, obj=None):
-    scene = bpy.context.scene
+def createMesh(context, dmesh_holder, obj=None):
+    scene = context.scene
     if not obj:
         mesh = bpy.data.meshes.new("navmesh")  # add a new mesh
         obj = bpy.data.objects.new("navmesh", mesh)  # add a new object using the mesh
@@ -203,12 +203,18 @@ def createMesh(dmesh_holder, obj=None):
     else:
         mesh = obj.data
 
+    orig_selection = context.selected_objects
+
     bpy.ops.object.select_all(action='DESELECT')
-    bpy.context.view_layer.objects.active = obj  # set as the active object in the scene
+    context.view_layer.objects.active = obj  # set as the active object in the scene
     obj.select_set(True)  # select object
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
-    bm = bmesh.new()
 
+    bpy.ops.object.select_all(action='DESELECT')
+    for obj in orig_selection:
+        obj.select_set(True) 
+
+    bm = bmesh.new()
     nverts = (int)(dmesh_holder.dmesh.contents.nverts)
     for i in range(nverts):
         x = dmesh_holder.dmesh.contents.verts[i * 3 + 0]
@@ -255,7 +261,7 @@ def createMesh(dmesh_holder, obj=None):
     mat = bpy.data.materials.get("Navmesh Material")
     if mat is None:
         mat = bpy.data.materials.new(name="Navmesh Material")
-        mat.diffuse_color = bpy.context.scene.recast_navmesh.color
+        mat.diffuse_color = context.scene.recast_navmesh.color
 
     if mesh.materials:
         mesh.materials[0] = mat
@@ -350,7 +356,7 @@ class ReacastNavmeshGenerateOperator(bpy.types.Operator):
             # dmeshv1 = dmesh.dmesh.contents.verts[0]
             # print("dmeshv1 %f" % dmeshv1)
 
-            createMesh(dmesh, obj=navMesh)
+            createMesh(context, dmesh, obj=navMesh)
 
         # what was allocated in C/C++ should be also deallocated there
         recast.freeNavMesh(pmesh, dmesh, reportMsg, nreportMsg)
