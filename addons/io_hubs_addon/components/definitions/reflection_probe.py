@@ -700,7 +700,7 @@ class SelectMismatchedReflectionProbes(Operator):
                 op.mismatched_probe_indexes = ''
 
         bpy.context.window_manager.popup_menu(draw)
-        return {'RUNNING_MODAL'}
+        return {'FINISHED'}
 
 
 class ReflectionProbe(HubsComponent):

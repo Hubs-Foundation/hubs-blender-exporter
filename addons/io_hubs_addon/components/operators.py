@@ -166,7 +166,7 @@ class AddHubsComponent(Operator):
 
         bpy.context.window_manager.popup_menu(draw)
 
-        return {'RUNNING_MODAL'}
+        return {'FINISHED'}
 
 
 class RemoveHubsComponent(Operator):
