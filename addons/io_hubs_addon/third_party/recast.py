@@ -20,9 +20,10 @@ import traceback
 import bpy
 
 import bpy
-from bpy.props import IntProperty, FloatProperty, EnumProperty, PointerProperty, FloatVectorProperty
+from bpy.props import IntProperty, FloatProperty, EnumProperty, PointerProperty, FloatVectorProperty, BoolProperty
 from bpy.types import Panel, PropertyGroup
 from mathutils import Matrix, Vector
+from math import radians
 from ..preferences import get_addon_pref
 from ..components.utils import add_component, get_objects_with_component, has_component
 
@@ -368,50 +369,55 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
     # based on https://docs.blender.org/api/2.79/bpy.types.SceneGameRecastData.html
     cell_size: FloatProperty(
         name="cell_size",
-        # description="A float property",
+        description="Cell size",
         default=0.166,
         min=0.0,
-        max=30.0)
+        max=30.0,
+        subtype='DISTANCE')
 
     cell_height: FloatProperty(
         name="cell_height",
-        # description="A float property",
+        description="Cell height",
         default=0.10,
         min=0.0,
-        max=30.0)
+        max=30.0,
+        subtype='DISTANCE')
 
     agent_height: FloatProperty(
         name="agent_height",
-        # description="A float property",
+        description="Agent height",
         default=1.70,
         min=0.0,
-        max=30.0)
+        max=30.0,
+        subtype='DISTANCE')
 
     agent_radius: FloatProperty(
         name="agent_radius",
-        # description="A float property",
+        description="Agent radius",
         default=0.5,
         min=0.0,
-        max=30.0)
+        max=30.0,
+        subtype='DISTANCE')
 
     slope_max: FloatProperty(
         name="slope_max",
-        # description="A float property",
-        default=0.785398,
+        description="Maximum slope",
+        default=radians(60),
         min=0.0,
-        max=1.5708,
+        max=radians(90),
         subtype='ANGLE')
 
     climb_max: FloatProperty(
         name="climb_max",
-        # description="A float property",
+        description="Maximum step height",
         default=0.9,
         min=0.0,
-        max=30.0)
+        max=30.0,
+        subtype='DISTANCE')
 
     region_min_size: FloatProperty(
         name="region_min_size",
-        # description="A float property",
+        description="Minimum region size",
         default=1.0,
         min=0.0,
         max=30.0,
@@ -419,28 +425,31 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
 
     region_merge_size: FloatProperty(
         name="region_merge_size",
-        # description="A float property",
+        description="Merged region size",
         default=20.0,
         min=0.0,
-        max=30.0)
+        max=30.0,
+        unit='AREA')
 
     edge_max_error: FloatProperty(
         name="edge_max_error",
-        # description="A float property",
+        description="Max edge error",
         default=1.0,
         min=0.0,
-        max=30.0)
+        max=30.0,
+        subtype='DISTANCE')
 
     edge_max_len: FloatProperty(
         name="edge_max_len",
-        # description="A float property",
+        description="Max edge length",
         default=12.0,
         min=0.0,
-        max=30.0)
+        max=30.0,
+        subtype='DISTANCE')
 
     verts_per_poly: IntProperty(
         name="verts_per_poly",
-        # description="A integer property",
+        description="Verts per poly",
         default=3,
         min=3,
         max=10
@@ -448,17 +457,19 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
 
     sample_dist: FloatProperty(
         name="sample_dist",
-        # description="A float property",
+        description="Sample distance",
         default=13.0,
         min=0.0,
-        max=30.0)
+        max=30.0,
+        subtype='DISTANCE')
 
     sample_max_error: FloatProperty(
         name="sample_max_error",
-        # description="A float property",
+        description="Max sample error",
         default=1.0,
         min=0.0,
-        max=30.0)
+        max=30.0,
+        subtype='DISTANCE')
 
     partitioning: EnumProperty(
         name="partitioning",
@@ -474,6 +485,7 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
                                size=4,
                                min=0,
                                max=1)
+    expanded: BoolProperty(name="expanded", default=True)
 
 
 class ReacastNavmeshPanel(Panel):
@@ -504,32 +516,38 @@ class ReacastNavmeshPanel(Panel):
         col.prop(recastPropertyGroup, "agent_height", text="Height")
         col.prop(recastPropertyGroup, "agent_radius", text="Radius")
         col = flow.column()
-        col.prop(recastPropertyGroup, "slope_max", text="Max slope")
-        col.prop(recastPropertyGroup, "climb_max", text="Max climb")
+        col.prop(recastPropertyGroup, "slope_max", text="Maximum slope")
+        col.prop(recastPropertyGroup, "climb_max", text="Maximum step height")
 
         layout.label(text="Region:")
         flow = layout.grid_flow()
         col = flow.column()
         col.prop(recastPropertyGroup, "region_min_size", text="Min region size")
-        col = flow.column()
-        col.prop(recastPropertyGroup, "region_merge_size", text="Merged region size")
 
         layout.prop(recastPropertyGroup, "partitioning", text="Partitioning")
 
-        layout.label(text="Polygonization:")
-        flow = layout.grid_flow()
-        col = flow.column()
-        col.prop(recastPropertyGroup, "edge_max_len", text="Max edge length")
-        col.prop(recastPropertyGroup, "edge_max_error", text="Max edge error")
-        col = flow.column()
-        col.prop(recastPropertyGroup, "verts_per_poly", text="Verts per poly")
+        flow = layout.box().grid_flow()
+        top_row = flow.row()
+        top_row.prop(recastPropertyGroup, "expanded",
+            icon="TRIA_DOWN" if recastPropertyGroup.expanded else "TRIA_RIGHT",
+            icon_only=True, emboss=False
+            )
+        top_row.label(text="Advanced settings")
+        if recastPropertyGroup.expanded:
+            col = flow.column()
+            col.label(text="Region:")
+            col.prop(recastPropertyGroup, "region_merge_size", text="Merged region size")
 
-        layout.label(text="Detail mesh:")
-        flow = layout.grid_flow()
-        col = flow.column()
-        col.prop(recastPropertyGroup, "sample_dist", text="Sample distance")
-        col = flow.column()
-        col.prop(recastPropertyGroup, "sample_max_error", text="Max sample error")
+            flow.label(text="Polygonization:")
+            col = flow.column()
+            col.prop(recastPropertyGroup, "edge_max_len", text="Max edge length")
+            col.prop(recastPropertyGroup, "edge_max_error", text="Max edge error")
+            col.prop(recastPropertyGroup, "verts_per_poly", text="Verts per poly")
+
+            flow.label(text="Detail mesh:")
+            col = flow.column()
+            col.prop(recastPropertyGroup, "sample_dist", text="Sample distance")
+            col.prop(recastPropertyGroup, "sample_max_error", text="Max sample error")
 
 
 classes = [
