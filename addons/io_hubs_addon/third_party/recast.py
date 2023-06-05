@@ -269,6 +269,24 @@ def createMesh(context, dmesh_holder, obj=None):
     else:
         mesh.materials.append(mat)
 
+def get_auto_cell_size(context):
+    bounding_boxes = []
+    for obj in context.selected_objects:
+        if obj.type == 'MESH':
+            bbox = [obj.matrix_world @ Vector(point) for point in obj.bound_box]
+            bounding_boxes.extend(bbox)
+
+    bound_box_x_coords = []
+    bound_box_y_coords = []
+    for point in bounding_boxes:
+        bound_box_x_coords.append(point.x)
+        bound_box_y_coords.append(point.y)
+        
+    size_x = abs(min(bound_box_x_coords) - max(bound_box_x_coords))
+    size_y = abs(min(bound_box_y_coords) - max(bound_box_y_coords))
+    area = size_x * size_y
+    
+    return pow(area, 1 / 3) / 50
 
 class ReacastNavmeshGenerateOperator(bpy.types.Operator):
     bl_idname = "recast.build_navigation_mesh"
@@ -304,6 +322,8 @@ class ReacastNavmeshGenerateOperator(bpy.types.Operator):
         nverts = (int)(len(verts) / 3)
         ntris = (int)(len(tris) / 3)
         recastData = recastDataFromBlender(context.scene)
+        if context.scene.recast_navmesh.auto_cell:
+            recastData.cellsize = get_auto_cell_size(context)
 
         prevWorkingDir = os.getcwd()
         nextWorkingDir = os.path.dirname(libpathr)
@@ -487,6 +507,8 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
                                max=1)
     expanded: BoolProperty(name="expanded", default=True)
 
+    auto_cell: BoolProperty(name="Auto Cell", default=False)
+
 
 class ReacastNavmeshPanel(Panel):
     """Creates a Panel in the Object properties window"""
@@ -504,50 +526,44 @@ class ReacastNavmeshPanel(Panel):
         layout.prop(recastPropertyGroup, "color", text="Color")
 
         layout.label(text="Rasterization:")
-        flow = layout.grid_flow()
-        col = flow.column()
-        col.prop(recastPropertyGroup, "cell_size", text="Cell size")
-        col = flow.column()
-        col.prop(recastPropertyGroup, "cell_height", text="Cell height")
+        col = layout.column()
+        col.row().prop(recastPropertyGroup, "auto_cell", text="Auto Cell")
+        if not recastPropertyGroup.auto_cell:
+            col.row().prop(recastPropertyGroup, "cell_size", text="Cell size")
+        col.row().prop(recastPropertyGroup, "cell_height", text="Cell height")
 
         layout.label(text="Agent:")
-        flow = layout.grid_flow()
-        col = flow.column()
-        col.prop(recastPropertyGroup, "agent_height", text="Height")
-        col.prop(recastPropertyGroup, "agent_radius", text="Radius")
-        col = flow.column()
-        col.prop(recastPropertyGroup, "slope_max", text="Maximum slope")
-        col.prop(recastPropertyGroup, "climb_max", text="Maximum step height")
+        col = layout.column()
+        col.row().prop(recastPropertyGroup, "agent_height", text="Height")
+        col.row().prop(recastPropertyGroup, "agent_radius", text="Radius")
+        col.row().prop(recastPropertyGroup, "slope_max", text="Maximum slope")
+        col.row().prop(recastPropertyGroup, "climb_max", text="Maximum step height")
 
         layout.label(text="Region:")
-        flow = layout.grid_flow()
-        col = flow.column()
-        col.prop(recastPropertyGroup, "region_min_size", text="Min region size")
+        col = layout.column()
+        col.row().prop(recastPropertyGroup, "region_min_size", text="Min region size")
+        col.row().prop(recastPropertyGroup, "partitioning", text="Partitioning")
 
-        layout.prop(recastPropertyGroup, "partitioning", text="Partitioning")
-
-        flow = layout.box().grid_flow()
-        top_row = flow.row()
+        box = layout.box()
+        top_row = box.row()
         top_row.prop(recastPropertyGroup, "expanded",
             icon="TRIA_DOWN" if recastPropertyGroup.expanded else "TRIA_RIGHT",
             icon_only=True, emboss=False
             )
         top_row.label(text="Advanced settings")
         if recastPropertyGroup.expanded:
-            col = flow.column()
-            col.label(text="Region:")
-            col.prop(recastPropertyGroup, "region_merge_size", text="Merged region size")
+            col = box.column()
+            col.row().label(text="Region:")
+            col.row().prop(recastPropertyGroup, "region_merge_size", text="Merged region size")
 
-            flow.label(text="Polygonization:")
-            col = flow.column()
-            col.prop(recastPropertyGroup, "edge_max_len", text="Max edge length")
-            col.prop(recastPropertyGroup, "edge_max_error", text="Max edge error")
-            col.prop(recastPropertyGroup, "verts_per_poly", text="Verts per poly")
+            col.row().label(text="Polygonization:")
+            col.row().prop(recastPropertyGroup, "edge_max_len", text="Max edge length")
+            col.row().prop(recastPropertyGroup, "edge_max_error", text="Max edge error")
+            col.row().prop(recastPropertyGroup, "verts_per_poly", text="Verts per poly")
 
-            flow.label(text="Detail mesh:")
-            col = flow.column()
-            col.prop(recastPropertyGroup, "sample_dist", text="Sample distance")
-            col.prop(recastPropertyGroup, "sample_max_error", text="Max sample error")
+            col.row().label(text="Detail mesh:")
+            col.row().prop(recastPropertyGroup, "sample_dist", text="Sample distance")
+            col.row().prop(recastPropertyGroup, "sample_max_error", text="Max sample error")
 
 
 classes = [
