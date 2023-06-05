@@ -387,9 +387,6 @@ class RecastNavMeshGenerateOperator(bpy.types.Operator):
 
         os.chdir(prevWorkingDir)
 
-        # print("verts: %s" % str(verts))
-        # print("tris: %s" % str(tris))
-
         pmesh = recast_polyMesh_holder()
         dmesh = recast_polyMeshDetail_holder()
         nreportMsg = 128
