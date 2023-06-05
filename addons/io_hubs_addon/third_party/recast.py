@@ -220,16 +220,10 @@ def createMesh(context, dmesh_holder, obj=None):
     else:
         mesh = obj.data
 
-    orig_selection = context.selected_objects
-
     bpy.ops.object.select_all(action='DESELECT')
     context.view_layer.objects.active = obj  # set as the active object in the scene
     obj.select_set(True)  # select object
-    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
-
-    bpy.ops.object.select_all(action='DESELECT')
-    for obj in orig_selection:
-        obj.select_set(True) 
+    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True) 
 
     bm = bmesh.new()
     nverts = (int)(dmesh_holder.dmesh.contents.nverts)
@@ -341,6 +335,11 @@ class RecastNavMeshGenerateOperator(bpy.types.Operator):
     def execute(self, context):
         # bpy.ops.wm.call_menu(name="ADDITIVE_ANIMATION_insert_keyframe_menu")
 
+        selected_objects = context.selected_objects
+        if len(selected_objects) == 0:
+            self.report({'WARNING'}, 'No meshes selected')
+            return {"CANCELLED"}
+
         from ..components.definitions.nav_mesh import NavMesh
         nav_mesh_id = NavMesh.get_name()
         for ob in context.selected_objects:
@@ -425,6 +424,10 @@ class RecastNavMeshGenerateOperator(bpy.types.Operator):
 
         # what was allocated in C/C++ should be also deallocated there
         recast.freeNavMesh(pmesh, dmesh, reportMsg, nreportMsg)
+
+        bpy.ops.object.select_all(action='DESELECT')
+        for obj in selected_objects:
+            obj.select_set(True)
 
         return {'FINISHED'}
 
