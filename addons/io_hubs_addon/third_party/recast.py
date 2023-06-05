@@ -19,7 +19,6 @@ import os
 import traceback
 import bpy
 
-import bpy
 from bpy.props import IntProperty, FloatProperty, EnumProperty, PointerProperty, FloatVectorProperty, BoolProperty
 from bpy.types import Panel, PropertyGroup
 from mathutils import Matrix, Vector
@@ -33,6 +32,23 @@ from ctypes import c_int, c_float
 
 import bmesh
 
+
+CELL_SIZE_DEFAULT = 0.166
+CELL_HEIGHT_DEFAULT = 0.10
+SLOPE_MAX_DEFAULT = radians(60)
+CLIMB_MAX_DEFAULT = 0.9
+AGENT_HEIGHT_DEFAULT = 1.70
+AGENT_RADIUS_DEFAULT = 0.5
+EDGE_MAX_LENGTH = 12.0
+EDGE_MAX_ERROR = 1.0
+REGION_MIN_SIZE = 1.0
+REGION_MERGE_SIZE = 20.0
+VERTS_PER_POLY_DEFAULT = 3
+SAMPLE_DIST_DEFAULT = 13.0
+SAMPLE_MAX_ERROR_DEFAULT = 1.0
+PARTITIONING_DEFAULT = 'WATERSHED'
+COLOR_DEFAULT = (0.0, 1.0, 0.0, 1.0)
+AUTO_CELL_DEFAULT = False
 
 # x -> x'
 # y -> -z'
@@ -288,7 +304,35 @@ def get_auto_cell_size(context):
     
     return pow(area, 1 / 3) / 50
 
-class ReacastNavmeshGenerateOperator(bpy.types.Operator):
+class RecastNavMeshResetOperator(bpy.types.Operator):
+    bl_idname = "recast.reset_navigation_mesh"
+    bl_label = "Reset"
+    bl_description = "Reset navigation mesh properties to default."
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        scene = context.scene
+
+        scene.recast_navmesh.cell_size = CELL_SIZE_DEFAULT
+        scene.recast_navmesh.cell_height = CELL_HEIGHT_DEFAULT
+        scene.recast_navmesh.slope_max = SLOPE_MAX_DEFAULT
+        scene.recast_navmesh.climb_max = CLIMB_MAX_DEFAULT
+        scene.recast_navmesh.agent_height = AGENT_HEIGHT_DEFAULT
+        scene.recast_navmesh.agent_radius = AGENT_RADIUS_DEFAULT
+        scene.recast_navmesh.edge_max_len = EDGE_MAX_LENGTH
+        scene.recast_navmesh.edge_max_error = EDGE_MAX_ERROR
+        scene.recast_navmesh.region_min_size = REGION_MIN_SIZE
+        scene.recast_navmesh.region_merge_size = REGION_MERGE_SIZE
+        scene.recast_navmesh.verts_per_poly = VERTS_PER_POLY_DEFAULT
+        scene.recast_navmesh.sample_dist = SAMPLE_DIST_DEFAULT
+        scene.recast_navmesh.sample_max_error = SAMPLE_MAX_ERROR_DEFAULT
+        scene.recast_navmesh.partitioning = PARTITIONING_DEFAULT
+        scene.recast_navmesh.color = COLOR_DEFAULT
+        scene.recast_navmesh.auto_cell = AUTO_CELL_DEFAULT
+
+        return {'FINISHED'}
+
+class RecastNavMeshGenerateOperator(bpy.types.Operator):
     bl_idname = "recast.build_navigation_mesh"
     bl_label = "Build Navigation Mesh"
     bl_description = "Build navigation mesh using recast."
@@ -385,12 +429,12 @@ class ReacastNavmeshGenerateOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class ReacastNavmeshPropertyGroup(PropertyGroup):
+class RecastNavMeshPropertyGroup(PropertyGroup):
     # based on https://docs.blender.org/api/2.79/bpy.types.SceneGameRecastData.html
     cell_size: FloatProperty(
         name="cell_size",
         description="Cell size",
-        default=0.166,
+        default=CELL_SIZE_DEFAULT,
         min=0.0,
         max=30.0,
         subtype='DISTANCE')
@@ -398,7 +442,7 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
     cell_height: FloatProperty(
         name="cell_height",
         description="Cell height",
-        default=0.10,
+        default=CELL_HEIGHT_DEFAULT,
         min=0.0,
         max=30.0,
         subtype='DISTANCE')
@@ -406,7 +450,7 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
     agent_height: FloatProperty(
         name="agent_height",
         description="Agent height",
-        default=1.70,
+        default=AGENT_HEIGHT_DEFAULT,
         min=0.0,
         max=30.0,
         subtype='DISTANCE')
@@ -414,7 +458,7 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
     agent_radius: FloatProperty(
         name="agent_radius",
         description="Agent radius",
-        default=0.5,
+        default=AGENT_RADIUS_DEFAULT,
         min=0.0,
         max=30.0,
         subtype='DISTANCE')
@@ -422,7 +466,7 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
     slope_max: FloatProperty(
         name="slope_max",
         description="Maximum slope",
-        default=radians(60),
+        default=SLOPE_MAX_DEFAULT,
         min=0.0,
         max=radians(90),
         subtype='ANGLE')
@@ -430,7 +474,7 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
     climb_max: FloatProperty(
         name="climb_max",
         description="Maximum step height",
-        default=0.9,
+        default=CLIMB_MAX_DEFAULT,
         min=0.0,
         max=30.0,
         subtype='DISTANCE')
@@ -438,7 +482,7 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
     region_min_size: FloatProperty(
         name="region_min_size",
         description="Minimum region size",
-        default=1.0,
+        default=REGION_MIN_SIZE,
         min=0.0,
         max=30.0,
         unit='AREA')
@@ -446,7 +490,7 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
     region_merge_size: FloatProperty(
         name="region_merge_size",
         description="Merged region size",
-        default=20.0,
+        default=REGION_MERGE_SIZE,
         min=0.0,
         max=30.0,
         unit='AREA')
@@ -454,7 +498,7 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
     edge_max_error: FloatProperty(
         name="edge_max_error",
         description="Max edge error",
-        default=1.0,
+        default=EDGE_MAX_ERROR,
         min=0.0,
         max=30.0,
         subtype='DISTANCE')
@@ -462,7 +506,7 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
     edge_max_len: FloatProperty(
         name="edge_max_len",
         description="Max edge length",
-        default=12.0,
+        default=EDGE_MAX_LENGTH,
         min=0.0,
         max=30.0,
         subtype='DISTANCE')
@@ -470,7 +514,7 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
     verts_per_poly: IntProperty(
         name="verts_per_poly",
         description="Verts per poly",
-        default=3,
+        default=VERTS_PER_POLY_DEFAULT,
         min=3,
         max=10
     )
@@ -478,7 +522,7 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
     sample_dist: FloatProperty(
         name="sample_dist",
         description="Sample distance",
-        default=13.0,
+        default=SAMPLE_DIST_DEFAULT,
         min=0.0,
         max=30.0,
         subtype='DISTANCE')
@@ -486,7 +530,7 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
     sample_max_error: FloatProperty(
         name="sample_max_error",
         description="Max sample error",
-        default=1.0,
+        default=SAMPLE_MAX_ERROR_DEFAULT,
         min=0.0,
         max=30.0,
         subtype='DISTANCE')
@@ -496,21 +540,21 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
         items=[("WATERSHED", "WATERSHED", "WATERSHED"),
                ("MONOTONE", "MONOTONE", "MONOTONE"),
                ("LAYERS", "LAYERS", "LAYERS")],
-        default="WATERSHED")
+        default=PARTITIONING_DEFAULT)
 
     color: FloatVectorProperty(name="Color",
                                description="Color",
                                subtype='COLOR_GAMMA',
-                               default=(0.0, 1.0, 0.0, 1.0),
+                               default=COLOR_DEFAULT,
                                size=4,
                                min=0,
                                max=1)
     expanded: BoolProperty(name="expanded", default=True)
 
-    auto_cell: BoolProperty(name="Auto Cell", default=False)
+    auto_cell: BoolProperty(name="Auto Cell", default=AUTO_CELL_DEFAULT)
 
 
-class ReacastNavmeshPanel(Panel):
+class RecastNavMeshPanel(Panel):
     """Creates a Panel in the Object properties window"""
     bl_label = "Recast navmesh"
     bl_idname = "SCENE_PT_blendcast"
@@ -523,6 +567,7 @@ class ReacastNavmeshPanel(Panel):
         recastPropertyGroup = context.scene.recast_navmesh
 
         layout.operator("recast.build_navigation_mesh")
+        layout.operator("recast.reset_navigation_mesh")
         layout.prop(recastPropertyGroup, "color", text="Color")
 
         layout.label(text="Rasterization:")
@@ -567,22 +612,22 @@ class ReacastNavmeshPanel(Panel):
 
 
 classes = [
-    ReacastNavmeshPanel,
-    ReacastNavmeshGenerateOperator
+    RecastNavMeshPropertyGroup,
+    RecastNavMeshPanel,
+    RecastNavMeshGenerateOperator,
+    RecastNavMeshResetOperator
 ]
 
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
-    bpy.utils.register_class(ReacastNavmeshPropertyGroup)
-    bpy.types.Scene.recast_navmesh = PointerProperty(type=ReacastNavmeshPropertyGroup)
+    bpy.types.Scene.recast_navmesh = PointerProperty(type=RecastNavMeshPropertyGroup)
 
 
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
-    bpy.utils.unregister_class(ReacastNavmeshPropertyGroup)
     del bpy.types.Scene.recast_navmesh
 
 
