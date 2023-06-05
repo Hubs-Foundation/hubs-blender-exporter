@@ -36,13 +36,23 @@ class Image(HubsComponent):
     alphaCutoff: FloatProperty(
         name="Alpha Cutoff",
         description="Pixels with alpha values lower than this will be transparent on Binary transparency mode",
-        default=0.5)
+        default=0.5,
+        min=0.0,
+        max=1.0)
 
     projection: EnumProperty(
         name="Projection",
         description="Projection",
         items=PROJECTION_MODE,
         default="flat")
+
+    def draw(self, context, layout, panel_type):
+        layout.prop(self, "src")
+        layout.prop(self, "controls")
+        layout.prop(self, "alphaMode")
+        if self.alphaMode == "mask":
+            layout.prop(self, "alphaCutoff")
+        layout.prop(self, "projection")
 
     def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
         migration_occurred = False
