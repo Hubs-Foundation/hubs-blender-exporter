@@ -183,11 +183,11 @@ def extractTriangulatedInputMeshList(objects, matrix, verts_offset, verts, tris,
 # take care of applying modiffiers and triangulation
 
 
-def extractTriangulatedInputMesh():
-    depsgraph = bpy.context.evaluated_depsgraph_get()
+def extractTriangulatedInputMesh(context):
+    depsgraph = context.evaluated_depsgraph_get()
     verts = []
     tris = []
-    list = bpy.context.selected_objects
+    list = context.selected_objects
     extractTriangulatedInputMeshList(list, Matrix(), 0, verts, tris, depsgraph)
     return (verts, tris)
 
@@ -280,7 +280,7 @@ class ReacastNavmeshGenerateOperator(bpy.types.Operator):
 
         from ..components.definitions.nav_mesh import NavMesh
         nav_mesh_id = NavMesh.get_name()
-        for ob in bpy.context.selected_objects:
+        for ob in context.selected_objects:
             if has_component(ob, nav_mesh_id):
                 self.report({'ERROR'}, 'A Navmesh cannot be part of the selection')
                 return {'FINISHED'}
@@ -297,12 +297,12 @@ class ReacastNavmeshGenerateOperator(bpy.types.Operator):
             self.report({'ERROR'}, 'File not exists: %s\n' % libpathr)
             return {'FINISHED'}
 
-        verts, tris = extractTriangulatedInputMesh()
+        verts, tris = extractTriangulatedInputMesh(context)
         vertsCount = len(verts)
         trisCount = len(tris)
         nverts = (int)(len(verts) / 3)
         ntris = (int)(len(tris) / 3)
-        recastData = recastDataFromBlender(bpy.context.scene)
+        recastData = recastDataFromBlender(context.scene)
 
         prevWorkingDir = os.getcwd()
         nextWorkingDir = os.path.dirname(libpathr)
