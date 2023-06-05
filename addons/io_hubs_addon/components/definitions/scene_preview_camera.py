@@ -9,6 +9,7 @@ from bpy.props import FloatProperty
 import bpy
 from ...utils import rgetattr, rsetattr
 
+
 def render_post(scene, depsgraph):
     bpy.context.scene.collection.objects.unlink(camera_object)
     bpy.data.cameras.remove(camera_data)
@@ -19,10 +20,11 @@ def render_post(scene, depsgraph):
     bpy.app.handlers.render_cancel.remove(render_post)
     bpy.app.handlers.render_complete.remove(render_post)
 
+
 class RenderOperator(Operator):
     bl_idname = "render.hubs_render"
     bl_label = "Hubs Render"
-    bl_options = { "REGISTER" }
+    bl_options = {"REGISTER"}
 
     fov: FloatProperty(name="FOV", min=0, max=radians(180), default=radians(80), subtype="ANGLE", unit="ROTATION")
 
@@ -66,6 +68,7 @@ class RenderOperator(Operator):
 
         return {'FINISHED'}
 
+
 class ScenePreviewCamera(HubsComponent):
     _definition = {
         'name': 'scene-preview-camera',
@@ -92,7 +95,7 @@ class ScenePreviewCamera(HubsComponent):
     @classmethod
     def update_gizmo(cls, ob, bone, target, gizmo):
         mat = ob.matrix_world.copy()
-        
+
         rot_offset = Matrix.Rotation(radians(180), 4, 'Z')
         gizmo.hide = not ob.visible_get()
         gizmo.matrix_basis = mat @ rot_offset
@@ -112,14 +115,14 @@ class ScenePreviewCamera(HubsComponent):
         gizmo.alpha_highlight = 1.0
 
         return gizmo
-    
+
     def draw(self, context, layout, panel):
         row = layout.row()
         row.prop(data=self, property="fov")
         row = layout.row()
         op = row.operator("render.hubs_render", text="Render Preview Camera")
         op.fov = self.fov
-    
+
     @ staticmethod
     def register():
         bpy.utils.register_class(RenderOperator)
