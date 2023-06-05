@@ -23,7 +23,6 @@ def add_component(obj, component_name):
         if 'create_gizmo' in component_class.__dict__:
             update_gizmos()
         component_class.init_instance_version(obj)
-        component_class.init(obj)
         for dep_name in component_class.get_deps():
             dep_class = get_component_by_name(dep_name)
             if dep_class:
@@ -33,6 +32,7 @@ def add_component(obj, component_name):
             else:
                 print("Dependency '%s' from module '%s' not registered" %
                       (dep_name, component_name))
+        component_class.init(obj)
 
 
 def remove_component(obj, component_name):
