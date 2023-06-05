@@ -369,28 +369,28 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
     cell_size: FloatProperty(
         name="cell_size",
         # description="A float property",
-        default=0.3,
+        default=0.166,
         min=0.0,
         max=30.0)
 
     cell_height: FloatProperty(
         name="cell_height",
         # description="A float property",
-        default=0.2,
+        default=0.10,
         min=0.0,
         max=30.0)
 
     agent_height: FloatProperty(
         name="agent_height",
         # description="A float property",
-        default=2.0,
+        default=1.70,
         min=0.0,
         max=30.0)
 
     agent_radius: FloatProperty(
         name="agent_radius",
         # description="A float property",
-        default=0.6,
+        default=0.5,
         min=0.0,
         max=30.0)
 
@@ -399,7 +399,8 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
         # description="A float property",
         default=0.785398,
         min=0.0,
-        max=1.5708)
+        max=1.5708,
+        subtype='ANGLE')
 
     climb_max: FloatProperty(
         name="climb_max",
@@ -411,9 +412,10 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
     region_min_size: FloatProperty(
         name="region_min_size",
         # description="A float property",
-        default=8.0,
+        default=1.0,
         min=0.0,
-        max=30.0)
+        max=30.0,
+        unit='AREA')
 
     region_merge_size: FloatProperty(
         name="region_merge_size",
@@ -425,7 +427,7 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
     edge_max_error: FloatProperty(
         name="edge_max_error",
         # description="A float property",
-        default=1.3,
+        default=1.0,
         min=0.0,
         max=30.0)
 
@@ -439,7 +441,7 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
     verts_per_poly: IntProperty(
         name="verts_per_poly",
         # description="A integer property",
-        default=6,
+        default=3,
         min=3,
         max=10
     )
@@ -447,7 +449,7 @@ class ReacastNavmeshPropertyGroup(PropertyGroup):
     sample_dist: FloatProperty(
         name="sample_dist",
         # description="A float property",
-        default=6.0,
+        default=13.0,
         min=0.0,
         max=30.0)
 
