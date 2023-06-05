@@ -57,20 +57,7 @@ def remove_component(obj, component_name):
 
 
 def get_objects_with_component(component_name):
-    objects = []
-    for ob in bpy.context.view_layer.objects:
-        component_list = ob.hubs_component_list
-
-        registered_hubs_components = get_components_registry()
-
-        if component_list.items:
-            for component_item in component_list.items:
-                component_name = component_item.name
-                if component_name in registered_hubs_components:
-                    if component_name == component_name:
-                        objects.append(ob)
-
-    return objects
+    return [ob for ob in bpy.context.view_layer.objects if has_component(ob, component_name)]
 
 
 def has_component(obj, component_name):
