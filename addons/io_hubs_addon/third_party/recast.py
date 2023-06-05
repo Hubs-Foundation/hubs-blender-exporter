@@ -386,9 +386,6 @@ class RecastNavMeshGenerateOperator(bpy.types.Operator):
             return {'FINISHED'}
 
         os.chdir(prevWorkingDir)
-        print("nverts %i" % nverts)
-        print("ntris %i" % ntris)
-        print("cell size %f" % recastData.cellsize)
 
         # print("verts: %s" % str(verts))
         # print("tris: %s" % str(tris))
