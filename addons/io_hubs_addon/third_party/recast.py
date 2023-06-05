@@ -329,7 +329,7 @@ class RecastNavMeshResetOperator(bpy.types.Operator):
 class RecastNavMeshGenerateOperator(bpy.types.Operator):
     bl_idname = "recast.build_navigation_mesh"
     bl_label = "Build Navigation Mesh"
-    bl_description = "Build navigation mesh using recast."
+    bl_description = "Build navigation mesh from the selected objects using recast."
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
