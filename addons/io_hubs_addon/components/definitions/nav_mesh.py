@@ -18,7 +18,7 @@ class NavMesh(HubsComponent):
     @classmethod
     def poll(cls, panel_type, host, ob=None):
         return host.type == 'MESH'
-    
+
     @classmethod
     def init(cls, obj):
         obj.hubs_component_visible.visible = False
