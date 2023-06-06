@@ -528,7 +528,6 @@ class OpenImage(Operator):
         name="Relative Path", description="Select the file relative to the blend file", default=True)
 
     disabled_message = "Can't open/assign images to linked data blocks. Please make it local first"
-    component = None
 
     @ classmethod
     def description(cls, context, properties):
