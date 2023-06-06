@@ -96,6 +96,7 @@ class EnvironmentSettings(HubsComponent):
             add_link_indicator(sub_row, self.backgroundTexture)
 
         sub_row.context_pointer_set("hubs_component", self)
+        sub_row.context_pointer_set("host", self.backgroundTexture)
         op = sub_row.operator("image.hubs_open_image", text='', icon='FILE_FOLDER')
         op.target_property = "backgroundTexture"
 
@@ -112,6 +113,7 @@ class EnvironmentSettings(HubsComponent):
             add_link_indicator(sub_row, self.envMapTexture)
 
         sub_row.context_pointer_set("hubs_component", self)
+        sub_row.context_pointer_set("host", self.envMapTexture)
         op = sub_row.operator("image.hubs_open_image", text='', icon='FILE_FOLDER')
         op.target_property = "envMapTexture"
 
