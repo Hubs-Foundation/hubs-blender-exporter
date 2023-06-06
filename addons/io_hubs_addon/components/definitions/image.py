@@ -1,5 +1,5 @@
 from ..models import image
-from ..gizmos import CustomModelGizmo
+from ..gizmos import CustomModelGizmo, bone_matrix_world
 from bpy.props import EnumProperty, FloatProperty, StringProperty, BoolProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
