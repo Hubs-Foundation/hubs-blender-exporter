@@ -56,6 +56,7 @@ AUTO_CELL_DEFAULT = False
 # y -> -z'
 # z -> y'
 
+
 def swap(vec):
     return Vector([vec.x, vec.z, -vec.y])
 
@@ -225,7 +226,7 @@ def createMesh(context, dmesh_holder, obj=None):
     bpy.ops.object.select_all(action='DESELECT')
     context.view_layer.objects.active = obj  # set as the active object in the scene
     obj.select_set(True)  # select object
-    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True) 
+    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
 
     bm = bmesh.new()
     nverts = (int)(dmesh_holder.dmesh.contents.nverts)
@@ -281,6 +282,7 @@ def createMesh(context, dmesh_holder, obj=None):
     else:
         mesh.materials.append(mat)
 
+
 def get_auto_cell_size(context):
     bounding_boxes = []
     for obj in context.selected_objects:
@@ -293,12 +295,13 @@ def get_auto_cell_size(context):
     for point in bounding_boxes:
         bound_box_x_coords.append(point.x)
         bound_box_y_coords.append(point.y)
-        
+
     size_x = abs(min(bound_box_x_coords) - max(bound_box_x_coords))
     size_y = abs(min(bound_box_y_coords) - max(bound_box_y_coords))
     area = size_x * size_y
-    
+
     return pow(area, 1 / 3) / 50
+
 
 class RecastNavMeshResetOperator(bpy.types.Operator):
     bl_idname = "recast.reset_navigation_mesh"
@@ -327,6 +330,7 @@ class RecastNavMeshResetOperator(bpy.types.Operator):
         scene.recast_navmesh.auto_cell = AUTO_CELL_DEFAULT
 
         return {'FINISHED'}
+
 
 class RecastNavMeshGenerateOperator(bpy.types.Operator):
     bl_idname = "recast.build_navigation_mesh"
@@ -590,10 +594,8 @@ class RecastNavMeshPanel(Panel):
 
         box = layout.box()
         top_row = box.row()
-        top_row.prop(recastPropertyGroup, "expanded",
-            icon="TRIA_DOWN" if recastPropertyGroup.expanded else "TRIA_RIGHT",
-            icon_only=True, emboss=False
-            )
+        top_row.prop(recastPropertyGroup, "expanded", icon="TRIA_DOWN"
+                     if recastPropertyGroup.expanded else "TRIA_RIGHT", icon_only=True, emboss=False)
         top_row.label(text="Advanced settings")
         if recastPropertyGroup.expanded:
             col = box.column()
