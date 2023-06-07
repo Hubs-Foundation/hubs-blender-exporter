@@ -37,20 +37,20 @@ import bmesh
 
 CELL_SIZE_DEFAULT = 0.166
 CELL_HEIGHT_DEFAULT = 0.10
-SLOPE_MAX_DEFAULT = radians(60)
-CLIMB_MAX_DEFAULT = 0.9
+SLOPE_MAX_DEFAULT = radians(45)
+CLIMB_MAX_DEFAULT = 0.3
 AGENT_HEIGHT_DEFAULT = 1.70
 AGENT_RADIUS_DEFAULT = 0.5
 EDGE_MAX_LENGTH = 12.0
 EDGE_MAX_ERROR = 1.0
-REGION_MIN_SIZE = 1.0
+REGION_MIN_SIZE = 4.0
 REGION_MERGE_SIZE = 20.0
 VERTS_PER_POLY_DEFAULT = 3
 SAMPLE_DIST_DEFAULT = 13.0
 SAMPLE_MAX_ERROR_DEFAULT = 1.0
 PARTITIONING_DEFAULT = 'WATERSHED'
 COLOR_DEFAULT = (0.0, 1.0, 0.0, 1.0)
-AUTO_CELL_DEFAULT = False
+AUTO_CELL_DEFAULT = True
 
 # x -> x'
 # y -> -z'
@@ -341,8 +341,9 @@ class RecastNavMeshGenerateOperator(bpy.types.Operator):
     def execute(self, context):
         # bpy.ops.wm.call_menu(name="ADDITIVE_ANIMATION_insert_keyframe_menu")
 
+        active_object = context.active_object
         selected_objects = context.selected_objects
-        if len(selected_objects) == 0:
+        if len([obj for obj in selected_objects if obj.type == 'MESH']) == 0:
             self.report({'WARNING'}, 'No meshes selected')
             return {"CANCELLED"}
 
@@ -351,7 +352,7 @@ class RecastNavMeshGenerateOperator(bpy.types.Operator):
         for ob in context.selected_objects:
             if has_component(ob, nav_mesh_id):
                 self.report({'ERROR'}, 'A Navmesh cannot be part of the selection')
-                return {'FINISHED'}
+                return {'CANCELLED'}
 
         navMesh = None
         navMeshes = get_objects_with_component(nav_mesh_id)
@@ -363,7 +364,7 @@ class RecastNavMeshGenerateOperator(bpy.types.Operator):
         libpathr = libpath.replace("\\", "/")
         if not os.path.exists(libpathr):
             self.report({'ERROR'}, 'File not exists: %s\n' % libpathr)
-            return {'FINISHED'}
+            return {'CANCELLED'}
 
         verts, tris = extractTriangulatedInputMesh(context)
         vertsCount = len(verts)
@@ -428,6 +429,7 @@ class RecastNavMeshGenerateOperator(bpy.types.Operator):
         bpy.ops.object.select_all(action='DESELECT')
         for obj in selected_objects:
             obj.select_set(True)
+        context.view_layer.objects.active = active_object
 
         return {'FINISHED'}
 
@@ -554,7 +556,37 @@ class RecastNavMeshPropertyGroup(PropertyGroup):
                                max=1)
     expanded: BoolProperty(name="expanded", default=True)
 
-    auto_cell: BoolProperty(name="Auto Cell", default=AUTO_CELL_DEFAULT)
+    auto_cell: BoolProperty(name="Auto cell size", default=AUTO_CELL_DEFAULT)
+
+
+class RecastAdvancedNavMeshPanel(bpy.types.Panel):
+    bl_idname = "SCENE_PT_blendcast_adv"
+    bl_parent_id = "SCENE_PT_blendcast"
+    bl_label = "Advanced Settings"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "scene"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        recastPropertyGroup = context.scene.recast_navmesh
+
+        box = layout.box()
+        if recastPropertyGroup.expanded:
+            col = box.column()
+            col.row().label(text="Region:")
+            col.row().prop(recastPropertyGroup, "region_merge_size", text="Merged region size")
+            col.row().prop(recastPropertyGroup, "partitioning", text="Partitioning")
+
+            col.row().label(text="Polygonization:")
+            col.row().prop(recastPropertyGroup, "edge_max_len", text="Max edge length")
+            col.row().prop(recastPropertyGroup, "edge_max_error", text="Max edge error")
+            col.row().prop(recastPropertyGroup, "verts_per_poly", text="Verts per poly")
+
+            col.row().label(text="Detail mesh:")
+            col.row().prop(recastPropertyGroup, "sample_dist", text="Sample distance")
+            col.row().prop(recastPropertyGroup, "sample_max_error", text="Max sample error")
 
 
 class RecastNavMeshPanel(Panel):
@@ -584,37 +616,18 @@ class RecastNavMeshPanel(Panel):
         col = layout.column()
         col.row().prop(recastPropertyGroup, "agent_height", text="Height")
         col.row().prop(recastPropertyGroup, "agent_radius", text="Radius")
-        col.row().prop(recastPropertyGroup, "slope_max", text="Maximum slope")
         col.row().prop(recastPropertyGroup, "climb_max", text="Maximum step height")
+        col.row().prop(recastPropertyGroup, "slope_max", text="Maximum slope")
 
         layout.label(text="Region:")
         col = layout.column()
         col.row().prop(recastPropertyGroup, "region_min_size", text="Min region size")
-        col.row().prop(recastPropertyGroup, "partitioning", text="Partitioning")
-
-        box = layout.box()
-        top_row = box.row()
-        top_row.prop(recastPropertyGroup, "expanded", icon="TRIA_DOWN"
-                     if recastPropertyGroup.expanded else "TRIA_RIGHT", icon_only=True, emboss=False)
-        top_row.label(text="Advanced settings")
-        if recastPropertyGroup.expanded:
-            col = box.column()
-            col.row().label(text="Region:")
-            col.row().prop(recastPropertyGroup, "region_merge_size", text="Merged region size")
-
-            col.row().label(text="Polygonization:")
-            col.row().prop(recastPropertyGroup, "edge_max_len", text="Max edge length")
-            col.row().prop(recastPropertyGroup, "edge_max_error", text="Max edge error")
-            col.row().prop(recastPropertyGroup, "verts_per_poly", text="Verts per poly")
-
-            col.row().label(text="Detail mesh:")
-            col.row().prop(recastPropertyGroup, "sample_dist", text="Sample distance")
-            col.row().prop(recastPropertyGroup, "sample_max_error", text="Max sample error")
 
 
 classes = [
     RecastNavMeshPropertyGroup,
     RecastNavMeshPanel,
+    RecastAdvancedNavMeshPanel,
     RecastNavMeshGenerateOperator,
     RecastNavMeshResetOperator
 ]
