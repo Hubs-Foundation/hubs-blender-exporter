@@ -292,16 +292,15 @@ def is_valid_regular_nla_track(ob, track):
     if ob.animation_data:
         for nla_track in ob.animation_data.nla_tracks:
             if is_matching_track("object", nla_track, track):
-                if is_useable_nla_track(ob.animation_data, nla_track, track):
-                    return True
+                return is_useable_nla_track(ob.animation_data, nla_track, track)
     return False
 
 
 def is_valid_regular_track(ob, track):
-    if is_valid_regular_action(ob, track):
+    if is_valid_regular_nla_track(ob, track):
         return True
 
-    elif is_valid_regular_nla_track(ob, track):
+    elif is_valid_regular_action(ob, track):
         return True
 
     Errors.log(track, 'NOT_FOUND', "Track not found.  Did you mean:")
@@ -320,16 +319,15 @@ def is_valid_shape_key_nla_track(ob, track):
     if hasattr(ob.data, 'shape_keys') and ob.data.shape_keys and ob.data.shape_keys.animation_data:
         for nla_track in ob.data.shape_keys.animation_data.nla_tracks:
             if is_matching_track("shape_key", nla_track, track):
-                if is_useable_nla_track(ob.data.shape_keys.animation_data, nla_track, track):
-                    return True
+                return is_useable_nla_track(ob.data.shape_keys.animation_data, nla_track, track)
     return False
 
 
 def is_valid_shape_key_track(ob, track):
-    if is_valid_shape_key_action(ob, track):
+    if is_valid_shape_key_nla_track(ob, track):
         return True
 
-    elif is_valid_shape_key_nla_track(ob, track):
+    elif is_valid_shape_key_action(ob, track):
         return True
 
     Errors.log(track, 'NOT_FOUND', "Track not found.  Did you mean:")
@@ -622,13 +620,14 @@ class TracksContextMenu(Menu):
                 action = ob.animation_data.action
                 action_name = action.name
                 menu_id = action_name
+                track_type = "object"
 
                 if menu_id not in menu_tracks and not has_action(component_tracks_list, action):
                     add_track = layout.operator(AddTrackOperator.bl_idname,
                                                 icon='OBJECT_DATA', text=action_name)
                     add_track.name = action_name
                     add_track.action_name = action_name
-                    add_track.track_type = "object"
+                    add_track.track_type = track_type
                     add_track.panel_type = panel_type.value
 
                     no_tracks = False
@@ -661,13 +660,14 @@ class TracksContextMenu(Menu):
                 action = ob.data.shape_keys.animation_data.action
                 action_name = action.name
                 menu_id = action_name
+                track_type = "shape_key"
 
                 if menu_id not in menu_tracks and not has_action(component_tracks_list, action):
                     add_track = layout.operator(AddTrackOperator.bl_idname,
-                                                icon='OBJECT_DATA', text=action_name)
+                                                icon='SHAPEKEY_DATA', text=action_name)
                     add_track.name = action_name
                     add_track.action_name = action_name
-                    add_track.track_type = "shape_key"
+                    add_track.track_type = track_type
                     add_track.panel_type = panel_type.value
 
                     no_tracks = False
