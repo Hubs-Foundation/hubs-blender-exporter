@@ -3,7 +3,6 @@ from bpy.props import StringProperty
 from .types import PanelType
 from .components_registry import get_component_by_name, get_components_registry
 from .utils import get_object_source, dash_to_title
-from .hubs_component import HubsComponent
 
 
 def draw_component_global(panel, context):
@@ -36,7 +35,6 @@ def draw_component(panel, context, obj, row, component_item):
         component = getattr(obj, component_id)
 
         has_properties = len(component_class.get_properties()) > 0
-        draw_panel = type(component).draw != HubsComponent.draw
 
         col = row.box().column()
         top_row = col.row()
@@ -52,14 +50,15 @@ def draw_component(panel, context, obj, row, component_item):
 
         top_row.label(text=display_name)
 
-        top_row.context_pointer_set("panel", panel)
-        copy_component_operator = top_row.operator(
-            "wm.copy_hubs_component",
-            text="",
-            icon="PASTEDOWN"
-        )
-        copy_component_operator.component_name = component_name
-        copy_component_operator.panel_type = panel.bl_context
+        if has_properties or not component_class.is_dep_only():
+            top_row.context_pointer_set("panel", panel)
+            copy_component_operator = top_row.operator(
+                "wm.copy_hubs_component",
+                text="",
+                icon="PASTEDOWN"
+            )
+            copy_component_operator.component_name = component_name
+            copy_component_operator.panel_type = panel.bl_context
 
         if not component_class.is_dep_only():
             remove_component_operator = top_row.operator(
@@ -70,7 +69,7 @@ def draw_component(panel, context, obj, row, component_item):
             remove_component_operator.component_name = component_name
             remove_component_operator.panel_type = panel.bl_context
 
-        if (has_properties and component_item.expanded) or draw_panel:
+        if component_item.expanded:
             component.draw(context, col, panel)
 
     else:
