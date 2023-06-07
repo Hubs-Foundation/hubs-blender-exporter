@@ -130,7 +130,7 @@ def redraw_component_ui(context):
 
 
 def is_linked(datablock):
-    if not datablock:
+    if not datablock or not hasattr(datablock, "library"):
         return False
     return bool(datablock.library or datablock.override_library)
 

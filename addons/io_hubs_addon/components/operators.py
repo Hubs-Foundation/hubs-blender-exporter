@@ -532,16 +532,14 @@ class OpenImage(Operator):
     @ classmethod
     def description(cls, context, properties):
         description_text = "Load an external image "
-        ob = getattr(context, 'host')
-        if bpy.app.version < (3, 0, 0) and is_linked(ob):
+        if bpy.app.version < (3, 0, 0) and is_linked(context.hubs_host):
             description_text += f"\nDisabled: {cls.disabled_message}"
 
         return description_text
 
     @ classmethod
     def poll(cls, context):
-        ob = getattr(context, 'host')
-        if is_linked(ob):
+        if is_linked(context.hubs_host):
             if bpy.app.version >= (3, 0, 0):
                 cls.poll_message_set(f"{cls.disabled_message}.")
             return False
