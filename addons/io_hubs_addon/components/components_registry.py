@@ -187,10 +187,10 @@ def register():
     glTF2ExportUserExtension.add_excluded_property("hubs_component_list")
 
     setattr(
-            bpy.types.Context,
-            "hubs_host",
-            PointerProperty(type=bpy.types.ID)
-        )
+        bpy.types.Context,
+        "hubs_host",
+        PointerProperty(type=bpy.types.ID)
+    )
 
 
 def unregister():
