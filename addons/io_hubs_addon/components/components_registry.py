@@ -17,6 +17,7 @@ class HubsComponentName(PropertyGroup):
     # For backwards compatibility reasons this attribute is called "name" but it actually points to the component id
     name: StringProperty(name="name")
     expanded: BoolProperty(name="expanded", default=True)
+    isDependency: BoolProperty(name="dependency", default=False)
 
 
 class HubsComponentList(PropertyGroup):

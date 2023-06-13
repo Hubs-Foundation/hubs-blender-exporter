@@ -22,6 +22,7 @@ class NavMesh(HubsComponent):
     @classmethod
     def init(cls, obj):
         obj.hubs_component_visible.visible = False
+        obj.hubs_component_list.items.get('visible').isDependency = True
 
     def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
         migration_occurred = False
