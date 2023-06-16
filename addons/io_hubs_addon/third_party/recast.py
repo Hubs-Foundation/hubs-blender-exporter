@@ -554,7 +554,6 @@ class RecastNavMeshPropertyGroup(PropertyGroup):
                                size=4,
                                min=0,
                                max=1)
-    expanded: BoolProperty(name="expanded", default=True)
 
     auto_cell: BoolProperty(name="Auto cell size", default=AUTO_CELL_DEFAULT)
 
@@ -572,21 +571,19 @@ class RecastAdvancedNavMeshPanel(bpy.types.Panel):
         layout = self.layout
         recastPropertyGroup = context.scene.recast_navmesh
 
-        box = layout.box()
-        if recastPropertyGroup.expanded:
-            col = box.column()
-            col.row().label(text="Region:")
-            col.row().prop(recastPropertyGroup, "region_merge_size", text="Merged region size")
-            col.row().prop(recastPropertyGroup, "partitioning", text="Partitioning")
+        col = layout.column()
+        col.row().label(text="Region:")
+        col.row().prop(recastPropertyGroup, "region_merge_size", text="Merged region size")
+        col.row().prop(recastPropertyGroup, "partitioning", text="Partitioning")
 
-            col.row().label(text="Polygonization:")
-            col.row().prop(recastPropertyGroup, "edge_max_len", text="Max edge length")
-            col.row().prop(recastPropertyGroup, "edge_max_error", text="Max edge error")
-            col.row().prop(recastPropertyGroup, "verts_per_poly", text="Verts per poly")
+        col.row().label(text="Polygonization:")
+        col.row().prop(recastPropertyGroup, "edge_max_len", text="Max edge length")
+        col.row().prop(recastPropertyGroup, "edge_max_error", text="Max edge error")
+        col.row().prop(recastPropertyGroup, "verts_per_poly", text="Verts per poly")
 
-            col.row().label(text="Detail mesh:")
-            col.row().prop(recastPropertyGroup, "sample_dist", text="Sample distance")
-            col.row().prop(recastPropertyGroup, "sample_max_error", text="Max sample error")
+        col.row().label(text="Detail mesh:")
+        col.row().prop(recastPropertyGroup, "sample_dist", text="Sample distance")
+        col.row().prop(recastPropertyGroup, "sample_max_error", text="Max sample error")
 
 
 class RecastNavMeshPanel(Panel):
@@ -607,7 +604,7 @@ class RecastNavMeshPanel(Panel):
 
         layout.label(text="Rasterization:")
         col = layout.column()
-        col.row().prop(recastPropertyGroup, "auto_cell", text="Auto Cell")
+        col.row().prop(recastPropertyGroup, "auto_cell", text="Auto cell size")
         if not recastPropertyGroup.auto_cell:
             col.row().prop(recastPropertyGroup, "cell_size", text="Cell size")
         col.row().prop(recastPropertyGroup, "cell_height", text="Cell height")
