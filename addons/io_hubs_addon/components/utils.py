@@ -1,6 +1,6 @@
 import tempfile
 import bpy
-from .components_registry import get_component_by_name
+from .components_registry import get_component_by_name, get_components_registry
 from .gizmos import update_gizmos
 from .types import PanelType
 from mathutils import Vector
@@ -54,6 +54,10 @@ def remove_component(obj, component_name):
             else:
                 print("Dependecy '%s' from module '%s' not registered" %
                       (dep_name, component_name))
+
+
+def get_objects_with_component(component_name):
+    return [ob for ob in bpy.context.view_layer.objects if has_component(ob, component_name)]
 
 
 def has_component(obj, component_name):
