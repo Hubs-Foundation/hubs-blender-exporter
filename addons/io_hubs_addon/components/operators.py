@@ -4,7 +4,7 @@ from bpy.types import Operator
 from functools import reduce
 
 from .types import PanelType, MigrationType
-from .utils import get_object_source, dash_to_title, has_component, add_component, remove_component, wrap_text, display_wrapped_text
+from .utils import get_object_source, dash_to_title, has_component, add_component, remove_component, wrap_text, display_wrapped_text, is_dep_required
 from .components_registry import get_components_registry, get_components_icons, get_component_by_name
 from ..preferences import get_addon_pref
 from .handlers import migrate_components
@@ -491,6 +491,10 @@ class CopyHubsComponent(Operator):
         component_class = get_component_by_name(self.component_name)
         component_id = component_class.get_id()
         for dest_host in selected_hosts:
+            if component_class.is_dep_only():
+                if not is_dep_required(dest_host, None, self.component_name):
+                    continue
+
             if not has_component(dest_host, self.component_name):
                 add_component(dest_host, self.component_name)
 
