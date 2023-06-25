@@ -30,6 +30,8 @@ class NavMesh(HubsComponent):
             if not has_component(host, 'visible'):
                 add_component(host, 'visible')
                 host.hubs_component_visible.visible = False
-                migration_occurred = True
+
+            host.hubs_component_list.items.get('visible').isDependency = True
+            migration_occurred = True
 
         return migration_occurred
