@@ -31,7 +31,13 @@ def get_version_string():
 
 
 def export_callback(callback_method, export_settings):
-    for scene in bpy.data.scenes:
+    # Note: we loop through copied lists of the potential component hosts
+    # to allow the callbacks to change the host names.  This is needed
+    # because a name change will cause Blender to update the host lists in
+    # mid iteration and so multiple callbacks could be executed for the same
+    # component/host.
+
+    for scene in bpy.data.scenes[:]:
         for component in get_host_components(scene):
             component_callback = getattr(component, callback_method)
             try:
@@ -39,7 +45,7 @@ def export_callback(callback_method, export_settings):
             except Exception:
                 traceback.print_exc()
 
-    for ob in bpy.data.objects:
+    for ob in bpy.data.objects[:]:
         for component in get_host_components(ob):
             component_callback = getattr(component, callback_method)
             try:
@@ -48,7 +54,7 @@ def export_callback(callback_method, export_settings):
                 traceback.print_exc()
 
         if ob.type == 'ARMATURE':
-            for bone in ob.data.bones:
+            for bone in ob.data.bones[:]:
                 for component in get_host_components(bone):
                     component_callback = getattr(component, callback_method)
                     try:
@@ -56,7 +62,7 @@ def export_callback(callback_method, export_settings):
                     except Exception:
                         traceback.print_exc()
 
-    for material in bpy.data.materials:
+    for material in bpy.data.materials[:]:
         for component in get_host_components(material):
             component_callback = getattr(component, callback_method)
             try:
