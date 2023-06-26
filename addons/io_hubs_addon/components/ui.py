@@ -50,7 +50,7 @@ def draw_component(panel, context, obj, row, component_item):
 
         top_row.label(text=display_name)
 
-        if has_properties:
+        if has_properties or not component_class.is_dep_only():
             top_row.context_pointer_set("panel", panel)
             copy_component_operator = top_row.operator(
                 "wm.copy_hubs_component",
@@ -69,7 +69,7 @@ def draw_component(panel, context, obj, row, component_item):
             remove_component_operator.component_name = component_name
             remove_component_operator.panel_type = panel.bl_context
 
-        if has_properties and component_item.expanded:
+        if component_item.expanded:
             component.draw(context, col, panel)
 
     else:
