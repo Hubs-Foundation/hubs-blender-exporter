@@ -95,7 +95,12 @@ describe('Exporter', function () {
         assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
-        assert.deepStrictEqual(ext, { 'nav-mesh': {} });
+        assert.deepStrictEqual(ext, { 
+          'nav-mesh': {}, 
+          'visible': {
+            'visible': false
+          }
+        });
       });
 
       it('can export video-texture-source and video-texture-target', function () {

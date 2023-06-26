@@ -60,7 +60,7 @@ def draw_component(panel, context, obj, row, component_item):
             copy_component_operator.component_name = component_name
             copy_component_operator.panel_type = panel.bl_context
 
-        if not component_class.is_dep_only():
+        if not (component_class.is_dep_only() or component_item.isDependency):
             remove_component_operator = top_row.operator(
                 "wm.remove_hubs_component",
                 text="",
