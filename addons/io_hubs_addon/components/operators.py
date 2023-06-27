@@ -22,6 +22,26 @@ class AddHubsComponent(Operator):
     panel_type: StringProperty(name="panel_type")
     component_name: StringProperty(name="component_name")
 
+    @classmethod
+    def poll(cls, context):
+        if hasattr(context, "panel"):
+            panel = getattr(context, 'panel')
+            panel_type = PanelType(panel.bl_context)
+            if panel_type == PanelType.SCENE:
+                if is_linked(context.scene):
+                    cls.poll_message_set("Disabled: Cannot add components to linked scenes")
+                    return False
+            elif panel_type == PanelType.OBJECT:
+                if is_linked(context.active_object):
+                    cls.poll_message_set("Disabled: Cannot add components to linked objects")
+                    return False
+            elif panel_type == PanelType.MATERIAL:
+                if is_linked(context.active_object.active_material):
+                    cls.poll_message_set("Disabled: Cannot add components to linked materials")
+                    return False
+
+        return True
+
     def execute(self, context):
         if self.component_name == '':
             return
@@ -178,6 +198,26 @@ class RemoveHubsComponent(Operator):
 
     panel_type: StringProperty(name="panel_type")
     component_name: StringProperty(name="component_name")
+
+    @classmethod
+    def poll(cls, context):
+        if hasattr(context, "panel"):
+            panel = getattr(context, 'panel')
+            panel_type = PanelType(panel.bl_context)
+            if panel_type == PanelType.SCENE:
+                if is_linked(context.scene):
+                    cls.poll_message_set("Disabled: Cannot remove components from linked scenes")
+                    return False
+            elif panel_type == PanelType.OBJECT:
+                if is_linked(context.active_object):
+                    cls.poll_message_set("Disabled: Cannot remove components from linked objects")
+                    return False
+            elif panel_type == PanelType.MATERIAL:
+                if is_linked(context.active_object.active_material):
+                    cls.poll_message_set("Disabled: Cannot remove components from linked materials")
+                    return False
+
+        return True
 
     def execute(self, context):
         if self.component_name == '':
@@ -449,9 +489,12 @@ class CopyHubsComponent(Operator):
 
     @classmethod
     def poll(cls, context):
-        panel = getattr(context, 'panel')
-        panel_type = PanelType(panel.bl_context)
-        return panel_type != PanelType.SCENE
+        if hasattr(context, "panel"):
+            panel = getattr(context, 'panel')
+            panel_type = PanelType(panel.bl_context)
+            return panel_type != PanelType.SCENE
+
+        return True
 
     def get_selected_bones(self, context):
         selected_bones = context.selected_pose_bones if context.mode == "POSE" else context.selected_editable_bones
@@ -540,11 +583,12 @@ class OpenImage(Operator):
 
     @ classmethod
     def poll(cls, context):
-        ob = getattr(context, 'host')
-        if is_linked(ob):
-            if bpy.app.version >= (3, 0, 0):
-                cls.poll_message_set(f"{cls.disabled_message}.")
-            return False
+        if hasattr(context, "host"):
+            ob = getattr(context, 'host')
+            if is_linked(ob):
+                if bpy.app.version >= (3, 0, 0):
+                    cls.poll_message_set(f"{cls.disabled_message}.")
+                return False
 
         return True
 
