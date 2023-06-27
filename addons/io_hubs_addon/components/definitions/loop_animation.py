@@ -660,7 +660,9 @@ class TracksContextMenu(Menu):
                 menu_id = action_name
                 track_type = "object"
 
-                if menu_id not in menu_tracks and not action_has_nla_track(ob, action) and not has_action(component_tracks_list, action):
+                if menu_id not in menu_tracks and not action_has_nla_track(
+                        ob, action) and not has_action(
+                        component_tracks_list, action):
                     add_track = layout.operator(AddTrackOperator.bl_idname,
                                                 icon='OBJECT_DATA', text=action_name)
                     add_track.name = action_name
@@ -700,7 +702,9 @@ class TracksContextMenu(Menu):
                 menu_id = action_name
                 track_type = "shape_key"
 
-                if menu_id not in menu_tracks and not action_has_nla_track(ob, action) and not has_action(component_tracks_list, action):
+                if menu_id not in menu_tracks and not action_has_nla_track(
+                        ob, action) and not has_action(
+                        component_tracks_list, action):
                     add_track = layout.operator(AddTrackOperator.bl_idname,
                                                 icon='SHAPEKEY_DATA', text=action_name)
                     add_track.name = action_name
