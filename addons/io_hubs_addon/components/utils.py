@@ -135,7 +135,16 @@ def is_linked(datablock):
     return bool(datablock.library or datablock.override_library)
 
 
+def update_image_editors(old_img, img):
+    for window in bpy.context.window_manager.windows:
+        for area in window.screen.areas:
+            if area.type == 'IMAGE_EDITOR':
+                if area.spaces.active.image == old_img:
+                    area.spaces.active.image = img
+
 # Note: Set up stuff specifically for C FILE pointers so that they aren't truncated to 32 bits on 64 bit systems.
+
+
 class _FILE(ctypes.Structure):
     """opaque C FILE type"""
 

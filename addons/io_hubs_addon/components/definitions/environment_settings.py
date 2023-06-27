@@ -95,9 +95,15 @@ class EnvironmentSettings(HubsComponent):
             sub_row.enabled = False
             add_link_indicator(sub_row, self.backgroundTexture)
 
+        sub_row.context_pointer_set("hubs_component", self)
+        sub_row.context_pointer_set("host", self.backgroundTexture)
+        op = sub_row.operator("image.hubs_open_image", text='', icon='FILE_FOLDER')
+        op.target_property = "backgroundTexture"
+
         row = layout.row(align=True)
         sub_row = row.row(align=True)
         sub_row.prop(data=self, property="envMapTexture")
+
         if is_linked(context.scene):
             # Manually disable the PointerProperty, needed for Blender 3.2+.
             sub_row.enabled = False
@@ -105,6 +111,11 @@ class EnvironmentSettings(HubsComponent):
             sub_row = row.row(align=True)
             sub_row.enabled = False
             add_link_indicator(sub_row, self.envMapTexture)
+
+        sub_row.context_pointer_set("hubs_component", self)
+        sub_row.context_pointer_set("host", self.envMapTexture)
+        op = sub_row.operator("image.hubs_open_image", text='', icon='FILE_FOLDER')
+        op.target_property = "envMapTexture"
 
         layout.prop(data=self, property="toneMapping")
         layout.prop(data=self, property="toneMappingExposure")

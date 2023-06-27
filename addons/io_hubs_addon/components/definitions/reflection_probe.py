@@ -1,8 +1,9 @@
+from ..operators import OpenImage
 import bpy
 from bpy.props import PointerProperty, EnumProperty, StringProperty, BoolProperty, CollectionProperty
 from bpy.types import Image, PropertyGroup, Operator
 
-from ...components.utils import is_gpu_available, redraw_component_ui, is_linked
+from ...components.utils import is_gpu_available, redraw_component_ui, is_linked, update_image_editors
 
 from ..components_registry import get_components_registry
 from ..hubs_component import HubsComponent
@@ -82,14 +83,6 @@ def get_probes(all_objects=False, include_locked=False, include_linked=False):
 
 def get_probe_image_path(probe):
     return f"{bpy.app.tempdir}/{probe.name}.hdr"
-
-
-def update_image_editors(old_img, img):
-    for window in bpy.context.window_manager.windows:
-        for area in window.screen.areas:
-            if area.type == 'IMAGE_EDITOR':
-                if area.spaces.active.image == old_img:
-                    area.spaces.active.image = img
 
 
 def import_menu_draw(self, context):
@@ -388,28 +381,10 @@ class BakeProbeOperator(Operator):
         self.probe_is_setup = True
 
 
-class OpenReflectionProbeEnvMap(Operator):
+class OpenReflectionProbeEnvMap(OpenImage):
     bl_idname = "image.hubs_open_reflection_probe_envmap"
     bl_label = "Open EnvMap"
     bl_options = {'REGISTER', 'UNDO'}
-
-    filepath: StringProperty(subtype="FILE_PATH")
-    files: CollectionProperty(type=PropertyGroup)
-    filter_folder: BoolProperty(default=True, options={"HIDDEN"})
-    filter_image: BoolProperty(default=True, options={"HIDDEN"})
-
-    relative_path: BoolProperty(
-        name="Relative Path", description="Select the file relative to the blend file", default=True)
-
-    disabled_message = "Can't open/assign environment maps to linked reflection probes.  Please make it local first"
-
-    @ classmethod
-    def description(cls, context, properties):
-        description_text = "Load an external image to be used as this probe's environment map"
-        if bpy.app.version < (3, 0, 0) and is_linked(context.active_object):
-            description_text += f"\nDisabled: {cls.disabled_message}"
-
-        return description_text
 
     @ classmethod
     def poll(cls, context):
@@ -423,40 +398,6 @@ class OpenReflectionProbeEnvMap(Operator):
             return False
 
         return True
-
-    def draw(self, context):
-        layout = self.layout
-        layout.prop(self, "relative_path")
-
-    def execute(self, context):
-        dirname = os.path.dirname(self.filepath)
-
-        if not self.files[0].name:
-            self.report({'INFO'}, "Open EnvMap cancelled.  No image selected.")
-            return {'CANCELLED'}
-
-        probe_component = context.active_object.hubs_component_reflection_probe
-        old_img = probe_component['envMapTexture']
-
-        # Load/Reload the first image and assign it to the reflection probe, then load the rest of the images if they're not already loaded.  This mimics Blender's default open files behavior.
-        primary_filepath = os.path.join(dirname, self.files[0].name)
-        primary_img = bpy.data.images.load(
-            filepath=primary_filepath, check_existing=True)
-        primary_img.reload()
-        probe_component['envMapTexture'] = primary_img
-
-        for f in self.files[1:]:
-            img = bpy.data.images.load(filepath=os.path.join(
-                dirname, f.name), check_existing=True)
-
-        update_image_editors(old_img, primary_img)
-        redraw_component_ui(context)
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        self.filepath = ""
-        context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
 
 
 class ImportReflectionProbeEnvMaps(Operator):
@@ -759,8 +700,10 @@ class ReflectionProbe(HubsComponent):
             sub_row = row.row(align=True)
             sub_row.enabled = False
             add_link_indicator(sub_row, self.envMapTexture)
-        row.operator("image.hubs_open_reflection_probe_envmap",
-                     text='', icon='FILE_FOLDER')
+        row.context_pointer_set("hubs_component", self)
+        row.context_pointer_set("host", self.envMapTexture)
+        op = row.operator("image.hubs_open_reflection_probe_envmap", text='', icon='FILE_FOLDER')
+        op.target_property = "envMapTexture"
 
         if self.locked:
             row.enabled = False
