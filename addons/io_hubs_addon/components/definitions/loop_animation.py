@@ -837,28 +837,64 @@ class LoopAnimation(HubsComponent):
             migration_warning = False
             tracks = self.clip.split(",")
             for track_name in tracks:
+                nla_track = None
+                action = None
+
+                # check regular
                 try:
                     nla_track = ob.animation_data.nla_tracks[track_name]
                     track_type = "object"
                 except (AttributeError, KeyError):
                     try:
+                        action = ob.animation_data.action
+                        if not action_has_nla_track(ob, action) and track_name == action.name:
+                            track_type = "object"
+                        else:
+                            raise KeyError
+                    except (AttributeError, KeyError):
+                        action = None
+
+                if not (nla_track or action):
+                    # check shapekey
+                    try:
                         nla_track = ob.data.shape_keys.animation_data.nla_tracks[track_name]
                         track_type = "shape_key"
                     except (AttributeError, KeyError):
-                        track = self.tracks_list.add()
-                        track.name = track_name
-                        migration_warning = True
-                        continue
+                        try:
+                            action = ob.data.shape_keys.animation_data.action
+                            if not action_has_nla_track(ob, action) and track_name == action.name:
+                                track_type = "shape_key"
+                            else:
+                                raise KeyError
+                        except (AttributeError, KeyError):
+                            action = None
 
-                if not has_track(self.tracks_list, nla_track):
+                if not (nla_track or action):
+                    # nothing found
                     track = self.tracks_list.add()
-                    strip_name = get_strip_name(nla_track)
-                    action_name = get_action_name(nla_track)
-                    track.name = get_display_name(nla_track.name, strip_name)
-                    track.track_name = nla_track.name
-                    track.strip_name = strip_name if is_default_name(nla_track.name) else ''
-                    track.action_name = action_name if is_default_name(nla_track.name) else ''
-                    track.track_type = track_type
+                    track.name = track_name
+                    migration_warning = True
+                    continue
+
+                if nla_track:
+                    if not has_track(self.tracks_list, nla_track):
+                        track = self.tracks_list.add()
+                        strip_name = get_strip_name(nla_track)
+                        action_name = get_action_name(nla_track)
+                        track.name = get_display_name(nla_track.name, strip_name)
+                        track.track_name = nla_track.name
+                        track.strip_name = strip_name if is_default_name(nla_track.name) else ''
+                        track.action_name = action_name if is_default_name(nla_track.name) else ''
+                        track.track_type = track_type
+
+                elif action:
+                    if not has_action(self.tracks_list, action):
+                        track = self.tracks_list.add()
+                        track.name = action.name
+                        track.track_name = ''
+                        track.strip_name = ''
+                        track.action_name = action.name
+                        track.track_type = track_type
 
             if migration_warning:
                 host_reference = get_host_reference_message(panel_type, host, ob=ob)
