@@ -95,9 +95,9 @@ class EnvironmentSettings(HubsComponent):
             sub_row.enabled = False
             add_link_indicator(sub_row, self.backgroundTexture)
 
-        row.context_pointer_set("hubs_component", self)
-        row.context_pointer_set("hubs_host", context.scene)
-        op = row.operator("image.hubs_open_image", text='', icon='FILE_FOLDER')
+        sub_row.context_pointer_set("hubs_component", self)
+        sub_row.context_pointer_set("host", self.backgroundTexture)
+        op = sub_row.operator("image.hubs_open_image", text='', icon='FILE_FOLDER')
         op.target_property = "backgroundTexture"
 
         row = layout.row(align=True)
@@ -112,9 +112,9 @@ class EnvironmentSettings(HubsComponent):
             sub_row.enabled = False
             add_link_indicator(sub_row, self.envMapTexture)
 
-        row.context_pointer_set("hubs_component", self)
-        row.context_pointer_set("hubs_host", context.scene)
-        op = row.operator("image.hubs_open_image", text='', icon='FILE_FOLDER')
+        sub_row.context_pointer_set("hubs_component", self)
+        sub_row.context_pointer_set("host", self.envMapTexture)
+        op = sub_row.operator("image.hubs_open_image", text='', icon='FILE_FOLDER')
         op.target_property = "envMapTexture"
 
         layout.prop(data=self, property="toneMapping")

@@ -186,12 +186,6 @@ def register():
     from ..io.gltf_exporter import glTF2ExportUserExtension
     glTF2ExportUserExtension.add_excluded_property("hubs_component_list")
 
-    setattr(
-        bpy.types.Context,
-        "hubs_host",
-        PointerProperty(type=bpy.types.ID)
-    )
-
 
 def unregister():
     del bpy.types.Object.hubs_component_list
@@ -208,8 +202,6 @@ def unregister():
 
     unload_components_registry()
     unload_icons()
-
-    delattr(bpy.types.Context, "hubs_host")
 
     global __components_registry
     del __components_registry
