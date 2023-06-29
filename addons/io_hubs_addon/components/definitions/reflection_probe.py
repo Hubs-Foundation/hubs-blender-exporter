@@ -701,7 +701,7 @@ class ReflectionProbe(HubsComponent):
             sub_row.enabled = False
             add_link_indicator(sub_row, self.envMapTexture)
         row.context_pointer_set("hubs_component", self)
-        row.context_pointer_set("host", self.envMapTexture)
+        row.context_pointer_set("host", context.active_object)
         op = row.operator("image.hubs_open_reflection_probe_envmap", text='', icon='FILE_FOLDER')
         op.target_property = "envMapTexture"
 
