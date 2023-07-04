@@ -478,11 +478,14 @@ class RemoveTrackOperator(Operator):
 
     @ classmethod
     def poll(cls, context):
-        panel_type = PanelType(context.panel.bl_context)
-        ob = context.object
-        host = ob if panel_type == PanelType.OBJECT else context.active_bone
+        if hasattr(context, "panel"):
+            panel_type = PanelType(context.panel.bl_context)
+            ob = context.object
+            host = ob if panel_type == PanelType.OBJECT else context.active_bone
 
-        return host.hubs_component_loop_animation.active_track_key != -1
+            return host.hubs_component_loop_animation.active_track_key != -1
+
+        return True
 
     def execute(self, context):
         panel_type = PanelType(context.panel.bl_context)

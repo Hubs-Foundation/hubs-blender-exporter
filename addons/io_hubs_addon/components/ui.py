@@ -2,7 +2,7 @@ import bpy
 from bpy.props import StringProperty
 from .types import PanelType
 from .components_registry import get_component_by_name, get_components_registry
-from .utils import get_object_source, dash_to_title
+from .utils import get_object_source, dash_to_title, is_linked
 
 
 def draw_component_global(panel, context):
@@ -61,6 +61,7 @@ def draw_component(panel, context, obj, row, component_item):
             copy_component_operator.panel_type = panel.bl_context
 
         if not (component_class.is_dep_only() or component_item.isDependency):
+            top_row.context_pointer_set("panel", panel)
             remove_component_operator = top_row.operator(
                 "wm.remove_hubs_component",
                 text="",
@@ -69,14 +70,17 @@ def draw_component(panel, context, obj, row, component_item):
             remove_component_operator.component_name = component_name
             remove_component_operator.panel_type = panel.bl_context
 
+        body_col = col.column()
+        body_col.enabled = not is_linked(obj)
         if component_item.expanded:
-            component.draw(context, col, panel)
+            component.draw(context, body_col, panel)
 
     else:
         col = row.box().column()
         top_row = col.row()
         top_row.label(
             text=f"Unknown component '{component_name}'", icon="ERROR")
+        top_row.context_pointer_set("panel", panel)
         remove_component_operator = top_row.operator(
             "wm.remove_hubs_component",
             text="",
@@ -94,6 +98,7 @@ def draw_components_list(panel, context):
     if not obj:
         return
 
+    layout.context_pointer_set("panel", panel)
     add_component_operator = layout.operator(
         "wm.add_hubs_component",
         text="Add Component",
