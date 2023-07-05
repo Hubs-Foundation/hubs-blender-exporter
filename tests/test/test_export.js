@@ -640,7 +640,8 @@ describe('Exporter', function () {
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext["audio-zone"], {
           "inOut": true,
-          "outIn": true
+          "outIn": true,
+          "dynamic": false
         });
         assert.deepStrictEqual(ext["audio-params"], {
           "audioType": "pannernode",
