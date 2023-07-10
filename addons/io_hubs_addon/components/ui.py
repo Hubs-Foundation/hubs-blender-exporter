@@ -180,6 +180,7 @@ class HubsBonePanel(bpy.types.Panel):
     def draw(self, context):
         draw_components_list(self, context)
 
+
 class HubsRenderPanel(bpy.types.Panel):
     bl_label = 'Hubs'
     bl_idname = "RENDER_PT_hubs"
@@ -190,7 +191,7 @@ class HubsRenderPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         row = layout.row()
-        lightmapImages = sorted(lightmaps.listLightmapImages(), key=lambda it:it.name)
+        lightmapImages = sorted(lightmaps.listLightmapImages(), key=lambda it: it.name)
         # Only show the panel if there are any lightmaps to prepare
         if len(lightmapImages) > 0:
             row.operator(operators.PrepareHubsLightmaps.bl_idname).target = ""
@@ -203,6 +204,7 @@ class HubsRenderPanel(bpy.types.Panel):
         row.label(text="Decoy Textures")
         row.operator(operators.AddDecoyImageTextures.bl_idname)
         row.operator(operators.RemoveDecoyImageTextures.bl_idname)
+
 
 class TooltipLabel(bpy.types.Operator):
     bl_idname = "ui.hubs_tooltip_label"

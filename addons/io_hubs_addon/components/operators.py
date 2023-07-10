@@ -625,6 +625,7 @@ class OpenImage(Operator):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
+
 class PrepareHubsLightmaps(Operator):
     bl_idname = "wm.prepare_hubs_lightmaps"
     bl_label = "Select all lightmap elements for baking"
@@ -633,7 +634,7 @@ class PrepareHubsLightmaps(Operator):
     target: StringProperty(name="target")
 
     def execute(self, context):
-        try: 
+        try:
             lightmaps.selectLightmapComponents(self.target)
             lightmaps.assertSelectedObjectsAreSafeToBake(False)
             self.report({'INFO'}, "Lightmaps prepared and ready to bake")
@@ -648,12 +649,13 @@ class AddDecoyImageTextures(Operator):
     bl_description = "Adds decoy image textures to the materials of selected meshes if they are required"
 
     def execute(self, context):
-        try: 
+        try:
             decoyCount = lightmaps.assertSelectedObjectsAreSafeToBake(True)
             self.report({'INFO'}, f"Added {decoyCount} decoy textures")
         except Exception as e:
             self.report({'ERROR'}, str(e))
         return {'FINISHED'}
+
 
 class RemoveDecoyImageTextures(Operator):
     bl_idname = "wm.remove_decoy_image_textures"
@@ -661,7 +663,7 @@ class RemoveDecoyImageTextures(Operator):
     bl_description = "Remove all decoy image textures from materials regardless of selection"
 
     def execute(self, context):
-        try: 
+        try:
             decoyCount = lightmaps.removeAllDecoyImageTextures()
             self.report({'INFO'}, f"Removed {decoyCount} decoy textures")
         except Exception as e:

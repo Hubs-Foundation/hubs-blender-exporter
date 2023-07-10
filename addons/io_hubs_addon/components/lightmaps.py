@@ -4,6 +4,7 @@ import bmesh
 # Label for decoy texture
 HUBS_DECOY_IMAGE_TEXTURE = "HUBS_DECOY_IMAGE_TEXTURE"
 
+
 # Find and select the image texture associated with a MOZ_lightmap settings
 def findImageTexture(lightmapNode):
     for inputs in lightmapNode.inputs:
@@ -11,23 +12,24 @@ def findImageTexture(lightmapNode):
             return links.from_node
     return None
 
-# Find the UV map associated with an image texture
 
+# Find the UV map associated with an image texture
 def findUvMap(imageTexture, material):
     # Search for the parent UV Map
     for inputs in imageTexture.inputs:
         for links in inputs.links:
             # Is this node a MOZ lightmap node?
-            if links.from_node.bl_idname == "ShaderNodeUVMap": 
+            if links.from_node.bl_idname == "ShaderNodeUVMap":
                 return links.from_node.uv_map
             else:
                 raise ValueError(f"Unexpected node type '{links.from_node.bl_idname}' instead of 'ShaderNodeUVMap' on material '{material.name}'")
     return None
 
+
 # Selects all the faces of the mesh that have been assigned the given material (important for UV packing for lightmaps)
 def selectMeshFacesFromMaterial(object, mesh, material):
     materialSlotIndex = object.material_slots.find(material.name)
-    if materialSlotIndex < 0:              
+    if materialSlotIndex < 0:
         raise ValueError(f"Failed to find a slot with material '{material.name}' in '{mesh.name}' attached to object '{object.name}'")
     bm = bmesh.new()
     bm.from_mesh(object.data)
@@ -37,6 +39,7 @@ def selectMeshFacesFromMaterial(object, mesh, material):
     bm.to_mesh(object.data)
     bm.free()
 
+
 # Select the object that holds this mesh
 def selectObjectFromMesh(mesh, material):
     for object in bpy.context.scene.objects:
@@ -45,36 +48,38 @@ def selectObjectFromMesh(mesh, material):
                 # Objects cannot be selected if they are hidden
                 object.hide_set(False)
                 object.select_set(True)
-                print(f" --- selected object '{object.name}' because it uses mesh '{mesh.name}'")                                
+                print(f" --- selected object '{object.name}' because it uses mesh '{mesh.name}'")
                 selectMeshFacesFromMaterial(object, mesh, material)
+
 
 # Select the UV input to the image texture for every mesh that uses the given material
 def selectUvMaps(imageTexture, material):
     # Select the lightmap UVs on the associated mesh
     uvMap = findUvMap(imageTexture, material)
-    if uvMap:                        
+    if uvMap:
         print(f" -- found UV Map Node '{uvMap}'")
         # Search for meshes that use this material (can't find a parent property so this will have to do)
         for mesh in bpy.data.meshes:
             if mesh.materials.find(material.name) != -1:
-                print(f" -- found mesh '{mesh.name}' that uses this material")                                
-                selectObjectFromMesh(mesh, material)                          
+                print(f" -- found mesh '{mesh.name}' that uses this material")
+                selectObjectFromMesh(mesh, material)
                 if mesh.uv_layers.find(uvMap) != -1:
                     uvLayer = mesh.uv_layers[uvMap]
                     mesh.uv_layers.active = uvLayer
-                    print(f" --- UV layer '{uvMap}' is now active on '{mesh.name}'")                                
+                    print(f" --- UV layer '{uvMap}' is now active on '{mesh.name}'")
                 else:
                     raise ValueError(f"Failed to find UV layer '{uvMap}' for mesh '{mesh.name}' using material '{material.name}'")
     else:
         raise ValueError(f"No UV map found for image texture '{imageTexture.name}' with image '{imageTexture.image.name}' in material '{material.name}'")
 
+
 # Selects all MOZ lightmap related components ready for baking
-def selectLightmapComponents(target):    
+def selectLightmapComponents(target):
     # Force UI into OBJECT mode so scripts can manipulate meshes
-    try: 
-        bpy.ops.object.mode_set(mode='OBJECT')  
+    try:
+        bpy.ops.object.mode_set(mode='OBJECT')
     except Exception as e:
-        print(f"Failed to enter OBJECT mode (usually non-fatal): {str(e)}")                                
+        print(f"Failed to enter OBJECT mode (usually non-fatal): {str(e)}")
     # Deslect all objects to start with (bake objects will then be selected)
     for o in bpy.context.scene.objects:
         o.select_set(False)
@@ -99,11 +104,11 @@ def selectLightmapComponents(target):
             for shadernode in material.node_tree.nodes:
                 # Is this node a MOZ lightmap node?
                 if shadernode.bl_idname == "moz_lightmap.node":
-                    print(f"found '{shadernode.name}' ({shadernode.label}) on material '{material.name}'")                    
-                    imageTexture = findImageTexture(shadernode)                
+                    print(f"found '{shadernode.name}' ({shadernode.label}) on material '{material.name}'")
+                    imageTexture = findImageTexture(shadernode)
                     if imageTexture:
                         # Check image texture actually has an image
-                        if imageTexture.image == None:
+                        if imageTexture.image is None:
                             raise ValueError(f"No image found on image texture '{imageTexture.name}' ('{imageTexture.label}') in material '{material.name}'")
                         # Is this lightmap texture image being targetted?
                         if target == "" or target == imageTexture.image.name:
@@ -116,13 +121,14 @@ def selectLightmapComponents(target):
                         else:
                             print(f" - ignoring image texture '{imageTexture.name}' because it uses image '{imageTexture.image.name}' and the target is '{target}'")
                     else:
-                        raise ValueError(f"No image texture found on material '{material.name}'")      
+                        raise ValueError(f"No image texture found on material '{material.name}'")
                 # Is it a decoy node?
                 elif shadernode.bl_idname == "ShaderNodeTexImage" and shadernode.label == "HUBS_DECOY_IMAGE_TEXTURE":
                     # Select and activate the image texture node so it will be targetted by the bake
                     shadernode.select = True
                     material.node_tree.nodes.active = shadernode
-                        
+
+
 # List all the lightmap textures images
 def listLightmapImages():
     result = set()
@@ -138,6 +144,7 @@ def listLightmapImages():
                         if imageTexture.image:
                             result.add(imageTexture.image)
     return result
+
 
 # Check for selected objects with non-lightmapped materials. They might get baked and have corrupted image textures
 def assertSelectedObjectsAreSafeToBake(addDecoyRatherThanThrow):
@@ -163,8 +170,9 @@ def assertSelectedObjectsAreSafeToBake(addDecoyRatherThanThrow):
                         decoy_image_texture.label = HUBS_DECOY_IMAGE_TEXTURE
                         decoyCount += 1
                     else:
-                        raise ValueError(f"Multi-material object '{object.name}' uses '{materialSlot.name}' with no lightmap or decoy texture. It will be corrupted by baking") 
+                        raise ValueError(f"Multi-material object '{object.name}' uses '{materialSlot.name}' with no lightmap or decoy texture. It will be corrupted by baking")
     return decoyCount
+
 
 def removeAllDecoyImageTextures():
     decoyCount = 0
