@@ -1,1 +1,1 @@
-wget https://github.com/nutti/fake-bpy-module/releases/download/20190718/fake_bpy_modules_2.80-20190718.zip -O temp.zip; unzip temp.zip; rm temp.zip
+wget https://github.com/nutti/fake-bpy-module/releases/download/20221006/fake_bpy_modules_3.3-20221006.zip -O temp.zip; unzip temp.zip; rm temp.zip
