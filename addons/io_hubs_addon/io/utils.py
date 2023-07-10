@@ -1,9 +1,14 @@
 import os
 import bpy
 from io_scene_gltf2.blender.com import gltf2_blender_extras
-from io_scene_gltf2.blender.exp import gltf2_blender_gather_nodes, gltf2_blender_gather_joints
-from io_scene_gltf2.blender.exp.material import gltf2_blender_gather_materials, gltf2_blender_gather_texture_info
-from io_scene_gltf2.blender.exp.material.extensions import gltf2_blender_image
+if bpy.app.version >= (3, 6, 0):
+    from io_scene_gltf2.blender.exp import gltf2_blender_gather_nodes, gltf2_blender_gather_joints
+    from io_scene_gltf2.blender.exp.material import gltf2_blender_gather_materials, gltf2_blender_gather_texture_info
+    from io_scene_gltf2.blender.exp.material.extensions import gltf2_blender_image
+else:
+    from io_scene_gltf2.blender.exp import gltf2_blender_gather_materials, gltf2_blender_gather_nodes, gltf2_blender_gather_joints
+    from io_scene_gltf2.blender.exp import gltf2_blender_gather_texture_info, gltf2_blender_export_keys
+    from io_scene_gltf2.blender.exp import gltf2_blender_image
 from io_scene_gltf2.blender.exp.gltf2_blender_gather_cache import cached
 from io_scene_gltf2.io.com import gltf2_io_extensions
 from io_scene_gltf2.io.com import gltf2_io
@@ -11,6 +16,11 @@ from io_scene_gltf2.io.exp import gltf2_io_binary_data
 from io_scene_gltf2.io.exp import gltf2_io_image_data
 from typing import Optional, Tuple, Union
 from ..nodes.lightmap import MozLightmapNode
+
+if bpy.app.version >= (3, 6, 0):
+    gltf2_blender_export_keys_format = 'gltf_format'
+else:
+    gltf2_blender_export_keys_format = gltf2_blender_export_keys.FORMAT
 
 # gather_texture/image with HDR support via MOZ_texture_rgbe
 
@@ -76,7 +86,7 @@ def gather_image(blender_image, export_settings):
     if type(data) == tuple:
         data = data[0]
 
-    if export_settings['gltf_format'] == 'GLTF_SEPARATE':
+    if export_settings[gltf2_blender_export_keys_format] == 'GLTF_SEPARATE':
         uri = HubsImageData(data=data, mime_type=mime_type, name=name)
         buffer_view = None
     else:
