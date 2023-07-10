@@ -3,6 +3,8 @@ from bpy.props import StringProperty
 from .types import PanelType
 from .components_registry import get_component_by_name, get_components_registry
 from .utils import get_object_source, dash_to_title, is_linked
+from . import operators
+from . import lightmaps
 
 
 def draw_component_global(panel, context):
@@ -179,6 +181,31 @@ class HubsBonePanel(bpy.types.Panel):
         draw_components_list(self, context)
 
 
+class HubsRenderPanel(bpy.types.Panel):
+    bl_label = 'Hubs'
+    bl_idname = "RENDER_PT_hubs"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = 'render'
+
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        lightmapImages = sorted(lightmaps.listLightmapImages(), key=lambda it: it.name)
+        # Only show the panel if there are any lightmaps to prepare
+        if len(lightmapImages) > 0:
+            row.operator(operators.PrepareHubsLightmaps.bl_idname).target = ""
+        # Is their more than 1 lightmap texture?
+        if len(lightmapImages) > 1:
+            for lightmapImage in lightmapImages:
+                row = layout.row()
+                row.operator(operators.PrepareHubsLightmaps.bl_idname, text=f"Select '{lightmapImage.name}' elements for packing").target = lightmapImage.name
+        row = layout.row()
+        row.label(text="Decoy Textures")
+        row.operator(operators.AddDecoyImageTextures.bl_idname)
+        row.operator(operators.RemoveDecoyImageTextures.bl_idname)
+
+
 class TooltipLabel(bpy.types.Operator):
     bl_idname = "ui.hubs_tooltip_label"
     bl_label = "---"
@@ -213,6 +240,7 @@ def gizmo_display_popover_addition(self, context):
 
 
 def register():
+    bpy.utils.register_class(HubsRenderPanel)
     bpy.utils.register_class(HubsObjectPanel)
     bpy.utils.register_class(HubsScenePanel)
     bpy.utils.register_class(HubsMaterialPanel)
@@ -225,6 +253,7 @@ def register():
 
 
 def unregister():
+    bpy.utils.unregister_class(HubsRenderPanel)
     bpy.utils.unregister_class(HubsObjectPanel)
     bpy.utils.unregister_class(HubsScenePanel)
     bpy.utils.unregister_class(HubsMaterialPanel)
