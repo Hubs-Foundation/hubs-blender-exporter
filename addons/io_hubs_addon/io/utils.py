@@ -17,11 +17,6 @@ from io_scene_gltf2.io.exp import gltf2_io_image_data
 from typing import Optional, Tuple, Union
 from ..nodes.lightmap import MozLightmapNode
 
-if bpy.app.version >= (3, 6, 0):
-    gltf2_blender_export_keys_format = 'gltf_format'
-else:
-    gltf2_blender_export_keys_format = gltf2_blender_export_keys.FORMAT
-
 # gather_texture/image with HDR support via MOZ_texture_rgbe
 
 
@@ -86,7 +81,7 @@ def gather_image(blender_image, export_settings):
     if type(data) == tuple:
         data = data[0]
 
-    if export_settings[gltf2_blender_export_keys_format] == 'GLTF_SEPARATE':
+    if export_settings['gltf_format'] == 'GLTF_SEPARATE':
         uri = HubsImageData(data=data, mime_type=mime_type, name=name)
         buffer_view = None
     else:
