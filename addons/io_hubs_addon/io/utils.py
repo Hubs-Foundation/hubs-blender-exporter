@@ -75,6 +75,7 @@ class HubsExportImage(gltf2_blender_image.ExportImage):
 
         raise Exception("EXR images must be saved as a .exr file before exporting")
 
+
 @cached
 def gather_image(blender_image, export_settings):
     if not blender_image:
