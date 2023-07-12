@@ -48,6 +48,7 @@ def get_component_definitions():
 def register_component(component_class):
     print("Registering component: " + component_class.get_name())
     bpy.utils.register_class(component_class)
+    __components_registry[component_class.get_name()] = component_class
 
     component_id = component_class.get_id()
     if component_class.get_node_type() == NodeType.SCENE:
@@ -112,7 +113,6 @@ def load_components_registry():
                 if hasattr(module, 'register_module'):
                     module.register_module()
                 register_component(member)
-                __components_registry[member.get_name()] = member
 
 
 def unload_components_registry():
