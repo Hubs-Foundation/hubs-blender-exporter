@@ -22,25 +22,44 @@ class AddHubsComponent(Operator):
     panel_type: StringProperty(name="panel_type")
     component_name: StringProperty(name="component_name")
 
+    is_execute_poll = False
+
     @classmethod
     def poll(cls, context):
+        # main button poll
         if hasattr(context, "panel"):
             panel = getattr(context, 'panel')
             panel_type = PanelType(panel.bl_context)
             if panel_type == PanelType.SCENE:
                 if is_linked(context.scene):
-                    cls.poll_message_set("Disabled: Cannot add components to linked scenes")
+                    if bpy.app.version >= (3, 0, 0):
+                        cls.poll_message_set("Cannot add components to linked scenes")
                     return False
             elif panel_type == PanelType.OBJECT:
                 if is_linked(context.active_object):
-                    cls.poll_message_set("Disabled: Cannot add components to linked objects")
+                    if bpy.app.version >= (3, 0, 0):
+                        cls.poll_message_set("Cannot add components to linked objects")
                     return False
             elif panel_type == PanelType.MATERIAL:
                 if is_linked(context.active_object.active_material):
-                    cls.poll_message_set("Disabled: Cannot add components to linked materials")
+                    if bpy.app.version >= (3, 0, 0):
+                        cls.poll_message_set("Cannot add components to linked materials")
+                    return False
+            elif panel_type == PanelType.BONE:
+                if is_linked(context.active_bone):
+                    if bpy.app.version >= (3, 0, 0):
+                        cls.poll_message_set("Cannot add components to linked bones")
                     return False
 
-        return True
+            return True
+
+        # menu item poll
+        elif cls.is_execute_poll:
+            cls.is_execute_poll = False
+            return True
+
+        else:
+            return False
 
     def execute(self, context):
         if self.component_name == '':
@@ -187,6 +206,7 @@ class AddHubsComponent(Operator):
                     text="No components available for this object type")
 
         bpy.context.window_manager.popup_menu(draw)
+        AddHubsComponent.is_execute_poll = True
 
         return {'FINISHED'}
 
@@ -206,18 +226,28 @@ class RemoveHubsComponent(Operator):
             panel_type = PanelType(panel.bl_context)
             if panel_type == PanelType.SCENE:
                 if is_linked(context.scene):
-                    cls.poll_message_set("Disabled: Cannot remove components from linked scenes")
+                    if bpy.app.version >= (3, 0, 0):
+                        cls.poll_message_set("Cannot remove components from linked scenes")
                     return False
             elif panel_type == PanelType.OBJECT:
                 if is_linked(context.active_object):
-                    cls.poll_message_set("Disabled: Cannot remove components from linked objects")
+                    if bpy.app.version >= (3, 0, 0):
+                        cls.poll_message_set("Cannot remove components from linked objects")
                     return False
             elif panel_type == PanelType.MATERIAL:
                 if is_linked(context.active_object.active_material):
-                    cls.poll_message_set("Disabled: Cannot remove components from linked materials")
+                    if bpy.app.version >= (3, 0, 0):
+                        cls.poll_message_set("Cannot remove components from linked materials")
+                    return False
+            elif panel_type == PanelType.BONE:
+                if is_linked(context.active_bone):
+                    if bpy.app.version >= (3, 0, 0):
+                        cls.poll_message_set("Cannot add components to linked bones")
                     return False
 
-        return True
+            return True
+
+        return False
 
     def execute(self, context):
         if self.component_name == '':
@@ -489,12 +519,17 @@ class CopyHubsComponent(Operator):
 
     @classmethod
     def poll(cls, context):
+        if is_linked(context.scene):
+            if bpy.app.version >= (3, 0, 0):
+                cls.poll_message_set("Cannot copy components when in linked scenes")
+            return False
+
         if hasattr(context, "panel"):
             panel = getattr(context, 'panel')
             panel_type = PanelType(panel.bl_context)
             return panel_type != PanelType.SCENE
 
-        return True
+        return False
 
     def get_selected_bones(self, context):
         selected_bones = context.selected_pose_bones if context.mode == "POSE" else context.selected_editable_bones
@@ -536,6 +571,9 @@ class CopyHubsComponent(Operator):
         component_class = get_component_by_name(self.component_name)
         component_id = component_class.get_id()
         for dest_host in selected_hosts:
+            if is_linked(dest_host):
+                continue
+
             if component_class.is_dep_only():
                 if not is_dep_required(dest_host, None, self.component_name):
                     continue
@@ -575,8 +613,7 @@ class OpenImage(Operator):
     @ classmethod
     def description(cls, context, properties):
         description_text = "Load an external image "
-        ob = getattr(context, 'host')
-        if bpy.app.version < (3, 0, 0) and is_linked(ob):
+        if bpy.app.version < (3, 0, 0) and is_linked(context.host):
             description_text += f"\nDisabled: {cls.disabled_message}"
 
         return description_text
@@ -584,13 +621,14 @@ class OpenImage(Operator):
     @ classmethod
     def poll(cls, context):
         if hasattr(context, "host"):
-            ob = getattr(context, 'host')
-            if is_linked(ob):
+            if is_linked(context.host):
                 if bpy.app.version >= (3, 0, 0):
                     cls.poll_message_set(f"{cls.disabled_message}.")
                 return False
 
-        return True
+            return True
+
+        return False
 
     def draw(self, context):
         layout = self.layout

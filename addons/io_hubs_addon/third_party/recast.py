@@ -26,7 +26,7 @@ from bpy.types import Panel, PropertyGroup
 from mathutils import Matrix, Vector
 from math import radians
 from ..preferences import get_addon_pref
-from ..components.utils import add_component, get_objects_with_component, has_component
+from ..components.utils import add_component, get_objects_with_component, has_component, is_linked
 
 import ctypes
 import ctypes.util
@@ -309,6 +309,15 @@ class RecastNavMeshResetOperator(bpy.types.Operator):
     bl_description = "Reset navigation mesh properties to default."
     bl_options = {'REGISTER', 'UNDO'}
 
+    @classmethod
+    def poll(cls, context):
+        if is_linked(context.scene):
+            if bpy.app.version >= (3, 0, 0):
+                cls.poll_message_set("Cannot reset navigation mesh settings when in a linked scene")
+            return False
+
+        return True
+
     def execute(self, context):
         scene = context.scene
 
@@ -337,6 +346,15 @@ class RecastNavMeshGenerateOperator(bpy.types.Operator):
     bl_label = "Build Navigation Mesh"
     bl_description = "Build navigation mesh from the selected objects using recast."
     bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        if is_linked(context.scene):
+            if bpy.app.version >= (3, 0, 0):
+                cls.poll_message_set("Cannot build a navigation mesh when in a linked scene")
+            return False
+
+        return True
 
     def execute(self, context):
         # bpy.ops.wm.call_menu(name="ADDITIVE_ANIMATION_insert_keyframe_menu")
