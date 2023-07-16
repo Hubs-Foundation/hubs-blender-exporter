@@ -485,7 +485,7 @@ class RemoveTrackOperator(Operator):
 
             return host.hubs_component_loop_animation.active_track_key != -1
 
-        return False
+        return True
 
     def execute(self, context):
         panel_type = PanelType(context.panel.bl_context)
