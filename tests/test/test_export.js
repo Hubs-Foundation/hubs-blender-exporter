@@ -964,7 +964,7 @@ describe('Exporter', function () {
         assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
-        assert.deepStrictEqual(ext['pdf'], { src: 'https://hubs.mozilla.com' });
+        assert.deepStrictEqual(ext['image'], { src: 'https://hubs.mozilla.com' });
         assert.strictEqual(utils.UUID_REGEX.test(ext['networked']['id']), true);
       });
     });
