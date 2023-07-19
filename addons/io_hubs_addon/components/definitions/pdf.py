@@ -24,7 +24,7 @@ class PDF(HubsComponent):
         default=True)
 
     @classmethod
-    def get_name(cls):
+    def gather_name(cls):
         return 'image'
 
     @classmethod
