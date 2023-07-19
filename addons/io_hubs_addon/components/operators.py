@@ -4,7 +4,7 @@ from bpy.types import Operator, PropertyGroup
 from functools import reduce
 
 from .types import PanelType, MigrationType
-from .utils import get_object_source, dash_to_title, has_component, add_component, remove_component, wrap_text, display_wrapped_text, is_dep_required, update_image_editors
+from .utils import get_object_source, has_component, add_component, remove_component, wrap_text, display_wrapped_text, is_dep_required, update_image_editors
 from .components_registry import get_components_registry, get_components_icons, get_component_by_name
 from ..preferences import get_addon_pref
 from .handlers import migrate_components
@@ -155,8 +155,7 @@ class AddHubsComponent(Operator):
 
                         cmp_idx += 1
                         component_name = component_class.get_name()
-                        component_display_name = dash_to_title(
-                            component_class.get_display_name(component_name))
+                        component_display_name = component_class.get_display_name()
 
                         op = None
                         if component_class.get_icon() is not None:

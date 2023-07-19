@@ -2,7 +2,7 @@ import bpy
 from bpy.props import StringProperty
 from .types import PanelType
 from .components_registry import get_component_by_name, get_components_registry
-from .utils import get_object_source, dash_to_title, is_linked
+from .utils import get_object_source, is_linked
 
 
 def draw_component_global(panel, context):
@@ -45,8 +45,7 @@ def draw_component(panel, context, obj, row, component_item):
                          icon_only=True, emboss=False
                          )
 
-        display_name = component_class.get_display_name(
-            dash_to_title(component_id))
+        display_name = component_class.get_display_name()
 
         top_row.label(text=display_name)
 
