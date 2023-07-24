@@ -44,7 +44,8 @@ class HubsComponent(PropertyGroup):
         return cls.__get_definition('name', cls.get_id())
 
     @classmethod
-    def get_display_name(cls, default=__name__):
+    def get_display_name(cls, default=None):
+        default = cls.__name__ if default == None else default
         return cls.__get_definition('display_name', default)
 
     @classmethod
