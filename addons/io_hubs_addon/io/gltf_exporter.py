@@ -200,9 +200,9 @@ class glTF2ExportUserExtension:
                     data = component.gather(export_settings, blender_object)
                     if hasattr(data, "delayed_gather"):
                         self.delayed_gathers.append(
-                            (component_data, component_class.get_name(), data))
+                            (component_data, component_class.gather_name(), data))
                     else:
-                        component_data[component_class.get_name()] = data
+                        component_data[component_class.gather_name()] = data
                 else:
                     print('Could not export unsupported component "%s"' %
                           (component_name))

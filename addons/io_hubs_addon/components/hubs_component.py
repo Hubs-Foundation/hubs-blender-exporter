@@ -44,7 +44,8 @@ class HubsComponent(PropertyGroup):
         return cls.__get_definition('name', cls.get_id())
 
     @classmethod
-    def get_display_name(cls, default=__name__):
+    def get_display_name(cls, default=None):
+        default = cls.__name__ if default is None else default
         return cls.__get_definition('display_name', default)
 
     @classmethod
@@ -133,6 +134,10 @@ class HubsComponent(PropertyGroup):
         Returns a boolean to indicate whether a migration was performed.
         '''
         return False
+
+    @classmethod
+    def gather_name(cls):
+        return cls.get_name()
 
     @classmethod
     def draw_global(cls, context, layout, panel):

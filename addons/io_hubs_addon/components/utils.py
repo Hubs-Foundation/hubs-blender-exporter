@@ -98,10 +98,6 @@ def get_object_source(context, panel_type):
         return context.object
 
 
-def dash_to_title(s):
-    return s.replace("-", " ").title()
-
-
 def children_recurse(ob, result):
     for child in ob.children:
         result.append(child)
