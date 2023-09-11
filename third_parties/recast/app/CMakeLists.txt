@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
+set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
+
 project(RecastBlenderAddon LANGUAGES CXX)
 
 set(BUILD_TEST_APP_EXE OFF CACHE BOOL "Build test app exe file")
