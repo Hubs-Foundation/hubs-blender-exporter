@@ -239,11 +239,11 @@ def undo_stack_handler(dummy, depsgraph):
     global object_data_switched
 
     # Return if Blender isn't in a fully loaded state. (Prevents Blender crashing)
-    if file_loading and not bpy.context.space_data:
-        file_loading = False
-        return
+    if file_loading:
+        if not bpy.context.space_data:
+            return
 
-    file_loading = False
+        file_loading = False
 
     # Get a representation of the undo stack.
     binary_stream = io.BytesIO()
