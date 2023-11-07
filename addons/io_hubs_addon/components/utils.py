@@ -30,7 +30,7 @@ def add_component(obj, component_name):
                 if not dep_exists:
                     add_component(obj, dep_name)
             else:
-                print("Dependency '%s' from module '%s' not registered" %
+                print("Dependency '%s' from component '%s' not registered" %
                       (dep_name, component_name))
         component_class.init(obj)
 
@@ -49,10 +49,10 @@ def remove_component(obj, component_name):
             dep_class = get_component_by_name(dep_name)
             dep_name = dep_class.get_name()
             if dep_class:
-                if not is_dep_required(obj, component_name, dep_name):
+                if not is_dep_required(obj, component_name, dep_name) and dep_name in obj.hubs_component_list.items:
                     remove_component(obj, dep_name)
             else:
-                print("Dependecy '%s' from module '%s' not registered" %
+                print("Dependency '%s' from component '%s' not registered" %
                       (dep_name, component_name))
 
 
@@ -310,7 +310,8 @@ __stack_tmp_file = None
 
 def register():
     global __stack_tmp_file
-    __stack_tmp_file = tempfile.NamedTemporaryFile(mode='w+b', buffering=0, delete=False, dir=bpy.app.tempdir)
+    __stack_tmp_file = tempfile.NamedTemporaryFile(
+        mode='w+b', buffering=0, delete=False, dir=bpy.app.tempdir)
 
 
 def unregister():
