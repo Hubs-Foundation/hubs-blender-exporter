@@ -59,13 +59,6 @@ class MediaFrame(HubsComponent):
         'version': (1, 0, 0)
     }
 
-    bounds: FloatVectorProperty(
-        name="Bounds",
-        description="Bounding box to fit objects into when they are snapped into the media frame",
-        unit='LENGTH',
-        subtype="XYZ",
-        default=(1.0, 1.0, 1.0))
-
     mediaType: EnumProperty(
         name="Media Type",
         description="Limit what type of media this frame will capture",
@@ -76,6 +69,43 @@ class MediaFrame(HubsComponent):
                ("video", "Only Videos", "Allow only videos"),
                ("pdf", "Only PDFs", "Allow only PDFs")],
         default="all-2d")
+
+    bounds: FloatVectorProperty(
+        name="Bounds",
+        description="Bounding box to fit objects into when they are snapped into the media frame",
+        unit='LENGTH',
+        subtype="XYZ",
+        default=(1.0, 1.0, 1.0))
+
+    alignX: EnumProperty(
+        name="Align X",
+        description="Media alignment along the X axis",
+        items=[("min",    "Min",    "Align minimum X bounds of media and frame"),
+               ("center", "Center", "Align X centers of media and frame"),
+               ("max",    "Max",    "Align maximum X bounds of media and frame")],
+        default="center")
+
+    alignY: EnumProperty(
+        name="Align Y",
+        description="Media alignment along the Y axis",
+        items=[("min",    "Min",    "Align minimum Y bounds of media and frame"),
+               ("center", "Center", "Align Y centers of media and frame"),
+               ("max",    "Max",    "Align maximum Y bounds of media and frame")],
+        default="center")
+
+    alignZ: EnumProperty(
+        name="Align Z",
+        description="Media alignment along the Z axis",
+        items=[("min",    "Min",    "Align minimum Z bounds of media and frame"),
+               ("center", "Center", "Align Z centers of media and frame"),
+               ("max",    "Max",    "Align maximum Z bounds of media and frame")],
+        default="center")
+
+    scaleToBounds: BoolProperty(
+        name="Scale To Bounds",
+        description="Scale the media to fit within the bounds of the media frame",
+        default=True
+    )
 
     snapToCenter: BoolProperty(
         name="Snap To Center",
@@ -151,10 +181,19 @@ class MediaFrame(HubsComponent):
         if export_settings['gltf_yup']:
             bounds['y'] = self.bounds.z
             bounds['z'] = self.bounds.y
-
+        align = {
+            'x': self.alignX,
+            'y': self.alignY,
+            'z': self.alignZ
+        }
+        if export_settings['gltf_yup']:
+            align['y'] = self.alignZ
+            align['z'] = "min" if self.alignY == "max" else "max" if self.alignY == "min" else self.alignY
         return {
             'bounds': bounds,
             'mediaType': self.mediaType,
+            'align': align,
+            'scaleToBounds': self.scaleToBounds,
             'snapToCenter': self.snapToCenter
         }
 
