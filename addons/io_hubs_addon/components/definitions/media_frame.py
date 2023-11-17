@@ -80,25 +80,25 @@ class MediaFrame(HubsComponent):
     alignX: EnumProperty(
         name="Align X",
         description="Media alignment along the X axis",
-        items=[("min",    "Min",    "Align minimum X bounds of media and frame"),
+        items=[("min", "Min", "Align minimum X bounds of media and frame"),
                ("center", "Center", "Align X centers of media and frame"),
-               ("max",    "Max",    "Align maximum X bounds of media and frame")],
+               ("max", "Max", "Align maximum X bounds of media and frame")],
         default="center")
 
     alignY: EnumProperty(
         name="Align Y",
         description="Media alignment along the Y axis",
-        items=[("min",    "Min",    "Align minimum Y bounds of media and frame"),
+        items=[("min", "Min", "Align minimum Y bounds of media and frame"),
                ("center", "Center", "Align Y centers of media and frame"),
-               ("max",    "Max",    "Align maximum Y bounds of media and frame")],
+               ("max", "Max", "Align maximum Y bounds of media and frame")],
         default="center")
 
     alignZ: EnumProperty(
         name="Align Z",
         description="Media alignment along the Z axis",
-        items=[("min",    "Min",    "Align minimum Z bounds of media and frame"),
+        items=[("min", "Min", "Align minimum Z bounds of media and frame"),
                ("center", "Center", "Align Z centers of media and frame"),
-               ("max",    "Max",    "Align maximum Z bounds of media and frame")],
+               ("max", "Max", "Align maximum Z bounds of media and frame")],
         default="center")
 
     scaleToBounds: BoolProperty(
