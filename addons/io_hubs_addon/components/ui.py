@@ -334,6 +334,8 @@ class HubsScenePanel(bpy.types.Panel):
 
     def draw(self, context):
         draw_component_global(self, context)
+        layout = self.layout
+        layout.separator()
         draw_components_list(self, context)
 
 
