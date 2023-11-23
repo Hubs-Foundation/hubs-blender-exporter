@@ -7,7 +7,8 @@ from .utils import get_object_source, is_linked
 from ..preferences import get_addon_pref, EXPORT_TMP_FILE_NAME
 from ..utils import isModuleAvailable
 
-HUBS_SELENIUM_PROFILE_NAME = "__hubs_selenium_profile"
+HUBS_SELENIUM_PROFILE_NAME_FIREFOX = ".__hubs_blender_exporter_selenium_profile.firefox"
+HUBS_SELENIUM_PROFILE_NAME_CHROME = ".__hubs_blender_exporter_selenium_profile.chrome"
 
 
 def draw_component_global(panel, context):
@@ -252,16 +253,44 @@ class HubsCreateRoomOperator(bpy.types.Operator):
         global web_driver
         if not web_driver or not isWebdriverAlive(web_driver):
             browser = get_addon_pref(context).browser
-            from selenium import webdriver
+            import os
+            home_directory = os.path.expanduser("~")
             if browser == "Firefox":
-                profile = webdriver.FirefoxProfile(HUBS_SELENIUM_PROFILE_NAME)
-                profile.accept_untrusted_certs = True
-                web_driver = webdriver.Firefox(profile=profile)
+                file_path = os.path.join(
+                    home_directory, HUBS_SELENIUM_PROFILE_NAME_FIREFOX)
+                if not os.path.exists(file_path):
+                    os.mkdir(file_path)
+
+                from selenium import webdriver
+                firefox_profile = webdriver.FirefoxProfile(file_path)
+                firefox_profile.accept_untrusted_certs = True
+                firefox_profile.assume_untrusted_cert_issuer = True
+                firefox_profile._create_tempfolder
+
+                options = webdriver.FirefoxOptions()
+                override_ff_path = get_addon_pref(
+                    context).override_firefox_path
+                ff_path = get_addon_pref(context).firefox_path
+                if override_ff_path and ff_path:
+                    options.binary_location = ff_path
+                options.profile = firefox_profile
+                web_driver = webdriver.Firefox(options=options)
             else:
+                file_path = os.path.join(
+                    home_directory, HUBS_SELENIUM_PROFILE_NAME_CHROME)
+                if not os.path.exists(file_path):
+                    os.mkdir(file_path)
+
+                from selenium import webdriver
                 options = webdriver.ChromeOptions()
-                options.add_argument('ignore-certificate-errors')
+                options.add_argument('--ignore-certificate-errors')
                 options.add_argument(
-                    f'user-data-dir={HUBS_SELENIUM_PROFILE_NAME}')
+                    f'user-data-dir={file_path}')
+                override_chrome_path = get_addon_pref(
+                    context).override_chrome_path
+                chrome_path = get_addon_pref(context).chrome_path
+                if override_chrome_path and chrome_path:
+                    options.binary_location = chrome_path
                 web_driver = webdriver.Chrome(options=options)
 
             params = "new&debugLocalScene"
@@ -397,11 +426,11 @@ def gizmo_display_popover_addition(self, context):
 
 
 class HubsSceneDebuggerRoomCreatePrefs(bpy.types.PropertyGroup):
-    new_loader: bpy.props.BoolProperty(name="New Loader", default=False,
+    new_loader: bpy.props.BoolProperty(name="New Loader", default=True,
                                        description="Creates the room using the new bitECS loader", options=set())
     ecs_debug: bpy.props.BoolProperty(name="ECS Debug",
-                                      default=False, description="Enables the ECS debugging side panel", options=set())
-    vr_entry_type: bpy.props.BoolProperty(name="Skip Entry", default=False,
+                                      default=True, description="Enables the ECS debugging side panel", options=set())
+    vr_entry_type: bpy.props.BoolProperty(name="Skip Entry", default=True,
                                           description="Omits the entry setup panel and goes straight into the room",
                                           options=set())
 

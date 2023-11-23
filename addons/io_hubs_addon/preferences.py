@@ -29,6 +29,7 @@ def get_recast_lib_path():
 
 class DepsProperty(bpy.types.PropertyGroup):
     name: StringProperty(default=" ")
+    version: StringProperty(default="")
 
 
 class InstallDepsOperator(bpy.types.Operator):
@@ -45,9 +46,17 @@ class InstallDepsOperator(bpy.types.Operator):
 
         subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'],
                        capture_output=False, text=True, input="y")
+
+        deps = []
+        for _, dep in self.dep_names.items():
+            if dep.version:
+                deps.append(f'{dep.name}=={dep.version}')
+            else:
+                deps.append(dep.name)
+
         from .utils import get_user_python_path
         subprocess.run(
-            [sys.executable, '-m', 'pip', 'install', *[name for name, _ in self.dep_names.items()],
+            [sys.executable, '-m', 'pip', 'install', *deps,
              '-t', get_user_python_path()],
             capture_output=False, text=True, input="y")
 
@@ -117,6 +126,15 @@ class HubsPreferences(AddonPreferences):
         default=False, name="Force",
         description="Force uninstall of the selenium dependencies by deleting the module directory")
 
+    override_firefox_path: BoolProperty(
+        name="Override Firefox path", description="Override Firefox binary path", default=False)
+    firefox_path: StringProperty(
+        name="Firefox path", description="Binary path", subtype='FILE_PATH')
+    override_chrome_path: BoolProperty(
+        name="Override Chrome path", description="Override Chrome binary path", default=False)
+    chrome_path: StringProperty(
+        name="Chrome path", description="Binary path", subtype='FILE_PATH')
+
     def draw(self, context):
         layout = self.layout
         box = layout.box()
@@ -128,9 +146,39 @@ class HubsPreferences(AddonPreferences):
         modules_available = selenium_available
         box = layout.box()
         box.label(text="Scene debugger configuration")
+
         if modules_available:
-            row = box.row()
+            browser_box = box.box()
+            row = browser_box.row()
             row.prop(self, "browser")
+            row = browser_box.row()
+            if self.browser == "Firefox":
+                row = browser_box.row()
+                row.prop(self, "override_firefox_path")
+                if self.override_firefox_path:
+                    row = browser_box.row()
+                    row.label(
+                        text="In some cases the browser binary might not be located automatically, in those cases you'll need to specify the binary location manually below")
+                    row = browser_box.row()
+                    row.alert = True
+                    row.label(
+                        text="You don't need to set a path below unless the binary cannot be located automatically.")
+                    row = browser_box.row()
+                    row.prop(self, "firefox_path",)
+            elif self.browser == "Chrome":
+                row = browser_box.row()
+                row.prop(self, "override_chrome_path")
+                if self.override_chrome_path:
+                    row = browser_box.row()
+                    row.label(
+                        text="In some cases the browser binary might not be located automatically, in those cases you'll need to specify the binary location manually below")
+                    row = browser_box.row()
+                    row.alert = True
+                    row.label(
+                        text="You don't need to set a path below unless the binary cannot be located automatically.")
+                    row = browser_box.row()
+                    row.prop(self, "chrome_path")
+
         row = box.row()
         row.alert = not modules_available
         row.label(
@@ -149,7 +197,9 @@ class HubsPreferences(AddonPreferences):
         else:
             op = row.operator(InstallDepsOperator.bl_idname,
                               text="Install dependencies (selenium")
-            op.dep_names.add().name = "selenium"
+            dep = op.dep_names.add()
+            dep.name = "selenium"
+            dep.version = "4.15.2"
 
 
 def register():
