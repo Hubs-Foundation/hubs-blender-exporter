@@ -215,7 +215,7 @@ def isWebdriverAlive(driver):
     try:
         driver.current_url
         return True
-    except:
+    except Exception:
         return False
 
 
@@ -395,12 +395,13 @@ def gizmo_display_popover_addition(self, context):
 
 
 class HubsSceneDebuggerRoomCreatePrefs(bpy.types.PropertyGroup):
-    new_loader: bpy.props.BoolProperty(name="New Loader",
-                                       default=False, description="Creates the room using the new bitECS loader", options=set())
+    new_loader: bpy.props.BoolProperty(name="New Loader", default=False,
+                                       description="Creates the room using the new bitECS loader", options=set())
     ecs_debug: bpy.props.BoolProperty(name="ECS Debug",
                                       default=False, description="Enables the ECS debugging side panel", options=set())
-    vr_entry_type: bpy.props.BoolProperty(name="Skip Entry",
-                                          default=False, description="Omits the entry setup panel and goes straight into the room", options=set())
+    vr_entry_type: bpy.props.BoolProperty(name="Skip Entry", default=False,
+                                          description="Omits the entry setup panel and goes straight into the room",
+                                          options=set())
 
 
 def register():

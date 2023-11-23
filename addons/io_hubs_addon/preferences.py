@@ -114,7 +114,8 @@ class HubsPreferences(AddonPreferences):
         default="Firefox")
 
     force_uninstall: BoolProperty(
-        default=False, name="Force", description="Force uninstall of the selenium dependencies by deleting the module directory")
+        default=False, name="Force",
+        description="Force uninstall of the selenium dependencies by deleting the module directory")
 
     def draw(self, context):
         layout = self.layout
