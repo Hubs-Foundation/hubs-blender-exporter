@@ -1,10 +1,13 @@
 import bpy
 from bpy.props import StringProperty
+from bpy.types import Context
 from .types import PanelType
 from .components_registry import get_component_by_name, get_components_registry
 from .utils import get_object_source, is_linked
-from ..preferences import get_addon_pref
+from ..preferences import get_addon_pref, EXPORT_TMP_FILE_NAME
 from ..utils import isModuleAvailable
+
+HUBS_SELENIUM_PROFILE_NAME = "__hubs_selenium_profile"
 
 
 def draw_component_global(panel, context):
@@ -144,9 +147,6 @@ class HubsObjectPanel(bpy.types.Panel):
         draw_components_list(self, context)
 
 
-EXPORT_TMP_FILE_NAME = "__hubs_tmp_scene_.glb"
-
-
 def export_scene():
     try:
         import os
@@ -175,11 +175,40 @@ def export_scene():
 web_driver = None
 
 
+JS_DROP_FILE = """
+    var target = arguments[0],
+        offsetX = arguments[1],
+        offsetY = arguments[2],
+        document = target.ownerDocument || document,
+        window = document.defaultView || window;
+
+    var input = document.createElement('INPUT');
+    input.type = 'file';
+    input.onchange = function () {
+      var rect = target.getBoundingClientRect(),
+          x = rect.left + (offsetX || (rect.width >> 1)),
+          y = rect.top + (offsetY || (rect.height >> 1)),
+          dataTransfer = { files: this.files };
+
+      ['dragenter', 'dragover', 'drop'].forEach(function (name) {
+        var evt = document.createEvent('MouseEvent');
+        evt.initMouseEvent(name, !0, !0, window, 0, 0, 0, x, y, !1, !1, !1, !1, 0, null);
+        evt.dataTransfer = dataTransfer;
+        target.dispatchEvent(evt);
+      });
+
+      setTimeout(function () { document.body.removeChild(input); }, 25);
+    };
+    document.body.appendChild(input);
+    return input;
+"""
+
+
 def refresh_scene_viewer():
     import os
-    from selenium.webdriver.common.by import By
-    web_driver.find_element(
-        By.XPATH, "//input[@type='file']").send_keys(os.path.join(bpy.app.tempdir, EXPORT_TMP_FILE_NAME))
+    document = web_driver.find_element("tag name", "html")
+    file_input = web_driver.execute_script(JS_DROP_FILE, document, 0, 0)
+    file_input.send_keys(os.path.join(bpy.app.tempdir, EXPORT_TMP_FILE_NAME))
 
 
 def isWebdriverAlive(driver):
@@ -190,33 +219,59 @@ def isWebdriverAlive(driver):
         return False
 
 
-class HubsSceneViewOperator(bpy.types.Operator):
+class HubsUpdateSceneOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.view_scene"
-    bl_label = "Remove Track"
+    bl_label = "View Scene"
     bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context: Context):
+        global web_driver
+        return isWebdriverAlive(web_driver) and isModuleAvailable("selenium")
 
     def execute(self, context):
         export_scene()
+        refresh_scene_viewer()
 
+        return {'FINISHED'}
+
+
+class HubsCreateRoomOperator(bpy.types.Operator):
+    bl_idname = "hubs_scene.open_window"
+    bl_label = "Create Room"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context: Context):
+        global web_driver
+        return not isWebdriverAlive(web_driver) and isModuleAvailable("selenium")
+
+    def execute(self, context):
         global web_driver
         if not web_driver or not isWebdriverAlive(web_driver):
             browser = get_addon_pref(context).browser
             from selenium import webdriver
-            import os
             if browser == "Firefox":
-                profile = webdriver.FirefoxProfile()
+                profile = webdriver.FirefoxProfile(HUBS_SELENIUM_PROFILE_NAME)
                 profile.accept_untrusted_certs = True
-                web_driver = webdriver.Firefox(
-                    service_log_path=os.devnull, firefox_profile=profile)
+                web_driver = webdriver.Firefox(profile=profile)
             else:
                 options = webdriver.ChromeOptions()
                 options.add_argument('ignore-certificate-errors')
-                web_driver = webdriver.Chrome(
-                    service_log_path=os.devnull, chrome_options=options)
+                options.add_argument(
+                    f'user-data-dir={HUBS_SELENIUM_PROFILE_NAME}')
+                web_driver = webdriver.Chrome(options=options)
 
-            web_driver.get(get_addon_pref(context).viewer_url)
+            params = "new&debugLocalScene"
+            if context.scene.hubs_scene_debugger_room_create_prefs.new_loader:
+                params = f'{params}&newLoader'
+            if context.scene.hubs_scene_debugger_room_create_prefs.ecs_debug:
+                params = f'{params}&ecsDebug'
+            if context.scene.hubs_scene_debugger_room_create_prefs.vr_entry_type:
+                params = f'{params}&vr_entry_type=2d_now'
 
-        refresh_scene_viewer()
+            web_driver.get(
+                f'{get_addon_pref(context).hubs_instance_url}?{params}')
 
         return {'FINISHED'}
 
@@ -224,23 +279,50 @@ class HubsSceneViewOperator(bpy.types.Operator):
 class HUBS_PT_ToolsPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_label = "Hubs panel"
+    bl_label = "Hubs"
     bl_category = "Hubs"
     bl_context = 'objectmode'
 
     def draw(self, context):
         layout = self.layout
-        box = layout.box()
-        row = box.row()
-        row.label(text="Scene viewer:")
-        if isModuleAvailable("selenium"):
-            row = box.row()
-            row.operator(HubsSceneViewOperator.bl_idname, text='View scene')
-        else:
-            row = box.row()
-            row.alert = True
-            row.label(
-                text="Selenium needs to be installed for the viewer functionality. Install from preferences.")
+        row = layout.row()
+        main_box = row.box()
+
+        top_row = main_box.row()
+        top_row.prop(context.scene, "hubs_scene_debugger_expanded",
+                     icon="TRIA_DOWN" if context.scene.hubs_scene_debugger_expanded else "TRIA_RIGHT",
+                     icon_only=True, emboss=False
+                     )
+        top_row.label(text="Scene Debugger")
+
+        if context.scene.hubs_scene_debugger_expanded:
+            if isModuleAvailable("selenium"):
+                box = main_box.box()
+                row = box.row()
+                col = row.column(heading="Room flags:")
+                col.use_property_split = True
+                col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
+                         "new_loader")
+                col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
+                         "ecs_debug")
+                col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
+                         "vr_entry_type")
+                row = box.row()
+                row.operator(HubsCreateRoomOperator.bl_idname,
+                             text='Create')
+
+                main_box.separator()
+                box = main_box.box()
+                row = box.row()
+                row.label(text="Set the export options in the glTF export panel")
+                row = box.row()
+                row.operator(HubsUpdateSceneOperator.bl_idname,
+                             text='Update')
+            else:
+                row = main_box.row()
+                row.alert = True
+                row.label(
+                    text="Selenium needs to be installed for the scene debugger functionality. Install from preferences.")
 
 
 class HubsScenePanel(bpy.types.Panel):
@@ -310,14 +392,30 @@ def gizmo_display_popover_addition(self, context):
     layout.operator("wm.update_hubs_gizmos")
 
 
+class HubsSceneDebuggerRoomCreatePrefs(bpy.types.PropertyGroup):
+    new_loader: bpy.props.BoolProperty(name="New Loader",
+                                       default=False, description="Creates the room using the new bitECS loader", options=set())
+    ecs_debug: bpy.props.BoolProperty(name="ECS Debug",
+                                      default=False, description="Enables the ECS debugging side panel", options=set())
+    vr_entry_type: bpy.props.BoolProperty(name="Skip Entry",
+                                          default=False, description="Omits the entry setup panel and goes straight into the room", options=set())
+
+
 def register():
-    bpy.utils.register_class(HubsSceneViewOperator)
+    bpy.utils.register_class(HubsCreateRoomOperator)
+    bpy.utils.register_class(HubsUpdateSceneOperator)
     bpy.utils.register_class(HubsObjectPanel)
     bpy.utils.register_class(HubsScenePanel)
     bpy.utils.register_class(HubsMaterialPanel)
     bpy.utils.register_class(HubsBonePanel)
     bpy.utils.register_class(TooltipLabel)
     bpy.utils.register_class(HUBS_PT_ToolsPanel)
+    bpy.utils.register_class(HubsSceneDebuggerRoomCreatePrefs)
+
+    bpy.types.Scene.hubs_scene_debugger_room_create_prefs = bpy.props.PointerProperty(
+        type=HubsSceneDebuggerRoomCreatePrefs)
+    bpy.types.Scene.hubs_scene_debugger_expanded = bpy.props.BoolProperty(
+        default=True)
 
     bpy.types.TOPBAR_MT_window.append(window_menu_addition)
     bpy.types.VIEW3D_MT_object.append(object_menu_addition)
@@ -330,8 +428,13 @@ def unregister():
     bpy.utils.unregister_class(HubsMaterialPanel)
     bpy.utils.unregister_class(HubsBonePanel)
     bpy.utils.unregister_class(TooltipLabel)
-    bpy.utils.unregister_class(HubsSceneViewOperator)
+    bpy.utils.unregister_class(HubsUpdateSceneOperator)
+    bpy.utils.unregister_class(HubsCreateRoomOperator)
     bpy.utils.unregister_class(HUBS_PT_ToolsPanel)
+    bpy.utils.unregister_class(HubsSceneDebuggerRoomCreatePrefs)
+
+    del bpy.types.Scene.hubs_scene_debugger_room_create_prefs
+    del bpy.types.Scene.hubs_scene_debugger_expanded
 
     bpy.types.TOPBAR_MT_window.remove(window_menu_addition)
     bpy.types.VIEW3D_MT_object.remove(object_menu_addition)

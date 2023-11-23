@@ -5,6 +5,8 @@ from .utils import get_addon_package, isModuleAvailable
 import platform
 from os.path import join, dirname, realpath
 
+EXPORT_TMP_FILE_NAME = "__hubs_tmp_scene_.glb"
+
 
 def get_addon_pref(context):
     addon_package = get_addon_package()
@@ -32,7 +34,7 @@ class DepsProperty(bpy.types.PropertyGroup):
 class InstallDepsOperator(bpy.types.Operator):
     bl_idname = "pref.hubs_prefs_install_dep"
     bl_label = "Install a python dependency through pip"
-    bl_property = "dep_name"
+    bl_property = "dep_names"
     bl_options = {'REGISTER', 'UNDO'}
 
     dep_names: CollectionProperty(type=DepsProperty)
@@ -55,10 +57,11 @@ class InstallDepsOperator(bpy.types.Operator):
 class UninstallDepsOperator(bpy.types.Operator):
     bl_idname = "pref.hubs_prefs_uninstall_dep"
     bl_label = "Uninstall a python dependency through pip"
-    bl_property = "dep_name"
+    bl_property = "dep_names"
     bl_options = {'REGISTER', 'UNDO'}
 
     dep_names: CollectionProperty(type=DepsProperty)
+    force: BoolProperty(default=False)
 
     def execute(self, context):
         import subprocess
@@ -72,6 +75,13 @@ class UninstallDepsOperator(bpy.types.Operator):
             [sys.executable, '-m', 'pip', 'uninstall', *
                 [name for name, _ in self.dep_names.items()]],
             capture_output=False, text=True, input="y")
+
+        import os
+        from .utils import get_user_python_path
+        selenium_path = os.path.join(get_user_python_path(), "selenium")
+        if self.force and os.path.isfile(selenium_path):
+            import shutil
+            shutil.rmtree(selenium_path)
 
         return {'FINISHED'}
 
@@ -93,16 +103,18 @@ class HubsPreferences(AddonPreferences):
     )
 
     viewer_available: BoolProperty()
-    viewer_enabled: BoolProperty(
-        name="Enabled", description="Is the viewer enabled?", default=True)
-    viewer_url: StringProperty(name="Viewer Url", description="Url of the viewer page to use",
-                               default="https://hubs.local:8080/viewer.html")
+
+    hubs_instance_url: StringProperty(name="Hubs instance URL", description="URL of the hubs instance to use",
+                                      default="https://hubs.local:8080/")
 
     browser: EnumProperty(
-        name="Choose a viewer browser", description="Type",
+        name="Choose a browser", description="Type",
         items=[("Firefox", "Firefox", "Use Firefox as the viewer browser"),
                ("Chrome", "Chrome", "Use Chrome as the viewer browser")],
         default="Firefox")
+
+    force_uninstall: BoolProperty(
+        default=False, name="Force", description="Force uninstall of the selenium dependencies by deleting the module directory")
 
     def draw(self, context):
         layout = self.layout
@@ -112,11 +124,9 @@ class HubsPreferences(AddonPreferences):
         box.row().prop(self, "recast_lib_path")
 
         selenium_available = isModuleAvailable("selenium")
-        websockets_available = isModuleAvailable("websockets")
-        modules_available = selenium_available and websockets_available
+        modules_available = selenium_available
         box = layout.box()
-        box.label(text="Viewer configuration")
-        box.prop(self, "viewer_enabled")
+        box.label(text="Scene debugger configuration")
         if modules_available:
             row = box.row()
             row.prop(self, "browser")
@@ -125,30 +135,20 @@ class HubsPreferences(AddonPreferences):
         row.label(
             text="Modules found."
             if modules_available else
-            "Selenium and websockets modules not found. These modules are required to run the viewer")
+            "Selenium module not found. These modules are required to run the viewer")
         row = box.row()
-        row.prop(self, "viewer_url")
+        row.prop(self, "hubs_instance_url")
         row = box.row()
-
-        if self.viewer_available:
-            op = row.operator(UninstallDepsOperator.bl_idname,
-                              text="Uninstall selenium dependencies")
-            op.dep_name = "selenium"
-        else:
-            op = row.operator(InstallDepsOperator.bl_idname,
-                              text="Install selenium dependencies")
-            op.dep_name = "selenium"
 
         if modules_available:
+            row.prop(self, "force_uninstall")
             op = row.operator(UninstallDepsOperator.bl_idname,
-                              text="Uninstall dependencies (selenium, websockets)")
+                              text="Uninstall dependencies (selenium)")
             op.dep_names.add().name = "selenium"
-            op.dep_names.add().name = "websockets"
         else:
             op = row.operator(InstallDepsOperator.bl_idname,
-                              text="Install dependencies (selenium, websockets")
+                              text="Install dependencies (selenium")
             op.dep_names.add().name = "selenium"
-            op.dep_names.add().name = "websockets"
 
 
 def register():
