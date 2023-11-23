@@ -233,6 +233,8 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
         export_scene()
         refresh_scene_viewer()
 
+        web_driver.switch_to.window(web_driver.current_window_handle)
+
         return {'FINISHED'}
 
 
