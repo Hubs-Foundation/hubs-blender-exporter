@@ -270,54 +270,59 @@ class HubsCreateRoomOperator(bpy.types.Operator):
         return not isWebdriverAlive(web_driver)
 
     def execute(self, context):
-        global web_driver
-        if not web_driver or not isWebdriverAlive(web_driver):
-            browser = get_addon_pref(context).browser
-            import os
-            file_path = get_browser_profile_directory(browser)
-            if not os.path.exists(file_path):
-                os.mkdir(file_path)
-            if browser == "Firefox":
-                from selenium import webdriver
-                options = webdriver.FirefoxOptions()
-                override_ff_path = get_addon_pref(
-                    context).override_firefox_path
-                ff_path = get_addon_pref(context).firefox_path
-                if override_ff_path and ff_path:
-                    options.binary_location = ff_path
-                # This should work but it doesn't https://github.com/SeleniumHQ/selenium/issues/11028 so using arguments instead
-                # firefox_profile = webdriver.FirefoxProfile(file_path)
-                # firefox_profile.accept_untrusted_certs = True
-                # firefox_profile.assume_untrusted_cert_issuer = True
-                # options.profile = firefox_profile
-                options.add_argument("-profile")
-                options.add_argument(file_path)
-                web_driver = webdriver.Firefox(options=options)
-            else:
-                from selenium import webdriver
-                options = webdriver.ChromeOptions()
-                options.add_argument('--ignore-certificate-errors')
-                options.add_argument(
-                    f'user-data-dir={file_path}')
-                override_chrome_path = get_addon_pref(
-                    context).override_chrome_path
-                chrome_path = get_addon_pref(context).chrome_path
-                if override_chrome_path and chrome_path:
-                    options.binary_location = chrome_path
-                web_driver = webdriver.Chrome(options=options)
+        try:
+            global web_driver
+            if not web_driver or not isWebdriverAlive(web_driver):
+                browser = get_addon_pref(context).browser
+                import os
+                file_path = get_browser_profile_directory(browser)
+                if not os.path.exists(file_path):
+                    os.mkdir(file_path)
+                if browser == "Firefox":
+                    from selenium import webdriver
+                    options = webdriver.FirefoxOptions()
+                    override_ff_path = get_addon_pref(
+                        context).override_firefox_path
+                    ff_path = get_addon_pref(context).firefox_path
+                    if override_ff_path and ff_path:
+                        options.binary_location = ff_path
+                    # This should work but it doesn't https://github.com/SeleniumHQ/selenium/issues/11028 so using arguments instead
+                    # firefox_profile = webdriver.FirefoxProfile(file_path)
+                    # firefox_profile.accept_untrusted_certs = True
+                    # firefox_profile.assume_untrusted_cert_issuer = True
+                    # options.profile = firefox_profile
+                    options.add_argument("-profile")
+                    options.add_argument(file_path)
+                    web_driver = webdriver.Firefox(options=options)
+                else:
+                    from selenium import webdriver
+                    options = webdriver.ChromeOptions()
+                    options.add_argument('--ignore-certificate-errors')
+                    options.add_argument(
+                        f'user-data-dir={file_path}')
+                    override_chrome_path = get_addon_pref(
+                        context).override_chrome_path
+                    chrome_path = get_addon_pref(context).chrome_path
+                    if override_chrome_path and chrome_path:
+                        options.binary_location = chrome_path
+                    web_driver = webdriver.Chrome(options=options)
 
-            params = "new&debugLocalScene"
-            if context.scene.hubs_scene_debugger_room_create_prefs.new_loader:
-                params = f'{params}&newLoader'
-            if context.scene.hubs_scene_debugger_room_create_prefs.ecs_debug:
-                params = f'{params}&ecsDebug'
-            if context.scene.hubs_scene_debugger_room_create_prefs.vr_entry_type:
-                params = f'{params}&vr_entry_type=2d_now'
+                params = "new&debugLocalScene"
+                if context.scene.hubs_scene_debugger_room_create_prefs.new_loader:
+                    params = f'{params}&newLoader'
+                if context.scene.hubs_scene_debugger_room_create_prefs.ecs_debug:
+                    params = f'{params}&ecsDebug'
+                if context.scene.hubs_scene_debugger_room_create_prefs.vr_entry_type:
+                    params = f'{params}&vr_entry_type=2d_now'
 
-            web_driver.get(
-                f'{get_addon_pref(context).hubs_instance_url}?{params}')
+                web_driver.get(
+                    f'{get_addon_pref(context).hubs_instance_url}?{params}')
 
-        return {'FINISHED'}
+                return {'FINISHED'}
+
+        except Exception as e:
+            print(e)
+            return {"CANCELLED"}
 
 
 class HUBS_PT_ToolsPanel(bpy.types.Panel):
