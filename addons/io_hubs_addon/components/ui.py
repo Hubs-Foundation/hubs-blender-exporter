@@ -370,13 +370,39 @@ class HUBS_PT_ToolsPanel(bpy.types.Panel):
                 box = main_box.box()
                 row = box.row()
                 row.label(text="Set the export options in the glTF export panel")
-                if isWebdriverAlive(web_driver) and not is_user_logged_in():
-                    row = box.row()
-                    row.alert = True
-                    row.label(text="Sign in the room to start debugging")
                 row = box.row()
                 row.operator(HubsUpdateSceneOperator.bl_idname,
                              text='Update')
+
+                row = box.row(align=True)
+                row.alignment = "CENTER"
+                col = row.column()
+                col.alignment = "LEFT"
+                col.label(text="Status:")
+                if isWebdriverAlive(web_driver):
+                    if is_user_logged_in():
+                        if is_user_in_entered():
+                            col = row.column()
+                            col.alignment = "LEFT"
+                            col.active_default = True
+                            col.label(
+                                text="In room")
+                        else:
+                            col = row.column()
+                            col.alignment = "LEFT"
+                            col.label(
+                                text="Entering the room...")
+                    else:
+                        col = row.column()
+                        col.alignment = "LEFT"
+                        col.alert = True
+                        col.label(text="Waiting for sign in...")
+                else:
+                    col = row.column()
+                    col.alignment = "LEFT"
+                    col.alert = True
+                    col.label(text="Waiting for room...")
+
             else:
                 row = main_box.row()
                 row.alert = True
