@@ -1,7 +1,7 @@
 import bpy
-from bpy.types import AddonPreferences
+from bpy.types import AddonPreferences, Context
 from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, CollectionProperty
-from .utils import get_addon_package, isModuleAvailable
+from .utils import get_addon_package, isModuleAvailable, get_browser_profile_directory
 import platform
 from os.path import join, dirname, realpath
 
@@ -95,6 +95,34 @@ class UninstallDepsOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class DeleteProfileOperator(bpy.types.Operator):
+    bl_idname = "pref.hubs_prefs_remove_profile"
+    bl_label = "Delete"
+    bl_description = "Delete Browser profile"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    browser: StringProperty()
+
+    @classmethod
+    def poll(cls, context: Context):
+        if hasattr(context, "prefs"):
+            prefs = getattr(context, 'prefs')
+            path = get_browser_profile_directory(prefs.browser)
+            import os
+            return os.path.exists(path)
+
+        return False
+
+    def execute(self, context):
+        path = get_browser_profile_directory(self.browser)
+        import os
+        if os.path.exists(path):
+            import shutil
+            shutil.rmtree(path)
+
+        return {'FINISHED'}
+
+
 class HubsPreferences(AddonPreferences):
     bl_idname = __package__
 
@@ -127,13 +155,13 @@ class HubsPreferences(AddonPreferences):
         description="Force uninstall of the selenium dependencies by deleting the module directory")
 
     override_firefox_path: BoolProperty(
-        name="Override Firefox path", description="Override Firefox binary path", default=False)
+        name="Override Firefox executable path", description="Override Firefox executable path", default=False)
     firefox_path: StringProperty(
-        name="Firefox path", description="Binary path", subtype='FILE_PATH')
+        name="Firefox executable path", description="Binary path", subtype='FILE_PATH')
     override_chrome_path: BoolProperty(
-        name="Override Chrome path", description="Override Chrome binary path", default=False)
+        name="Override Chrome executable path", description="Override Chrome executable path", default=False)
     chrome_path: StringProperty(
-        name="Chrome path", description="Binary path", subtype='FILE_PATH')
+        name="Chrome executable path", description="Binary path", subtype='FILE_PATH')
 
     def draw(self, context):
         layout = self.layout
@@ -152,6 +180,12 @@ class HubsPreferences(AddonPreferences):
             row = browser_box.row()
             row.prop(self, "browser")
             row = browser_box.row()
+            col = row.column()
+            col.label(text=f'Delete {self.browser} profile')
+            col = row.column()
+            col.context_pointer_set("prefs", self)
+            op = col.operator(DeleteProfileOperator.bl_idname)
+            op.browser = self.browser
             if self.browser == "Firefox":
                 row = browser_box.row()
                 row.prop(self, "override_firefox_path")
@@ -207,9 +241,11 @@ def register():
     bpy.utils.register_class(HubsPreferences)
     bpy.utils.register_class(InstallDepsOperator)
     bpy.utils.register_class(UninstallDepsOperator)
+    bpy.utils.register_class(DeleteProfileOperator)
 
 
 def unregister():
+    bpy.utils.unregister_class(DeleteProfileOperator)
     bpy.utils.unregister_class(UninstallDepsOperator)
     bpy.utils.unregister_class(InstallDepsOperator)
     bpy.utils.unregister_class(HubsPreferences)

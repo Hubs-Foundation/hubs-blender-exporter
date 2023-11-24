@@ -38,3 +38,21 @@ def isModuleAvailable(name):
     import importlib
     loader = importlib.util.find_spec(name)
     return loader is not None
+
+
+HUBS_SELENIUM_PROFILE_NAME_FIREFOX = ".__hubs_blender_exporter_selenium_profile.firefox"
+HUBS_SELENIUM_PROFILE_NAME_CHROME = ".__hubs_blender_exporter_selenium_profile.chrome"
+
+
+def get_browser_profile_directory(browser):
+    import os
+    home_directory = os.path.expanduser("~")
+    file_path = ""
+    if browser == "Firefox":
+        file_path = os.path.join(
+            home_directory, HUBS_SELENIUM_PROFILE_NAME_FIREFOX)
+    elif browser == "Chrome":
+        file_path = os.path.join(
+            home_directory, HUBS_SELENIUM_PROFILE_NAME_CHROME)
+
+    return file_path

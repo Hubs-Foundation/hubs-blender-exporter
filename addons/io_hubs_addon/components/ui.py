@@ -5,10 +5,7 @@ from .types import PanelType
 from .components_registry import get_component_by_name, get_components_registry
 from .utils import get_object_source, is_linked
 from ..preferences import get_addon_pref, EXPORT_TMP_FILE_NAME
-from ..utils import isModuleAvailable
-
-HUBS_SELENIUM_PROFILE_NAME_FIREFOX = ".__hubs_blender_exporter_selenium_profile.firefox"
-HUBS_SELENIUM_PROFILE_NAME_CHROME = ".__hubs_blender_exporter_selenium_profile.chrome"
+from ..utils import isModuleAvailable, get_browser_profile_directory
 
 
 def draw_component_global(panel, context):
@@ -254,13 +251,10 @@ class HubsCreateRoomOperator(bpy.types.Operator):
         if not web_driver or not isWebdriverAlive(web_driver):
             browser = get_addon_pref(context).browser
             import os
-            home_directory = os.path.expanduser("~")
+            file_path = get_browser_profile_directory(browser)
+            if not os.path.exists(file_path):
+                os.mkdir(file_path)
             if browser == "Firefox":
-                file_path = os.path.join(
-                    home_directory, HUBS_SELENIUM_PROFILE_NAME_FIREFOX)
-                if not os.path.exists(file_path):
-                    os.mkdir(file_path)
-
                 from selenium import webdriver
                 firefox_profile = webdriver.FirefoxProfile(file_path)
                 firefox_profile.accept_untrusted_certs = True
@@ -275,11 +269,6 @@ class HubsCreateRoomOperator(bpy.types.Operator):
                 options.profile = firefox_profile
                 web_driver = webdriver.Firefox(options=options)
             else:
-                file_path = os.path.join(
-                    home_directory, HUBS_SELENIUM_PROFILE_NAME_CHROME)
-                if not os.path.exists(file_path):
-                    os.mkdir(file_path)
-
                 from selenium import webdriver
                 options = webdriver.ChromeOptions()
                 options.add_argument('--ignore-certificate-errors')
