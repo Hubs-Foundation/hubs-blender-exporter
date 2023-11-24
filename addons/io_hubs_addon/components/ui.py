@@ -211,10 +211,33 @@ def refresh_scene_viewer():
 
 def isWebdriverAlive(driver):
     try:
-        driver.current_url
-        return True
+        if not isModuleAvailable("selenium"):
+            return False
+        else:
+            return driver.current_url
     except Exception:
         return False
+
+
+def get_local_storage():
+    storage = None
+    if isWebdriverAlive(web_driver):
+        storage = web_driver.execute_script("return window.localStorage;")
+
+    return storage
+
+
+def is_user_logged_in():
+    has_credentials = False
+    if isWebdriverAlive(web_driver):
+        storage = get_local_storage()
+        hubs_store = storage.get("___hubs_store")
+        if hubs_store:
+            import json
+            hubs_store = json.loads(storage.get("___hubs_store"))
+            has_credentials = "credentials" in hubs_store
+
+    return has_credentials
 
 
 class HubsUpdateSceneOperator(bpy.types.Operator):
@@ -225,7 +248,7 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
     @classmethod
     def poll(cls, context: Context):
         global web_driver
-        return isWebdriverAlive(web_driver) and isModuleAvailable("selenium")
+        return isWebdriverAlive(web_driver) and is_user_logged_in()
 
     def execute(self, context):
         export_scene()
@@ -244,7 +267,7 @@ class HubsCreateRoomOperator(bpy.types.Operator):
     @classmethod
     def poll(cls, context: Context):
         global web_driver
-        return not isWebdriverAlive(web_driver) and isModuleAvailable("selenium")
+        return not isWebdriverAlive(web_driver)
 
     def execute(self, context):
         global web_driver
@@ -256,10 +279,6 @@ class HubsCreateRoomOperator(bpy.types.Operator):
                 os.mkdir(file_path)
             if browser == "Firefox":
                 from selenium import webdriver
-                firefox_profile = webdriver.FirefoxProfile(file_path)
-                firefox_profile.accept_untrusted_certs = True
-                firefox_profile.assume_untrusted_cert_issuer = True
-
                 options = webdriver.FirefoxOptions()
                 override_ff_path = get_addon_pref(
                     context).override_firefox_path
@@ -340,6 +359,10 @@ class HUBS_PT_ToolsPanel(bpy.types.Panel):
                 box = main_box.box()
                 row = box.row()
                 row.label(text="Set the export options in the glTF export panel")
+                if isWebdriverAlive(web_driver) and not is_user_logged_in():
+                    row = box.row()
+                    row.alert = True
+                    row.label(text="Sign in the room to start debugging")
                 row = box.row()
                 row.operator(HubsUpdateSceneOperator.bl_idname,
                              text='Update')
