@@ -265,7 +265,6 @@ class HubsCreateRoomOperator(bpy.types.Operator):
                 firefox_profile = webdriver.FirefoxProfile(file_path)
                 firefox_profile.accept_untrusted_certs = True
                 firefox_profile.assume_untrusted_cert_issuer = True
-                firefox_profile._create_tempfolder
 
                 options = webdriver.FirefoxOptions()
                 override_ff_path = get_addon_pref(
