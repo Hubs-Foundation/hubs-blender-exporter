@@ -247,6 +247,7 @@ def is_user_in_entered():
 class HubsUpdateSceneOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.view_scene"
     bl_label = "View Scene"
+    bl_description = "Update scene"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -266,6 +267,7 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
 class HubsCreateRoomOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.open_window"
     bl_label = "Create Room"
+    bl_description = "Create room"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
