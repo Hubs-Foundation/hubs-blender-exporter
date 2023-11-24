@@ -266,7 +266,13 @@ class HubsCreateRoomOperator(bpy.types.Operator):
                 ff_path = get_addon_pref(context).firefox_path
                 if override_ff_path and ff_path:
                     options.binary_location = ff_path
-                options.profile = firefox_profile
+                # This should work but it doesn't https://github.com/SeleniumHQ/selenium/issues/11028 so using arguments instead
+                # firefox_profile = webdriver.FirefoxProfile(file_path)
+                # firefox_profile.accept_untrusted_certs = True
+                # firefox_profile.assume_untrusted_cert_issuer = True
+                # options.profile = firefox_profile
+                options.add_argument("-profile")
+                options.add_argument(file_path)
                 web_driver = webdriver.Firefox(options=options)
             else:
                 from selenium import webdriver
