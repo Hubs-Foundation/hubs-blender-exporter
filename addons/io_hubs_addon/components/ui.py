@@ -153,7 +153,7 @@ def export_scene():
         import os
         import sys
         extension = '.glb'
-        output_dir = "/Users"
+        output_dir = bpy.app.tempdir
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         args = {
