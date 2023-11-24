@@ -240,6 +240,10 @@ def is_user_logged_in():
     return has_credentials
 
 
+def is_user_in_entered():
+    return web_driver.execute_script('try { return APP.scene.is("entered"); } catch(e) { return false; }')
+
+
 class HubsUpdateSceneOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.view_scene"
     bl_label = "View Scene"
@@ -248,7 +252,7 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
     @classmethod
     def poll(cls, context: Context):
         global web_driver
-        return isWebdriverAlive(web_driver) and is_user_logged_in()
+        return isWebdriverAlive(web_driver) and is_user_logged_in() and is_user_in_entered()
 
     def execute(self, context):
         export_scene()
