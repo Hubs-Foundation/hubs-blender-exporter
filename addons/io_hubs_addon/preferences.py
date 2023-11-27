@@ -230,7 +230,7 @@ class HubsPreferences(AddonPreferences):
             op.dep_names.add().name = "selenium"
         else:
             op = row.operator(InstallDepsOperator.bl_idname,
-                              text="Install dependencies (selenium")
+                              text="Install dependencies (selenium)")
             dep = op.dep_names.add()
             dep.name = "selenium"
             dep.version = "4.15.2"
