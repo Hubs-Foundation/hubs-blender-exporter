@@ -35,7 +35,7 @@ JS_DROP_FILE = """
 web_driver = None
 
 
-def export_scene():
+def export_scene(context):
     import os
     extension = '.glb'
     output_dir = bpy.app.tempdir
@@ -47,11 +47,10 @@ def export_scene():
 
         'export_format': ('GLB' if extension == '.glb' else 'GLTF_SEPARATE'),
         'filepath': os.path.join(bpy.app.tempdir, EXPORT_TMP_FILE_NAME),
-        'export_cameras': True,
-        'export_lights': True,
-        'export_extras': True,
-        'use_visible': True,
-        'export_apply': True
+        'export_cameras': context.scene.hubs_scene_debugger_room_export_prefs.export_cameras,
+        'export_lights': context.scene.hubs_scene_debugger_room_export_prefs.export_lights,
+        'use_selection': context.scene.hubs_scene_debugger_room_export_prefs.use_selection,
+        'export_apply': context.scene.hubs_scene_debugger_room_export_prefs.export_apply
     }
     bpy.ops.export_scene.gltf(**args)
 
@@ -111,7 +110,7 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            export_scene()
+            export_scene(context)
             refresh_scene_viewer()
 
             web_driver.switch_to.window(web_driver.current_window_handle)
@@ -229,6 +228,9 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
         main_box = self.layout.box()
 
         if isModuleAvailable("selenium"):
+            row = main_box.row()
+            row.label(
+                text="Create room")
             box = main_box.box()
             row = box.row()
             row.enabled = not isWebdriverAlive()
@@ -247,9 +249,25 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
                          text='Create')
 
             main_box.separator()
+            row = main_box.row()
+            row.label(
+                text="Update scene")
             box = main_box.box()
             row = box.row()
-            row.label(text="Set the export options in the glTF export panel")
+            row.label(
+                text="Set the default export options in the glTF export panel")
+            row = box.row()
+            col = row.column(heading="Overridden export options:")
+            col.enabled = isWebdriverAlive() and is_user_in_entered()
+            col.use_property_split = True
+            col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
+                     "export_cameras")
+            col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
+                     "export_lights")
+            col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
+                     "use_selection")
+            col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
+                     "export_apply")
             row = box.row()
             row.operator(HubsUpdateSceneOperator.bl_idname,
                          text='Update')
@@ -306,15 +324,31 @@ class HubsSceneDebuggerRoomCreatePrefs(bpy.types.PropertyGroup):
                                               options=set())
 
 
+class HubsSceneDebuggerRoomExportPrefs(bpy.types.PropertyGroup):
+    export_cameras: bpy.props.BoolProperty(name="Export Cameras", default=True,
+                                           description="Export cameras", options=set())
+    export_lights: bpy.props.BoolProperty(name="Export Lights",
+                                          default=True, description="Punctual Lights, Export directional, point, and spot lights. Uses \"KHR_lights_punctual\" glTF extension", options=set())
+    use_selection: bpy.props.BoolProperty(name="Selection Only", default=False,
+                                          description="Selection Only, Export selected objects only.",
+                                          options=set())
+    export_apply: bpy.props.BoolProperty(name="Export Apply", default=True,
+                                              description="Apply Modifiers, Apply modifiers (excluding Armatures) to mesh objects -WARNING: prevents exporting shape keys.",
+                                              options=set())
+
+
 def register():
     bpy.utils.register_class(HubsCreateRoomOperator)
     bpy.utils.register_class(HubsUpdateSceneOperator)
     bpy.utils.register_class(HUBS_PT_ToolsSceneDebuggerPanel)
     bpy.utils.register_class(HubsSceneDebuggerRoomCreatePrefs)
     bpy.utils.register_class(HubsOpenAddonPrefsOperator)
+    bpy.utils.register_class(HubsSceneDebuggerRoomExportPrefs)
 
     bpy.types.Scene.hubs_scene_debugger_room_create_prefs = bpy.props.PointerProperty(
         type=HubsSceneDebuggerRoomCreatePrefs)
+    bpy.types.Scene.hubs_scene_debugger_room_export_prefs = bpy.props.PointerProperty(
+        type=HubsSceneDebuggerRoomExportPrefs)
 
 
 def unregister():
@@ -323,8 +357,10 @@ def unregister():
     bpy.utils.unregister_class(HUBS_PT_ToolsSceneDebuggerPanel)
     bpy.utils.unregister_class(HubsSceneDebuggerRoomCreatePrefs)
     bpy.utils.unregister_class(HubsOpenAddonPrefsOperator)
+    bpy.utils.unregister_class(HubsSceneDebuggerRoomExportPrefs)
 
     del bpy.types.Scene.hubs_scene_debugger_room_create_prefs
+    del bpy.types.Scene.hubs_scene_debugger_room_export_prefs
 
     if isWebdriverAlive():
         web_driver.close()
