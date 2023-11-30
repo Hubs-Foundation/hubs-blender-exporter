@@ -370,6 +370,7 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
             if isModuleAvailable("selenium"):
                 box = main_box.box()
                 row = box.row()
+                row.enabled = not isWebdriverAlive(web_driver)
                 col = row.column(heading="Room flags:")
                 col.use_property_split = True
                 col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
