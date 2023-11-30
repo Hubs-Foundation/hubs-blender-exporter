@@ -5,6 +5,7 @@ from .io import gltf_exporter
 from . import (nodes, components)
 from . import preferences
 from . import third_party
+from . import debugger
 bl_info = {
     "name": "Hubs Blender Addon",
     "author": "Mozilla Hubs",
@@ -28,6 +29,7 @@ def register():
     components.register()
     gltf_exporter.register()
     third_party.register()
+    debugger.register()
 
     # Migrate components if the add-on is enabled in the middle of a session.
     if bpy.context.preferences.is_dirty:
@@ -44,6 +46,7 @@ def unregister():
     components.unregister()
     nodes.unregister()
     preferences.unregister()
+    debugger.unregister()
 
 
 # called by gltf-blender-io after it has loaded

@@ -1,11 +1,8 @@
 import bpy
 from bpy.props import StringProperty
-from bpy.types import Context
 from .types import PanelType
 from .components_registry import get_component_by_name, get_components_registry
 from .utils import get_object_source, is_linked
-from ..preferences import get_addon_pref, EXPORT_TMP_FILE_NAME
-from ..utils import isModuleAvailable, get_browser_profile_directory
 
 
 def draw_component_global(panel, context):
@@ -145,202 +142,6 @@ class HubsObjectPanel(bpy.types.Panel):
         draw_components_list(self, context)
 
 
-def export_scene():
-    import os
-    extension = '.glb'
-    output_dir = bpy.app.tempdir
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-    args = {
-        # Settings from "Remember Export Settings"
-        **dict(bpy.context.scene.get('glTF2ExportSettings', {})),
-
-        'export_format': ('GLB' if extension == '.glb' else 'GLTF_SEPARATE'),
-        'filepath': os.path.join(bpy.app.tempdir, EXPORT_TMP_FILE_NAME),
-        'export_cameras': True,
-        'export_lights': True,
-        'export_extras': True,
-        'use_visible': True,
-        'export_apply': True
-    }
-    bpy.ops.export_scene.gltf(**args)
-
-
-web_driver = None
-
-
-JS_DROP_FILE = """
-    var target = arguments[0],
-        offsetX = arguments[1],
-        offsetY = arguments[2],
-        document = target.ownerDocument || document,
-        window = document.defaultView || window;
-
-    var input = document.createElement('INPUT');
-    input.type = 'file';
-    input.onchange = function () {
-      var rect = target.getBoundingClientRect(),
-          x = rect.left + (offsetX || (rect.width >> 1)),
-          y = rect.top + (offsetY || (rect.height >> 1)),
-          dataTransfer = { files: this.files };
-
-      ['dragenter', 'dragover', 'drop'].forEach(function (name) {
-        var evt = document.createEvent('MouseEvent');
-        evt.initMouseEvent(name, !0, !0, window, 0, 0, 0, x, y, !1, !1, !1, !1, 0, null);
-        evt.dataTransfer = dataTransfer;
-        target.dispatchEvent(evt);
-      });
-
-      setTimeout(function () { document.body.removeChild(input); }, 25);
-    };
-    document.body.appendChild(input);
-    return input;
-"""
-
-
-def refresh_scene_viewer():
-    import os
-    document = web_driver.find_element("tag name", "html")
-    file_input = web_driver.execute_script(JS_DROP_FILE, document, 0, 0)
-    file_input.send_keys(os.path.join(bpy.app.tempdir, EXPORT_TMP_FILE_NAME))
-
-
-def isWebdriverAlive(driver):
-    try:
-        if not isModuleAvailable("selenium"):
-            return False
-        else:
-            return driver.current_url
-    except Exception:
-        return False
-
-
-def get_local_storage():
-    storage = None
-    if isWebdriverAlive(web_driver):
-        storage = web_driver.execute_script("return window.localStorage;")
-
-    return storage
-
-
-def is_user_logged_in():
-    has_credentials = False
-    if isWebdriverAlive(web_driver):
-        storage = get_local_storage()
-        if storage:
-            hubs_store = storage.get("___hubs_store")
-            if hubs_store:
-                import json
-                hubs_store = json.loads(storage.get("___hubs_store"))
-                has_credentials = "credentials" in hubs_store
-
-    return has_credentials
-
-
-def is_user_in_entered():
-    return web_driver.execute_script('try { return APP.scene.is("entered"); } catch(e) { return false; }')
-
-
-class HubsUpdateSceneOperator(bpy.types.Operator):
-    bl_idname = "hubs_scene.view_scene"
-    bl_label = "View Scene"
-    bl_description = "Update scene"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    @classmethod
-    def poll(cls, context: Context):
-        return isWebdriverAlive(web_driver) and is_user_logged_in() and is_user_in_entered()
-
-    def execute(self, context):
-        try:
-            export_scene()
-            refresh_scene_viewer()
-
-            web_driver.switch_to.window(web_driver.current_window_handle)
-
-            return {'FINISHED'}
-        except Exception as err:
-            print(err)
-            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                          report_string='\n\n'.join(["The scene export has failed",
-                                                                     "Check the export logs or quit the browser instance and try again",
-                                                                     f'{err}']))
-            return {'CANCELLED'}
-
-
-class HubsCreateRoomOperator(bpy.types.Operator):
-    bl_idname = "hubs_scene.open_window"
-    bl_label = "Create Room"
-    bl_description = "Create room"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    @classmethod
-    def poll(cls, context: Context):
-        return not isWebdriverAlive(web_driver)
-
-    def execute(self, context):
-        try:
-            global web_driver
-            if not web_driver or not isWebdriverAlive(web_driver):
-                if web_driver:
-                    web_driver.quit()
-                browser = get_addon_pref(context).browser
-                import os
-                file_path = get_browser_profile_directory(browser)
-                if not os.path.exists(file_path):
-                    os.mkdir(file_path)
-                if browser == "Firefox":
-                    from selenium import webdriver
-                    options = webdriver.FirefoxOptions()
-                    override_ff_path = get_addon_pref(
-                        context).override_firefox_path
-                    ff_path = get_addon_pref(context).firefox_path
-                    if override_ff_path and ff_path:
-                        options.binary_location = ff_path
-                    # This should work but it doesn't https://github.com/SeleniumHQ/selenium/issues/11028 so using arguments instead
-                    # firefox_profile = webdriver.FirefoxProfile(file_path)
-                    # firefox_profile.accept_untrusted_certs = True
-                    # firefox_profile.assume_untrusted_cert_issuer = True
-                    # options.profile = firefox_profile
-                    options.add_argument("-profile")
-                    options.add_argument(file_path)
-                    web_driver = webdriver.Firefox(options=options)
-                else:
-                    from selenium import webdriver
-                    options = webdriver.ChromeOptions()
-                    options.add_argument('--ignore-certificate-errors')
-                    options.add_argument(
-                        f'user-data-dir={file_path}')
-                    override_chrome_path = get_addon_pref(
-                        context).override_chrome_path
-                    chrome_path = get_addon_pref(context).chrome_path
-                    if override_chrome_path and chrome_path:
-                        options.binary_location = chrome_path
-                    web_driver = webdriver.Chrome(options=options)
-
-                params = "new"
-                if context.scene.hubs_scene_debugger_room_create_prefs.new_loader:
-                    params = f'{params}&newLoader'
-                if context.scene.hubs_scene_debugger_room_create_prefs.ecs_debug:
-                    params = f'{params}&ecsDebug'
-                if context.scene.hubs_scene_debugger_room_create_prefs.vr_entry_type:
-                    params = f'{params}&vr_entry_type=2d_now'
-                if context.scene.hubs_scene_debugger_room_create_prefs.debug_local_scene:
-                    params = f'{params}&debugLocalScene'
-
-                web_driver.get(
-                    f'{get_addon_pref(context).hubs_instance_url}?{params}')
-
-                return {'FINISHED'}
-
-        except Exception as err:
-            if web_driver:
-                web_driver.quit()
-            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                          report_string=f'The room creation has failed: {err}')
-            return {"CANCELLED"}
-
-
 class HUBS_PT_ToolsPanel(bpy.types.Panel):
     bl_idname = "HUBS_PT_ToolsPanel"
     bl_space_type = 'VIEW_3D'
@@ -351,80 +152,6 @@ class HUBS_PT_ToolsPanel(bpy.types.Panel):
 
     def draw(self, context):
         pass
-
-
-class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
-    bl_idname = "HUBS_PT_ToolsSceneDebuggerPanel"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_label = "Scene Debugger"
-    bl_context = 'objectmode'
-    bl_parent_id = "HUBS_PT_ToolsPanel"
-
-    def draw(self, context):
-        main_box = self.layout.box()
-
-        if context.scene.hubs_scene_debugger_expanded:
-            if isModuleAvailable("selenium"):
-                box = main_box.box()
-                row = box.row()
-                row.enabled = not isWebdriverAlive(web_driver)
-                col = row.column(heading="Room flags:")
-                col.use_property_split = True
-                col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
-                         "new_loader")
-                col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
-                         "ecs_debug")
-                col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
-                         "vr_entry_type")
-                col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
-                         "debug_local_scene")
-                row = box.row()
-                row.operator(HubsCreateRoomOperator.bl_idname,
-                             text='Create')
-
-                main_box.separator()
-                box = main_box.box()
-                row = box.row()
-                row.label(text="Set the export options in the glTF export panel")
-                row = box.row()
-                row.operator(HubsUpdateSceneOperator.bl_idname,
-                             text='Update')
-
-                row = box.row(align=True)
-                row.alignment = "CENTER"
-                col = row.column()
-                col.alignment = "LEFT"
-                col.label(text="Status:")
-                if isWebdriverAlive(web_driver):
-                    if is_user_logged_in():
-                        if is_user_in_entered():
-                            col = row.column()
-                            col.alignment = "LEFT"
-                            col.active_default = True
-                            col.label(
-                                text="In room")
-                        else:
-                            col = row.column()
-                            col.alignment = "LEFT"
-                            col.label(
-                                text="Entering the room...")
-                    else:
-                        col = row.column()
-                        col.alignment = "LEFT"
-                        col.alert = True
-                        col.label(text="Waiting for sign in...")
-                else:
-                    col = row.column()
-                    col.alignment = "LEFT"
-                    col.alert = True
-                    col.label(text="Waiting for room...")
-
-            else:
-                row = main_box.row()
-                row.alert = True
-                row.label(
-                    text="Selenium needs to be installed for the scene debugger functionality. Install from preferences.")
 
 
 class HubsScenePanel(bpy.types.Panel):
@@ -496,35 +223,13 @@ def gizmo_display_popover_addition(self, context):
     layout.operator("wm.update_hubs_gizmos")
 
 
-class HubsSceneDebuggerRoomCreatePrefs(bpy.types.PropertyGroup):
-    new_loader: bpy.props.BoolProperty(name="New Loader", default=True,
-                                       description="Creates the room using the new bitECS loader", options=set())
-    ecs_debug: bpy.props.BoolProperty(name="ECS Debug",
-                                      default=True, description="Enables the ECS debugging side panel", options=set())
-    vr_entry_type: bpy.props.BoolProperty(name="Skip Entry", default=True,
-                                          description="Omits the entry setup panel and goes straight into the room",
-                                          options=set())
-    debug_local_scene: bpy.props.BoolProperty(name="Debug Local Scene", default=True,
-                                              description="Allows scene override. Use this if you want to update the scene. If you just want to spawn an object disable it.",
-                                              options=set())
-
-
 def register():
-    bpy.utils.register_class(HubsCreateRoomOperator)
-    bpy.utils.register_class(HubsUpdateSceneOperator)
     bpy.utils.register_class(HubsObjectPanel)
     bpy.utils.register_class(HubsScenePanel)
     bpy.utils.register_class(HubsMaterialPanel)
     bpy.utils.register_class(HubsBonePanel)
     bpy.utils.register_class(TooltipLabel)
     bpy.utils.register_class(HUBS_PT_ToolsPanel)
-    bpy.utils.register_class(HUBS_PT_ToolsSceneDebuggerPanel)
-    bpy.utils.register_class(HubsSceneDebuggerRoomCreatePrefs)
-
-    bpy.types.Scene.hubs_scene_debugger_room_create_prefs = bpy.props.PointerProperty(
-        type=HubsSceneDebuggerRoomCreatePrefs)
-    bpy.types.Scene.hubs_scene_debugger_expanded = bpy.props.BoolProperty(
-        default=True)
 
     bpy.types.TOPBAR_MT_window.append(window_menu_addition)
     bpy.types.VIEW3D_MT_object.append(object_menu_addition)
@@ -537,18 +242,9 @@ def unregister():
     bpy.utils.unregister_class(HubsMaterialPanel)
     bpy.utils.unregister_class(HubsBonePanel)
     bpy.utils.unregister_class(TooltipLabel)
-    bpy.utils.unregister_class(HubsUpdateSceneOperator)
-    bpy.utils.unregister_class(HubsCreateRoomOperator)
-    bpy.utils.unregister_class(HUBS_PT_ToolsSceneDebuggerPanel)
     bpy.utils.unregister_class(HUBS_PT_ToolsPanel)
-    bpy.utils.unregister_class(HubsSceneDebuggerRoomCreatePrefs)
 
-    del bpy.types.Scene.hubs_scene_debugger_room_create_prefs
-    del bpy.types.Scene.hubs_scene_debugger_expanded
 
     bpy.types.TOPBAR_MT_window.remove(window_menu_addition)
     bpy.types.VIEW3D_MT_object.remove(object_menu_addition)
     bpy.types.VIEW3D_PT_gizmo_display.remove(gizmo_display_popover_addition)
-
-    if web_driver and isWebdriverAlive(web_driver):
-        web_driver.close()
