@@ -311,13 +311,15 @@ class HubsCreateRoomOperator(bpy.types.Operator):
                         options.binary_location = chrome_path
                     web_driver = webdriver.Chrome(options=options)
 
-                params = "new&debugLocalScene"
+                params = "new"
                 if context.scene.hubs_scene_debugger_room_create_prefs.new_loader:
                     params = f'{params}&newLoader'
                 if context.scene.hubs_scene_debugger_room_create_prefs.ecs_debug:
                     params = f'{params}&ecsDebug'
                 if context.scene.hubs_scene_debugger_room_create_prefs.vr_entry_type:
                     params = f'{params}&vr_entry_type=2d_now'
+                if context.scene.hubs_scene_debugger_room_create_prefs.debug_local_scene:
+                    params = f'{params}&debugLocalScene'
 
                 web_driver.get(
                     f'{get_addon_pref(context).hubs_instance_url}?{params}')
@@ -364,6 +366,8 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
                          "ecs_debug")
                 col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
                          "vr_entry_type")
+                col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
+                         "debug_local_scene")
                 row = box.row()
                 row.operator(HubsCreateRoomOperator.bl_idname,
                              text='Create')
@@ -489,6 +493,9 @@ class HubsSceneDebuggerRoomCreatePrefs(bpy.types.PropertyGroup):
     vr_entry_type: bpy.props.BoolProperty(name="Skip Entry", default=True,
                                           description="Omits the entry setup panel and goes straight into the room",
                                           options=set())
+    debug_local_scene: bpy.props.BoolProperty(name="Debug Local Scene", default=True,
+                                              description="Allows scene override. Use this if you want to update the scene. If you just want to spawn an object disable it.",
+                                              options=set())
 
 
 def register():
