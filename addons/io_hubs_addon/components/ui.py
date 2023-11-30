@@ -146,29 +146,24 @@ class HubsObjectPanel(bpy.types.Panel):
 
 
 def export_scene():
-    try:
-        import os
-        extension = '.glb'
-        output_dir = bpy.app.tempdir
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-        args = {
-            # Settings from "Remember Export Settings"
-            **dict(bpy.context.scene.get('glTF2ExportSettings', {})),
+    import os
+    extension = '.glb'
+    output_dir = bpy.app.tempdir
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    args = {
+        # Settings from "Remember Export Settings"
+        **dict(bpy.context.scene.get('glTF2ExportSettings', {})),
 
-            'export_format': ('GLB' if extension == '.glb' else 'GLTF_SEPARATE'),
-            'filepath': os.path.join(bpy.app.tempdir, EXPORT_TMP_FILE_NAME),
-            'export_cameras': True,
-            'export_lights': True,
-            'export_extras': True,
-            'use_visible': True,
-            'export_apply': True
-        }
-        bpy.ops.export_scene.gltf(**args)
-    except Exception as err:
-        bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                      report_string="The scene export failed")
-        raise err
+        'export_format': ('GLB' if extension == '.glb' else 'GLTF_SEPARATE'),
+        'filepath': os.path.join(bpy.app.tempdir, EXPORT_TMP_FILE_NAME),
+        'export_cameras': True,
+        'export_lights': True,
+        'export_extras': True,
+        'use_visible': True,
+        'export_apply': True
+    }
+    bpy.ops.export_scene.gltf(**args)
 
 
 web_driver = None
@@ -265,8 +260,11 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
 
             return {'FINISHED'}
         except Exception as err:
+            print(err)
             bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                          report_string=f'The scene export has failed: {err}')
+                                          report_string='\n\n'.join(["The scene export has failed",
+                                                                     "Check the export logs or quit the browser instance and try again",
+                                                                     f'{err}']))
             return {'CANCELLED'}
 
 
