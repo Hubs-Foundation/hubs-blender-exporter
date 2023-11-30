@@ -182,6 +182,9 @@ class HubsPreferences(AddonPreferences):
             col = row.column()
             col.context_pointer_set("prefs", self)
             op = col.operator(DeleteProfileOperator.bl_idname)
+            row = browser_box.row()
+            row.label(
+                text="This will only delete the Hubs related profile, not your local browser profile")
             op.browser = self.browser
             if self.browser == "Firefox":
                 row = browser_box.row()
