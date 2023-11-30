@@ -63,19 +63,19 @@ def refresh_scene_viewer():
     file_input.send_keys(os.path.join(bpy.app.tempdir, EXPORT_TMP_FILE_NAME))
 
 
-def isWebdriverAlive(driver):
+def isWebdriverAlive():
     try:
-        if not isModuleAvailable("selenium"):
+        if not web_driver or not isModuleAvailable("selenium"):
             return False
         else:
-            return driver.current_url
+            return web_driver.current_url
     except Exception:
         return False
 
 
 def get_local_storage():
     storage = None
-    if isWebdriverAlive(web_driver):
+    if isWebdriverAlive():
         storage = web_driver.execute_script("return window.localStorage;")
 
     return storage
@@ -83,7 +83,7 @@ def get_local_storage():
 
 def is_user_logged_in():
     has_credentials = False
-    if isWebdriverAlive(web_driver):
+    if isWebdriverAlive():
         storage = get_local_storage()
         if storage:
             hubs_store = storage.get("___hubs_store")
@@ -107,7 +107,7 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context: Context):
-        return isWebdriverAlive(web_driver) and is_user_logged_in() and is_user_in_entered()
+        return isWebdriverAlive() and is_user_logged_in() and is_user_in_entered()
 
     def execute(self, context):
         try:
@@ -134,12 +134,12 @@ class HubsCreateRoomOperator(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context: Context):
-        return not isWebdriverAlive(web_driver)
+        return not isWebdriverAlive()
 
     def execute(self, context):
         try:
             global web_driver
-            if not web_driver or not isWebdriverAlive(web_driver):
+            if not web_driver or not isWebdriverAlive():
                 if web_driver:
                     web_driver.quit()
                 browser = get_addon_pref(context).browser
@@ -207,7 +207,7 @@ class HubsOpenAddonPrefsOperator(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context: Context):
-        return not isWebdriverAlive(web_driver)
+        return not isWebdriverAlive()
 
     def execute(self, context):
         bpy.ops.screen.userpref_show('INVOKE_DEFAULT')
@@ -231,7 +231,7 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
         if isModuleAvailable("selenium"):
             box = main_box.box()
             row = box.row()
-            row.enabled = not isWebdriverAlive(web_driver)
+            row.enabled = not isWebdriverAlive()
             col = row.column(heading="Room flags:")
             col.use_property_split = True
             col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
@@ -259,7 +259,7 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
             col = row.column()
             col.alignment = "LEFT"
             col.label(text="Status:")
-            if isWebdriverAlive(web_driver):
+            if isWebdriverAlive():
                 if is_user_logged_in():
                     if is_user_in_entered():
                         col = row.column()
@@ -326,12 +326,12 @@ def unregister():
 
     del bpy.types.Scene.hubs_scene_debugger_room_create_prefs
 
-    if web_driver and isWebdriverAlive(web_driver):
+    if isWebdriverAlive():
         web_driver.close()
 
 
 def cleanup():
-    if web_driver and isWebdriverAlive(web_driver):
+    if isWebdriverAlive():
         web_driver.close()
 
 
