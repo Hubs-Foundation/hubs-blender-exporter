@@ -148,7 +148,6 @@ class HubsObjectPanel(bpy.types.Panel):
 def export_scene():
     try:
         import os
-        import sys
         extension = '.glb'
         output_dir = bpy.app.tempdir
         if not os.path.exists(output_dir):
@@ -167,7 +166,9 @@ def export_scene():
         }
         bpy.ops.export_scene.gltf(**args)
     except Exception as err:
-        print(err, file=sys.stderr)
+        bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
+                                      report_string="The scene export failed")
+        raise err
 
 
 web_driver = None
@@ -255,12 +256,17 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
         return isWebdriverAlive(web_driver) and is_user_logged_in() and is_user_in_entered()
 
     def execute(self, context):
-        export_scene()
-        refresh_scene_viewer()
+        try:
+            export_scene()
+            refresh_scene_viewer()
 
-        web_driver.switch_to.window(web_driver.current_window_handle)
+            web_driver.switch_to.window(web_driver.current_window_handle)
 
-        return {'FINISHED'}
+            return {'FINISHED'}
+        except Exception as err:
+            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
+                                          report_string=f'The scene export has failed: {err}')
+            return {'CANCELLED'}
 
 
 class HubsCreateRoomOperator(bpy.types.Operator):
@@ -277,6 +283,8 @@ class HubsCreateRoomOperator(bpy.types.Operator):
         try:
             global web_driver
             if not web_driver or not isWebdriverAlive(web_driver):
+                if web_driver:
+                    web_driver.quit()
                 browser = get_addon_pref(context).browser
                 import os
                 file_path = get_browser_profile_directory(browser)
@@ -326,8 +334,11 @@ class HubsCreateRoomOperator(bpy.types.Operator):
 
                 return {'FINISHED'}
 
-        except Exception as e:
-            print(e)
+        except Exception as err:
+            if web_driver:
+                web_driver.quit()
+            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
+                                          report_string=f'The room creation has failed: {err}')
             return {"CANCELLED"}
 
 
