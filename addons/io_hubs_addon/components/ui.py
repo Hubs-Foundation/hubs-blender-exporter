@@ -244,7 +244,6 @@ def unregister():
     bpy.utils.unregister_class(TooltipLabel)
     bpy.utils.unregister_class(HUBS_PT_ToolsPanel)
 
-
     bpy.types.TOPBAR_MT_window.remove(window_menu_addition)
     bpy.types.VIEW3D_MT_object.remove(object_menu_addition)
     bpy.types.VIEW3D_PT_gizmo_display.remove(gizmo_display_popover_addition)
