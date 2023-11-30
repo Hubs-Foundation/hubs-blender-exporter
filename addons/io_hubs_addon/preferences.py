@@ -172,6 +172,9 @@ class HubsPreferences(AddonPreferences):
         box = layout.box()
         box.label(text="Scene debugger configuration")
 
+        row = box.row()
+        row.prop(self, "hubs_instance_url")
+
         if modules_available:
             browser_box = box.box()
             row = browser_box.row()
@@ -213,16 +216,14 @@ class HubsPreferences(AddonPreferences):
                     row = browser_box.row()
                     row.prop(self, "chrome_path")
 
-        row = box.row()
+        modules_box = box.box()
+        row = modules_box.row()
         row.alert = not modules_available
         row.label(
             text="Modules found."
             if modules_available else
             "Selenium module not found. These modules are required to run the viewer")
-        row = box.row()
-        row.prop(self, "hubs_instance_url")
-        row = box.row()
-
+        row = modules_box.row()
         if modules_available:
             row.prop(self, "force_uninstall")
             op = row.operator(UninstallDepsOperator.bl_idname,
