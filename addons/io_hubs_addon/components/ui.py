@@ -252,7 +252,6 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context: Context):
-        global web_driver
         return isWebdriverAlive(web_driver) and is_user_logged_in() and is_user_in_entered()
 
     def execute(self, context):
@@ -272,7 +271,6 @@ class HubsCreateRoomOperator(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context: Context):
-        global web_driver
         return not isWebdriverAlive(web_driver)
 
     def execute(self, context):
@@ -528,6 +526,5 @@ def unregister():
     bpy.types.VIEW3D_MT_object.remove(object_menu_addition)
     bpy.types.VIEW3D_PT_gizmo_display.remove(gizmo_display_popover_addition)
 
-    global web_driver
     if web_driver and isWebdriverAlive(web_driver):
         web_driver.close()
