@@ -44,9 +44,6 @@ class InstallDepsOperator(bpy.types.Operator):
         import subprocess
         import sys
 
-        subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'],
-                       capture_output=False, text=True, input="y")
-
         deps = []
         for _, dep in self.dep_names.items():
             if dep.version:
@@ -77,8 +74,6 @@ class UninstallDepsOperator(bpy.types.Operator):
         import sys
 
         subprocess.run([sys.executable, '-m', 'ensurepip'],
-                       capture_output=False, text=True, input="y")
-        subprocess.run([sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'],
                        capture_output=False, text=True, input="y")
         subprocess.run(
             [sys.executable, '-m', 'pip', 'uninstall', *
