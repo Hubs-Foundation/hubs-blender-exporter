@@ -5,7 +5,6 @@ from .io import gltf_exporter
 from . import (nodes, components)
 from . import preferences
 from . import third_party
-from . import preferences
 bl_info = {
     "name": "Hubs Blender Addon",
     "author": "Mozilla Hubs",
