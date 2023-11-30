@@ -330,6 +330,7 @@ class HubsCreateRoomOperator(bpy.types.Operator):
 
 
 class HUBS_PT_ToolsPanel(bpy.types.Panel):
+    bl_idname = "HUBS_PT_ToolsPanel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Hubs"
@@ -337,16 +338,19 @@ class HUBS_PT_ToolsPanel(bpy.types.Panel):
     bl_context = 'objectmode'
 
     def draw(self, context):
-        layout = self.layout
-        row = layout.row()
-        main_box = row.box()
+        pass
 
-        top_row = main_box.row()
-        top_row.prop(context.scene, "hubs_scene_debugger_expanded",
-                     icon="TRIA_DOWN" if context.scene.hubs_scene_debugger_expanded else "TRIA_RIGHT",
-                     icon_only=True, emboss=False
-                     )
-        top_row.label(text="Scene Debugger")
+
+class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
+    bl_idname = "HUBS_PT_ToolsSceneDebuggerPanel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Scene Debugger"
+    bl_context = 'objectmode'
+    bl_parent_id = "HUBS_PT_ToolsPanel"
+
+    def draw(self, context):
+        main_box = self.layout.box()
 
         if context.scene.hubs_scene_debugger_expanded:
             if isModuleAvailable("selenium"):
@@ -496,6 +500,7 @@ def register():
     bpy.utils.register_class(HubsBonePanel)
     bpy.utils.register_class(TooltipLabel)
     bpy.utils.register_class(HUBS_PT_ToolsPanel)
+    bpy.utils.register_class(HUBS_PT_ToolsSceneDebuggerPanel)
     bpy.utils.register_class(HubsSceneDebuggerRoomCreatePrefs)
 
     bpy.types.Scene.hubs_scene_debugger_room_create_prefs = bpy.props.PointerProperty(
@@ -516,6 +521,7 @@ def unregister():
     bpy.utils.unregister_class(TooltipLabel)
     bpy.utils.unregister_class(HubsUpdateSceneOperator)
     bpy.utils.unregister_class(HubsCreateRoomOperator)
+    bpy.utils.unregister_class(HUBS_PT_ToolsSceneDebuggerPanel)
     bpy.utils.unregister_class(HUBS_PT_ToolsPanel)
     bpy.utils.unregister_class(HubsSceneDebuggerRoomCreatePrefs)
 
