@@ -232,11 +232,12 @@ def is_user_logged_in():
     has_credentials = False
     if isWebdriverAlive(web_driver):
         storage = get_local_storage()
-        hubs_store = storage.get("___hubs_store")
-        if hubs_store:
-            import json
-            hubs_store = json.loads(storage.get("___hubs_store"))
-            has_credentials = "credentials" in hubs_store
+        if storage:
+            hubs_store = storage.get("___hubs_store")
+            if hubs_store:
+                import json
+                hubs_store = json.loads(storage.get("___hubs_store"))
+                has_credentials = "credentials" in hubs_store
 
     return has_credentials
 
