@@ -80,12 +80,14 @@ class UninstallDepsOperator(bpy.types.Operator):
                 [name for name, _ in self.dep_names.items()]],
             capture_output=False, text=True, input="y")
 
-        import os
-        from .utils import get_user_python_path
-        selenium_path = os.path.join(get_user_python_path(), "selenium")
-        if self.force and os.path.isfile(selenium_path):
+        if self.force:
+            import os
+            from .utils import get_user_python_path
+            deps_paths = [os.path.join(get_user_python_path(), name)
+                          for name, _ in self.dep_names.items()]
             import shutil
-            shutil.rmtree(selenium_path)
+            for dep_path in deps_paths:
+                shutil.rmtree(deps_paths)
 
         return {'FINISHED'}
 
