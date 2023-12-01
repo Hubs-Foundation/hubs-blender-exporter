@@ -144,7 +144,8 @@ class DeleteProfileOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class HubsSceneDebuggerInstance(bpy.types.PropertyGroup):
+class HubsRoomUrl(bpy.types.PropertyGroup):
+    name: bpy.props.StringProperty()
     url: bpy.props.StringProperty()
 
 
@@ -181,19 +182,21 @@ class HubsPreferences(AddonPreferences):
     viewer_available: BoolProperty()
 
     hubs_instances: bpy.props.CollectionProperty(
-        type=HubsSceneDebuggerInstance)
+        type=HubsRoomUrl)
 
     hubs_instance_idx: bpy.props.IntProperty(
-        name="Hubs instance index",
-        description="Active Hubs Scene Debugger Instance index",
         set=hubs_instance_idx_set,
         get=hubs_instance_idx_get,
         default=-1)
 
     hubs_instance_idx_: bpy.props.IntProperty(
-        name="Hubs instance index (hidden)",
-        description="Active Hubs Scene Debugger Instance index (hidden)",
         default=-1)
+
+    hubs_room_idx: bpy.props.IntProperty(
+        default=-1)
+
+    hubs_rooms: bpy.props.CollectionProperty(
+        type=HubsRoomUrl)
 
     browser: EnumProperty(
         name="Choose a browser", description="Type",
@@ -290,7 +293,7 @@ class HubsPreferences(AddonPreferences):
 
 def register():
     bpy.utils.register_class(DepsProperty)
-    bpy.utils.register_class(HubsSceneDebuggerInstance)
+    bpy.utils.register_class(HubsRoomUrl)
     bpy.utils.register_class(HubsPreferences)
     bpy.utils.register_class(InstallDepsOperator)
     bpy.utils.register_class(UninstallDepsOperator)
@@ -308,5 +311,5 @@ def unregister():
     bpy.utils.unregister_class(UninstallDepsOperator)
     bpy.utils.unregister_class(InstallDepsOperator)
     bpy.utils.unregister_class(HubsPreferences)
-    bpy.utils.unregister_class(HubsSceneDebuggerInstance)
+    bpy.utils.unregister_class(HubsRoomUrl)
     bpy.utils.unregister_class(DepsProperty)

@@ -68,7 +68,7 @@ def isWebdriverAlive():
         if not web_driver or not isModuleAvailable("selenium"):
             return False
         else:
-            return web_driver.current_url
+            return bool(web_driver.current_url)
     except Exception:
         return False
 
@@ -82,16 +82,21 @@ def get_local_storage():
 
 
 def is_user_logged_in():
-    return web_driver.execute_script('try { return APP?.hubChannel?.signedIn; } catch(e) { return false; }')
+    return bool(web_driver.execute_script('try { return APP?.hubChannel?.signedIn; } catch(e) { return false; }'))
 
 
 def is_user_in_room():
-    return web_driver.execute_script('try { return APP?.scene?.is("entered"); } catch(e) { return false; }')
+    return bool(web_driver.execute_script('try { return APP?.scene?.is("entered"); } catch(e) { return false; }'))
 
 
 def is_instance_set(context):
     hubs_instance_idx = get_addon_pref(context).hubs_instance_idx
     return hubs_instance_idx != -1
+
+
+def is_room_set(context):
+    hubs_room_idx = get_addon_pref(context).hubs_room_idx
+    return hubs_room_idx != -1
 
 
 class HubsUpdateSceneOperator(bpy.types.Operator):
@@ -121,11 +126,77 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
             return {'CANCELLED'}
 
 
+def get_url_params(context):
+    params = "new"
+    if context.scene.hubs_scene_debugger_room_create_prefs.new_loader:
+        params = f'{params}&newLoader'
+    if context.scene.hubs_scene_debugger_room_create_prefs.ecs_debug:
+        params = f'{params}&ecsDebug'
+    if context.scene.hubs_scene_debugger_room_create_prefs.vr_entry_type:
+        params = f'{params}&vr_entry_type=2d_now'
+    if context.scene.hubs_scene_debugger_room_create_prefs.debug_local_scene:
+        params = f'{params}&debugLocalScene'
+
+    return params
+
+
+def create_browser_instance(context):
+    global web_driver
+    if not web_driver or not isWebdriverAlive():
+        if web_driver:
+            web_driver.quit()
+        browser = get_addon_pref(context).browser
+        import os
+        file_path = get_browser_profile_directory(browser)
+        if not os.path.exists(file_path):
+            os.mkdir(file_path)
+        if browser == "Firefox":
+            from selenium import webdriver
+            options = webdriver.FirefoxOptions()
+            override_ff_path = get_addon_pref(
+                context).override_firefox_path
+            ff_path = get_addon_pref(context).firefox_path
+            if override_ff_path and ff_path:
+                options.binary_location = ff_path
+            # This should work but it doesn't https://github.com/SeleniumHQ/selenium/issues/11028 so using arguments instead
+            # firefox_profile = webdriver.FirefoxProfile(file_path)
+            # firefox_profile.accept_untrusted_certs = True
+            # firefox_profile.assume_untrusted_cert_issuer = True
+            # options.profile = firefox_profile
+            options.add_argument("-profile")
+            options.add_argument(file_path)
+            web_driver = webdriver.Firefox(options=options)
+        else:
+            from selenium import webdriver
+            options = webdriver.ChromeOptions()
+            options.add_argument('--ignore-certificate-errors')
+            options.add_argument(
+                f'user-data-dir={file_path}')
+            override_chrome_path = get_addon_pref(
+                context).override_chrome_path
+            chrome_path = get_addon_pref(context).chrome_path
+            if override_chrome_path and chrome_path:
+                options.binary_location = chrome_path
+            web_driver = webdriver.Chrome(options=options)
+
+        params = "new"
+        if context.scene.hubs_scene_debugger_room_create_prefs.new_loader:
+            params = f'{params}&newLoader'
+        if context.scene.hubs_scene_debugger_room_create_prefs.ecs_debug:
+            params = f'{params}&ecsDebug'
+        if context.scene.hubs_scene_debugger_room_create_prefs.vr_entry_type:
+            params = f'{params}&vr_entry_type=2d_now'
+        if context.scene.hubs_scene_debugger_room_create_prefs.debug_local_scene:
+            params = f'{params}&debugLocalScene'
+
+
 class HubsCreateRoomOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.create_room"
     bl_label = "Create Room"
     bl_description = "Create room"
     bl_options = {'REGISTER', 'UNDO'}
+
+    url: bpy.props.StringProperty()
 
     @classmethod
     def poll(cls, context: Context):
@@ -133,65 +204,44 @@ class HubsCreateRoomOperator(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            global web_driver
-            if not web_driver or not isWebdriverAlive():
-                if web_driver:
-                    web_driver.quit()
-                browser = get_addon_pref(context).browser
-                import os
-                file_path = get_browser_profile_directory(browser)
-                if not os.path.exists(file_path):
-                    os.mkdir(file_path)
-                if browser == "Firefox":
-                    from selenium import webdriver
-                    options = webdriver.FirefoxOptions()
-                    override_ff_path = get_addon_pref(
-                        context).override_firefox_path
-                    ff_path = get_addon_pref(context).firefox_path
-                    if override_ff_path and ff_path:
-                        options.binary_location = ff_path
-                    # This should work but it doesn't https://github.com/SeleniumHQ/selenium/issues/11028 so using arguments instead
-                    # firefox_profile = webdriver.FirefoxProfile(file_path)
-                    # firefox_profile.accept_untrusted_certs = True
-                    # firefox_profile.assume_untrusted_cert_issuer = True
-                    # options.profile = firefox_profile
-                    options.add_argument("-profile")
-                    options.add_argument(file_path)
-                    web_driver = webdriver.Firefox(options=options)
-                else:
-                    from selenium import webdriver
-                    options = webdriver.ChromeOptions()
-                    options.add_argument('--ignore-certificate-errors')
-                    options.add_argument(
-                        f'user-data-dir={file_path}')
-                    override_chrome_path = get_addon_pref(
-                        context).override_chrome_path
-                    chrome_path = get_addon_pref(context).chrome_path
-                    if override_chrome_path and chrome_path:
-                        options.binary_location = chrome_path
-                    web_driver = webdriver.Chrome(options=options)
+            create_browser_instance(context)
+            prefs = get_addon_pref(context)
+            hubs_instance_url = prefs.hubs_instances[prefs.hubs_instance_idx].url
+            web_driver.get(f'{hubs_instance_url}?{get_url_params(context)}')
 
-                params = "new"
-                if context.scene.hubs_scene_debugger_room_create_prefs.new_loader:
-                    params = f'{params}&newLoader'
-                if context.scene.hubs_scene_debugger_room_create_prefs.ecs_debug:
-                    params = f'{params}&ecsDebug'
-                if context.scene.hubs_scene_debugger_room_create_prefs.vr_entry_type:
-                    params = f'{params}&vr_entry_type=2d_now'
-                if context.scene.hubs_scene_debugger_room_create_prefs.debug_local_scene:
-                    params = f'{params}&debugLocalScene'
-
-                prefs = get_addon_pref(context)
-                hubs_instance_url = prefs.hubs_instances[prefs.hubs_instance_idx].url
-                web_driver.get(f'{hubs_instance_url}?{params}')
-
-                return {'FINISHED'}
+            return {'FINISHED'}
 
         except Exception as err:
             if web_driver:
                 web_driver.quit()
             bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
                                           report_string=f'The room creation has failed: {err}')
+            return {"CANCELLED"}
+
+
+class HubsOpenRoomOperator(bpy.types.Operator):
+    bl_idname = "hubs_scene.open_room"
+    bl_label = "Open Room"
+    bl_description = "Open room"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context: Context):
+        return is_room_set(context)
+
+    def execute(self, context):
+        try:
+            prefs = get_addon_pref(context)
+            room_url = prefs.hubs_rooms[prefs.hubs_room_idx].url
+            if not isWebdriverAlive():
+                create_browser_instance(context)
+
+            web_driver.get(room_url)
+            return {'FINISHED'}
+
+        except Exception as err:
+            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
+                                          report_string=f'An error happened while opening the room: {err}')
             return {"CANCELLED"}
 
 
@@ -212,7 +262,7 @@ class HubsCloseRoomOperator(bpy.types.Operator):
 
         except Exception as err:
             bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                          report_string=f'An error happened while closing thew browser window: {err}')
+                                          report_string=f'An error happened while closing the browser window: {err}')
             return {"CANCELLED"}
 
 
@@ -244,6 +294,21 @@ class HUBS_PT_ToolsSceneDebuggerCreatePanel(bpy.types.Panel):
 
     def draw(self, context: Context):
         if isModuleAvailable("selenium"):
+            prefs = get_addon_pref(context)
+            box = self.layout.box()
+            row = box.row()
+            row.label(text="Instances:")
+            row = box.row()
+            list_row = row.row()
+            list_row.enabled = not isWebdriverAlive()
+            list_row.template_list(HUBS_UL_ToolsSceneDebuggerServers.bl_idname, "", prefs,
+                                   "hubs_instances", prefs, "hubs_instance_idx", rows=3)
+            col = row.column()
+            col.operator(HubsSceneDebuggerInstanceAdd.bl_idname,
+                         icon='ADD', text="")
+            col.operator(HubsSceneDebuggerInstanceRemove.bl_idname,
+                         icon='REMOVE', text="")
+
             box = self.layout.box()
             row = box.row()
             col = row.column(heading="Room flags:")
@@ -265,10 +330,39 @@ class HUBS_PT_ToolsSceneDebuggerCreatePanel(bpy.types.Panel):
             col.operator(HubsCloseRoomOperator.bl_idname,
                          text='Close')
 
-            if not is_instance_set(context):
-                row = box.row()
-                row.alert = True
-                row.label(text="Set a hubs instance")
+
+class HUBS_PT_ToolsSceneDebuggerOpenPanel(bpy.types.Panel):
+    bl_idname = "HUBS_PT_ToolsSceneDebuggerOpenPanel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Open Room"
+    bl_context = 'objectmode'
+    bl_parent_id = "HUBS_PT_ToolsSceneDebuggerPanel"
+
+    def draw(self, context: Context):
+        if isModuleAvailable("selenium"):
+            box = self.layout.box()
+            prefs = get_addon_pref(context)
+            row = box.row()
+            row.label(text="Rooms:")
+            row = box.row()
+            list_row = row.row()
+            list_row.template_list(HUBS_UL_ToolsSceneDebuggerRooms.bl_idname, "", prefs,
+                                   "hubs_rooms", prefs, "hubs_room_idx", rows=3)
+            col = row.column()
+            op = col.operator(HubsSceneDebuggerRoomAdd.bl_idname,
+                              icon='ADD', text="")
+            op.url = "https://hubs.mozilla.com/demo"
+            col.operator(HubsSceneDebuggerRoomRemove.bl_idname,
+                         icon='REMOVE', text="")
+
+            row = box.row()
+            col = row.column()
+            col.operator(HubsOpenRoomOperator.bl_idname,
+                         text='Open')
+            col = row.column()
+            col.operator(HubsCloseRoomOperator.bl_idname,
+                         text='Close')
 
 
 class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
@@ -365,21 +459,6 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
             row.operator(HubsOpenAddonPrefsOperator.bl_idname,
                          text='Setup')
 
-        prefs = get_addon_pref(context)
-        row = main_box.row()
-        row.label(text="Instances:")
-        row = main_box.row()
-        row.enabled = not isWebdriverAlive()
-        row.template_list(HUBS_UL_ToolsSceneDebuggerServers.bl_idname, "", prefs,
-                          "hubs_instances", prefs, "hubs_instance_idx", rows=3)
-        col = row.column()
-        col.enabled = not isWebdriverAlive()
-        col.operator(HubsSceneDebuggerInstanceAdd.bl_idname,
-                     icon='ADD', text="")
-        col.enabled = not isWebdriverAlive()
-        col.operator(HubsSceneDebuggerInstanceRemove.bl_idname,
-                     icon='REMOVE', text="")
-
 
 class HubsSceneDebuggerInstanceAdd(bpy.types.Operator):
     bl_idname = "hubs_scene.scene_debugger_instance_add"
@@ -393,6 +472,7 @@ class HubsSceneDebuggerInstanceAdd(bpy.types.Operator):
     def execute(self, context):
         prefs = get_addon_pref(context)
         new_instance = prefs.hubs_instances.add()
+        new_instance.name = "Demo Hub"
         new_instance.url = "https://hubs.mozilla.com/demo"
         prefs.hubs_instance_idx = len(
             prefs.hubs_instances) - 1
@@ -419,12 +499,68 @@ class HubsSceneDebuggerInstanceRemove(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class HubsSceneDebuggerRoomAdd(bpy.types.Operator):
+    bl_idname = "hubs_scene.scene_debugger_room_add"
+    bl_label = "Add Room"
+    bl_description = "Adds the current active room url to the list, if there is no active room it will add and empty string"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    url: bpy.props.StringProperty(name="Room Url")
+
+    def execute(self, context):
+        prefs = get_addon_pref(context)
+        new_room = prefs.hubs_rooms.add()
+        url = self.url
+        if isWebdriverAlive():
+            if web_driver.current_url:
+                url = web_driver.current_url
+
+        new_room.name = "Room Name"
+        new_room.url = url
+        prefs.hubs_room_idx = len(
+            prefs.hubs_rooms) - 1
+        bpy.ops.wm.save_userpref()
+
+        return {'FINISHED'}
+
+
+class HubsSceneDebuggerRoomRemove(bpy.types.Operator):
+    bl_idname = "hubs_scene.scene_debugger_room_remove"
+    bl_label = "Remove Room"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context: Context):
+        prefs = get_addon_pref(context)
+        return prefs.hubs_room_idx >= 0
+
+    def execute(self, context):
+        prefs = get_addon_pref(context)
+        prefs.hubs_rooms.remove(prefs.hubs_room_idx)
+        prefs.hubs_room_idx = len(prefs.hubs_rooms) - 1
+        bpy.ops.wm.save_userpref()
+
+        return {'FINISHED'}
+
+
 class HUBS_UL_ToolsSceneDebuggerServers(bpy.types.UIList):
     bl_idname = "HUBS_UL_ToolsSceneDebuggerServers"
     bl_label = "Instances"
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        layout.prop(item, "url", text="", emboss=False)
+        split = layout.split(factor=0.25)
+        split.prop(item, "name", text="", emboss=False)
+        split.prop(item, "url", text="", emboss=False)
+
+
+class HUBS_UL_ToolsSceneDebuggerRooms(bpy.types.UIList):
+    bl_idname = "HUBS_UL_ToolsSceneDebuggerRooms"
+    bl_label = "Rooms"
+
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        split = layout.split(factor=0.25)
+        split.prop(item, "name", text="", emboss=False)
+        split.prop(item, "url", text="", emboss=False)
 
 
 class HubsSceneDebuggerRoomCreatePrefs(bpy.types.PropertyGroup):
@@ -455,17 +591,22 @@ class HubsSceneDebuggerRoomExportPrefs(bpy.types.PropertyGroup):
 
 def register():
     bpy.utils.register_class(HubsCreateRoomOperator)
+    bpy.utils.register_class(HubsOpenRoomOperator)
     bpy.utils.register_class(HubsCloseRoomOperator)
     bpy.utils.register_class(HubsUpdateSceneOperator)
     bpy.utils.register_class(HUBS_PT_ToolsSceneDebuggerPanel)
     bpy.utils.register_class(HUBS_PT_ToolsSceneDebuggerCreatePanel)
+    bpy.utils.register_class(HUBS_PT_ToolsSceneDebuggerOpenPanel)
     bpy.utils.register_class(HUBS_PT_ToolsSceneDebuggerUpdatePanel)
     bpy.utils.register_class(HubsSceneDebuggerRoomCreatePrefs)
     bpy.utils.register_class(HubsOpenAddonPrefsOperator)
     bpy.utils.register_class(HubsSceneDebuggerRoomExportPrefs)
     bpy.utils.register_class(HubsSceneDebuggerInstanceAdd)
     bpy.utils.register_class(HubsSceneDebuggerInstanceRemove)
+    bpy.utils.register_class(HubsSceneDebuggerRoomAdd)
+    bpy.utils.register_class(HubsSceneDebuggerRoomRemove)
     bpy.utils.register_class(HUBS_UL_ToolsSceneDebuggerServers)
+    bpy.utils.register_class(HUBS_UL_ToolsSceneDebuggerRooms)
 
     bpy.types.Scene.hubs_scene_debugger_room_create_prefs = bpy.props.PointerProperty(
         type=HubsSceneDebuggerRoomCreatePrefs)
@@ -475,17 +616,22 @@ def register():
 
 def unregister():
     bpy.utils.unregister_class(HubsUpdateSceneOperator)
+    bpy.utils.unregister_class(HubsOpenRoomOperator)
     bpy.utils.unregister_class(HubsCloseRoomOperator)
     bpy.utils.unregister_class(HubsCreateRoomOperator)
     bpy.utils.unregister_class(HUBS_PT_ToolsSceneDebuggerCreatePanel)
+    bpy.utils.unregister_class(HUBS_PT_ToolsSceneDebuggerOpenPanel)
     bpy.utils.unregister_class(HUBS_PT_ToolsSceneDebuggerUpdatePanel)
     bpy.utils.unregister_class(HUBS_PT_ToolsSceneDebuggerPanel)
     bpy.utils.unregister_class(HubsSceneDebuggerRoomCreatePrefs)
     bpy.utils.unregister_class(HubsOpenAddonPrefsOperator)
     bpy.utils.unregister_class(HubsSceneDebuggerRoomExportPrefs)
     bpy.utils.unregister_class(HUBS_UL_ToolsSceneDebuggerServers)
+    bpy.utils.unregister_class(HUBS_UL_ToolsSceneDebuggerRooms)
     bpy.utils.unregister_class(HubsSceneDebuggerInstanceAdd)
     bpy.utils.unregister_class(HubsSceneDebuggerInstanceRemove)
+    bpy.utils.unregister_class(HubsSceneDebuggerRoomAdd)
+    bpy.utils.unregister_class(HubsSceneDebuggerRoomRemove)
 
     del bpy.types.Scene.hubs_scene_debugger_room_create_prefs
     del bpy.types.Scene.hubs_scene_debugger_room_export_prefs
