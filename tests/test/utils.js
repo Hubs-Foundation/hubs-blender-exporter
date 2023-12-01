@@ -6,7 +6,7 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 
 function blenderFileToGltf(blenderVersion, blenderPath, outDirName, done, options = '') {
   const { exec } = require('child_process');
-  const cmd = `${blenderVersion} -b --factory-startup --addons io_hubs_addon -noaudio ${blenderPath} --python export_gltf.py -- ${outDirName} ${options}`;
+  const cmd = `BLENDER_USER_SCRIPTS=${path.resolve("../")} ${blenderVersion} -b --factory-startup --addons io_hubs_addon -noaudio ${blenderPath} --python export_gltf.py -- ${outDirName} ${options}`;
   var prc = exec(cmd, (error, stdout, stderr) => {
     //if (stderr) process.stderr.write(stderr);
 
@@ -21,7 +21,7 @@ function blenderFileToGltf(blenderVersion, blenderPath, outDirName, done, option
 
 function blenderRoundtripGltf(blenderVersion, gltfPath, outDirName, done, options = '') {
   const { exec } = require('child_process');
-  const cmd = `${blenderVersion} -b --factory-startup --addons io_hubs_addon -noaudio --python roundtrip_gltf.py -- ${gltfPath} ${outDirName} ${options}`;
+  const cmd = `BLENDER_USER_SCRIPTS=${path.resolve("../")} ${blenderVersion} -b --factory-startup --addons io_hubs_addon -noaudio --python roundtrip_gltf.py -- ${gltfPath} ${outDirName} ${options}`;
   var prc = exec(cmd, (error, stdout, stderr) => {
     //if (stderr) process.stderr.write(stderr);
 
