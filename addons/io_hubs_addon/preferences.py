@@ -296,6 +296,12 @@ def register():
     bpy.utils.register_class(UninstallDepsOperator)
     bpy.utils.register_class(DeleteProfileOperator)
 
+    prefs = get_addon_pref(bpy.context)
+    if len(prefs.hubs_instances) == 0:
+        new_instance = prefs.hubs_instances.add()
+        new_instance.url = "https://hubs.mozilla.com/demo"
+        prefs.hubs_instance_idx = len(prefs.hubs_instances) - 1
+
 
 def unregister():
     bpy.utils.unregister_class(DeleteProfileOperator)

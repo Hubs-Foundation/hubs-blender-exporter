@@ -413,7 +413,7 @@ class HubsSceneDebuggerInstanceRemove(bpy.types.Operator):
     def execute(self, context):
         prefs = get_addon_pref(context)
         prefs.hubs_instances.remove(prefs.hubs_instance_idx)
-        prefs.hubs_instances = len(prefs.hubs_instances) - 1
+        prefs.hubs_instance_idx = len(prefs.hubs_instances) - 1
         bpy.ops.wm.save_userpref()
 
         return {'FINISHED'}
