@@ -238,25 +238,20 @@ class HubsOpenAddonPrefsOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
-    bl_idname = "HUBS_PT_ToolsSceneDebuggerPanel"
+class HUBS_PT_ToolsSceneDebuggerCreatePanel(bpy.types.Panel):
+    bl_idname = "HUBS_PT_ToolsSceneDebuggerCreatePanel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_label = "Scene Debugger"
+    bl_label = "Create Room"
     bl_context = 'objectmode'
-    bl_parent_id = "HUBS_PT_ToolsPanel"
+    bl_parent_id = "HUBS_PT_ToolsSceneDebuggerPanel"
 
-    def draw(self, context):
-        main_box = self.layout.box()
-
+    def draw(self, context: Context):
         if isModuleAvailable("selenium"):
-            row = main_box.row()
-            row.label(
-                text="Create room")
-            box = main_box.box()
+            box = self.layout.box()
             row = box.row()
-            row.enabled = not isWebdriverAlive()
             col = row.column(heading="Room flags:")
+            col.enabled = not isWebdriverAlive()
             col.use_property_split = True
             col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
                      "new_loader")
@@ -267,23 +262,30 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
             col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
                      "debug_local_scene")
             row = box.row()
-            row.operator(HubsCreateRoomOperator.bl_idname,
+            col = row.column()
+            col.operator(HubsCreateRoomOperator.bl_idname,
                          text='Create')
-            row = box.row()
-            row.operator(HubsCloseRoomOperator.bl_idname,
+            col = row.column()
+            col.operator(HubsCloseRoomOperator.bl_idname,
                          text='Close')
 
-            main_box.separator()
-            row = main_box.row()
-            row.label(
-                text="Update scene")
-            box = main_box.box()
+
+class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
+    bl_idname = "HUBS_PT_ToolsSceneDebuggerUpdatePanel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Update Scene"
+    bl_context = 'objectmode'
+    bl_parent_id = "HUBS_PT_ToolsSceneDebuggerPanel"
+
+    def draw(self, context: Context):
+        if isModuleAvailable("selenium"):
+            box = self.layout.box()
             row = box.row()
             row.label(
                 text="Set the default export options in the glTF export panel")
             row = box.row()
-            col = row.column(heading="Overridden export options:")
-            col.enabled = isWebdriverAlive() and is_user_in_room()
+            col = row.column(heading="Override:")
             col.use_property_split = True
             col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
                      "export_cameras")
@@ -297,6 +299,19 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
             row.operator(HubsUpdateSceneOperator.bl_idname,
                          text='Update')
 
+
+class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
+    bl_idname = "HUBS_PT_ToolsSceneDebuggerPanel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Scene Debugger"
+    bl_context = 'objectmode'
+    bl_parent_id = "HUBS_PT_ToolsPanel"
+
+    def draw(self, context):
+        main_box = self.layout.box()
+
+        if isModuleAvailable("selenium"):
             box = main_box.box()
             row = box.row(align=True)
             row.alignment = "CENTER"
@@ -382,6 +397,8 @@ def register():
     bpy.utils.register_class(HubsCloseRoomOperator)
     bpy.utils.register_class(HubsUpdateSceneOperator)
     bpy.utils.register_class(HUBS_PT_ToolsSceneDebuggerPanel)
+    bpy.utils.register_class(HUBS_PT_ToolsSceneDebuggerCreatePanel)
+    bpy.utils.register_class(HUBS_PT_ToolsSceneDebuggerUpdatePanel)
     bpy.utils.register_class(HubsSceneDebuggerRoomCreatePrefs)
     bpy.utils.register_class(HubsOpenAddonPrefsOperator)
     bpy.utils.register_class(HubsSceneDebuggerRoomExportPrefs)
@@ -396,6 +413,8 @@ def unregister():
     bpy.utils.unregister_class(HubsUpdateSceneOperator)
     bpy.utils.unregister_class(HubsCloseRoomOperator)
     bpy.utils.unregister_class(HubsCreateRoomOperator)
+    bpy.utils.unregister_class(HUBS_PT_ToolsSceneDebuggerCreatePanel)
+    bpy.utils.unregister_class(HUBS_PT_ToolsSceneDebuggerUpdatePanel)
     bpy.utils.unregister_class(HUBS_PT_ToolsSceneDebuggerPanel)
     bpy.utils.unregister_class(HubsSceneDebuggerRoomCreatePrefs)
     bpy.utils.unregister_class(HubsOpenAddonPrefsOperator)
