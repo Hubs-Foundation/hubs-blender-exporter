@@ -144,6 +144,24 @@ class DeleteProfileOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class HubsSceneDebuggerInstance(bpy.types.PropertyGroup):
+    url: bpy.props.StringProperty()
+
+
+def hubs_instance_idx_set(self, value):
+    from .debugger import isWebdriverAlive
+    if isWebdriverAlive():
+        return
+    else:
+        prefs = get_addon_pref(context=bpy.context)
+        prefs.hubs_instance_idx_ = value
+
+
+def hubs_instance_idx_get(self):
+    prefs = get_addon_pref(context=bpy.context)
+    return prefs.hubs_instance_idx_
+
+
 class HubsPreferences(AddonPreferences):
     bl_idname = __package__
 
@@ -162,8 +180,20 @@ class HubsPreferences(AddonPreferences):
 
     viewer_available: BoolProperty()
 
-    hubs_instance_url: StringProperty(name="Hubs instance URL", description="URL of the hubs instance to use",
-                                      default="https://hubs.local:8080/")
+    hubs_instances: bpy.props.CollectionProperty(
+        type=HubsSceneDebuggerInstance)
+
+    hubs_instance_idx: bpy.props.IntProperty(
+        name="Hubs instance index",
+        description="Active Hubs Scene Debugger Instance index",
+        set=hubs_instance_idx_set,
+        get=hubs_instance_idx_get,
+        default=-1)
+
+    hubs_instance_idx_: bpy.props.IntProperty(
+        name="Hubs instance index (hidden)",
+        description="Active Hubs Scene Debugger Instance index (hidden)",
+        default=-1)
 
     browser: EnumProperty(
         name="Choose a browser", description="Type",
@@ -195,9 +225,6 @@ class HubsPreferences(AddonPreferences):
         modules_available = selenium_available
         box = layout.box()
         box.label(text="Scene debugger configuration")
-
-        row = box.row()
-        row.prop(self, "hubs_instance_url")
 
         if modules_available:
             browser_box = box.box()
@@ -263,6 +290,7 @@ class HubsPreferences(AddonPreferences):
 
 def register():
     bpy.utils.register_class(DepsProperty)
+    bpy.utils.register_class(HubsSceneDebuggerInstance)
     bpy.utils.register_class(HubsPreferences)
     bpy.utils.register_class(InstallDepsOperator)
     bpy.utils.register_class(UninstallDepsOperator)
@@ -274,4 +302,5 @@ def unregister():
     bpy.utils.unregister_class(UninstallDepsOperator)
     bpy.utils.unregister_class(InstallDepsOperator)
     bpy.utils.unregister_class(HubsPreferences)
+    bpy.utils.unregister_class(HubsSceneDebuggerInstance)
     bpy.utils.unregister_class(DepsProperty)

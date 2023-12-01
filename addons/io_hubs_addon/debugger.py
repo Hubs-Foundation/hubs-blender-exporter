@@ -86,7 +86,12 @@ def is_user_logged_in():
 
 
 def is_user_in_room():
-    return web_driver.execute_script('try { return APP.scene.is("entered"); } catch(e) { return false; }')
+    return web_driver.execute_script('try { return APP?.scene?.is("entered"); } catch(e) { return false; }')
+
+
+def is_instance_set(context):
+    hubs_instance_idx = get_addon_pref(context).hubs_instance_idx
+    return hubs_instance_idx != -1
 
 
 class HubsUpdateSceneOperator(bpy.types.Operator):
@@ -124,7 +129,7 @@ class HubsCreateRoomOperator(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context: Context):
-        return not isWebdriverAlive()
+        return not isWebdriverAlive() and is_instance_set(context)
 
     def execute(self, context):
         try:
@@ -176,8 +181,9 @@ class HubsCreateRoomOperator(bpy.types.Operator):
                 if context.scene.hubs_scene_debugger_room_create_prefs.debug_local_scene:
                     params = f'{params}&debugLocalScene'
 
-                web_driver.get(
-                    f'{get_addon_pref(context).hubs_instance_url}?{params}')
+                prefs = get_addon_pref(context)
+                hubs_instance_url = prefs.hubs_instances[prefs.hubs_instance_idx].url
+                web_driver.get(f'{hubs_instance_url}?{params}')
 
                 return {'FINISHED'}
 
@@ -258,6 +264,11 @@ class HUBS_PT_ToolsSceneDebuggerCreatePanel(bpy.types.Panel):
             col = row.column()
             col.operator(HubsCloseRoomOperator.bl_idname,
                          text='Close')
+
+            if not is_instance_set(context):
+                row = box.row()
+                row.alert = True
+                row.label(text="Set a hubs instance")
 
 
 class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
@@ -354,6 +365,67 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
             row.operator(HubsOpenAddonPrefsOperator.bl_idname,
                          text='Setup')
 
+        prefs = get_addon_pref(context)
+        row = main_box.row()
+        row.label(text="Instances:")
+        row = main_box.row()
+        row.enabled = not isWebdriverAlive()
+        row.template_list(HUBS_UL_ToolsSceneDebuggerServers.bl_idname, "", prefs,
+                          "hubs_instances", prefs, "hubs_instance_idx", rows=3)
+        col = row.column()
+        col.enabled = not isWebdriverAlive()
+        col.operator(HubsSceneDebuggerInstanceAdd.bl_idname,
+                     icon='ADD', text="")
+        col.enabled = not isWebdriverAlive()
+        col.operator(HubsSceneDebuggerInstanceRemove.bl_idname,
+                     icon='REMOVE', text="")
+
+
+class HubsSceneDebuggerInstanceAdd(bpy.types.Operator):
+    bl_idname = "hubs_scene.scene_debugger_instance_add"
+    bl_label = "Add Server Instance"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context: Context):
+        return not isWebdriverAlive()
+
+    def execute(self, context):
+        prefs = get_addon_pref(context)
+        new_instance = prefs.hubs_instances.add()
+        new_instance.url = "https://hubs.mozilla.com/demo"
+        prefs.hubs_instance_idx = len(
+            prefs.hubs_instances) - 1
+        bpy.ops.wm.save_userpref()
+
+        return {'FINISHED'}
+
+
+class HubsSceneDebuggerInstanceRemove(bpy.types.Operator):
+    bl_idname = "hubs_scene.scene_debugger_instance_remove"
+    bl_label = "Remove Server Instance"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context: Context):
+        return not isWebdriverAlive()
+
+    def execute(self, context):
+        prefs = get_addon_pref(context)
+        prefs.hubs_instances.remove(prefs.hubs_instance_idx)
+        prefs.hubs_instances = len(prefs.hubs_instances) - 1
+        bpy.ops.wm.save_userpref()
+
+        return {'FINISHED'}
+
+
+class HUBS_UL_ToolsSceneDebuggerServers(bpy.types.UIList):
+    bl_idname = "HUBS_UL_ToolsSceneDebuggerServers"
+    bl_label = "Instances"
+
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        layout.prop(item, "url", text="", emboss=False)
+
 
 class HubsSceneDebuggerRoomCreatePrefs(bpy.types.PropertyGroup):
     new_loader: bpy.props.BoolProperty(name="New Loader", default=True,
@@ -391,6 +463,9 @@ def register():
     bpy.utils.register_class(HubsSceneDebuggerRoomCreatePrefs)
     bpy.utils.register_class(HubsOpenAddonPrefsOperator)
     bpy.utils.register_class(HubsSceneDebuggerRoomExportPrefs)
+    bpy.utils.register_class(HubsSceneDebuggerInstanceAdd)
+    bpy.utils.register_class(HubsSceneDebuggerInstanceRemove)
+    bpy.utils.register_class(HUBS_UL_ToolsSceneDebuggerServers)
 
     bpy.types.Scene.hubs_scene_debugger_room_create_prefs = bpy.props.PointerProperty(
         type=HubsSceneDebuggerRoomCreatePrefs)
@@ -408,6 +483,9 @@ def unregister():
     bpy.utils.unregister_class(HubsSceneDebuggerRoomCreatePrefs)
     bpy.utils.unregister_class(HubsOpenAddonPrefsOperator)
     bpy.utils.unregister_class(HubsSceneDebuggerRoomExportPrefs)
+    bpy.utils.unregister_class(HUBS_UL_ToolsSceneDebuggerServers)
+    bpy.utils.unregister_class(HubsSceneDebuggerInstanceAdd)
+    bpy.utils.unregister_class(HubsSceneDebuggerInstanceRemove)
 
     del bpy.types.Scene.hubs_scene_debugger_room_create_prefs
     del bpy.types.Scene.hubs_scene_debugger_room_export_prefs
