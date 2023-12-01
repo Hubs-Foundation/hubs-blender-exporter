@@ -312,8 +312,7 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
         main_box = self.layout.box()
 
         if isModuleAvailable("selenium"):
-            box = main_box.box()
-            row = box.row(align=True)
+            row = main_box.row(align=True)
             row.alignment = "CENTER"
             col = row.column()
             col.alignment = "LEFT"
@@ -327,7 +326,7 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
                         col.active_default = True
                         col.label(
                             icon_value=hubs_icons["green-dot.png"].icon_id)
-                        row = box.row(align=True)
+                        row = main_box.row(align=True)
                         row.alignment = "CENTER"
                         row.label(text="In room")
 
@@ -336,7 +335,7 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
                         col.alignment = "LEFT"
                         col.label(
                             icon_value=hubs_icons["orange-dot.png"].icon_id)
-                        row = box.row(align=True)
+                        row = main_box.row(align=True)
                         row.alignment = "CENTER"
                         row.label(text="Entering the room...")
                 else:
@@ -344,7 +343,7 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
                     col.alignment = "LEFT"
                     col.alert = True
                     col.label(icon_value=hubs_icons["orange-dot.png"].icon_id)
-                    row = box.row(align=True)
+                    row = main_box.row(align=True)
                     row.alignment = "CENTER"
                     row.label(text="Waiting for sign in...")
             else:
@@ -352,7 +351,7 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
                 col.alignment = "LEFT"
                 col.alert = True
                 col.label(icon_value=hubs_icons["red-dot.png"].icon_id)
-                row = box.row(align=True)
+                row = main_box.row(align=True)
                 row.alignment = "CENTER"
                 row.label(text="Waiting for room...")
 
