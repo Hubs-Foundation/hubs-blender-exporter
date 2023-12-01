@@ -82,17 +82,7 @@ def get_local_storage():
 
 
 def is_user_logged_in():
-    has_credentials = False
-    if isWebdriverAlive():
-        storage = get_local_storage()
-        if storage:
-            hubs_store = storage.get("___hubs_store")
-            if hubs_store:
-                import json
-                hubs_store = json.loads(storage.get("___hubs_store"))
-                has_credentials = "credentials" in hubs_store
-
-    return has_credentials
+    return web_driver.execute_script('try { return APP?.hubChannel?.signedIn; } catch(e) { return false; }')
 
 
 def is_user_in_room():
