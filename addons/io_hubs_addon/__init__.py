@@ -6,6 +6,7 @@ from . import (nodes, components)
 from . import preferences
 from . import third_party
 from . import debugger
+from . import icons
 bl_info = {
     "name": "Hubs Blender Addon",
     "author": "Mozilla Hubs",
@@ -24,6 +25,7 @@ sys.path.insert(0, get_user_python_path())
 
 
 def register():
+    icons.register()
     preferences.register()
     nodes.register()
     components.register()
@@ -47,6 +49,7 @@ def unregister():
     nodes.unregister()
     preferences.unregister()
     debugger.unregister()
+    icons.unregister()
 
 
 # called by gltf-blender-io after it has loaded

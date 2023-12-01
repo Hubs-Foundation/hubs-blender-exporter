@@ -3,6 +3,7 @@ import atexit
 from bpy.types import Context
 from .preferences import get_addon_pref, EXPORT_TMP_FILE_NAME
 from .utils import isModuleAvailable, get_browser_profile_directory
+from .icons import get_hubs_icons
 
 JS_DROP_FILE = """
     var target = arguments[0],
@@ -272,11 +273,13 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
             row.operator(HubsUpdateSceneOperator.bl_idname,
                          text='Update')
 
+            box = main_box.box()
             row = box.row(align=True)
             row.alignment = "CENTER"
             col = row.column()
             col.alignment = "LEFT"
             col.label(text="Status:")
+            hubs_icons = get_hubs_icons()
             if isWebdriverAlive():
                 if is_user_logged_in():
                     if is_user_in_room():
@@ -284,22 +287,35 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
                         col.alignment = "LEFT"
                         col.active_default = True
                         col.label(
-                            text="In room")
+                            icon_value=hubs_icons["green-dot.png"].icon_id)
+                        row = box.row(align=True)
+                        row.alignment = "CENTER"
+                        row.label(text="In room")
+
                     else:
                         col = row.column()
                         col.alignment = "LEFT"
                         col.label(
-                            text="Entering the room...")
+                            icon_value=hubs_icons["orange-dot.png"].icon_id)
+                        row = box.row(align=True)
+                        row.alignment = "CENTER"
+                        row.label(text="Entering the room...")
                 else:
                     col = row.column()
                     col.alignment = "LEFT"
                     col.alert = True
-                    col.label(text="Waiting for sign in...")
+                    col.label(icon_value=hubs_icons["orange-dot.png"].icon_id)
+                    row = box.row(align=True)
+                    row.alignment = "CENTER"
+                    row.label(text="Waiting for sign in...")
             else:
                 col = row.column()
                 col.alignment = "LEFT"
                 col.alert = True
-                col.label(text="Waiting for room...")
+                col.label(icon_value=hubs_icons["red-dot.png"].icon_id)
+                row = box.row(align=True)
+                row.alignment = "CENTER"
+                row.label(text="Waiting for room...")
 
         else:
             row = main_box.row()

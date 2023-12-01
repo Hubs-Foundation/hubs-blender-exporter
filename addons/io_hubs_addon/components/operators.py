@@ -5,11 +5,12 @@ from functools import reduce
 
 from .types import PanelType, MigrationType
 from .utils import get_object_source, has_component, add_component, remove_component, wrap_text, display_wrapped_text, is_dep_required, update_image_editors
-from .components_registry import get_components_registry, get_components_icons, get_component_by_name
+from .components_registry import get_components_registry, get_component_by_name
 from ..preferences import get_addon_pref
 from .handlers import migrate_components
 from .gizmos import update_gizmos
 from .utils import is_linked, redraw_component_ui
+from ..icons import get_hubs_icons
 import os
 
 
@@ -30,22 +31,26 @@ class AddHubsComponent(Operator):
             if panel_type == PanelType.SCENE:
                 if is_linked(context.scene):
                     if bpy.app.version >= (3, 0, 0):
-                        cls.poll_message_set("Cannot add components to linked scenes")
+                        cls.poll_message_set(
+                            "Cannot add components to linked scenes")
                     return False
             elif panel_type == PanelType.OBJECT:
                 if is_linked(context.active_object):
                     if bpy.app.version >= (3, 0, 0):
-                        cls.poll_message_set("Cannot add components to linked objects")
+                        cls.poll_message_set(
+                            "Cannot add components to linked objects")
                     return False
             elif panel_type == PanelType.MATERIAL:
                 if is_linked(context.active_object.active_material):
                     if bpy.app.version >= (3, 0, 0):
-                        cls.poll_message_set("Cannot add components to linked materials")
+                        cls.poll_message_set(
+                            "Cannot add components to linked materials")
                     return False
             elif panel_type == PanelType.BONE:
                 if is_linked(context.active_bone):
                     if bpy.app.version >= (3, 0, 0):
-                        cls.poll_message_set("Cannot add components to linked bones")
+                        cls.poll_message_set(
+                            "Cannot add components to linked bones")
                     return False
 
         return True
@@ -72,7 +77,7 @@ class AddHubsComponent(Operator):
             return not component_class.is_dep_only() and PanelType(panel_type) in component_class.get_panel_type() and component_class.poll(PanelType(panel_type), host, ob=context.object)
 
         components_registry = get_components_registry()
-        components_icons = get_components_icons()
+        hubs_icons = get_hubs_icons()
         filtered_components = dict(
             filter(filter_source_type, components_registry.items()))
 
@@ -152,11 +157,11 @@ class AddHubsComponent(Operator):
                             if icon.find('.') != -1:
                                 if has_component(obj, component_name):
                                     op = column.label(
-                                        text=component_display_name, icon_value=components_icons[icon].icon_id)
+                                        text=component_display_name, icon_value=hubs_icons[icon].icon_id)
                                 else:
                                     op = column.operator(
                                         AddHubsComponent.bl_idname, text=component_display_name,
-                                        icon_value=components_icons[icon].icon_id)
+                                        icon_value=hubs_icons[icon].icon_id)
                                     op.component_name = component_name
                                     op.panel_type = panel_type
                             else:
@@ -214,22 +219,26 @@ class RemoveHubsComponent(Operator):
             if panel_type == PanelType.SCENE:
                 if is_linked(context.scene):
                     if bpy.app.version >= (3, 0, 0):
-                        cls.poll_message_set("Cannot remove components from linked scenes")
+                        cls.poll_message_set(
+                            "Cannot remove components from linked scenes")
                     return False
             elif panel_type == PanelType.OBJECT:
                 if is_linked(context.active_object):
                     if bpy.app.version >= (3, 0, 0):
-                        cls.poll_message_set("Cannot remove components from linked objects")
+                        cls.poll_message_set(
+                            "Cannot remove components from linked objects")
                     return False
             elif panel_type == PanelType.MATERIAL:
                 if is_linked(context.active_object.active_material):
                     if bpy.app.version >= (3, 0, 0):
-                        cls.poll_message_set("Cannot remove components from linked materials")
+                        cls.poll_message_set(
+                            "Cannot remove components from linked materials")
                     return False
             elif panel_type == PanelType.BONE:
                 if is_linked(context.active_bone):
                     if bpy.app.version >= (3, 0, 0):
-                        cls.poll_message_set("Cannot add components to linked bones")
+                        cls.poll_message_set(
+                            "Cannot add components to linked bones")
                     return False
 
         return True
@@ -257,7 +266,8 @@ class MigrateHubsComponents(Operator):
 
     def execute(self, context):
         if self.is_registration:
-            migrate_components(MigrationType.REGISTRATION, do_beta_versioning=True)
+            migrate_components(MigrationType.REGISTRATION,
+                               do_beta_versioning=True)
         else:
             migrate_components(MigrationType.LOCAL, do_beta_versioning=True)
 
@@ -288,7 +298,8 @@ class ViewLastReport(Operator):
         wm = context.window_manager
         title = wm.hubs_report_last_title
         report_string = wm.hubs_report_last_report_string
-        bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title=title, report_string=report_string)
+        bpy.ops.wm.hubs_report_viewer(
+            'INVOKE_DEFAULT', title=title, report_string=report_string)
         return {'FINISHED'}
 
 
@@ -314,12 +325,15 @@ class ViewReportInInfoEditor(Operator):
                             while bpy.ops.info.select_pick(
                                     context_override, report_index=index, extend=False) != {'CANCELLED'}:
                                 index += 1
-                            bpy.ops.info.select_pick(context_override, report_index=index, extend=False)
+                            bpy.ops.info.select_pick(
+                                context_override, report_index=index, extend=False)
 
     def execute(self, context):
         messages = split_and_prefix_report_messages(self.report_string)
-        info_report_string = '\n'.join([message.replace('\n', '  ') for message in messages])
-        self.report({'INFO'}, f"Hubs {self.title}\n{info_report_string}\nEnd of Hubs {self.title}")
+        info_report_string = '\n'.join(
+            [message.replace('\n', '  ') for message in messages])
+        self.report(
+            {'INFO'}, f"Hubs {self.title}\n{info_report_string}\nEnd of Hubs {self.title}")
         bpy.ops.screen.info_log_show()
         bpy.app.timers.register(self.highlight_info_report)
         return {'FINISHED'}
@@ -403,13 +417,15 @@ class ReportViewer(Operator):
 
         scroll_up = scroll_column.row()
         scroll_up.enabled = start_index > 0
-        op = scroll_up.operator(ReportScroller.bl_idname, text="", icon="TRIA_UP")
+        op = scroll_up.operator(ReportScroller.bl_idname,
+                                text="", icon="TRIA_UP")
         op.increment = -1
         op.maximum = maximum_scrolling
 
         scroll_down = scroll_column.row()
         scroll_down.enabled = start_index < maximum_scrolling
-        op = scroll_down.operator(ReportScroller.bl_idname, text="", icon="TRIA_DOWN")
+        op = scroll_down.operator(
+            ReportScroller.bl_idname, text="", icon="TRIA_DOWN")
         op.increment = 1
         op.maximum = maximum_scrolling
 
@@ -419,7 +435,8 @@ class ReportViewer(Operator):
 
         scroll_percentage = column.row()
         scroll_percentage.enabled = False
-        scroll_percentage.prop(wm, "hubs_report_scroll_percentage", slider=True)
+        scroll_percentage.prop(
+            wm, "hubs_report_scroll_percentage", slider=True)
 
         layout.separator()
 
@@ -457,7 +474,8 @@ class ReportViewer(Operator):
             if last_message is None:
                 final_block = True
 
-            current_block_lines = sum([len(message) for message in block_messages])
+            current_block_lines = sum([len(message)
+                                      for message in block_messages])
             needed_padding_lines = self.lines_to_show - current_block_lines
 
             message_iter = iter(block_messages)
@@ -506,7 +524,8 @@ class CopyHubsComponent(Operator):
     def poll(cls, context):
         if is_linked(context.scene):
             if bpy.app.version >= (3, 0, 0):
-                cls.poll_message_set("Cannot copy components when in linked scenes")
+                cls.poll_message_set(
+                    "Cannot copy components when in linked scenes")
             return False
 
         if hasattr(context, "panel"):
@@ -518,14 +537,17 @@ class CopyHubsComponent(Operator):
 
     def get_selected_bones(self, context):
         selected_bones = context.selected_pose_bones if context.mode == "POSE" else context.selected_editable_bones
-        selected_armatures = [sel_ob for sel_ob in context.selected_objects if sel_ob.type == "ARMATURE"]
+        selected_armatures = [
+            sel_ob for sel_ob in context.selected_objects if sel_ob.type == "ARMATURE"]
         selected_hosts = []
         for armature in selected_armatures:
             armature_bones = armature.pose.bones if context.mode == "POSE" else armature.data.edit_bones
             target_armature_bones = armature.data.bones if context.mode == "POSE" else armature.data.edit_bones
-            target_bones = [bone for bone in armature_bones if bone in selected_bones]
+            target_bones = [
+                bone for bone in armature_bones if bone in selected_bones]
             for target_bone in target_bones:
-                selected_hosts.extend([bone for bone in target_armature_bones if target_bone.name == bone.name])
+                selected_hosts.extend(
+                    [bone for bone in target_armature_bones if target_bone.name == bone.name])
         return selected_hosts
 
     def get_selected_hosts(self, context):
@@ -628,12 +650,14 @@ class OpenImage(Operator):
 
         # Load/Reload the first image and assign it to the target property, then load the rest of the images if they're not already loaded. This mimics Blender's default open files behavior.
         primary_filepath = os.path.join(dirname, self.files[0].name)
-        primary_img = bpy.data.images.load(filepath=primary_filepath, check_existing=True)
+        primary_img = bpy.data.images.load(
+            filepath=primary_filepath, check_existing=True)
         primary_img.reload()
         self.hubs_component[self.target_property] = primary_img
 
         for f in self.files[1:]:
-            bpy.data.images.load(filepath=os.path.join(dirname, f.name), check_existing=True)
+            bpy.data.images.load(filepath=os.path.join(
+                dirname, f.name), check_existing=True)
 
         update_image_editors(old_img, primary_img)
         redraw_component_ui(context)
@@ -657,7 +681,8 @@ def register():
     bpy.utils.register_class(ViewReportInInfoEditor)
     bpy.utils.register_class(CopyHubsComponent)
     bpy.utils.register_class(OpenImage)
-    bpy.types.WindowManager.hubs_report_scroll_index = IntProperty(default=0, min=0)
+    bpy.types.WindowManager.hubs_report_scroll_index = IntProperty(
+        default=0, min=0)
     bpy.types.WindowManager.hubs_report_scroll_percentage = IntProperty(
         name="Scroll Position", default=0, min=0, max=100, subtype='PERCENTAGE')
     bpy.types.WindowManager.hubs_report_last_title = StringProperty()
