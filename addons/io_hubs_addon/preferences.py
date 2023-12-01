@@ -52,12 +52,20 @@ class InstallDepsOperator(bpy.types.Operator):
                 deps.append(dep.name)
 
         from .utils import get_user_python_path
-        subprocess.run(
+        result = subprocess.run(
             [sys.executable, '-m', 'pip', 'install', *deps,
              '-t', get_user_python_path()],
             capture_output=False, text=True, input="y")
-
-        return {'FINISHED'}
+        if result.returncode < 0:
+            print(result.stderr)
+            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
+                                          report_string='\n\n'.join(["Dependencies install has failed",
+                                                                     f'{result.stderr}']))
+            return {'CANCELLED'}
+        else:
+            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
+                                          report_string="Dependencies installed successfully")
+            return {'FINISHED'}
 
 
 class UninstallDepsOperator(bpy.types.Operator):
@@ -73,12 +81,26 @@ class UninstallDepsOperator(bpy.types.Operator):
         import subprocess
         import sys
 
-        subprocess.run([sys.executable, '-m', 'ensurepip'],
-                       capture_output=False, text=True, input="y")
-        subprocess.run(
+        result = subprocess.run([sys.executable, '-m', 'ensurepip'],
+                                capture_output=False, text=True, input="y")
+        if result.returncode < 0:
+            print(result.stderr)
+            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
+                                          report_string='\n\n'.join(["Dependencies uninstall has failed",
+                                                                     f'{result.stderr}']))
+            return {'CANCELLED'}
+
+        result = subprocess.run(
             [sys.executable, '-m', 'pip', 'uninstall', *
                 [name for name, _ in self.dep_names.items()]],
             capture_output=False, text=True, input="y")
+
+        if result.returncode < 0:
+            print(result.stderr)
+            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
+                                          report_string='\n\n'.join(["Dependencies install has failed",
+                                                                     f'{result.stderr}']))
+            return {'CANCELLED'}
 
         if self.force:
             import os
@@ -89,6 +111,8 @@ class UninstallDepsOperator(bpy.types.Operator):
             for dep_path in deps_paths:
                 shutil.rmtree(deps_paths)
 
+        bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
+                                      report_string="Dependencies uninstalled successfully")
         return {'FINISHED'}
 
 
