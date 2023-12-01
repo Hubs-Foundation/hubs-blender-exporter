@@ -94,7 +94,7 @@ def is_user_logged_in():
     return has_credentials
 
 
-def is_user_in_entered():
+def is_user_in_room():
     return web_driver.execute_script('try { return APP.scene.is("entered"); } catch(e) { return false; }')
 
 
@@ -106,7 +106,7 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context: Context):
-        return isWebdriverAlive() and is_user_logged_in() and is_user_in_entered()
+        return isWebdriverAlive() and is_user_logged_in() and is_user_in_room()
 
     def execute(self, context):
         try:
@@ -258,7 +258,7 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
                 text="Set the default export options in the glTF export panel")
             row = box.row()
             col = row.column(heading="Overridden export options:")
-            col.enabled = isWebdriverAlive() and is_user_in_entered()
+            col.enabled = isWebdriverAlive() and is_user_in_room()
             col.use_property_split = True
             col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
                      "export_cameras")
@@ -279,7 +279,7 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
             col.label(text="Status:")
             if isWebdriverAlive():
                 if is_user_logged_in():
-                    if is_user_in_entered():
+                    if is_user_in_room():
                         col = row.column()
                         col.alignment = "LEFT"
                         col.active_default = True
