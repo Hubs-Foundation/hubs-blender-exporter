@@ -100,7 +100,7 @@ def is_user_in_room():
 
 
 class HubsUpdateSceneOperator(bpy.types.Operator):
-    bl_idname = "hubs_scene.view_scene"
+    bl_idname = "hubs_scene.update_scene"
     bl_label = "View Scene"
     bl_description = "Update scene"
     bl_options = {'REGISTER', 'UNDO'}
@@ -127,7 +127,7 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
 
 
 class HubsCreateRoomOperator(bpy.types.Operator):
-    bl_idname = "hubs_scene.open_window"
+    bl_idname = "hubs_scene.create_room"
     bl_label = "Create Room"
     bl_description = "Create room"
     bl_options = {'REGISTER', 'UNDO'}
@@ -199,6 +199,27 @@ class HubsCreateRoomOperator(bpy.types.Operator):
             return {"CANCELLED"}
 
 
+class HubsCloseRoomOperator(bpy.types.Operator):
+    bl_idname = "hubs_scene.close_room"
+    bl_label = "Close Room"
+    bl_description = "Close room"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context: Context):
+        return isWebdriverAlive()
+
+    def execute(self, context):
+        try:
+            web_driver.quit()
+            return {'FINISHED'}
+
+        except Exception as err:
+            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
+                                          report_string=f'An error happened while closing thew browser window: {err}')
+            return {"CANCELLED"}
+
+
 class HubsOpenAddonPrefsOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.open_addon_prefs"
     bl_label = "Open Preferences"
@@ -248,6 +269,9 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
             row = box.row()
             row.operator(HubsCreateRoomOperator.bl_idname,
                          text='Create')
+            row = box.row()
+            row.operator(HubsCloseRoomOperator.bl_idname,
+                         text='Close')
 
             main_box.separator()
             row = main_box.row()
@@ -355,6 +379,7 @@ class HubsSceneDebuggerRoomExportPrefs(bpy.types.PropertyGroup):
 
 def register():
     bpy.utils.register_class(HubsCreateRoomOperator)
+    bpy.utils.register_class(HubsCloseRoomOperator)
     bpy.utils.register_class(HubsUpdateSceneOperator)
     bpy.utils.register_class(HUBS_PT_ToolsSceneDebuggerPanel)
     bpy.utils.register_class(HubsSceneDebuggerRoomCreatePrefs)
@@ -369,6 +394,7 @@ def register():
 
 def unregister():
     bpy.utils.unregister_class(HubsUpdateSceneOperator)
+    bpy.utils.unregister_class(HubsCloseRoomOperator)
     bpy.utils.unregister_class(HubsCreateRoomOperator)
     bpy.utils.unregister_class(HUBS_PT_ToolsSceneDebuggerPanel)
     bpy.utils.unregister_class(HubsSceneDebuggerRoomCreatePrefs)
