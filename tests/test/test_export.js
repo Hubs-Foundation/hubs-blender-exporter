@@ -548,13 +548,19 @@ describe('Exporter', function () {
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext['media-frame'], {
+          align: {
+            "x": 'center',
+            "y": 'center',
+            "z": 'center'
+          },
           "bounds": {
             "x": 1,
             "y": 1,
             "z": 4
           },
           "mediaType": "all-2d",
-          "snapToCenter": true
+          "snapToCenter": true,
+          "scaleToBounds": true
         });
         assert.strictEqual(utils.UUID_REGEX.test(ext['networked']['id']), true);
       });
