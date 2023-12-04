@@ -127,9 +127,9 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
 
 
 def get_url_params(context):
-    params = "new"
+    params = ""
     if context.scene.hubs_scene_debugger_room_create_prefs.new_loader:
-        params = f'{params}&newLoader'
+        params = f'{params}newLoader'
     if context.scene.hubs_scene_debugger_room_create_prefs.ecs_debug:
         params = f'{params}&ecsDebug'
     if context.scene.hubs_scene_debugger_room_create_prefs.vr_entry_type:
@@ -179,16 +179,6 @@ def create_browser_instance(context):
                 options.binary_location = chrome_path
             web_driver = webdriver.Chrome(options=options)
 
-        params = "new"
-        if context.scene.hubs_scene_debugger_room_create_prefs.new_loader:
-            params = f'{params}&newLoader'
-        if context.scene.hubs_scene_debugger_room_create_prefs.ecs_debug:
-            params = f'{params}&ecsDebug'
-        if context.scene.hubs_scene_debugger_room_create_prefs.vr_entry_type:
-            params = f'{params}&vr_entry_type=2d_now'
-        if context.scene.hubs_scene_debugger_room_create_prefs.debug_local_scene:
-            params = f'{params}&debugLocalScene'
-
 
 class HubsCreateRoomOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.create_room"
@@ -207,7 +197,8 @@ class HubsCreateRoomOperator(bpy.types.Operator):
             create_browser_instance(context)
             prefs = get_addon_pref(context)
             hubs_instance_url = prefs.hubs_instances[prefs.hubs_instance_idx].url
-            web_driver.get(f'{hubs_instance_url}?{get_url_params(context)}')
+            web_driver.get(
+                f'{hubs_instance_url}?new&{get_url_params(context)}')
 
             return {'FINISHED'}
 
@@ -236,7 +227,15 @@ class HubsOpenRoomOperator(bpy.types.Operator):
             if not isWebdriverAlive():
                 create_browser_instance(context)
 
-            web_driver.get(room_url)
+            params = get_url_params(context)
+            if params:
+                if "?" in room_url:
+                    web_driver.get(f'{room_url}&{params}')
+                else:
+                    web_driver.get(f'{room_url}?{params}')
+            else:
+                web_driver.get(room_url)
+
             return {'FINISHED'}
 
         except Exception as err:
@@ -309,19 +308,6 @@ class HUBS_PT_ToolsSceneDebuggerCreatePanel(bpy.types.Panel):
             col.operator(HubsSceneDebuggerInstanceRemove.bl_idname,
                          icon='REMOVE', text="")
 
-            box = self.layout.box()
-            row = box.row()
-            col = row.column(heading="Room flags:")
-            col.enabled = not isWebdriverAlive()
-            col.use_property_split = True
-            col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
-                     "new_loader")
-            col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
-                     "ecs_debug")
-            col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
-                     "vr_entry_type")
-            col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
-                     "debug_local_scene")
             row = box.row()
             col = row.column()
             col.operator(HubsCreateRoomOperator.bl_idname,
@@ -450,6 +436,19 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
                 row.alignment = "CENTER"
                 row.label(text="Waiting for room...")
 
+            box = self.layout.box()
+            row = box.row()
+            col = row.column(heading="Room flags:")
+            col.use_property_split = True
+            col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
+                     "new_loader")
+            col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
+                     "ecs_debug")
+            col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
+                     "vr_entry_type")
+            col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
+                     "debug_local_scene")
+
         else:
             row = main_box.row()
             row.alert = True
@@ -514,6 +513,7 @@ class HubsSceneDebuggerRoomAdd(bpy.types.Operator):
         if isWebdriverAlive():
             if web_driver.current_url:
                 url = web_driver.current_url
+                url = url.split("?")[0]
 
         new_room.name = "Room Name"
         new_room.url = url
