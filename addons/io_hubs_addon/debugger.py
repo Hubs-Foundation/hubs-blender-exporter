@@ -246,8 +246,8 @@ class HubsOpenRoomOperator(bpy.types.Operator):
 
 class HubsCloseRoomOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.close_room"
-    bl_label = "Close Room"
-    bl_description = "Close room"
+    bl_label = "Close"
+    bl_description = "Close browser window"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -268,7 +268,7 @@ class HubsCloseRoomOperator(bpy.types.Operator):
 class HubsOpenAddonPrefsOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.open_addon_prefs"
     bl_label = "Open Preferences"
-    bl_description = "Update scene"
+    bl_description = "Open Preferences"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -587,7 +587,7 @@ class HubsSceneDebuggerRoomExportPrefs(bpy.types.PropertyGroup):
     use_selection: bpy.props.BoolProperty(name="Selection Only", default=False,
                                           description="Selection Only, Export selected objects only.",
                                           options=set())
-    export_apply: bpy.props.BoolProperty(name="Export Apply", default=True,
+    export_apply: bpy.props.BoolProperty(name="Apply Modifiers", default=True,
                                               description="Apply Modifiers, Apply modifiers (excluding Armatures) to mesh objects -WARNING: prevents exporting shape keys.",
                                               options=set())
 
