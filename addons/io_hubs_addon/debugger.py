@@ -39,9 +39,6 @@ web_driver = None
 def export_scene(context):
     import os
     extension = '.glb'
-    output_dir = bpy.app.tempdir
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
     args = {
         # Settings from "Remember Export Settings"
         **dict(bpy.context.scene.get('glTF2ExportSettings', {})),
