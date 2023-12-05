@@ -497,7 +497,7 @@ class HubsSceneDebuggerInstanceRemove(bpy.types.Operator):
 class HubsSceneDebuggerRoomAdd(bpy.types.Operator):
     bl_idname = "hubs_scene.scene_debugger_room_add"
     bl_label = "Add Room"
-    bl_description = "Adds the current active room url to the list, if there is no active room it will add and empty string"
+    bl_description = "Adds the current active room url to the list, if there is no active room it will add an empty string"
     bl_options = {'REGISTER', 'UNDO'}
 
     url: bpy.props.StringProperty(name="Room Url")
