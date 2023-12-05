@@ -1,5 +1,4 @@
 from .types import NodeType
-import bpy.utils.previews
 import bpy
 from bpy.props import BoolProperty, StringProperty, CollectionProperty, PointerProperty
 from bpy.types import PropertyGroup
