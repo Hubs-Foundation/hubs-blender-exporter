@@ -123,6 +123,11 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
             refresh_scene_viewer()
 
             web_driver.switch_to.window(web_driver.current_window_handle)
+            browser = get_addon_pref(context).browser
+            if browser == "Firefox":
+                ws = web_driver.get_window_size()
+                web_driver.minimize_window()
+                web_driver.set_window_size(ws['width'], ws['height'])
 
             return {'FINISHED'}
         except Exception as err:
