@@ -1,5 +1,4 @@
 import bpy
-import atexit
 from bpy.types import Context
 from .preferences import get_addon_pref, EXPORT_TMP_FILE_NAME
 from .utils import isModuleAvailable, get_browser_profile_directory
@@ -638,11 +637,3 @@ def unregister():
 
     if isWebdriverAlive():
         web_driver.close()
-
-
-def cleanup():
-    if isWebdriverAlive():
-        web_driver.close()
-
-
-atexit.register(cleanup)
