@@ -144,23 +144,23 @@ class DeleteProfileOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class HubsRoomUrl(bpy.types.PropertyGroup):
+def set_url(self, value):
+    try:
+        import urllib
+        parsed = urllib.parse.urlparse(value)
+        parsed = parsed._replace(scheme="https")
+        self.url_ = urllib.parse.urlunparse(parsed)
+    except:
+        self.url_ = "https://hubs.mozilla.com/demo"
+
+
+def get_url(self):
+    return self.url_
+
+
     name: bpy.props.StringProperty()
-    url: bpy.props.StringProperty()
-
-
-def hubs_instance_idx_set(self, value):
-    from .debugger import isWebdriverAlive
-    if isWebdriverAlive():
-        return
-    else:
-        prefs = get_addon_pref(context=bpy.context)
-        prefs.hubs_instance_idx_ = value
-
-
-def hubs_instance_idx_get(self):
-    prefs = get_addon_pref(context=bpy.context)
-    return prefs.hubs_instance_idx_
+    url: bpy.props.StringProperty(set=set_url, get=get_url)
+    url_: bpy.props.StringProperty(options={"HIDDEN"})
 
 
 class HubsPreferences(AddonPreferences):
@@ -185,11 +185,6 @@ class HubsPreferences(AddonPreferences):
         type=HubsRoomUrl)
 
     hubs_instance_idx: bpy.props.IntProperty(
-        set=hubs_instance_idx_set,
-        get=hubs_instance_idx_get,
-        default=-1)
-
-    hubs_instance_idx_: bpy.props.IntProperty(
         default=-1)
 
     hubs_room_idx: bpy.props.IntProperty(

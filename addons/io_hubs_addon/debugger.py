@@ -184,11 +184,13 @@ class HubsCreateRoomOperator(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context: Context):
-        return not isWebdriverAlive() and is_instance_set(context)
+        return is_instance_set(context)
 
     def execute(self, context):
         try:
-            create_browser_instance(context)
+            if not isWebdriverAlive():
+                create_browser_instance(context)
+
             prefs = get_addon_pref(context)
             hubs_instance_url = prefs.hubs_instances[prefs.hubs_instance_idx].url
             web_driver.get(
@@ -285,30 +287,32 @@ class HUBS_PT_ToolsSceneDebuggerCreatePanel(bpy.types.Panel):
     bl_context = 'objectmode'
     bl_parent_id = "HUBS_PT_ToolsSceneDebuggerPanel"
 
-    def draw(self, context: Context):
-        if isModuleAvailable("selenium"):
-            prefs = get_addon_pref(context)
-            box = self.layout.box()
-            row = box.row()
-            row.label(text="Instances:")
-            row = box.row()
-            list_row = row.row()
-            list_row.enabled = not isWebdriverAlive()
-            list_row.template_list(HUBS_UL_ToolsSceneDebuggerServers.bl_idname, "", prefs,
-                                   "hubs_instances", prefs, "hubs_instance_idx", rows=3)
-            col = row.column()
-            col.operator(HubsSceneDebuggerInstanceAdd.bl_idname,
-                         icon='ADD', text="")
-            col.operator(HubsSceneDebuggerInstanceRemove.bl_idname,
-                         icon='REMOVE', text="")
+    @classmethod
+    def poll(cls, context: Context):
+        return isModuleAvailable("selenium")
 
-            row = box.row()
-            col = row.column()
-            col.operator(HubsCreateRoomOperator.bl_idname,
-                         text='Create')
-            col = row.column()
-            col.operator(HubsCloseRoomOperator.bl_idname,
-                         text='Close')
+    def draw(self, context: Context):
+        prefs = get_addon_pref(context)
+        box = self.layout.box()
+        row = box.row()
+        row.label(text="Instances:")
+        row = box.row()
+        list_row = row.row()
+        list_row.template_list(HUBS_UL_ToolsSceneDebuggerServers.bl_idname, "", prefs,
+                               "hubs_instances", prefs, "hubs_instance_idx", rows=3)
+        col = row.column()
+        col.operator(HubsSceneDebuggerInstanceAdd.bl_idname,
+                     icon='ADD', text="")
+        col.operator(HubsSceneDebuggerInstanceRemove.bl_idname,
+                     icon='REMOVE', text="")
+
+        row = box.row()
+        col = row.column()
+        col.operator(HubsCreateRoomOperator.bl_idname,
+                     text='Create')
+        col = row.column()
+        col.operator(HubsCloseRoomOperator.bl_idname,
+                     text='Close')
 
 
 class HUBS_PT_ToolsSceneDebuggerOpenPanel(bpy.types.Panel):
@@ -319,30 +323,33 @@ class HUBS_PT_ToolsSceneDebuggerOpenPanel(bpy.types.Panel):
     bl_context = 'objectmode'
     bl_parent_id = "HUBS_PT_ToolsSceneDebuggerPanel"
 
-    def draw(self, context: Context):
-        if isModuleAvailable("selenium"):
-            box = self.layout.box()
-            prefs = get_addon_pref(context)
-            row = box.row()
-            row.label(text="Rooms:")
-            row = box.row()
-            list_row = row.row()
-            list_row.template_list(HUBS_UL_ToolsSceneDebuggerRooms.bl_idname, "", prefs,
-                                   "hubs_rooms", prefs, "hubs_room_idx", rows=3)
-            col = row.column()
-            op = col.operator(HubsSceneDebuggerRoomAdd.bl_idname,
-                              icon='ADD', text="")
-            op.url = "https://hubs.mozilla.com/demo"
-            col.operator(HubsSceneDebuggerRoomRemove.bl_idname,
-                         icon='REMOVE', text="")
+    @classmethod
+    def poll(cls, context: Context):
+        return isModuleAvailable("selenium")
 
-            row = box.row()
-            col = row.column()
-            col.operator(HubsOpenRoomOperator.bl_idname,
-                         text='Open')
-            col = row.column()
-            col.operator(HubsCloseRoomOperator.bl_idname,
-                         text='Close')
+    def draw(self, context: Context):
+        box = self.layout.box()
+        prefs = get_addon_pref(context)
+        row = box.row()
+        row.label(text="Rooms:")
+        row = box.row()
+        list_row = row.row()
+        list_row.template_list(HUBS_UL_ToolsSceneDebuggerRooms.bl_idname, "", prefs,
+                               "hubs_rooms", prefs, "hubs_room_idx", rows=3)
+        col = row.column()
+        op = col.operator(HubsSceneDebuggerRoomAdd.bl_idname,
+                          icon='ADD', text="")
+        op.url = "https://hubs.mozilla.com/demo"
+        col.operator(HubsSceneDebuggerRoomRemove.bl_idname,
+                     icon='REMOVE', text="")
+
+        row = box.row()
+        col = row.column()
+        col.operator(HubsOpenRoomOperator.bl_idname,
+                     text='Open')
+        col = row.column()
+        col.operator(HubsCloseRoomOperator.bl_idname,
+                     text='Close')
 
 
 class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
@@ -353,26 +360,29 @@ class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
     bl_context = 'objectmode'
     bl_parent_id = "HUBS_PT_ToolsSceneDebuggerPanel"
 
+    @classmethod
+    def poll(cls, context: Context):
+        return isModuleAvailable("selenium")
+
     def draw(self, context: Context):
-        if isModuleAvailable("selenium"):
-            box = self.layout.box()
-            row = box.row()
-            row.label(
-                text="Set the default export options in the glTF export panel")
-            row = box.row()
-            col = row.column(heading="Override:")
-            col.use_property_split = True
-            col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
-                     "export_cameras")
-            col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
-                     "export_lights")
-            col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
-                     "use_selection")
-            col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
-                     "export_apply")
-            row = box.row()
-            row.operator(HubsUpdateSceneOperator.bl_idname,
-                         text='Update')
+        box = self.layout.box()
+        row = box.row()
+        row.label(
+            text="Set the default export options in the glTF export panel")
+        row = box.row()
+        col = row.column(heading="Override:")
+        col.use_property_split = True
+        col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
+                 "export_cameras")
+        col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
+                 "export_lights")
+        col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
+                 "use_selection")
+        col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
+                 "export_apply")
+        row = box.row()
+        row.operator(HubsUpdateSceneOperator.bl_idname,
+                     text='Update')
 
 
 class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
@@ -458,10 +468,6 @@ class HubsSceneDebuggerInstanceAdd(bpy.types.Operator):
     bl_label = "Add Server Instance"
     bl_options = {'REGISTER', 'UNDO'}
 
-    @classmethod
-    def poll(cls, context: Context):
-        return not isWebdriverAlive()
-
     def execute(self, context):
         prefs = get_addon_pref(context)
         new_instance = prefs.hubs_instances.add()
@@ -478,10 +484,6 @@ class HubsSceneDebuggerInstanceRemove(bpy.types.Operator):
     bl_idname = "hubs_scene.scene_debugger_instance_remove"
     bl_label = "Remove Server Instance"
     bl_options = {'REGISTER', 'UNDO'}
-
-    @classmethod
-    def poll(cls, context: Context):
-        return not isWebdriverAlive()
 
     def execute(self, context):
         prefs = get_addon_pref(context)
