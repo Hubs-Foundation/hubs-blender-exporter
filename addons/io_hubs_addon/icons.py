@@ -1,8 +1,8 @@
-
 import bpy
 import os
 from os import listdir
 from os.path import join, isfile
+import bpy.utils.previews
 
 
 def load_icons():
