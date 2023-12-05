@@ -123,8 +123,12 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
             refresh_scene_viewer()
 
             web_driver.switch_to.window(web_driver.current_window_handle)
+
+            # In some systems switch_to doesn't work, the code below is a hack to make it work
+            # for the affected platforms/browsers that we have detected so far.
             browser = get_addon_pref(context).browser
-            if browser == "Firefox":
+            import platform
+            if browser == "Firefox" or platform.system == "Windows":
                 ws = web_driver.get_window_size()
                 web_driver.minimize_window()
                 web_driver.set_window_size(ws['width'], ws['height'])
