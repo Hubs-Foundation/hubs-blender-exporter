@@ -175,6 +175,7 @@ def get_url(self):
     return self.url_
 
 
+class HubsUrl(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty()
     url: bpy.props.StringProperty(set=set_url, get=get_url)
     url_: bpy.props.StringProperty(options={"HIDDEN"})
@@ -199,7 +200,7 @@ class HubsPreferences(AddonPreferences):
     viewer_available: BoolProperty()
 
     hubs_instances: bpy.props.CollectionProperty(
-        type=HubsRoomUrl)
+        type=HubsUrl)
 
     hubs_instance_idx: bpy.props.IntProperty(
         default=-1)
@@ -208,7 +209,7 @@ class HubsPreferences(AddonPreferences):
         default=-1)
 
     hubs_rooms: bpy.props.CollectionProperty(
-        type=HubsRoomUrl)
+        type=HubsUrl)
 
     browser: EnumProperty(
         name="Choose a browser", description="Type",
@@ -305,7 +306,7 @@ class HubsPreferences(AddonPreferences):
 
 def register():
     bpy.utils.register_class(DepsProperty)
-    bpy.utils.register_class(HubsRoomUrl)
+    bpy.utils.register_class(HubsUrl)
     bpy.utils.register_class(HubsPreferences)
     bpy.utils.register_class(InstallDepsOperator)
     bpy.utils.register_class(UninstallDepsOperator)
@@ -314,6 +315,7 @@ def register():
     prefs = get_addon_pref(bpy.context)
     if len(prefs.hubs_instances) == 0:
         new_instance = prefs.hubs_instances.add()
+        new_instance.name = "Demo Hub"
         new_instance.url = "https://hubs.mozilla.com/demo"
         prefs.hubs_instance_idx = len(prefs.hubs_instances) - 1
 
@@ -323,5 +325,5 @@ def unregister():
     bpy.utils.unregister_class(UninstallDepsOperator)
     bpy.utils.unregister_class(InstallDepsOperator)
     bpy.utils.unregister_class(HubsPreferences)
-    bpy.utils.unregister_class(HubsRoomUrl)
+    bpy.utils.unregister_class(HubsUrl)
     bpy.utils.unregister_class(DepsProperty)
