@@ -47,7 +47,12 @@ def export_scene(context):
         'export_cameras': context.scene.hubs_scene_debugger_room_export_prefs.export_cameras,
         'export_lights': context.scene.hubs_scene_debugger_room_export_prefs.export_lights,
         'use_selection': context.scene.hubs_scene_debugger_room_export_prefs.use_selection,
-        'export_apply': context.scene.hubs_scene_debugger_room_export_prefs.export_apply
+        'use_visible': context.scene.hubs_scene_debugger_room_export_prefs.use_visible,
+        'use_renderable': context.scene.hubs_scene_debugger_room_export_prefs.use_renderable,
+        'use_active_collection': context.scene.hubs_scene_debugger_room_export_prefs.use_active_collection,
+        'export_apply': context.scene.hubs_scene_debugger_room_export_prefs.export_apply,
+        'export_force_sampling': False,
+        'use_active_scene': True
     }
     bpy.ops.export_scene.gltf(**args)
 
@@ -377,14 +382,26 @@ class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
         row.label(
             text="Set the default export options in the glTF export panel")
         row = box.row()
-        col = row.column(heading="Override:")
+        col = row.column(heading="Limit To:")
+        col.use_property_split = True
+        col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
+                 "use_selection")
+        col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
+                 "use_visible")
+        col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
+                 "use_renderable")
+        col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
+                 "use_active_collection")
+        row = box.row()
+        col = row.column(heading="Data:")
         col.use_property_split = True
         col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
                  "export_cameras")
         col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
                  "export_lights")
-        col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
-                 "use_selection")
+        row = box.row()
+        col = row.column(heading="Mesh:")
+        col.use_property_split = True
         col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
                  "export_apply")
         row = box.row()
@@ -593,6 +610,26 @@ class HubsSceneDebuggerRoomExportPrefs(bpy.types.PropertyGroup):
     export_apply: bpy.props.BoolProperty(name="Apply Modifiers", default=True,
                                               description="Apply Modifiers, Apply modifiers (excluding Armatures) to mesh objects -WARNING: prevents exporting shape keys.",
                                               options=set())
+    use_visible: bpy.props.BoolProperty(
+        name='Visible Objects',
+        description='Export visible objects only',
+        default=False,
+        options=set()
+    )
+
+    use_renderable: bpy.props.BoolProperty(
+        name='Renderable Objects',
+        description='Export renderable objects only',
+        default=False,
+        options=set()
+    )
+
+    use_active_collection: bpy.props.BoolProperty(
+        name='Active Collection',
+        description='Export objects in the active collection only',
+        default=False,
+        options=set()
+    )
 
 
 def register():
