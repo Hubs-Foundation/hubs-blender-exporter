@@ -78,7 +78,10 @@ def get_local_storage():
 
 
 def is_user_logged_in():
-    return bool(web_driver.execute_script('try { return APP?.hubChannel?.signedIn; } catch(e) { return false; }'))
+    if "debugLocalScene" in web_driver.current_url:
+        return bool(web_driver.execute_script('try { return APP?.hubChannel?.signedIn; } catch(e) { return false; }'))
+    else:
+        return True
 
 
 def is_user_in_room():
