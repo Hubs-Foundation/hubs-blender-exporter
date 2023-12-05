@@ -19,7 +19,7 @@ def load_icons():
 
 def unload_icons():
     global __hubs_icons
-    __hubs_icons["hubs"].close()
+    bpy.utils.previews.remove(__hubs_icons["hubs"])
     del __hubs_icons
 
 
