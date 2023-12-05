@@ -182,8 +182,6 @@ class HubsCreateRoomOperator(bpy.types.Operator):
     bl_description = "Create room"
     bl_options = {'REGISTER', 'UNDO'}
 
-    url: bpy.props.StringProperty()
-
     @classmethod
     def poll(cls, context: Context):
         return not isWebdriverAlive() and is_instance_set(context)
