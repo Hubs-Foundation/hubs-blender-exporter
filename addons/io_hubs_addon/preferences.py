@@ -167,7 +167,7 @@ def set_url(self, value):
         parsed = urllib.parse.urlparse(value)
         parsed = parsed._replace(scheme="https")
         self.url_ = urllib.parse.urlunparse(parsed)
-    except:
+    except Exception:
         self.url_ = "https://hubs.mozilla.com/demo"
 
 
