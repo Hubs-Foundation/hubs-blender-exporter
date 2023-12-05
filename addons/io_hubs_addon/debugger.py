@@ -88,6 +88,10 @@ def is_user_in_room():
     return bool(web_driver.execute_script('try { return APP?.scene?.is("entered"); } catch(e) { return false; }'))
 
 
+def get_room_name():
+    return web_driver.execute_script('try { return APP?.hub?.name || APP?.hub?.slug || APP?.hub?.hub_id; } catch(e) { return ""; }')
+
+
 def is_instance_set(context):
     hubs_instance_idx = get_addon_pref(context).hubs_instance_idx
     return hubs_instance_idx != -1
@@ -416,7 +420,7 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
                             icon_value=hubs_icons["green-dot.png"].icon_id)
                         row = main_box.row(align=True)
                         row.alignment = "CENTER"
-                        row.label(text="In room")
+                        row.label(text=f'In room: {get_room_name()}')
 
                     else:
                         col = row.column()
