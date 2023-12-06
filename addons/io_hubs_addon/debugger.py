@@ -688,5 +688,5 @@ def unregister():
     del bpy.types.Scene.hubs_scene_debugger_room_create_prefs
     del bpy.types.Scene.hubs_scene_debugger_room_export_prefs
 
-    if isWebdriverAlive():
-        web_driver.close()
+    if web_driver:
+        web_driver.quit()
