@@ -161,26 +161,6 @@ class DeleteProfileOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-def set_url(self, value):
-    try:
-        import urllib
-        parsed = urllib.parse.urlparse(value)
-        parsed = parsed._replace(scheme="https")
-        self.url_ = urllib.parse.urlunparse(parsed)
-    except Exception:
-        self.url_ = "https://hubs.mozilla.com/demo"
-
-
-def get_url(self):
-    return self.url_
-
-
-class HubsUrl(bpy.types.PropertyGroup):
-    name: bpy.props.StringProperty()
-    url: bpy.props.StringProperty(set=set_url, get=get_url)
-    url_: bpy.props.StringProperty(options={"HIDDEN"})
-
-
 class HubsPreferences(AddonPreferences):
     bl_idname = __package__
 
@@ -198,18 +178,6 @@ class HubsPreferences(AddonPreferences):
     )
 
     viewer_available: BoolProperty()
-
-    hubs_instances: bpy.props.CollectionProperty(
-        type=HubsUrl)
-
-    hubs_instance_idx: bpy.props.IntProperty(
-        default=-1)
-
-    hubs_room_idx: bpy.props.IntProperty(
-        default=-1)
-
-    hubs_rooms: bpy.props.CollectionProperty(
-        type=HubsUrl)
 
     browser: EnumProperty(
         name="Choose a browser", description="Type",
@@ -306,7 +274,6 @@ class HubsPreferences(AddonPreferences):
 
 def register():
     bpy.utils.register_class(DepsProperty)
-    bpy.utils.register_class(HubsUrl)
     bpy.utils.register_class(HubsPreferences)
     bpy.utils.register_class(InstallDepsOperator)
     bpy.utils.register_class(UninstallDepsOperator)
@@ -318,5 +285,4 @@ def unregister():
     bpy.utils.unregister_class(UninstallDepsOperator)
     bpy.utils.unregister_class(InstallDepsOperator)
     bpy.utils.unregister_class(HubsPreferences)
-    bpy.utils.unregister_class(HubsUrl)
     bpy.utils.unregister_class(DepsProperty)
