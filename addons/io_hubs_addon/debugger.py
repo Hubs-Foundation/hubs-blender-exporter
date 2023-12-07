@@ -735,6 +735,7 @@ def unregister():
     bpy.utils.unregister_class(HubsSceneDebuggerInstanceAdd)
     bpy.utils.unregister_class(HubsSceneDebuggerInstanceRemove)
     bpy.utils.unregister_class(HubsSceneDebuggerRoomAdd)
+    bpy.utils.unregister_class(HubsSceneDebuggerRoomRemove)
     bpy.utils.unregister_class(HubsSceneDebuggerPrefs)
     bpy.utils.unregister_class(HubsUrl)
 
