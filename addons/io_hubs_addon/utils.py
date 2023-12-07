@@ -111,6 +111,10 @@ def load_prefs(context):
     data = {}
 
     out_path = get_prefs_path()
+    import os
+    if not os.path.isfile(out_path):
+        return
+
     try:
         import json
         import os
