@@ -551,6 +551,10 @@ class HubsSceneDebuggerRoomAdd(bpy.types.Operator):
                     url = url.split("?")[0]
 
         new_room.name = "Room Name"
+        if isWebdriverAlive():
+            room_name = get_room_name()
+            if room_name:
+                new_room.name = room_name
         new_room.url = url
         prefs.hubs_room_idx = len(
             prefs.hubs_rooms) - 1
