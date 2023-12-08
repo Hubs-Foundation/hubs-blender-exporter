@@ -160,6 +160,19 @@ def get_url_params(context):
     return params
 
 
+def init_browser(context):
+    browser = get_addon_pref(context).browser
+    if isWebdriverAlive():
+        if web_driver.name != browser.lower():
+            web_driver.quit()
+            create_browser_instance(context)
+            return False
+        return True
+    else:
+        create_browser_instance(context)
+        return False
+
+
 def create_browser_instance(context):
     global web_driver
     if not web_driver or not isWebdriverAlive():
@@ -214,10 +227,7 @@ class HubsCreateRoomOperator(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            was_alive = True
-            if not isWebdriverAlive():
-                was_alive = False
-                create_browser_instance(context)
+            was_alive = init_browser(context)
 
             prefs = context.window_manager.hubs_scene_debugger_prefs
             hubs_instance_url = prefs.hubs_instances[prefs.hubs_instance_idx].url
@@ -249,13 +259,10 @@ class HubsOpenRoomOperator(bpy.types.Operator):
 
     def execute(self, context):
         try:
+            was_alive = init_browser(context)
+
             prefs = context.window_manager.hubs_scene_debugger_prefs
             room_url = prefs.hubs_rooms[prefs.hubs_room_idx].url
-
-            was_alive = True
-            if not isWebdriverAlive():
-                was_alive = False
-                create_browser_instance(context)
 
             params = get_url_params(context)
             if params:
