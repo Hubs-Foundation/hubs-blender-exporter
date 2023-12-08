@@ -545,7 +545,9 @@ class HubsSceneDebuggerInstanceRemove(bpy.types.Operator):
     def execute(self, context):
         prefs = context.window_manager.hubs_scene_debugger_prefs
         prefs.hubs_instances.remove(prefs.hubs_instance_idx)
-        prefs.hubs_instance_idx = len(prefs.hubs_instances) - 1
+
+        if prefs.hubs_instance_idx >= len(prefs.hubs_instances):
+            prefs.hubs_instance_idx -= 1
 
         save_prefs(context)
 
@@ -599,7 +601,9 @@ class HubsSceneDebuggerRoomRemove(bpy.types.Operator):
     def execute(self, context):
         prefs = context.window_manager.hubs_scene_debugger_prefs
         prefs.hubs_rooms.remove(prefs.hubs_room_idx)
-        prefs.hubs_room_idx = len(prefs.hubs_rooms) - 1
+
+        if prefs.hubs_room_idx >= len(prefs.hubs_rooms):
+            prefs.hubs_room_idx -= 1
 
         save_prefs(context)
 
