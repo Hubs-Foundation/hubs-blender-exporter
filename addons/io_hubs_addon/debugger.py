@@ -706,6 +706,10 @@ def load_post(dummy):
     from .utils import load_prefs
     load_prefs(bpy.context)
 
+    prefs = bpy.context.window_manager.hubs_scene_debugger_prefs
+    if len(prefs.hubs_instances) == 0:
+        bpy.ops.hubs_scene.scene_debugger_instance_add('INVOKE_DEFAULT')
+
 
 def register():
     bpy.utils.register_class(HubsUrl)
