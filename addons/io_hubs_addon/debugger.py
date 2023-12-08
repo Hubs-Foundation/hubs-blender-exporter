@@ -98,6 +98,18 @@ def get_room_name():
     return web_driver.execute_script('try { return APP?.hub?.name || APP?.hub?.slug || APP?.hub?.hub_id; } catch(e) { return ""; }')
 
 
+def bring_to_front(context):
+    # In some systems switch_to doesn't work, the code below is a hack to make it work
+    # for the affected platforms/browsers that we have detected so far.
+    browser = get_addon_pref(context).browser
+    import platform
+    if browser == "Firefox" or platform.system == "Windows":
+        ws = web_driver.get_window_size()
+        web_driver.minimize_window()
+        web_driver.set_window_size(ws['width'], ws['height'])
+    web_driver.switch_to.window(web_driver.current_window_handle)
+
+
 def is_instance_set(context):
     prefs = context.window_manager.hubs_scene_debugger_prefs
     return prefs.hubs_instance_idx != -1
@@ -122,17 +134,7 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
         try:
             export_scene(context)
             refresh_scene_viewer()
-
-            web_driver.switch_to.window(web_driver.current_window_handle)
-
-            # In some systems switch_to doesn't work, the code below is a hack to make it work
-            # for the affected platforms/browsers that we have detected so far.
-            browser = get_addon_pref(context).browser
-            import platform
-            if browser == "Firefox" or platform.system == "Windows":
-                ws = web_driver.get_window_size()
-                web_driver.minimize_window()
-                web_driver.set_window_size(ws['width'], ws['height'])
+            bring_to_front(context)
 
             return {'FINISHED'}
         except Exception as err:
@@ -210,13 +212,18 @@ class HubsCreateRoomOperator(bpy.types.Operator):
 
     def execute(self, context):
         try:
+            was_alive = True
             if not isWebdriverAlive():
+                was_alive = False
                 create_browser_instance(context)
 
             prefs = context.window_manager.hubs_scene_debugger_prefs
             hubs_instance_url = prefs.hubs_instances[prefs.hubs_instance_idx].url
             web_driver.get(
                 f'{hubs_instance_url}?new&{get_url_params(context)}')
+
+            if was_alive:
+                bring_to_front(context)
 
             return {'FINISHED'}
 
@@ -242,7 +249,10 @@ class HubsOpenRoomOperator(bpy.types.Operator):
         try:
             prefs = context.window_manager.hubs_scene_debugger_prefs
             room_url = prefs.hubs_rooms[prefs.hubs_room_idx].url
+
+            was_alive = True
             if not isWebdriverAlive():
+                was_alive = False
                 create_browser_instance(context)
 
             params = get_url_params(context)
@@ -253,6 +263,9 @@ class HubsOpenRoomOperator(bpy.types.Operator):
                     web_driver.get(f'{room_url}?{params}')
             else:
                 web_driver.get(room_url)
+
+            if was_alive:
+                bring_to_front(context)
 
             return {'FINISHED'}
 
