@@ -1,3 +1,4 @@
+from .utils import create_prefs_dir
 from .utils import get_user_python_path
 import sys
 import bpy
@@ -22,6 +23,8 @@ bl_info = {
 }
 
 sys.path.insert(0, get_user_python_path())
+
+create_prefs_dir()
 
 
 def register():

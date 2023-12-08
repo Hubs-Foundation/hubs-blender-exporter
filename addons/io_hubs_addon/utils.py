@@ -40,29 +40,45 @@ def isModuleAvailable(name):
     return loader is not None
 
 
-HUBS_SELENIUM_PROFILE_NAME_FIREFOX = ".__hubs_blender_exporter_selenium_profile.firefox"
-HUBS_SELENIUM_PROFILE_NAME_CHROME = ".__hubs_blender_exporter_selenium_profile.chrome"
-HUBS_PREFS = ".__hubs_debugger_prefs.json"
+HUBS_PREFS_DIR = ".__hubs_blender_addon_preferences"
+HUBS_SELENIUM_PROFILE_FIREFOX = "hubs_selenium_profile.firefox"
+HUBS_SELENIUM_PROFILE_CHROME = "hubs_selenium_profile.chrome"
+HUBS_PREFS = "hubs_prefs.json"
+
+
+def get_prefs_dir_path():
+    import os
+    home_directory = os.path.expanduser("~")
+    prefs_dir_path = os.path.join(home_directory, HUBS_PREFS_DIR)
+    return os.path.normpath(prefs_dir_path)
+
+
+def create_prefs_dir():
+    import os
+    prefs_dir = get_prefs_dir_path()
+    if not os.path.exists(prefs_dir):
+        os.makedirs(prefs_dir)
 
 
 def get_browser_profile_directory(browser):
     import os
-    home_directory = os.path.expanduser("~")
+    prefs_folder = get_prefs_dir_path()
     file_path = ""
     if browser == "Firefox":
         file_path = os.path.join(
-            home_directory, HUBS_SELENIUM_PROFILE_NAME_FIREFOX)
+            prefs_folder, HUBS_SELENIUM_PROFILE_FIREFOX)
     elif browser == "Chrome":
         file_path = os.path.join(
-            home_directory, HUBS_SELENIUM_PROFILE_NAME_CHROME)
+            prefs_folder, HUBS_SELENIUM_PROFILE_CHROME)
 
-    return file_path
+    return os.path.normpath(file_path)
 
 
 def get_prefs_path():
     import os
-    home_directory = os.path.expanduser("~")
-    return os.path.join(home_directory, HUBS_PREFS)
+    prefs_folder = get_prefs_dir_path()
+    prefs_path = os.path.join(prefs_folder, HUBS_PREFS)
+    return os.path.normpath(prefs_path)
 
 
 def save_prefs(context):
