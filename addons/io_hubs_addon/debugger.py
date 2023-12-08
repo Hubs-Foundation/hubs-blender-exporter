@@ -19,6 +19,7 @@ JS_DROP_FILE = """
           x = rect.left + (offsetX || (rect.width >> 1)),
           y = rect.top + (offsetY || (rect.height >> 1)),
           dataTransfer = { files: this.files };
+          dataTransfer.getData = o => undefined;
 
       ['dragenter', 'dragover', 'drop'].forEach(function (name) {
         var evt = document.createEvent('MouseEvent');
