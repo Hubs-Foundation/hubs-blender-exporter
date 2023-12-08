@@ -185,10 +185,12 @@ def create_browser_instance(context):
             # options.profile = firefox_profile
             options.add_argument("-profile")
             options.add_argument(file_path)
+            options.set_preference("javascript.options.shared_memory", True)
             web_driver = webdriver.Firefox(options=options)
         else:
             from selenium import webdriver
             options = webdriver.ChromeOptions()
+            options.add_argument('--enable-features=SharedArrayBuffer')
             options.add_argument('--ignore-certificate-errors')
             options.add_argument(
                 f'user-data-dir={file_path}')
