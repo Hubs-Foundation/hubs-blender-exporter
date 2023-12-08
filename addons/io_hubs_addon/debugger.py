@@ -624,15 +624,19 @@ class HubsUrl(bpy.types.PropertyGroup):
     url_: bpy.props.StringProperty(options={"HIDDEN"})
 
 
+def save_prefs_on_prop_update(self, context):
+    save_prefs(context)
+
+
 class HubsSceneDebuggerPrefs(bpy.types.PropertyGroup):
     hubs_instances: bpy.props.CollectionProperty(
         type=HubsUrl)
 
     hubs_instance_idx: bpy.props.IntProperty(
-        default=-1)
+        default=-1, update=save_prefs_on_prop_update)
 
     hubs_room_idx: bpy.props.IntProperty(
-        default=-1)
+        default=-1, update=save_prefs_on_prop_update)
 
     hubs_rooms: bpy.props.CollectionProperty(
         type=HubsUrl)

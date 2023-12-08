@@ -133,18 +133,18 @@ def load_prefs(context):
 
     prefs = context.window_manager.hubs_scene_debugger_prefs
     scene_debugger = data["scene_debugger"]
-    prefs.hubs_instances_idx = scene_debugger.get("hubs_instance_idx")
+    prefs["hubs_instance_idx"] = scene_debugger["hubs_instance_idx"]
     prefs.hubs_instances.clear()
-    instances = scene_debugger.get("hubs_instances")
+    instances = scene_debugger["hubs_instances"]
     for instance in instances:
         new_instance = prefs.hubs_instances.add()
-        new_instance.name = instance.get("name")
-        new_instance.url = instance.get("url")
+        new_instance.name = instance["name"]
+        new_instance.url = instance["url"]
 
-    prefs.hubs_room_idx = scene_debugger.get("hubs_room_idx")
+    prefs["hubs_room_idx"] = scene_debugger["hubs_room_idx"]
     prefs.hubs_rooms.clear()
-    rooms = scene_debugger.get("hubs_rooms")
+    rooms = scene_debugger["hubs_rooms"]
     for room in rooms:
         new_room = prefs.hubs_rooms.add()
-        new_room.name = room.get("name")
-        new_room.url = room.get("url")
+        new_room.name = room["name"]
+        new_room.url = room["url"]
