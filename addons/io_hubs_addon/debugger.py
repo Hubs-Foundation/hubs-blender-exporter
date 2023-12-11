@@ -645,14 +645,15 @@ def get_url(self):
     return self.url_
 
 
-class HubsUrl(bpy.types.PropertyGroup):
-    name: bpy.props.StringProperty()
-    url: bpy.props.StringProperty(set=set_url, get=get_url)
-    url_: bpy.props.StringProperty(options={"HIDDEN"})
-
-
 def save_prefs_on_prop_update(self, context):
     save_prefs(context)
+
+
+class HubsUrl(bpy.types.PropertyGroup):
+    name: bpy.props.StringProperty(update=save_prefs_on_prop_update)
+    url: bpy.props.StringProperty(
+        set=set_url, get=get_url, update=save_prefs_on_prop_update)
+    url_: bpy.props.StringProperty(options={"HIDDEN"})
 
 
 class HubsSceneDebuggerPrefs(bpy.types.PropertyGroup):
