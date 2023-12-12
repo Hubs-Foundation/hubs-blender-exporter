@@ -38,6 +38,7 @@ web_driver = None
 
 
 def export_scene(context):
+    export_prefs = context.scene.hubs_scene_debugger_room_export_prefs
     import os
     extension = '.glb'
     args = {
@@ -46,13 +47,13 @@ def export_scene(context):
 
         'export_format': ('GLB' if extension == '.glb' else 'GLTF_SEPARATE'),
         'filepath': os.path.join(bpy.app.tempdir, EXPORT_TMP_FILE_NAME),
-        'export_cameras': context.scene.hubs_scene_debugger_room_export_prefs.export_cameras,
-        'export_lights': context.scene.hubs_scene_debugger_room_export_prefs.export_lights,
-        'use_selection': context.scene.hubs_scene_debugger_room_export_prefs.use_selection,
-        'use_visible': context.scene.hubs_scene_debugger_room_export_prefs.use_visible,
-        'use_renderable': context.scene.hubs_scene_debugger_room_export_prefs.use_renderable,
-        'use_active_collection': context.scene.hubs_scene_debugger_room_export_prefs.use_active_collection,
-        'export_apply': context.scene.hubs_scene_debugger_room_export_prefs.export_apply,
+        'export_cameras': export_prefs.export_cameras,
+        'export_lights': export_prefs.export_lights,
+        'use_selection': export_prefs.use_selection,
+        'use_visible': export_prefs.use_visible,
+        'use_renderable': export_prefs.use_renderable,
+        'use_active_collection': export_prefs.use_active_collection,
+        'export_apply': export_prefs.export_apply,
         'export_force_sampling': False,
         'use_active_scene': True
     }
