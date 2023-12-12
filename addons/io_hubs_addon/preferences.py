@@ -103,6 +103,9 @@ class UninstallDepsOperator(bpy.types.Operator):
                                                                      f'{result.stderr}']))
             return {'CANCELLED'}
 
+        for name, _ in self.dep_names.items():
+            del name
+
         result = subprocess.run(
             [sys.executable, '-m', 'pip', 'uninstall', *
                 [name for name, _ in self.dep_names.items()]],
