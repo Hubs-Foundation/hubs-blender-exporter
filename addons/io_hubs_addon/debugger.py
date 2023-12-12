@@ -5,6 +5,8 @@ from .preferences import get_addon_pref, EXPORT_TMP_FILE_NAME
 from .utils import isModuleAvailable, get_browser_profile_directory, save_prefs
 from .icons import get_hubs_icons
 
+ROOM_FLAGS_DOC_URL = "https://hubs.mozilla.com/docs/hubs-query-string-parameters.html"
+
 JS_DROP_FILE = """
     var target = arguments[0],
         offsetX = arguments[1],
@@ -474,6 +476,20 @@ class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
                      text=f'{update_mode}')
 
 
+class OpenUrl(bpy.types.Operator):
+    bl_idname = "hubs.open_url"
+    bl_label = "Open URL"
+    bl_description = "Open URL"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    url: bpy.props.StringProperty()
+
+    def execute(self, context):
+        import webbrowser
+        webbrowser.open(self.url)
+        return {'FINISHED'}
+
+
 class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
     bl_idname = "HUBS_PT_ToolsSceneDebuggerPanel"
     bl_space_type = 'VIEW_3D'
@@ -548,6 +564,9 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
                      "vr_entry_type")
             col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
                      "debug_local_scene")
+            col = row.column()
+            op = col.operator(OpenUrl.bl_idname, text="", icon="HELP")
+            op.url = ROOM_FLAGS_DOC_URL
 
         else:
             row = main_box.row()
@@ -785,6 +804,7 @@ def register():
     bpy.utils.register_class(HubsSceneDebuggerRoomRemove)
     bpy.utils.register_class(HUBS_UL_ToolsSceneDebuggerServers)
     bpy.utils.register_class(HUBS_UL_ToolsSceneDebuggerRooms)
+    bpy.utils.register_class(OpenUrl)
 
     bpy.types.Scene.hubs_scene_debugger_room_create_prefs = bpy.props.PointerProperty(
         type=HubsSceneDebuggerRoomCreatePrefs)
@@ -817,6 +837,7 @@ def unregister():
     bpy.utils.unregister_class(HubsSceneDebuggerRoomRemove)
     bpy.utils.unregister_class(HubsSceneDebuggerPrefs)
     bpy.utils.unregister_class(HubsUrl)
+    bpy.utils.unregister_class(OpenUrl)
 
     del bpy.types.Scene.hubs_scene_debugger_room_create_prefs
     del bpy.types.Scene.hubs_scene_debugger_room_export_prefs
