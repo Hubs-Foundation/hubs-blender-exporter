@@ -166,7 +166,7 @@ def init_browser(context):
     browser = get_addon_pref(context).browser
     if isWebdriverAlive():
         if web_driver.name != browser.lower():
-            web_driver.quit()
+            close_browser()
             create_browser_instance(context)
             return False
         return True
@@ -175,11 +175,27 @@ def init_browser(context):
         return False
 
 
+def close_browser():
+    global web_driver
+    if web_driver:
+        # Hack, without this the browser instances don't close the session correctly and
+        # you get a "[Browser] didn't shutdown correctly" message on reopen.
+        # Only seen in Windows so far so limiting to it for now.
+        import platform
+        if platform == "windows":
+            windows = web_driver.window_handles
+            for w in windows:
+                web_driver.switch_to.window(w)
+                web_driver.close()
+
+        web_driver.quit()
+        web_driver = None
+
+
 def create_browser_instance(context):
     global web_driver
     if not web_driver or not isWebdriverAlive():
-        if web_driver:
-            web_driver.quit()
+        close_browser()
         browser = get_addon_pref(context).browser
         import os
         file_path = get_browser_profile_directory(browser)
@@ -242,8 +258,7 @@ class HubsCreateRoomOperator(bpy.types.Operator):
             return {'FINISHED'}
 
         except Exception as err:
-            if web_driver:
-                web_driver.quit()
+            close_browser()
             bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
                                           report_string=f'The room creation has failed: {err}')
             return {"CANCELLED"}
@@ -281,6 +296,7 @@ class HubsOpenRoomOperator(bpy.types.Operator):
             return {'FINISHED'}
 
         except Exception as err:
+            close_browser()
             bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
                                           report_string=f'An error happened while opening the room: {err}')
             return {"CANCELLED"}
@@ -298,7 +314,7 @@ class HubsCloseRoomOperator(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            web_driver.quit()
+            close_browser()
             return {'FINISHED'}
 
         except Exception as err:
@@ -787,5 +803,4 @@ def unregister():
     if load_post in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.remove(load_post)
 
-    if web_driver:
-        web_driver.quit()
+    close_browser()
