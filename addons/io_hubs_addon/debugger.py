@@ -465,8 +465,13 @@ class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
         col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
                  "export_apply")
         row = box.row()
+
+        update_mode = "Update Scene" if context.scene.hubs_scene_debugger_room_create_prefs.debug_local_scene else "Spawn as object"
+        if isWebdriverAlive():
+            room_params = get_current_room_params()
+            update_mode = "Update Scene" if "debugLocalScene" in room_params else "Spawn as object"
         row.operator(HubsUpdateSceneOperator.bl_idname,
-                     text='Update')
+                     text=f'{update_mode}')
 
 
 class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
