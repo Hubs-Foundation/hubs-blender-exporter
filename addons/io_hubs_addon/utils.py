@@ -26,12 +26,18 @@ def delayed_gather(func):
     return wrapper_delayed_gather
 
 
+user_python_path = None
+
+
 def get_user_python_path():
-    import sys
-    import subprocess
-    result = subprocess.run([sys.executable, '-m', 'site',
-                            '--user-site'], capture_output=True, text=True, input="y")
-    return result.stdout.strip("\n")
+    global user_python_path
+    if not user_python_path:
+        import sys
+        import subprocess
+        result = subprocess.run([sys.executable, '-m', 'site',
+                                '--user-site'], capture_output=True, text=True, input="y")
+        user_python_path = result.stdout.strip("\n")
+    return user_python_path
 
 
 def isModuleAvailable(name):
