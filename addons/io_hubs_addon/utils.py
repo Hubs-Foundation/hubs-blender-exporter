@@ -43,7 +43,10 @@ def get_user_python_path():
 def isModuleAvailable(name):
     import importlib
     loader = importlib.util.find_spec(name)
-    return loader is not None
+    import os
+    from .utils import get_user_python_path
+    path = os.path.join(get_user_python_path(), name)
+    return loader and os.path.exists(path)
 
 
 HUBS_PREFS_DIR = ".__hubs_blender_addon_preferences"
