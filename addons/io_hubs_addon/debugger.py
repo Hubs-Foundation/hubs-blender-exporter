@@ -85,8 +85,18 @@ def get_local_storage():
     return storage
 
 
+def get_current_room_params():
+    url = web_driver.current_url
+    from urllib.parse import urlparse
+    parsed = urlparse(url)
+    if "hub_id=" in parsed.query:
+        return parsed.query.split("&")[1:]
+    else:
+        return parsed.query.split("&")
+
+
 def is_user_logged_in():
-    if "debugLocalScene" in web_driver.current_url:
+    if "debugLocalScene" in get_current_room_params():
         return bool(web_driver.execute_script('try { return APP?.hubChannel?.signedIn; } catch(e) { return false; }'))
     else:
         return True
@@ -505,6 +515,13 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
                     row = main_box.row(align=True)
                     row.alignment = "CENTER"
                     row.label(text="Waiting for sign in...")
+
+                row = main_box.row(align=True)
+                row.alignment = "CENTER"
+                row.active_default = True
+                params = get_current_room_params()
+                if params:
+                    row.label(text=f'Active Room flags: [{", ".join(params)}]')
             else:
                 col = row.column()
                 col.alignment = "LEFT"
