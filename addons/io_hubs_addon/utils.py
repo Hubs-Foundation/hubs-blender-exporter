@@ -94,7 +94,8 @@ def save_prefs(context):
     prefs = context.window_manager.hubs_scene_debugger_prefs
 
     data = {
-        "scene_debugger": {}
+        "scene_debugger": {},
+        "scene_publisher": {}
     }
 
     instances_array = []
@@ -117,6 +118,22 @@ def save_prefs(context):
     data["scene_debugger"].update({
         "hubs_room_idx": prefs.hubs_room_idx,
         "hubs_rooms": rooms_array
+    })
+
+    scene_props = context.window_manager.hubs_scene_debugger_scenes_props
+    scenes_array = []
+    for scene in scene_props.scenes:
+        scenes_array.append({
+            "scene_id": scene["scene_id"],
+            "name": scene["name"],
+            "description": scene["description"],
+            "url": scene["url"],
+            "screenshot_url": scene["screenshot_url"],
+        })
+    data["scene_publisher"].update({
+        "instance": scene_props.instance,
+        "scenes": scenes_array,
+        "scene_idx": scene_props.scene_idx
     })
 
     out_path = get_prefs_path()
@@ -159,19 +176,35 @@ def load_prefs(context):
         return
 
     prefs = context.window_manager.hubs_scene_debugger_prefs
-    scene_debugger = data["scene_debugger"]
-    prefs["hubs_instance_idx"] = scene_debugger["hubs_instance_idx"]
-    prefs.hubs_instances.clear()
-    instances = scene_debugger["hubs_instances"]
-    for instance in instances:
-        new_instance = prefs.hubs_instances.add()
-        new_instance.name = instance["name"]
-        new_instance.url = instance["url"]
+    if "scene_debugger" in data:
+        scene_debugger = data["scene_debugger"]
+        prefs["hubs_instance_idx"] = scene_debugger["hubs_instance_idx"]
+        prefs.hubs_instances.clear()
+        instances = scene_debugger["hubs_instances"]
+        for instance in instances:
+            new_instance = prefs.hubs_instances.add()
+            new_instance.name = instance["name"]
+            new_instance.url = instance["url"]
 
-    prefs["hubs_room_idx"] = scene_debugger["hubs_room_idx"]
-    prefs.hubs_rooms.clear()
-    rooms = scene_debugger["hubs_rooms"]
-    for room in rooms:
-        new_room = prefs.hubs_rooms.add()
-        new_room.name = room["name"]
-        new_room.url = room["url"]
+        prefs["hubs_room_idx"] = scene_debugger["hubs_room_idx"]
+        prefs.hubs_rooms.clear()
+        rooms = scene_debugger["hubs_rooms"]
+        for room in rooms:
+            new_room = prefs.hubs_rooms.add()
+            new_room.name = room["name"]
+            new_room.url = room["url"]
+
+    scene_props = context.window_manager.hubs_scene_debugger_scenes_props
+    if "scene_publisher" in data:
+        scene_publisher = data["scene_publisher"]
+        scene_props.instance = scene_publisher["instance"]
+        scene_props.scene_idx = scene_publisher["scene_idx"]
+        scene_props.scenes.clear()
+        scenes = scene_publisher["scenes"]
+        for scene in scenes:
+            new_scene = scene_props.scenes.add()
+            new_scene["scene_id"] = scene["scene_id"]
+            new_scene["name"] = scene["name"]
+            new_scene["description"] = scene["description"]
+            new_scene["url"] = scene["url"]
+            new_scene["screenshot_url"] = scene["screenshot_url"]

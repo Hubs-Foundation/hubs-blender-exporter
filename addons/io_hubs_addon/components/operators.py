@@ -646,14 +646,14 @@ class OpenImage(Operator):
             self.report({'INFO'}, "Open image cancelled.  No image selected.")
             return {'CANCELLED'}
 
-        old_img = self.hubs_component[self.target_property]
+        old_img = getattr(self.target, self.target_property)
 
         # Load/Reload the first image and assign it to the target property, then load the rest of the images if they're not already loaded. This mimics Blender's default open files behavior.
         primary_filepath = os.path.join(dirname, self.files[0].name)
         primary_img = bpy.data.images.load(
             filepath=primary_filepath, check_existing=True)
         primary_img.reload()
-        self.hubs_component[self.target_property] = primary_img
+        setattr(self.target, self.target_property, primary_img)
 
         for f in self.files[1:]:
             bpy.data.images.load(filepath=os.path.join(
@@ -665,7 +665,7 @@ class OpenImage(Operator):
 
     def invoke(self, context, event):
         self.filepath = ""
-        self.hubs_component = context.hubs_component
+        self.target = context.target
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
