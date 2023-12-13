@@ -11,5 +11,8 @@
   ],
   "editor.defaultFormatter": "ms-python.autopep8",
   "editor.formatOnSave": true,
-  "editor.formatOnSaveMode": "file"
+  "editor.formatOnSaveMode": "file",
+  "autopep8.args": [
+    "--exclude=models", "--max-line-length", "120", "--experimental"
+  ],
 }

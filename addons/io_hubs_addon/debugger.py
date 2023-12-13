@@ -128,7 +128,8 @@ def is_user_in_room():
 
 
 def get_room_name():
-    return web_driver.execute_script('try { return APP?.hub?.name || APP?.hub?.slug || APP?.hub?.hub_id; } catch(e) { return ""; }')
+    return web_driver.execute_script(
+        'try { return APP?.hub?.name || APP?.hub?.slug || APP?.hub?.hub_id; } catch(e) { return ""; }')
 
 
 def bring_to_front(context):
@@ -172,10 +173,8 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
             return {'FINISHED'}
         except Exception as err:
             print(err)
-            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                          report_string='\n\n'.join(["The scene export has failed",
-                                                                     "Check the export logs or quit the browser instance and try again",
-                                                                     f'{err}']))
+            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report", report_string='\n\n'.join(
+                ["The scene export has failed", "Check the export logs or quit the browser instance and try again", f'{err}']))
             return {'CANCELLED'}
 
 
@@ -738,11 +737,14 @@ class HubsSceneDebuggerPrefs(bpy.types.PropertyGroup):
 
 class HubsSceneDebuggerRoomCreatePrefs(bpy.types.PropertyGroup):
     newLoader: bpy.props.BoolProperty(
-        name=PARAMS_TO_STRING["newLoader"]["name"], default=True, description=PARAMS_TO_STRING["newLoader"]["description"])
+        name=PARAMS_TO_STRING["newLoader"]["name"],
+        default=True, description=PARAMS_TO_STRING["newLoader"]["description"])
     ecsDebug: bpy.props.BoolProperty(
-        name=PARAMS_TO_STRING["ecsDebug"]["name"], default=True, description=PARAMS_TO_STRING["ecsDebug"]["description"])
+        name=PARAMS_TO_STRING["ecsDebug"]["name"],
+        default=True, description=PARAMS_TO_STRING["ecsDebug"]["description"])
     vr_entry_type: bpy.props.BoolProperty(
-        name=PARAMS_TO_STRING["vr_entry_type"]["name"], default=True, description=PARAMS_TO_STRING["vr_entry_type"]["description"])
+        name=PARAMS_TO_STRING["vr_entry_type"]["name"],
+        default=True, description=PARAMS_TO_STRING["vr_entry_type"]["description"])
     debugLocalScene: bpy.props.BoolProperty(name=PARAMS_TO_STRING["debugLocalScene"]["name"], default=True,
                                             description=PARAMS_TO_STRING["debugLocalScene"]["description"])
 
@@ -750,14 +752,17 @@ class HubsSceneDebuggerRoomCreatePrefs(bpy.types.PropertyGroup):
 class HubsSceneDebuggerRoomExportPrefs(bpy.types.PropertyGroup):
     export_cameras: bpy.props.BoolProperty(name="Export Cameras", default=True,
                                            description="Export cameras", options=set())
-    export_lights: bpy.props.BoolProperty(name="Export Lights",
-                                          default=True, description="Punctual Lights, Export directional, point, and spot lights. Uses \"KHR_lights_punctual\" glTF extension", options=set())
+    export_lights: bpy.props.BoolProperty(
+        name="Export Lights", default=True,
+        description="Punctual Lights, Export directional, point, and spot lights. Uses \"KHR_lights_punctual\" glTF extension",
+        options=set())
     use_selection: bpy.props.BoolProperty(name="Selection Only", default=False,
                                           description="Selection Only, Export selected objects only.",
                                           options=set())
-    export_apply: bpy.props.BoolProperty(name="Apply Modifiers", default=True,
-                                              description="Apply Modifiers, Apply modifiers (excluding Armatures) to mesh objects -WARNING: prevents exporting shape keys.",
-                                              options=set())
+    export_apply: bpy.props.BoolProperty(
+        name="Apply Modifiers", default=True,
+        description="Apply Modifiers, Apply modifiers (excluding Armatures) to mesh objects -WARNING: prevents exporting shape keys.",
+        options=set())
     use_visible: bpy.props.BoolProperty(
         name='Visible Objects',
         description='Export visible objects only',
