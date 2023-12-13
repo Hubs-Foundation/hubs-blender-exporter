@@ -86,7 +86,7 @@ def get_projects(endpoint, token):
         else:
             raise Exception(f'Unknown error: {error}')
 
-    if not "scenes" in json:
+    if "scenes" not in json:
         raise Exception(f'Projects request error')
     scenes = json.get("scenes")
     return scenes
