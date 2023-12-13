@@ -6,6 +6,26 @@ from .utils import isModuleAvailable, get_browser_profile_directory, save_prefs
 from .icons import get_hubs_icons
 
 ROOM_FLAGS_DOC_URL = "https://hubs.mozilla.com/docs/hubs-query-string-parameters.html"
+PARAMS_TO_STRING = {
+    "newLoader": {
+        "name": "Use New Loader",
+        "description": "Creates the room using the new bitECS loader"
+    },
+    "ecsDebug": {
+        "name": "Show ECS Debug Panel",
+        "description": "Enables the ECS debugging side panel"
+    },
+    "vr_entry_type": {
+        "name": "Skip Entry",
+        "description": "Omits the entry setup panel and goes straight into the room",
+        "value": "2d_now"
+    },
+    "debugLocalScene": {
+        "name": "Allow Scene Update",
+        "description": "Allows scene override. Use this if you want to update the scene. If you just want to spawn an object disable it."
+    },
+}
+
 
 JS_DROP_FILE = """
     var target = arguments[0],
@@ -90,11 +110,10 @@ def get_local_storage():
 def get_current_room_params():
     url = web_driver.current_url
     from urllib.parse import urlparse
+    from urllib.parse import parse_qs
     parsed = urlparse(url)
-    if "hub_id=" in parsed.query:
-        return parsed.query.split("&")[1:]
-    else:
-        return parsed.query.split("&")
+    params = parse_qs(parsed.query, keep_blank_values=True)
+    return {k: v for k, v in params.items() if k != "hub_id"}
 
 
 def is_user_logged_in():
@@ -162,14 +181,12 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
 
 def get_url_params(context):
     params = ""
-    if context.scene.hubs_scene_debugger_room_create_prefs.new_loader:
-        params = f'{params}newLoader'
-    if context.scene.hubs_scene_debugger_room_create_prefs.ecs_debug:
-        params = f'{params}&ecsDebug'
-    if context.scene.hubs_scene_debugger_room_create_prefs.vr_entry_type:
-        params = f'{params}&vr_entry_type=2d_now'
-    if context.scene.hubs_scene_debugger_room_create_prefs.debug_local_scene:
-        params = f'{params}&debugLocalScene'
+    keys = list(PARAMS_TO_STRING.keys())
+    for key in keys:
+        if getattr(context.scene.hubs_scene_debugger_room_create_prefs, key):
+            value = f'={PARAMS_TO_STRING[key]["value"]}' if "value" in PARAMS_TO_STRING[key] else ""
+            key = key if not params else f'&{key}'
+            params = f'{params}{key}{value}'
 
     return params
 
@@ -468,7 +485,7 @@ class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
                  "export_apply")
         row = box.row()
 
-        update_mode = "Update Scene" if context.scene.hubs_scene_debugger_room_create_prefs.debug_local_scene else "Spawn as object"
+        update_mode = "Update Scene" if context.scene.hubs_scene_debugger_room_create_prefs.debugLocalScene else "Spawn as object"
         if isWebdriverAlive():
             room_params = get_current_room_params()
             update_mode = "Update Scene" if "debugLocalScene" in room_params else "Spawn as object"
@@ -492,7 +509,7 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
             row.alignment = "CENTER"
             col = row.column()
             col.alignment = "LEFT"
-            col.label(text="Status:")
+            col.label(text="Connection Status:")
             hubs_icons = get_hubs_icons()
             if isWebdriverAlive():
                 if is_user_logged_in():
@@ -523,12 +540,6 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
                     row.alignment = "CENTER"
                     row.label(text="Waiting for sign in...")
 
-                row = main_box.row(align=True)
-                row.alignment = "CENTER"
-                row.active_default = True
-                params = get_current_room_params()
-                if params:
-                    row.label(text=f'Active Room flags: [{", ".join(params)}]')
             else:
                 col = row.column()
                 col.alignment = "LEFT"
@@ -538,21 +549,32 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
                 row.alignment = "CENTER"
                 row.label(text="Waiting for room...")
 
+            params_icons = {}
+            for key in PARAMS_TO_STRING.keys():
+                params_icons.update(
+                    {key: hubs_icons["red-dot-small.png"].icon_id})
+            if isWebdriverAlive():
+                params = get_current_room_params()
+                for param in params:
+                    if param in params_icons:
+                        params_icons[param] = hubs_icons["green-dot-small.png"].icon_id
+
             box = self.layout.box()
-            row = box.row()
-            col = row.column(heading="Room flags:")
-            col.use_property_split = True
-            col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
-                     "new_loader")
-            col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
-                     "ecs_debug")
-            col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
-                     "vr_entry_type")
-            col.prop(context.scene.hubs_scene_debugger_room_create_prefs,
-                     "debug_local_scene")
-            col = row.column()
-            op = col.operator("wm.url_open", text="", icon="HELP")
+            row = box.row(align=True)
+            row.alignment = "EXPAND"
+            grid = row.grid_flow(columns=2, align=True,
+                                 even_rows=False, even_columns=False)
+            grid.alignment = "CENTER"
+            flags_row = grid.row()
+            flags_row.label(text="Room flags")
+            op = flags_row.operator("wm.url_open", text="", icon="HELP")
             op.url = ROOM_FLAGS_DOC_URL
+            for key in PARAMS_TO_STRING.keys():
+                grid.prop(context.scene.hubs_scene_debugger_room_create_prefs,
+                          key)
+            grid.label(text="Is Active?")
+            for key in PARAMS_TO_STRING.keys():
+                grid.label(icon_value=params_icons[key])
 
         else:
             row = main_box.row()
@@ -715,16 +737,14 @@ class HubsSceneDebuggerPrefs(bpy.types.PropertyGroup):
 
 
 class HubsSceneDebuggerRoomCreatePrefs(bpy.types.PropertyGroup):
-    new_loader: bpy.props.BoolProperty(name="New Loader", default=True,
-                                       description="Creates the room using the new bitECS loader", options=set())
-    ecs_debug: bpy.props.BoolProperty(name="ECS Debug",
-                                      default=True, description="Enables the ECS debugging side panel", options=set())
-    vr_entry_type: bpy.props.BoolProperty(name="Skip Entry", default=True,
-                                          description="Omits the entry setup panel and goes straight into the room",
-                                          options=set())
-    debug_local_scene: bpy.props.BoolProperty(name="Debug Local Scene", default=True,
-                                              description="Allows scene override. Use this if you want to update the scene. If you just want to spawn an object disable it.",
-                                              options=set())
+    newLoader: bpy.props.BoolProperty(
+        name=PARAMS_TO_STRING["newLoader"]["name"], default=True, description=PARAMS_TO_STRING["newLoader"]["description"])
+    ecsDebug: bpy.props.BoolProperty(
+        name=PARAMS_TO_STRING["ecsDebug"]["name"], default=True, description=PARAMS_TO_STRING["ecsDebug"]["description"])
+    vr_entry_type: bpy.props.BoolProperty(
+        name=PARAMS_TO_STRING["vr_entry_type"]["name"], default=True, description=PARAMS_TO_STRING["vr_entry_type"]["description"])
+    debugLocalScene: bpy.props.BoolProperty(name=PARAMS_TO_STRING["debugLocalScene"]["name"], default=True,
+                                            description=PARAMS_TO_STRING["debugLocalScene"]["description"])
 
 
 class HubsSceneDebuggerRoomExportPrefs(bpy.types.PropertyGroup):
