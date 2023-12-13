@@ -215,7 +215,7 @@ def redirect_c_stdout(binary_stream):
     try:
         # Flush the C-level buffer of stdout before redirecting.  This should make sure that only the desired data is captured.
         c_fflush()
-        #  Move the file pointer to the start of the file
+        #  Move the file pointer to the start of the file
         __stack_tmp_file.seek(0)
         # Redirect stdout to your pipe.
         os.dup2(__stack_tmp_file.fileno(), stdout_file_descriptor)
@@ -227,7 +227,7 @@ def redirect_c_stdout(binary_stream):
         os.dup2(original_stdout_file_descriptor_copy, stdout_file_descriptor)
         # Truncate file to the written amount of bytes
         __stack_tmp_file.truncate()
-        #  Move the file pointer to the start of the file
+        #  Move the file pointer to the start of the file
         __stack_tmp_file.seek(0)
         # Write back to the input stream
         binary_stream.write(__stack_tmp_file.read())
@@ -310,7 +310,8 @@ __stack_tmp_file = None
 
 def register():
     global __stack_tmp_file
-    __stack_tmp_file = tempfile.NamedTemporaryFile(mode='w+b', buffering=0, delete=False, dir=bpy.app.tempdir)
+    __stack_tmp_file = tempfile.NamedTemporaryFile(
+        mode='w+b', buffering=0, delete=False, dir=bpy.app.tempdir)
 
 
 def unregister():

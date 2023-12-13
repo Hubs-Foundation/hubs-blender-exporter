@@ -1,8 +1,13 @@
+from .utils import create_prefs_dir
+from .utils import get_user_python_path
+import sys
 import bpy
 from .io import gltf_exporter
 from . import (nodes, components)
 from . import preferences
 from . import third_party
+from . import debugger
+from . import icons
 bl_info = {
     "name": "Hubs Blender Addon",
     "author": "Mozilla Hubs",
@@ -17,13 +22,19 @@ bl_info = {
     "category": "Generic"
 }
 
+sys.path.insert(0, get_user_python_path())
+
+create_prefs_dir()
+
 
 def register():
+    icons.register()
     preferences.register()
     nodes.register()
     components.register()
     gltf_exporter.register()
     third_party.register()
+    debugger.register()
 
     # Migrate components if the add-on is enabled in the middle of a session.
     if bpy.context.preferences.is_dirty:
@@ -40,6 +51,8 @@ def unregister():
     components.unregister()
     nodes.unregister()
     preferences.unregister()
+    debugger.unregister()
+    icons.unregister()
 
 
 # called by gltf-blender-io after it has loaded

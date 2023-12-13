@@ -142,6 +142,18 @@ class HubsObjectPanel(bpy.types.Panel):
         draw_components_list(self, context)
 
 
+class HUBS_PT_ToolsPanel(bpy.types.Panel):
+    bl_idname = "HUBS_PT_ToolsPanel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Hubs"
+    bl_category = "Hubs"
+    bl_context = 'objectmode'
+
+    def draw(self, context):
+        pass
+
+
 class HubsScenePanel(bpy.types.Panel):
     bl_label = 'Hubs'
     bl_idname = "SCENE_PT_hubs"
@@ -217,6 +229,7 @@ def register():
     bpy.utils.register_class(HubsMaterialPanel)
     bpy.utils.register_class(HubsBonePanel)
     bpy.utils.register_class(TooltipLabel)
+    bpy.utils.register_class(HUBS_PT_ToolsPanel)
 
     bpy.types.TOPBAR_MT_window.append(window_menu_addition)
     bpy.types.VIEW3D_MT_object.append(object_menu_addition)
@@ -229,6 +242,7 @@ def unregister():
     bpy.utils.unregister_class(HubsMaterialPanel)
     bpy.utils.unregister_class(HubsBonePanel)
     bpy.utils.unregister_class(TooltipLabel)
+    bpy.utils.unregister_class(HUBS_PT_ToolsPanel)
 
     bpy.types.TOPBAR_MT_window.remove(window_menu_addition)
     bpy.types.VIEW3D_MT_object.remove(object_menu_addition)
