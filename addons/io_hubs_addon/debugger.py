@@ -77,8 +77,10 @@ def export_scene(context):
         'use_active_collection': export_prefs.use_active_collection,
         'export_apply': export_prefs.export_apply,
         'export_force_sampling': False,
-        'use_active_scene': True
     }
+    if bpy.app.version >= (3, 2, 0):
+        args['use_active_scene'] = True
+
     bpy.ops.export_scene.gltf(**args)
 
 
@@ -470,6 +472,11 @@ class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
                  "use_renderable")
         col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
                  "use_active_collection")
+        if bpy.app.version >= (3, 2, 0):
+            col_row = col.row()
+            col_row.enabled = False
+            col_row.prop(context.scene.hubs_scene_debugger_room_export_prefs,
+                         "use_active_scene")
         row = box.row()
         col = row.column(heading="Data:")
         col.use_property_split = True
@@ -482,6 +489,13 @@ class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
         col.use_property_split = True
         col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
                  "export_apply")
+        row = box.row()
+        col = row.column(heading="Animation:")
+        col.use_property_split = True
+        col_row = col.row()
+        col_row.enabled = False
+        col_row.prop(context.scene.hubs_scene_debugger_room_export_prefs,
+                     "export_force_sampling")
         row = box.row()
 
         update_mode = "Update Scene" if context.scene.hubs_scene_debugger_room_create_prefs.debugLocalScene else "Spawn as object"
@@ -783,6 +797,14 @@ class HubsSceneDebuggerRoomExportPrefs(bpy.types.PropertyGroup):
         default=False,
         options=set()
     )
+    use_active_scene: bpy.props.BoolProperty(
+        name='Active Scene',
+        description='Export objects in the active scene only.  This has been forced ON because Hubs can only use one scene anyway',
+        default=True, options=set())
+    export_force_sampling: bpy.props.BoolProperty(
+        name='Sampling Animations',
+        description='Apply sampling to all animations.  This has been forced OFF because it can break animations in Hubs',
+        default=False, options=set())
 
 
 @persistent
