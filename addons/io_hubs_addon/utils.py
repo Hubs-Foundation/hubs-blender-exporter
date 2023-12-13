@@ -128,8 +128,9 @@ def save_prefs(context):
 
     except Exception as err:
         import bpy
-        bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                      report_string=f'An error happened while saving the preferences from {out_path}: {err}')
+        bpy.ops.wm.hubs_report_viewer(
+            'INVOKE_DEFAULT', title="Hubs scene debugger report",
+            report_string=f'An error happened while saving the preferences from {out_path}: {err}')
 
 
 def load_prefs(context):
@@ -150,8 +151,9 @@ def load_prefs(context):
 
     except Exception as err:
         import bpy
-        bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                      report_string=f'An error happened while loading the preferences from {out_path}: {err}')
+        bpy.ops.wm.hubs_report_viewer(
+            'INVOKE_DEFAULT', title="Hubs scene debugger report",
+            report_string=f'An error happened while loading the preferences from {out_path}: {err}')
 
     if not data:
         return
