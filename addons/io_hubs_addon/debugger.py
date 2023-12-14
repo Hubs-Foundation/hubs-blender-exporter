@@ -1,62 +1,12 @@
 from bpy.app.handlers import persistent
 import bpy
 from bpy.types import Context
-from .preferences import get_addon_pref, EXPORT_TMP_FILE_NAME
-from .utils import isModuleAvailable, get_browser_profile_directory, save_prefs
+from .preferences import EXPORT_TMP_FILE_NAME
+from .utils import isModuleAvailable, save_prefs
 from .icons import get_hubs_icons
+from .session import Session, PARAMS_TO_STRING
 
 ROOM_FLAGS_DOC_URL = "https://hubs.mozilla.com/docs/hubs-query-string-parameters.html"
-PARAMS_TO_STRING = {
-    "newLoader": {
-        "name": "Use New Loader",
-        "description": "Makes the room use the new bitECS loader.  This causes all media/objects in the room and scene to be loaded with the new loader and has various changes to the UI interface and functionality of objects.  This is required for Behavior Graphs. (newLoader)"
-    },
-    "ecsDebug": {
-        "name": "Show ECS Debug Panel",
-        "description": "Enables the ECS debugging side panel to get hierarchical information on the underlying structure of elements in the room and which components are applied to each element. (ecsDebug)"
-    },
-    "vr_entry_type": {
-        "name": "Skip Entry",
-        "description": "Omits the entry setup panel and goes straight into the room. (vr_entry_type=2d_now)",
-        "value": "2d_now"
-    },
-    "debugLocalScene": {
-        "name": "Allow Scene Update",
-        "description": "Allows the scene to be overridden by the contents of the current Blender scene. Enable this if you want to update the scene.  Disable this if you just want to spawn an object in the room. (debugLocalScene)"
-    },
-}
-
-
-JS_DROP_FILE = """
-    var target = arguments[0],
-        offsetX = arguments[1],
-        offsetY = arguments[2],
-        document = target.ownerDocument || document,
-        window = document.defaultView || window;
-
-    var input = document.createElement('INPUT');
-    input.type = 'file';
-    input.onchange = function () {
-      var rect = target.getBoundingClientRect(),
-          x = rect.left + (offsetX || (rect.width >> 1)),
-          y = rect.top + (offsetY || (rect.height >> 1)),
-          dataTransfer = { files: this.files };
-          dataTransfer.getData = o => undefined;
-
-      ['dragenter', 'dragover', 'drop'].forEach(function (name) {
-        var evt = document.createEvent('MouseEvent');
-        evt.initMouseEvent(name, !0, !0, window, 0, 0, 0, x, y, !1, !1, !1, !1, 0, null);
-        evt.dataTransfer = dataTransfer;
-        target.dispatchEvent(evt);
-      });
-
-      setTimeout(function () { document.body.removeChild(input); }, 25);
-    };
-    document.body.appendChild(input);
-    return input;
-"""
-
-web_driver = None
 
 
 def export_scene(context):
@@ -84,66 +34,7 @@ def export_scene(context):
     bpy.ops.export_scene.gltf(**args)
 
 
-def refresh_scene_viewer():
-    import os
-    document = web_driver.find_element("tag name", "html")
-    file_input = web_driver.execute_script(JS_DROP_FILE, document, 0, 0)
-    file_input.send_keys(os.path.join(bpy.app.tempdir, EXPORT_TMP_FILE_NAME))
-
-
-def isWebdriverAlive():
-    try:
-        if not web_driver or not isModuleAvailable("selenium"):
-            return False
-        else:
-            return bool(web_driver.current_url)
-    except Exception:
-        return False
-
-
-def get_local_storage():
-    storage = None
-    if isWebdriverAlive():
-        storage = web_driver.execute_script("return window.localStorage;")
-
-    return storage
-
-
-def get_current_room_params():
-    url = web_driver.current_url
-    from urllib.parse import urlparse
-    from urllib.parse import parse_qs
-    parsed = urlparse(url)
-    params = parse_qs(parsed.query, keep_blank_values=True)
-    return {k: v for k, v in params.items() if k != "hub_id"}
-
-
-def is_user_logged_in():
-    if "debugLocalScene" in get_current_room_params():
-        return bool(web_driver.execute_script('try { return APP?.hubChannel?.signedIn; } catch(e) { return false; }'))
-    else:
-        return True
-
-
-def is_user_in_room():
-    return bool(web_driver.execute_script('try { return APP?.scene?.is("entered"); } catch(e) { return false; }'))
-
-
-def get_room_name():
-    return web_driver.execute_script(
-        'try { return APP?.hub?.name || APP?.hub?.slug || APP?.hub?.hub_id; } catch(e) { return ""; }')
-
-
-def bring_to_front(context):
-    # In some systems switch_to doesn't work, the code below is a hack to make it work
-    # for the affected platforms/browsers that we have detected so far.
-    browser = get_addon_pref(context).browser
-    import platform
-    if browser == "Firefox" or platform.system == "Windows":
-        ws = web_driver.get_window_size()
-        web_driver.minimize_window()
-        web_driver.set_window_size(ws['width'], ws['height'])
-    web_driver.switch_to.window(web_driver.current_window_handle)
+hubs_session = None
 
 
 def is_instance_set(context):
@@ -164,13 +55,13 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context: Context):
-        return isWebdriverAlive() and is_user_logged_in() and is_user_in_room()
+        return hubs_session and hubs_session.user_logged_in and hubs_session.user_in_room
 
     def execute(self, context):
         try:
             export_scene(context)
-            refresh_scene_viewer()
-            bring_to_front(context)
+            hubs_session.update()
+            hubs_session.bring_to_front(context)
 
             return {'FINISHED'}
         except Exception as err:
@@ -178,89 +69,6 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
             bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report", report_string='\n\n'.join(
                 ["The scene export has failed", "Check the export logs or quit the browser instance and try again", f'{err}']))
             return {'CANCELLED'}
-
-
-def get_url_params(context):
-    params = ""
-    keys = list(PARAMS_TO_STRING.keys())
-    for key in keys:
-        if getattr(context.scene.hubs_scene_debugger_room_create_prefs, key):
-            value = f'={PARAMS_TO_STRING[key]["value"]}' if "value" in PARAMS_TO_STRING[key] else ""
-            key = key if not params else f'&{key}'
-            params = f'{params}{key}{value}'
-
-    return params
-
-
-def init_browser(context):
-    browser = get_addon_pref(context).browser
-    if isWebdriverAlive():
-        if web_driver.name != browser.lower():
-            close_browser()
-            create_browser_instance(context)
-            return False
-        return True
-    else:
-        create_browser_instance(context)
-        return False
-
-
-def close_browser():
-    global web_driver
-    if web_driver:
-        # Hack, without this the browser instances don't close the session correctly and
-        # you get a "[Browser] didn't shutdown correctly" message on reopen.
-        # Only seen in Windows so far so limiting to it for now.
-        import platform
-        if platform == "windows":
-            windows = web_driver.window_handles
-            for w in windows:
-                web_driver.switch_to.window(w)
-                web_driver.close()
-
-        web_driver.quit()
-        web_driver = None
-
-
-def create_browser_instance(context):
-    global web_driver
-    if not web_driver or not isWebdriverAlive():
-        close_browser()
-        browser = get_addon_pref(context).browser
-        import os
-        file_path = get_browser_profile_directory(browser)
-        if not os.path.exists(file_path):
-            os.mkdir(file_path)
-        if browser == "Firefox":
-            from selenium import webdriver
-            options = webdriver.FirefoxOptions()
-            override_ff_path = get_addon_pref(
-                context).override_firefox_path
-            ff_path = get_addon_pref(context).firefox_path
-            if override_ff_path and ff_path:
-                options.binary_location = ff_path
-            # This should work but it doesn't https://github.com/SeleniumHQ/selenium/issues/11028 so using arguments instead
-            # firefox_profile = webdriver.FirefoxProfile(file_path)
-            # firefox_profile.accept_untrusted_certs = True
-            # firefox_profile.assume_untrusted_cert_issuer = True
-            # options.profile = firefox_profile
-            options.add_argument("-profile")
-            options.add_argument(file_path)
-            options.set_preference("javascript.options.shared_memory", True)
-            web_driver = webdriver.Firefox(options=options)
-        else:
-            from selenium import webdriver
-            options = webdriver.ChromeOptions()
-            options.add_argument('--enable-features=SharedArrayBuffer')
-            options.add_argument('--ignore-certificate-errors')
-            options.add_argument(
-                f'user-data-dir={file_path}')
-            override_chrome_path = get_addon_pref(
-                context).override_chrome_path
-            chrome_path = get_addon_pref(context).chrome_path
-            if override_chrome_path and chrome_path:
-                options.binary_location = chrome_path
-            web_driver = webdriver.Chrome(options=options)
 
 
 class HubsCreateRoomOperator(bpy.types.Operator):
@@ -275,20 +83,20 @@ class HubsCreateRoomOperator(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            was_alive = init_browser(context)
+            was_alive = hubs_session.init(context)
 
             prefs = context.window_manager.hubs_scene_debugger_prefs
             hubs_instance_url = prefs.hubs_instances[prefs.hubs_instance_idx].url
-            web_driver.get(
-                f'{hubs_instance_url}?new&{get_url_params(context)}')
+            hubs_session.load(
+                f'{hubs_instance_url}?new&{hubs_session.get_url_params(context)}')
 
             if was_alive:
-                bring_to_front(context)
+                hubs_session.bring_to_front(context)
 
             return {'FINISHED'}
 
         except Exception as err:
-            close_browser()
+            hubs_session.close()
             bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
                                           report_string=f'The room creation has failed: {err}')
             return {"CANCELLED"}
@@ -306,27 +114,27 @@ class HubsOpenRoomOperator(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            was_alive = init_browser(context)
+            was_alive = hubs_session.init(context)
 
             prefs = context.window_manager.hubs_scene_debugger_prefs
             room_url = prefs.hubs_rooms[prefs.hubs_room_idx].url
 
-            params = get_url_params(context)
+            params = hubs_session.get_url_params(context)
             if params:
                 if "?" in room_url:
-                    web_driver.get(f'{room_url}&{params}')
+                    hubs_session.load(f'{room_url}&{params}')
                 else:
-                    web_driver.get(f'{room_url}?{params}')
+                    hubs_session.load(f'{room_url}?{params}')
             else:
-                web_driver.get(room_url)
+                hubs_session.load(room_url)
 
             if was_alive:
-                bring_to_front(context)
+                hubs_session.bring_to_front(context)
 
             return {'FINISHED'}
 
         except Exception as err:
-            close_browser()
+            hubs_session.close()
             bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
                                           report_string=f'An error happened while opening the room: {err}')
             return {"CANCELLED"}
@@ -340,11 +148,11 @@ class HubsCloseRoomOperator(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context: Context):
-        return isWebdriverAlive()
+        return hubs_session.is_alive()
 
     def execute(self, context):
         try:
-            close_browser()
+            hubs_session.close()
             return {'FINISHED'}
 
         except Exception as err:
@@ -361,7 +169,7 @@ class HubsOpenAddonPrefsOperator(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context: Context):
-        return not isWebdriverAlive()
+        return not hubs_session.is_alive()
 
     def execute(self, context):
         bpy.ops.screen.userpref_show('INVOKE_DEFAULT')
@@ -499,8 +307,8 @@ class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
         row = box.row()
 
         update_mode = "Update Scene" if context.scene.hubs_scene_debugger_room_create_prefs.debugLocalScene else "Spawn as object"
-        if isWebdriverAlive():
-            room_params = get_current_room_params()
+        if hubs_session.is_alive():
+            room_params = hubs_session.room_params
             update_mode = "Update Scene" if "debugLocalScene" in room_params else "Spawn as object"
         row.operator(HubsUpdateSceneOperator.bl_idname,
                      text=f'{update_mode}')
@@ -524,9 +332,9 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
             col.alignment = "LEFT"
             col.label(text="Connection Status:")
             hubs_icons = get_hubs_icons()
-            if isWebdriverAlive():
-                if is_user_logged_in():
-                    if is_user_in_room():
+            if hubs_session.is_alive():
+                if hubs_session.user_logged_in:
+                    if hubs_session.user_in_room:
                         col = row.column()
                         col.alignment = "LEFT"
                         col.active_default = True
@@ -534,7 +342,7 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
                             icon_value=hubs_icons["green-dot.png"].icon_id)
                         row = main_box.row(align=True)
                         row.alignment = "CENTER"
-                        row.label(text=f'In room: {get_room_name()}')
+                        row.label(text=f'In room: {hubs_session.room_name}')
 
                     else:
                         col = row.column()
@@ -567,6 +375,7 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
                 for key in PARAMS_TO_STRING.keys():
                     params_icons[key] = 'PANEL_CLOSE'
                 params = get_current_room_params()
+
                 for param in params:
                     if param in params_icons:
                         params_icons[param] = 'CHECKMARK'
@@ -648,17 +457,18 @@ class HubsSceneDebuggerRoomAdd(bpy.types.Operator):
         prefs = context.window_manager.hubs_scene_debugger_prefs
         new_room = prefs.hubs_rooms.add()
         url = self.url
-        if isWebdriverAlive():
-            if web_driver.current_url:
-                url = web_driver.current_url
+        if hubs_session.is_alive():
+            current_url = hubs_session.get_url()
+            if current_url:
+                url = current_url
                 if "hub_id=" in url:
                     url = url.split("&")[0]
                 else:
                     url = url.split("?")[0]
 
         new_room.name = "Room Name"
-        if isWebdriverAlive():
-            room_name = get_room_name()
+        if hubs_session.is_alive():
+            room_name = hubs_session.room_name
             if room_name:
                 new_room.name = room_name
         new_room.url = url
@@ -820,6 +630,9 @@ def load_post(dummy):
 
 
 def register():
+    global hubs_session
+    hubs_session = Session()
+
     bpy.utils.register_class(HubsUrl)
     bpy.utils.register_class(HubsSceneDebuggerPrefs)
     bpy.utils.register_class(HubsCreateRoomOperator)
@@ -879,4 +692,4 @@ def unregister():
     if load_post in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.remove(load_post)
 
-    close_browser()
+    hubs_session.close()
