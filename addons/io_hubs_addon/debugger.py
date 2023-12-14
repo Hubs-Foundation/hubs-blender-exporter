@@ -4,7 +4,7 @@ from bpy.types import Context
 from .preferences import EXPORT_TMP_FILE_NAME
 from .utils import isModuleAvailable, save_prefs
 from .icons import get_hubs_icons
-from .session import Session, PARAMS_TO_STRING
+from .session import HubsSession, PARAMS_TO_STRING
 
 ROOM_FLAGS_DOC_URL = "https://hubs.mozilla.com/docs/hubs-query-string-parameters.html"
 
@@ -642,7 +642,7 @@ def update_session():
 
 def register():
     global hubs_session
-    hubs_session = Session()
+    hubs_session = HubsSession()
 
     bpy.utils.register_class(HubsUrl)
     bpy.utils.register_class(HubsSceneDebuggerPrefs)

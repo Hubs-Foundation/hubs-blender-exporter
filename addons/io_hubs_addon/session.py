@@ -52,7 +52,7 @@ JS_DROP_FILE = """
 """
 
 
-class Session:
+class HubsSession:
     _web_driver = None
     _user_logged_in = False
     _user_in_room = False
