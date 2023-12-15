@@ -134,17 +134,23 @@ class HubsSession:
                 self._web_driver = webdriver.Chrome(options=options)
 
     def update_session_state(self):
-        url = self._web_driver.current_url
-        from urllib.parse import urlparse
-        from urllib.parse import parse_qs
-        parsed = urlparse(url)
-        params = parse_qs(parsed.query, keep_blank_values=True)
-        self._room_params = {k: v for k, v in params.items() if k != "hub_id"}
+        if self.is_alive():
+            url = self._web_driver.current_url
+            from urllib.parse import urlparse
+            from urllib.parse import parse_qs
+            parsed = urlparse(url)
+            params = parse_qs(parsed.query, keep_blank_values=True)
+            self._room_params = {k: v for k, v in params.items() if k != "hub_id"}
 
-        params = self._web_driver.execute_script(JS_STATE_UPDATE)
-        self._user_logged_in = params["signedIn"]
-        self._user_in_room = params["entered"]
-        self._room_name = params["roomName"]
+            params = self._web_driver.execute_script(JS_STATE_UPDATE)
+            self._user_logged_in = params["signedIn"]
+            self._user_in_room = params["entered"]
+            self._room_name = params["roomName"]
+
+        else:
+            self._user_logged_in = False
+            self._user_in_room = False
+            self._room_name = ""
 
     def bring_to_front(self, context):
         # In some systems switch_to doesn't work, the code below is a hack to make it work

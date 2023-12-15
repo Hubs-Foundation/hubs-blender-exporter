@@ -633,9 +633,7 @@ def load_post(dummy):
 
 @persistent
 def update_session():
-    if hubs_session.is_alive():
-        hubs_session.update_session_state()
-
+    hubs_session.update_session_state()
     return 2.0
 
 
