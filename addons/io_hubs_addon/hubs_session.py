@@ -186,7 +186,7 @@ class HubsSession:
     def get_url(self):
         return self._web_driver.current_url
 
-    def get_url_params(self, context):
+    def url_params_string_from_prefs(self, context):
         params = ""
         keys = list(PARAMS_TO_STRING.keys())
         for key in keys:

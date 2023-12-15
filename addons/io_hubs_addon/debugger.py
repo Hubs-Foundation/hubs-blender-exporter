@@ -88,7 +88,7 @@ class HubsCreateRoomOperator(bpy.types.Operator):
             prefs = context.window_manager.hubs_scene_debugger_prefs
             hubs_instance_url = prefs.hubs_instances[prefs.hubs_instance_idx].url
             hubs_session.load(
-                f'{hubs_instance_url}?new&{hubs_session.get_url_params(context)}')
+                f'{hubs_instance_url}?new&{hubs_session.url_params_string_from_prefs(context)}')
 
             if was_alive:
                 hubs_session.bring_to_front(context)
@@ -119,7 +119,7 @@ class HubsOpenRoomOperator(bpy.types.Operator):
             prefs = context.window_manager.hubs_scene_debugger_prefs
             room_url = prefs.hubs_rooms[prefs.hubs_room_idx].url
 
-            params = hubs_session.get_url_params(context)
+            params = hubs_session.url_params_string_from_prefs(context)
             if params:
                 if "?" in room_url:
                     hubs_session.load(f'{room_url}&{params}')
@@ -374,9 +374,8 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
             if hubs_session.is_alive():
                 for key in PARAMS_TO_STRING.keys():
                     params_icons[key] = 'PANEL_CLOSE'
-                params = hubs_session.get_url_params(context)
 
-                for param in params:
+                for param in hubs_session.room_params:
                     if param in params_icons:
                         params_icons[param] = 'CHECKMARK'
             else:
