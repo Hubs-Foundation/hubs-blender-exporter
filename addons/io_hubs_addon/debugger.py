@@ -739,7 +739,7 @@ class HubsGetScenesOperator(bpy.types.Operator):
         try:
             export_scene(context)
             url = hubs_session.reticulum_url
-            scenes = api.get_projects(url,  hubs_session.get_token())
+            scenes = api.get_projects(url, hubs_session.get_token())
 
             for scene in scenes:
                 new_scene = scenes_props.scenes.add()
