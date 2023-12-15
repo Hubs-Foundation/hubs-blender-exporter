@@ -52,7 +52,7 @@ JS_DROP_FILE = """
 """
 
 JS_STATE_UPDATE = """
-    let params = { signedIn: false, entered: false, roomName: "", retUrl: "" };
+    let params = { signedIn: false, entered: false, roomName: "", retUrl: "", reticulumUrl: "" };
     try { params["signedIn"] = APP?.hubChannel?.signedIn; } catch(e) {};
     try { params["entered"] = APP?.scene?.is("entered"); } catch(e) {};
     try { params["roomName"] = APP?.hub?.name || APP?.hub?.slug || APP?.hub?.hub_id; } catch(e) {};
@@ -151,14 +151,14 @@ class HubsSession:
             self._reticulum_url = params["reticulumUrl"]
             if not self._reticulum_url:
                 import urllib
-                base_assets_path = self.get_env_meta("base_assets_path")
+                base_assets_path = self._get_env_meta("base_assets_path")
                 isUsingCloudflare = base_assets_path and "workers.dev" in base_assets_path
                 if isUsingCloudflare:
                     ret_host = urllib.parse.urlparse(base_assets_path).hostname
                 else:
-                    ret_host = self.get_env_meta("upload_host")
+                    ret_host = self._get_env_meta("upload_host")
                     if not ret_host:
-                        ret_host = self.get_env_meta("reticulum_server")
+                        ret_host = self._get_env_meta("reticulum_server")
                 if ret_host:
                     ret_port = urllib.parse.urlparse(ret_host).port
                     self._reticulum_url = f'https://{ret_host}{":"+ret_port if ret_port else ""}'
@@ -195,12 +195,12 @@ class HubsSession:
         file_input = self._web_driver.execute_script(JS_DROP_FILE, document, 0, 0)
         file_input.send_keys(os.path.join(bpy.app.tempdir, EXPORT_TMP_FILE_NAME))
 
-    def get_local_storage(self):
-        storage = None
+    def get_local_storage(self, item):
+        store = None
         if self.is_alive():
-            storage = self._web_driver.execute_script("return window.localStorage;")
+            store = self._web_driver.execute_script(f'return window.localStorage.getItem("{item}");')
 
-        return storage
+        return store
 
     def set_local_storage(self, data):
         if self.is_alive():

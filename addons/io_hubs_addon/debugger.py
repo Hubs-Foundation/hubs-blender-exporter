@@ -5,6 +5,8 @@ from .preferences import EXPORT_TMP_FILE_NAME
 from .utils import isModuleAvailable, save_prefs
 from .icons import get_hubs_icons
 from .hubs_session import HubsSession, PARAMS_TO_STRING
+from . import api
+from bpy.types import AnyType
 
 ROOM_FLAGS_DOC_URL = "https://hubs.mozilla.com/docs/hubs-query-string-parameters.html"
 
@@ -299,7 +301,7 @@ class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
                      "export_force_sampling")
 
         row = box.row()
-        if not isWebdriverAlive() or not is_user_logged_in():
+        if not hubs_session.is_alive() or not hubs_session.user_logged_in:
             row = box.row()
             row.alert = True
             row.label(
@@ -377,35 +379,6 @@ class HUBS_PT_ToolsSceneSessionPanel(bpy.types.Panel):
                 row.alignment = "CENTER"
                 row.label(text="Waiting for session...")
 
-            params_icons = {}
-            if hubs_session.is_alive():
-                for key in PARAMS_TO_STRING.keys():
-                    params_icons[key] = 'PANEL_CLOSE'
-
-                for param in hubs_session.room_params:
-                    if param in params_icons:
-                        params_icons[param] = 'CHECKMARK'
-            else:
-                for key in PARAMS_TO_STRING.keys():
-                    params_icons[key] = 'REMOVE'
-
-            box = self.layout.box()
-            row = box.row(align=True)
-            row.alignment = "EXPAND"
-            grid = row.grid_flow(columns=2, align=True,
-                                 even_rows=False, even_columns=False)
-            grid.alignment = "CENTER"
-            flags_row = grid.row()
-            flags_row.label(text="Room flags")
-            op = flags_row.operator("wm.url_open", text="", icon="HELP")
-            op.url = ROOM_FLAGS_DOC_URL
-            for key in PARAMS_TO_STRING.keys():
-                grid.prop(context.scene.hubs_scene_debugger_room_create_prefs,
-                          key)
-            grid.label(text="Is Active?")
-            for key in PARAMS_TO_STRING.keys():
-                grid.label(icon=params_icons[key])
-
             row = self.layout.row()
             row.operator(HubsCloseRoomOperator.bl_idname, text='Close')
 
@@ -432,15 +405,17 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
         return isModuleAvailable("selenium")
 
     def draw(self, context):
-        hubs_icons = get_hubs_icons()
         params_icons = {}
-        for key in PARAMS_TO_STRING.keys():
-            params_icons.update(
-                {key: hubs_icons["red-dot-small.png"].icon_id})
         if hubs_session.is_alive():
+            for key in PARAMS_TO_STRING.keys():
+                params_icons[key] = 'PANEL_CLOSE'
+
             for param in hubs_session.room_params:
                 if param in params_icons:
-                    params_icons[param] = hubs_icons["green-dot-small.png"].icon_id
+                    params_icons[param] = 'CHECKMARK'
+        else:
+            for key in PARAMS_TO_STRING.keys():
+                params_icons[key] = 'REMOVE'
 
         box = self.layout.box()
         row = box.row(align=True)
@@ -457,7 +432,7 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
                       key)
         grid.label(text="Is Active?")
         for key in PARAMS_TO_STRING.keys():
-            grid.label(icon_value=params_icons[key])
+            grid.label(icon=params_icons[key])
 
 
 def add_instance(context):
@@ -669,7 +644,8 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
                 "model_file_id": glb_data["file_id"],
                 "model_file_token": glb_data["access_token"]
             })
-            api.publish_scene(url, hubs_session.get_token(), scene_data, scene.scene_id)
+            api.publish_scene(url, hubs_session.get_token(),
+                              scene_data, scene.scene_id)
 
             bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
                                           report_string=f'Scene {scene.name} successfully updated')
@@ -696,7 +672,7 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
 
 class HubsCreateSceneOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.create_scene"
-    bl_label = "Create"
+    bl_label = "Create Room"
     bl_description = "Create a room with the selected scene"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -728,9 +704,17 @@ class HubsCreateSceneOperator(bpy.types.Operator):
                 if creator_token:
                     if "embed_token" in response:
                         embed_token = response["embed_token"]
-                    hubs_session.set_creator_assignment_token(creator_token, embed_token)
+                    hubs_session.set_creator_assignment_token(
+                        creator_token, embed_token)
 
-            return hubs_session.open_in_main_tab(context, f'{response["url"]}?{hubs_session.get_url_params(context)}')
+            was_alive = hubs_session.init(context)
+
+            hubs_session.load(f'{response["url"]}?new&{hubs_session.url_params_string_from_prefs(context)}')
+
+            if was_alive:
+                hubs_session.bring_to_front(context)
+
+            return {'FINISHED'}
 
         except Exception as err:
             bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
@@ -846,7 +830,7 @@ class HUBS_PT_ToolsSceneDebuggerPublishScenePanel(bpy.types.Panel):
         row = box.row()
         row = row.column()
         row.operator(HubsCreateSceneOperator.bl_idname,
-                     text='Create')
+                     text='Create Room')
 
         box = self.layout.box()
         row = box.row()
@@ -985,7 +969,8 @@ class HubsSceneDebuggerScenes(bpy.types.PropertyGroup):
     scenes: bpy.props.CollectionProperty(
         type=HubsSceneProject)
 
-    scene_idx: bpy.props.IntProperty(default=-1, update=save_prefs_on_prop_update)
+    scene_idx: bpy.props.IntProperty(
+        default=-1, update=save_prefs_on_prop_update)
 
 
 def set_url(self, value):
@@ -1080,6 +1065,9 @@ classes = (
 
 
 def register():
+    global hubs_session
+    hubs_session = HubsSession()
+
     for cls in (classes):
         bpy.utils.register_class(cls)
 
