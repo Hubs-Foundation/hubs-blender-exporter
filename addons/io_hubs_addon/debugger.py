@@ -671,8 +671,8 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
 
 
 class HubsCreateSceneOperator(bpy.types.Operator):
-    bl_idname = "hubs_scene.create_scene"
-    bl_label = "Create Room"
+    bl_idname = "hubs_scene.create_room_with_scene"
+    bl_label = "Create Room With Scene"
     bl_description = "Create a room with the selected scene"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -709,7 +709,16 @@ class HubsCreateSceneOperator(bpy.types.Operator):
 
             was_alive = hubs_session.init(context)
 
-            hubs_session.load(f'{response["url"]}?new&{hubs_session.url_params_string_from_prefs(context)}')
+            params = hubs_session.url_params_string_from_prefs(context)
+            if hubs_session.is_local_instance():
+                from urllib.parse import urlparse
+                parsed = urlparse(hubs_session.client_url)
+                port = str(parsed.port)
+                url = f'{parsed.scheme}://{parsed.hostname}{":"+port if port else ""}/hub.html?hub_id={response["hub_id"]}&{params}'
+            else:
+                url = f'{response["url"]}?{params}'
+
+            hubs_session.load(url)
 
             if was_alive:
                 hubs_session.bring_to_front(context)

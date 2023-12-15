@@ -68,6 +68,7 @@ class HubsSession:
     _room_name = ""
     _room_params = {}
     _reticulum_url = ""
+    _client_url = ""
 
     def init(self, context):
         browser = get_addon_pref(context).browser
@@ -143,6 +144,8 @@ class HubsSession:
             parsed = urlparse(url)
             params = parse_qs(parsed.query, keep_blank_values=True)
             self._room_params = {k: v for k, v in params.items() if k != "hub_id"}
+
+            self._client_url = f'{parsed.scheme}://{parsed.hostname}:{parsed.port}'
 
             params = self._web_driver.execute_script(JS_STATE_UPDATE)
             self._user_logged_in = params["signedIn"]
@@ -290,6 +293,9 @@ class HubsSession:
     def load(self, url):
         self._web_driver.get(url)
 
+    def is_local_instance(self):
+        return "hub_id" in self._web_driver.current_url
+
     @property
     def user_logged_in(self):
         return self._user_logged_in
@@ -309,3 +315,7 @@ class HubsSession:
     @property
     def reticulum_url(self):
         return self._reticulum_url
+
+    @property
+    def client_url(self):
+        return self._client_url
