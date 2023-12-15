@@ -51,6 +51,18 @@ JS_DROP_FILE = """
     return input;
 """
 
+JS_STATE_UPDATE = """
+    let params = { signedIn: false, entered: false, roomName: "" };
+    if (arguments[0]) {
+        try { params["signedIn"] = APP?.hubChannel?.signedIn; } catch(e) {};
+    }
+    if (params["signedIn"]) {
+        try { params["entered"] = APP?.hubChannel?.signedIn; } catch(e) {};
+    }
+    try { params["roomName"] = APP?.hub?.name || APP?.hub?.slug || APP?.hub?.hub_id; } catch(e) {};
+    return params;
+"""
+
 
 class HubsSession:
     _web_driver = None
@@ -133,17 +145,10 @@ class HubsSession:
         params = parse_qs(parsed.query, keep_blank_values=True)
         self._room_params = {k: v for k, v in params.items() if k != "hub_id"}
 
-        if "debugLocalScene" in self.room_params:
-            self._user_logged_in = bool(self._web_driver.execute_script(
-                'try { return APP?.hubChannel?.signedIn; } catch(e) { return false; }'))
-        else:
-            self._user_logged_in = True
-
-        self._user_in_room = bool(self._web_driver.execute_script(
-            'try { return APP?.scene?.is("entered"); } catch(e) { return false; }'))
-
-        self._room_name = self._web_driver.execute_script(
-            'try { return APP?.hub?.name || APP?.hub?.slug || APP?.hub?.hub_id; } catch(e) { return ""; }')
+        params = self._web_driver.execute_script(JS_STATE_UPDATE, "debugLocalScene" in self._room_params)
+        self._user_logged_in = params["signedIn"]
+        self._user_in_room = params["entered"]
+        self._room_name = params["roomName"]
 
     def bring_to_front(self, context):
         # In some systems switch_to doesn't work, the code below is a hack to make it work
