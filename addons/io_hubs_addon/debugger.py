@@ -618,8 +618,7 @@ class HubsSceneDebuggerRoomExportPrefs(bpy.types.PropertyGroup):
         default=False, options=set())
 
 
-@persistent
-def load_post(dummy):
+def init():
     if not bpy.app.timers.is_registered(update_session):
         bpy.app.timers.register(update_session)
 
@@ -629,6 +628,11 @@ def load_post(dummy):
     prefs = bpy.context.window_manager.hubs_scene_debugger_prefs
     if len(prefs.hubs_instances) == 0:
         bpy.ops.hubs_scene.scene_debugger_instance_add('INVOKE_DEFAULT')
+
+
+@persistent
+def load_post(dummy):
+    init()
 
 
 @persistent
@@ -670,6 +674,8 @@ def register():
 
     if load_post not in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.append(load_post)
+
+    init()
 
 
 def unregister():
