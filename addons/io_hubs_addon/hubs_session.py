@@ -52,7 +52,7 @@ JS_DROP_FILE = """
 """
 
 JS_STATE_UPDATE = """
-    let params = { signedIn: false, entered: false, roomName: "", retUrl: "", reticulumUrl: "" };
+    let params = { signedIn: false, entered: false, roomName: "", reticulumUrl: "" };
     try { params["signedIn"] = APP?.hubChannel?.signedIn; } catch(e) {};
     try { params["entered"] = APP?.scene?.is("entered"); } catch(e) {};
     try { params["roomName"] = APP?.hub?.name || APP?.hub?.slug || APP?.hub?.hub_id; } catch(e) {};
