@@ -53,12 +53,8 @@ JS_DROP_FILE = """
 
 JS_STATE_UPDATE = """
     let params = { signedIn: false, entered: false, roomName: "" };
-    if (arguments[0]) {
-        try { params["signedIn"] = APP?.hubChannel?.signedIn; } catch(e) {};
-    }
-    if (params["signedIn"]) {
-        try { params["entered"] = APP?.hubChannel?.signedIn; } catch(e) {};
-    }
+     try { params["signedIn"] = APP?.hubChannel?.signedIn; } catch(e) {};
+    try { params["entered"] = APP?.scene?.is("entered"); } catch(e) {};
     try { params["roomName"] = APP?.hub?.name || APP?.hub?.slug || APP?.hub?.hub_id; } catch(e) {};
     return params;
 """
@@ -145,7 +141,7 @@ class HubsSession:
         params = parse_qs(parsed.query, keep_blank_values=True)
         self._room_params = {k: v for k, v in params.items() if k != "hub_id"}
 
-        params = self._web_driver.execute_script(JS_STATE_UPDATE, "debugLocalScene" in self._room_params)
+        params = self._web_driver.execute_script(JS_STATE_UPDATE)
         self._user_logged_in = params["signedIn"]
         self._user_in_room = params["entered"]
         self._room_name = params["roomName"]
