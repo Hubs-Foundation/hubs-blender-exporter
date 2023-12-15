@@ -563,14 +563,16 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
                 row.label(text="Waiting for room...")
 
             params_icons = {}
-            for key in PARAMS_TO_STRING.keys():
-                params_icons.update(
-                    {key: hubs_icons["red-dot-small.png"].icon_id})
             if isWebdriverAlive():
+                for key in PARAMS_TO_STRING.keys():
+                    params_icons[key] = 'PANEL_CLOSE'
                 params = get_current_room_params()
                 for param in params:
                     if param in params_icons:
-                        params_icons[param] = hubs_icons["green-dot-small.png"].icon_id
+                        params_icons[param] = 'CHECKMARK'
+            else:
+                for key in PARAMS_TO_STRING.keys():
+                    params_icons[key] = 'REMOVE'
 
             box = self.layout.box()
             row = box.row(align=True)
@@ -587,7 +589,7 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
                           key)
             grid.label(text="Is Active?")
             for key in PARAMS_TO_STRING.keys():
-                grid.label(icon_value=params_icons[key])
+                grid.label(icon=params_icons[key])
 
         else:
             row = main_box.row()
