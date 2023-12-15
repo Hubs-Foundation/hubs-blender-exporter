@@ -371,10 +371,10 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
                 row.label(text="Waiting for room...")
 
             params_icons = {}
-            if isWebdriverAlive():
+            if hubs_session.is_alive():
                 for key in PARAMS_TO_STRING.keys():
                     params_icons[key] = 'PANEL_CLOSE'
-                params = get_current_room_params()
+                params = hubs_session.get_url_params(context)
 
                 for param in params:
                     if param in params_icons:

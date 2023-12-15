@@ -5,20 +5,20 @@ from .utils import isModuleAvailable, get_browser_profile_directory
 PARAMS_TO_STRING = {
     "newLoader": {
         "name": "Use New Loader",
-        "description": "Creates the room using the new bitECS loader"
+        "description": "Makes the room use the new bitECS loader.  This causes all media/objects in the room and scene to be loaded with the new loader and has various changes to the UI interface and functionality of objects.  This is required for Behavior Graphs. (newLoader)"
     },
     "ecsDebug": {
         "name": "Show ECS Debug Panel",
-        "description": "Enables the ECS debugging side panel"
+        "description": "Enables the ECS debugging side panel to get hierarchical information on the underlying structure of elements in the room and which components are applied to each element. (ecsDebug)"
     },
     "vr_entry_type": {
         "name": "Skip Entry",
-        "description": "Omits the entry setup panel and goes straight into the room",
+        "description": "Omits the entry setup panel and goes straight into the room. (vr_entry_type=2d_now)",
         "value": "2d_now"
     },
     "debugLocalScene": {
         "name": "Allow Scene Update",
-        "description": "Allows scene override. Use this if you want to update the scene. If you just want to spawn an object disable it."
+        "description": "Allows the scene to be overridden by the contents of the current Blender scene. Enable this if you want to update the scene.  Disable this if you just want to spawn an object in the room. (debugLocalScene)"
     },
 }
 
