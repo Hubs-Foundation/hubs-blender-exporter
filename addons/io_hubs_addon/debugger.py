@@ -575,10 +575,10 @@ class HubsSceneDebuggerRoomCreatePrefs(bpy.types.PropertyGroup):
 
 
 class HubsSceneDebuggerRoomExportPrefs(bpy.types.PropertyGroup):
-    export_cameras: bpy.props.BoolProperty(name="Export Cameras", default=True,
+    export_cameras: bpy.props.BoolProperty(name="Export Cameras", default=False,
                                            description="Export cameras", options=set())
     export_lights: bpy.props.BoolProperty(
-        name="Export Lights", default=True,
+        name="Punctual Lights", default=False,
         description="Punctual Lights, Export directional, point, and spot lights. Uses \"KHR_lights_punctual\" glTF extension",
         options=set())
     use_selection: bpy.props.BoolProperty(name="Selection Only", default=False,
