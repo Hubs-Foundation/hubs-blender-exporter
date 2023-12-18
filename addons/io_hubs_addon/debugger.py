@@ -409,20 +409,24 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
                          text='Setup')
 
 
+def add_instance(context):
+    prefs = context.window_manager.hubs_scene_debugger_prefs
+    new_instance = prefs.hubs_instances.add()
+    new_instance.name = "Demo Hub"
+    new_instance.url = "https://hubs.mozilla.com/demo"
+    prefs.hubs_instance_idx = len(
+        prefs.hubs_instances) - 1
+
+    save_prefs(context)
+
+
 class HubsSceneDebuggerInstanceAdd(bpy.types.Operator):
     bl_idname = "hubs_scene.scene_debugger_instance_add"
     bl_label = "Add Server Instance"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        prefs = context.window_manager.hubs_scene_debugger_prefs
-        new_instance = prefs.hubs_instances.add()
-        new_instance.name = "Demo Hub"
-        new_instance.url = "https://hubs.mozilla.com/demo"
-        prefs.hubs_instance_idx = len(
-            prefs.hubs_instances) - 1
-
-        save_prefs(context)
+        add_instance(context)
 
         return {'FINISHED'}
 
@@ -627,7 +631,7 @@ def init():
 
     prefs = bpy.context.window_manager.hubs_scene_debugger_prefs
     if len(prefs.hubs_instances) == 0:
-        bpy.ops.hubs_scene.scene_debugger_instance_add('INVOKE_DEFAULT')
+        add_instance(bpy.context)
 
 
 @persistent
