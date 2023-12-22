@@ -15,4 +15,4 @@ class Billboard(HubsComponent):
     }
 
     onlyY: BoolProperty(
-        name="Vertical Axis Only", description="Locks the Vertical Axis to enable only side to side movement", default=False)
+        name="Vertical Axis Only", description="Locks the Vertical Axis to enable only side to side movement in world space and removes any other rotational transforms", default=False)
