@@ -209,6 +209,25 @@ def load_prefs(context):
             new_scene["url"] = scene["url"]
             new_scene["screenshot_url"] = scene["screenshot_url"]
 
+    prefs["hubs_room_idx"] = scene_debugger["hubs_room_idx"]
+    prefs.hubs_rooms.clear()
+    rooms = scene_debugger["hubs_rooms"]
+    for room in rooms:
+        new_room = prefs.hubs_rooms.add()
+        new_room.name = room["name"]
+        new_room.url = room["url"]
+
+
+def find_area():
+    try:
+        import bpy
+        for a in bpy.data.window_managers[0].windows[0].screen.areas:
+            if a.type == "VIEW_3D":
+                return a
+        return None
+    except Exception as err:
+        return None
+
 
 def image_type_to_file_ext(image_type):
     file_extension = None

@@ -59,6 +59,22 @@ JS_STATE_UPDATE = """
     try { params["reticulumUrl"] = window.$P.getReticulumFetchUrl(""); } catch (e) {};
     return params;
 """
+JS_WAYPOINT_UPDATE = """
+    window.__scene_debugger_scene_update_listener = () => {
+        try {
+            setTimeout(() => {
+                window.location = `${window.location.href}#${arguments[0]}`;
+                const mat = APP.world.scene.getObjectByName("__scene_debugger_viewpoint").matrixWorld;
+                APP.scene.systems["hubs-systems"].characterController.travelByWaypoint(mat, false, false);
+            }, 0);
+        } catch(e) {
+            console.warn(e);
+        };
+        APP.scene.removeEventListener("environment-scene-loaded", window.__scene_debugger_scene_update_listener);
+        delete window.__scene_debugger_scene_update_listener;
+    };
+    APP.scene.addEventListener("environment-scene-loaded", window.__scene_debugger_scene_update_listener);
+"""
 
 
 class HubsSession:
@@ -295,6 +311,9 @@ class HubsSession:
 
     def is_local_instance(self):
         return "hub_id" in self._web_driver.current_url
+
+    def move_to_waypoint(self, name):
+        self._web_driver.execute_script(JS_WAYPOINT_UPDATE, name)
 
     @property
     def user_logged_in(self):
