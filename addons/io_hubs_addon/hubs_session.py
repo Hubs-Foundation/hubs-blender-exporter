@@ -143,7 +143,7 @@ class HubsSession:
             self._room_params = {k: v for k, v in params.items() if k != "hub_id"}
 
             params = self._web_driver.execute_script(JS_STATE_UPDATE)
-            self._user_logged_in = params["signedIn"]
+            self._user_logged_in = params["signedIn"] or not "debugLocalScene" in self._room_params
             self._user_in_room = params["entered"]
             self._room_name = params["roomName"]
 
