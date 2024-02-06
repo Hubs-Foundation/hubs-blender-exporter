@@ -640,7 +640,11 @@ class OpenImage(Operator):
         layout.prop(self, "relative_path")
 
     def execute(self, context):
-        dirname = os.path.dirname(self.filepath)
+        #dirname = os.path.dirname(self.filepath) #fails if path selected in the Blender File View is relative (starts with //)
+        abs_dir = bpy.path.abspath(self.filepath) # converts relative paths to absolute ones eg //MyPath -> C:\MyPath
+        #or:
+        #abs_dir = self.filepath if not self.relative_path else bpy.path.abspath(self.filepath)
+        dirname = os.path.dirname(abs_dir)
 
         if not self.files[0].name:
             self.report({'INFO'}, "Open image cancelled.  No image selected.")
