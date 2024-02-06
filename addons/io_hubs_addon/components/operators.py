@@ -606,6 +606,7 @@ class OpenImage(Operator):
     bl_label = "Open Image"
     bl_options = {'REGISTER', 'UNDO'}
 
+    directory: StringProperty()
     filepath: StringProperty(subtype="FILE_PATH")
     files: CollectionProperty(type=PropertyGroup)
     filter_folder: BoolProperty(default=True, options={"HIDDEN"})
@@ -640,11 +641,7 @@ class OpenImage(Operator):
         layout.prop(self, "relative_path")
 
     def execute(self, context):
-        #dirname = os.path.dirname(self.filepath) #fails if path selected in the Blender File View is relative (starts with //)
-        abs_dir = bpy.path.abspath(self.filepath) # converts relative paths to absolute ones eg //MyPath -> C:\MyPath
-        #or:
-        #abs_dir = self.filepath if not self.relative_path else bpy.path.abspath(self.filepath)
-        dirname = os.path.dirname(abs_dir)
+        #dirname = os.path.dirname(self.filepath) #dirname fails if path selected in the Blender File View is relative (starts with //)
 
         if not self.files[0].name:
             self.report({'INFO'}, "Open image cancelled.  No image selected.")
@@ -653,23 +650,23 @@ class OpenImage(Operator):
         old_img = self.hubs_component[self.target_property]
 
         # Load/Reload the first image and assign it to the target property, then load the rest of the images if they're not already loaded. This mimics Blender's default open files behavior.
-        primary_filepath = os.path.join(dirname, self.files[0].name)
         primary_img = bpy.data.images.load(
-            filepath=primary_filepath, check_existing=True)
+            filepath=self.filepath, check_existing=True)
         primary_img.reload()
         self.hubs_component[self.target_property] = primary_img
 
         for f in self.files[1:]:
-            bpy.data.images.load(filepath=os.path.join(
-                dirname, f.name), check_existing=True)
+            bpy.data.images.load(filepath=os.path.join( #join works with both relative and absolute paths
+                self.directory, f.name), check_existing=True)
 
         update_image_editors(old_img, primary_img)
         redraw_component_ui(context)
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        self.filepath = ""
         self.hubs_component = context.hubs_component
+        if type(self.hubs_component[self.target_property]) == bpy.types.Image: #if the component has been assigned before, get its filepath
+            self.filepath = self.hubs_component[self.target_property].filepath #start the file browser at the location of the previous file
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
