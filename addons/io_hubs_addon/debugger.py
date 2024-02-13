@@ -77,7 +77,7 @@ class HubsUpdateRoomOperator(bpy.types.Operator):
                     final_loc = loc + Vector((0, 0, -1.6))
                     rot_offset = Matrix.Rotation(radians(180), 4, 'Z').to_4x4()
                     final_rot = rot.to_matrix().to_4x4() @ rot_offset
-                    euler: Euler = final_rot.to_euler()
+                    euler = final_rot.to_euler()
                     euler.x = 0
                     euler.y = 0
 
