@@ -364,6 +364,8 @@ class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
 
         row = box.row()
         row.prop(context.scene.hubs_scene_debugger_room_export_prefs, "avatar_to_viewport")
+        if "debugLocalScene" not in hubs_session.room_params:
+            row.enabled = False
 
 
 class HUBS_PT_ToolsSceneSessionPanel(bpy.types.Panel):
