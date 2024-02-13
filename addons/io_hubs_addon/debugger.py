@@ -596,7 +596,6 @@ class HubsPublishSceneOperator(bpy.types.Operator):
                 "screenshot_file_id": screenshot_data["file_id"],
                 "screenshot_file_token": screenshot_data["access_token"]
             })
-            print(screenshot_data)
 
             scene_data.update({
                 "allow_remixing": False,
@@ -675,7 +674,7 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class HubsCreateSceneOperator(bpy.types.Operator):
+class HubsCreateRoomWithSceneOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.create_room_with_scene"
     bl_label = "Create Room With Scene"
     bl_description = "Create a room with the selected scene"
@@ -751,7 +750,6 @@ class HubsGetScenesOperator(bpy.types.Operator):
         scenes_props.instance = hubs_session.reticulum_url
         scenes_props.scenes.clear()
         try:
-            export_scene(context)
             url = hubs_session.reticulum_url
             scenes = api.get_projects(url, hubs_session.get_token())
 
@@ -818,7 +816,7 @@ class HUBS_PT_ToolsSceneDebuggerPublishScenePanel(bpy.types.Panel):
             row = box.row()
             row.alert = True
             row.label(
-                text="You need to be signed in Hubs to get, update or publish scenes")
+                text="You need to be signed in to Hubs to get, update or publish scenes")
             row = box.row()
             row.alert = True
             row.label(
@@ -843,7 +841,7 @@ class HUBS_PT_ToolsSceneDebuggerPublishScenePanel(bpy.types.Panel):
 
         row = box.row()
         row = row.column()
-        row.operator(HubsCreateSceneOperator.bl_idname,
+        row.operator(HubsCreateRoomWithSceneOperator.bl_idname,
                      text='Create Room')
 
         box = self.layout.box()
@@ -1069,7 +1067,7 @@ classes = (
     HUBS_PT_ToolsSceneDebuggerPublishScenePanel,
     HubsPublishSceneOperator,
     HubsUpdateSceneOperator,
-    HubsCreateSceneOperator,
+    HubsCreateRoomWithSceneOperator,
     HubsGetScenesOperator,
     HUBS_UL_ToolsSceneDebuggerProjects,
     HubsSceneProject,
