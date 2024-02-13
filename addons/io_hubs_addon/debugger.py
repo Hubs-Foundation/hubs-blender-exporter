@@ -1,8 +1,9 @@
 from bpy.app.handlers import persistent
 import bpy
 from bpy.types import Context
+
 from .preferences import EXPORT_TMP_FILE_NAME, EXPORT_TMP_SCREENSHOT_FILE_NAME
-from .utils import isModuleAvailable, save_prefs, image_type_to_file_ext
+from .utils import isModuleAvailable, save_prefs, find_area, image_type_to_file_ext
 from .icons import get_hubs_icons
 from .hubs_session import HubsSession, PARAMS_TO_STRING
 from . import api
@@ -61,15 +62,61 @@ class HubsUpdateRoomOperator(bpy.types.Operator):
 
     def execute(self, context):
         try:
+            selected_obs = bpy.context.selected_objects
+            active_ob = bpy.context.active_object
+
+            viewpoint = None
+            if context.scene.hubs_scene_debugger_room_export_prefs.avatar_to_viewport:
+                area = find_area("VIEW_3D")
+                if area is not None:
+                    r3d = area.spaces[0].region_3d
+                    view_mat = r3d.view_matrix.inverted()
+                    loc, rot, _ = view_mat.decompose()
+                    from mathutils import Matrix, Vector, Euler
+                    from math import radians
+                    final_loc = loc + Vector((0, 0, -1.6))
+                    rot_offset = Matrix.Rotation(radians(180), 4, 'Z').to_4x4()
+                    final_rot = rot.to_matrix().to_4x4() @ rot_offset
+                    euler = final_rot.to_euler()
+                    euler.x = 0
+                    euler.y = 0
+
+                    bpy.ops.object.empty_add(location=final_loc, rotation=(euler.x, euler.y, euler.z), type="ARROWS")
+                    viewpoint = bpy.context.object
+                    viewpoint.name = "__scene_debugger_viewpoint"
+                    from .components.utils import add_component
+                    add_component(viewpoint, "waypoint")
+
+                    for ob in selected_obs:
+                        ob.select_set(True)
+                    context.view_layer.objects.active = active_ob
+
             export_scene(context)
+
             hubs_session.update()
             hubs_session.bring_to_front(context)
+
+            if viewpoint:
+                hubs_session.move_to_waypoint("__scene_debugger_viewpoint")
+                ob = bpy.context.scene.objects["__scene_debugger_viewpoint"]
+                if ob:
+                    bpy.data.objects.remove(ob, do_unlink=True)
+
+            for ob in selected_obs:
+                ob.select_set(True)
+            context.view_layer.objects.active = active_ob
 
             return {'FINISHED'}
         except Exception as err:
             print(err)
             bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report", report_string='\n\n'.join(
                 ["The scene export has failed", "Check the export logs or quit the browser instance and try again", f'{err}']))
+
+            if viewpoint:
+                ob = bpy.context.scene.objects["__scene_debugger_viewpoint"]
+                if ob:
+                    bpy.data.objects.remove(ob, do_unlink=True)
+
             return {'CANCELLED'}
 
 
@@ -314,6 +361,11 @@ class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
         row = box.row()
         row.operator(HubsUpdateRoomOperator.bl_idname,
                      text=f'{update_mode}')
+
+        row = box.row()
+        row.prop(context.scene.hubs_scene_debugger_room_export_prefs, "avatar_to_viewport")
+        if "debugLocalScene" not in hubs_session.room_params:
+            row.enabled = False
 
 
 class HUBS_PT_ToolsSceneSessionPanel(bpy.types.Panel):
@@ -921,6 +973,10 @@ class HubsSceneDebuggerRoomExportPrefs(bpy.types.PropertyGroup):
         name='Sampling Animations',
         description='Apply sampling to all animations.  This has been forced OFF because it can break animations in Hubs',
         default=False, options=set())
+    avatar_to_viewport: bpy.props.BoolProperty(
+        name='Spawn using viewport transform',
+        description='Spawn the avatar in the current viewport camera position/rotation',
+        default=True, options=set())
 
 
 class HubsSceneProject(bpy.types.PropertyGroup):
