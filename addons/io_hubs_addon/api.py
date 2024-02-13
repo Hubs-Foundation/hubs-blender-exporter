@@ -56,15 +56,15 @@ def publish_scene(endpoint, token, scene_data, scene_id=None):
     else:
         resp = requests.post(url, body, headers=headers)
 
-    json = resp.json()
-    if "error" in json:
-        error = json.get("error")
+    jsonFile = resp.json()
+    if "error" in jsonFile:
+        error = jsonFile.get("error")
         if error == "invalid_token":
             raise Exception("Authentication error")
         else:
             raise Exception(f'Unknown error: {error}')
 
-    return json
+    return jsonFile
 
 
 def get_projects(endpoint, token):
@@ -76,16 +76,15 @@ def get_projects(endpoint, token):
     resp = requests.get(
         f'{endpoint}/api/v1/scenes/projectless', headers=headers)
 
-    import json
-    json = resp.json()
-    if "error" in json:
-        error = json.get("error")
+    jsonFile = resp.json()
+    if "error" in jsonFile:
+        error = jsonFile.get("error")
         if error == "invalid_token":
             raise Exception("Authentication error")
         else:
             raise Exception(f'Unknown error: {error}')
 
-    if "scenes" not in json:
+    if "scenes" not in jsonFile:
         raise Exception(f'Projects request error')
-    scenes = json.get("scenes")
+    scenes = jsonFile.get("scenes")
     return scenes
