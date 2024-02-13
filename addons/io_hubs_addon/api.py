@@ -32,7 +32,6 @@ def upload_media(endpoint, file):
         'glb', file, 'application/octet-stream')}, verify=False)
     json = resp.json()
 
-    json = resp.json()
     if "error" in json:
         raise Exception(f'Unknown error')
 
