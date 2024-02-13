@@ -305,7 +305,7 @@ class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
             row = box.row()
             row.alert = True
             row.label(
-                text="You need to be signed in Hubs to update the room scene or spawn objects")
+                text="You need to be signed in to Hubs to update the room scene")
 
         update_mode = "Update Scene" if context.scene.hubs_scene_debugger_room_create_prefs.debugLocalScene else "Spawn as object"
         if hubs_session.is_alive():
