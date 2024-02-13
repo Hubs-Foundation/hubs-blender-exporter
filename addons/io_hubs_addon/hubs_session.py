@@ -52,10 +52,11 @@ JS_DROP_FILE = """
 """
 
 JS_STATE_UPDATE = """
-    let params = { signedIn: false, entered: false, roomName: "" };
+    let params = { signedIn: false, entered: false, roomName: "", reticulumUrl: "" };
     try { params["signedIn"] = APP?.hubChannel?.signedIn; } catch(e) {};
     try { params["entered"] = APP?.scene?.is("entered"); } catch(e) {};
     try { params["roomName"] = APP?.hub?.name || APP?.hub?.slug || APP?.hub?.hub_id; } catch(e) {};
+    try { params["reticulumUrl"] = window.$P.getReticulumFetchUrl(""); } catch (e) {};
     return params;
 """
 
@@ -66,6 +67,8 @@ class HubsSession:
     _user_in_room = False
     _room_name = ""
     _room_params = {}
+    _reticulum_url = ""
+    _client_url = ""
 
     def init(self, context):
         browser = get_addon_pref(context).browser
@@ -142,15 +145,32 @@ class HubsSession:
             params = parse_qs(parsed.query, keep_blank_values=True)
             self._room_params = {k: v for k, v in params.items() if k != "hub_id"}
 
+            self._client_url = f'{parsed.scheme}://{parsed.hostname}:{parsed.port}'
+
             params = self._web_driver.execute_script(JS_STATE_UPDATE)
             self._user_logged_in = params["signedIn"] or "debugLocalScene" not in self._room_params
             self._user_in_room = params["entered"]
             self._room_name = params["roomName"]
+            self._reticulum_url = params["reticulumUrl"]
+            if not self._reticulum_url:
+                import urllib
+                base_assets_path = self._get_env_meta("base_assets_path")
+                isUsingCloudflare = base_assets_path and "workers.dev" in base_assets_path
+                if isUsingCloudflare:
+                    ret_host = urllib.parse.urlparse(base_assets_path).hostname
+                else:
+                    ret_host = self._get_env_meta("upload_host")
+                    if not ret_host:
+                        ret_host = self._get_env_meta("reticulum_server")
+                if ret_host:
+                    ret_port = urllib.parse.urlparse(ret_host).port
+                    self._reticulum_url = f'https://{ret_host}{":"+ret_port if ret_port else ""}'
 
         else:
             self._user_logged_in = False
             self._user_in_room = False
             self._room_name = ""
+            self.reticulumUrl = ""
 
     def bring_to_front(self, context):
         # In some systems switch_to doesn't work, the code below is a hack to make it work
@@ -178,12 +198,16 @@ class HubsSession:
         file_input = self._web_driver.execute_script(JS_DROP_FILE, document, 0, 0)
         file_input.send_keys(os.path.join(bpy.app.tempdir, EXPORT_TMP_FILE_NAME))
 
-    def get_local_storage(self):
-        storage = None
+    def get_local_storage(self, item):
+        store = None
         if self.is_alive():
-            storage = self._web_driver.execute_script("return window.localStorage;")
+            store = self._web_driver.execute_script(f'return window.localStorage.getItem("{item}");')
 
-        return storage
+        return store
+
+    def set_local_storage(self, data):
+        if self.is_alive():
+            self._web_driver.execute_script(f'window.localStorage.setItem("___hubs_store", {data});')
 
     def get_url(self):
         return self._web_driver.current_url
@@ -199,8 +223,78 @@ class HubsSession:
 
         return params
 
+    def _get_env_meta(self, name):
+        return self._web_driver.execute_script(f'return document.querySelector(\'meta[name="env:{name}"]\')?.content')
+
+    def get_token(self):
+        if self.is_alive():
+            hubs_store = self.get_local_storage("___hubs_store")
+            if hubs_store:
+                import json
+                hubs_store = json.loads(hubs_store)
+                has_credentials = "credentials" in hubs_store
+                if has_credentials:
+                    credentials = hubs_store["credentials"]
+                    if "token" in credentials:
+                        return credentials["token"]
+
+        return None
+
+    def set_credentials(self, email, token):
+        if self.is_alive():
+            hubs_store = self.get_local_storage("___hubs_store")
+            if hubs_store:
+                import json
+                hubs_store = json.loads(hubs_store)
+                has_credentials = "credentials" in hubs_store
+                if has_credentials:
+                    credentials = hubs_store["credentials"]
+                    credentials["email"] = email
+                    credentials["token"] = token
+                    self.set_local_storage(hubs_store)
+
+    def set_creator_assignment_token(self, hub_id, creator_token, embed_token):
+        if self.is_alive():
+            hubs_store = self.get_local_storage("___hubs_store")
+            if hubs_store:
+                import json
+                hubs_store = json.loads(hubs_store)
+                has_token = "creatorAssignmentTokens" in hubs_store
+                if not has_token:
+                    hubs_store["creatorAssignmentTokens"] = []
+                #  creator
+                if creator_token:
+                    creator_tokens = hubs_store["creatorAssignmentTokens"]
+                    if creator_tokens:
+                        creator_tokens.append({
+                            "hub_id": hub_id,
+                            "creatorAssignmentToken": creator_token
+                        })
+                    else:
+                        creator_tokens = [{
+                            "hub_id": hub_id,
+                            "creatorAssignmentToken": creator_token
+                        }]
+                # embed
+                if embed_token:
+                    embed_tokens = hubs_store["embed_tokens"]
+                    if embed_tokens:
+                        embed_tokens.append({
+                            "hub_id": hub_id,
+                            "embedToken": embed_token
+                        })
+                    else:
+                        embed_tokens = [{
+                            "hub_id": hub_id,
+                            "embedToken": embed_token
+                        }]
+                self.set_local_storage(hubs_store)
+
     def load(self, url):
         self._web_driver.get(url)
+
+    def is_local_instance(self):
+        return "hub_id" in self._web_driver.current_url
 
     @property
     def user_logged_in(self):
@@ -217,3 +311,11 @@ class HubsSession:
     @property
     def room_params(self):
         return self._room_params
+
+    @property
+    def reticulum_url(self):
+        return self._reticulum_url
+
+    @property
+    def client_url(self):
+        return self._client_url
