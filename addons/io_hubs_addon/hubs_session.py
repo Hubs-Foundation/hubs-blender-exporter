@@ -64,7 +64,7 @@ JS_WAYPOINT_UPDATE = """
         try {
             setTimeout(() => {
                 window.location = `${window.location.href}#${arguments[0]}`;
-                const mat = APP.world.scene.getObjectByName("__scene_debugger_viewpoint").matrixWorld;
+                const mat = APP.world.scene.getObjectByName(`${arguments[0]}`).matrixWorld;
                 APP.scene.systems["hubs-systems"].characterController.travelByWaypoint(mat, false, false);
             }, 0);
         } catch(e) {
