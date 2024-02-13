@@ -67,7 +67,7 @@ class HubsUpdateRoomOperator(bpy.types.Operator):
 
             viewpoint = None
             if context.scene.hubs_scene_debugger_room_export_prefs.avatar_to_viewport:
-                area = find_area()
+                area = find_area("VIEW_3D")
                 if area is not None:
                     r3d = area.spaces[0].region_3d
                     view_mat = r3d.view_matrix.inverted()

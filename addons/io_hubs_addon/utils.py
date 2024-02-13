@@ -218,11 +218,11 @@ def load_prefs(context):
         new_room.url = room["url"]
 
 
-def find_area():
+def find_area(area_type):
     try:
         import bpy
         for a in bpy.data.window_managers[0].windows[0].screen.areas:
-            if a.type == "VIEW_3D":
+            if a.type == area_type:
                 return a
         return None
     except Exception as err:
