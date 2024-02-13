@@ -1,8 +1,8 @@
 from bpy.app.handlers import persistent
 import bpy
 from bpy.types import Context
-from .preferences import EXPORT_TMP_FILE_NAME
-from .utils import isModuleAvailable, save_prefs
+from .preferences import EXPORT_TMP_FILE_NAME, EXPORT_TMP_SCREENSHOT_FILE_NAME
+from .utils import isModuleAvailable, save_prefs, image_type_to_file_ext
 from .icons import get_hubs_icons
 from .hubs_session import HubsSession, PARAMS_TO_STRING
 from . import api
@@ -582,8 +582,13 @@ class HubsPublishSceneOperator(bpy.types.Operator):
             })
 
             screenshot = context.scene.hubs_scene_debugger_scene_publish_props.screenshot
-            screenshot_full = bpy.path.abspath(
-                screenshot.filepath, library=screenshot.library)
+            if screenshot.type in ['RENDER_RESULT', 'COMPOSITING'] or screenshot.packed_file:
+                screenshot_full = os.path.join(
+                    bpy.app.tempdir, EXPORT_TMP_SCREENSHOT_FILE_NAME +
+                    image_type_to_file_ext(screenshot.file_format))
+                screenshot.save_render(screenshot_full)
+            else:
+                screenshot_full = bpy.path.abspath(screenshot.filepath, library=screenshot.library)
             screenshot_norm = os.path.normpath(screenshot_full)
             screenshot_data = api.upload_media(
                 url, open(screenshot_norm, "rb"))

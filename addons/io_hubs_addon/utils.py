@@ -208,3 +208,20 @@ def load_prefs(context):
             new_scene["description"] = scene["description"]
             new_scene["url"] = scene["url"]
             new_scene["screenshot_url"] = scene["screenshot_url"]
+
+
+def image_type_to_file_ext(image_type):
+    file_extension = None
+    if image_type == 'PNG':
+        file_extension = '.png'
+    elif image_type == 'JPEG':
+        file_extension = '.jpg'
+    elif image_type == 'BMP':
+        file_extension = '.bmp'
+    elif image_type == 'JPEG2000':
+        file_extension = '.jpeg'
+    elif image_type == 'TARGA':
+        file_extension = '.tga'
+    elif image_type == 'TARGA_RAW':
+        file_extension = '.tga'
+    return file_extension
