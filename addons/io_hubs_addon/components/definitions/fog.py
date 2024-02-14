@@ -13,6 +13,7 @@ class Fog(HubsComponent):
         'icon': 'MOD_OCEAN',
         'version': (1, 0, 0)
     }
+    
     def draw(self, context, layout, panel):
         '''Draw method to be called by the panel. The base class method will print all the component properties'''
         layout.prop(data=self, property="type")
