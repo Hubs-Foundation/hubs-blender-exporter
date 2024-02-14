@@ -27,19 +27,22 @@ class Fog(HubsComponent):
         name="type",
         description="Fog Type",
         items=[("linear", "Linear fog", "Fog effect will increase linearly with distance"),
-            ("exponential", "Exponential fog",
+                ("exponential", "Exponential fog",
                 "Fog effect will increase exponentially with distance")],
-        default="linear")
+                default="linear")
 
     color: FloatVectorProperty(name="Color",
-                            subtype='COLOR_GAMMA',
-                            default=(1.0, 1.0, 1.0, 1.0),
-                            size=4,
-                            min=0,
-                            max=1)
-
-    # TODO Make these properties to be displayed dynamically based on the fog type
-
+                        subtype='COLOR_GAMMA',
+                        default=(1.0, 1.0, 1.0, 1.0),
+                        size=4,
+                        min=0,
+                        max=1,
+                        subtype='COLOR_GAMMA',
+                        default=(1.0, 1.0, 1.0, 1.0),
+                        size=4,
+                        min=0,
+                        max=1)
+    # TODO Make these properties to be displayed dynamically based on the fog type #BlenderDiplom: Done
     near: FloatProperty(
         name="Near", description="Fog Near Distance (linear only)", default=1.0) 
 
