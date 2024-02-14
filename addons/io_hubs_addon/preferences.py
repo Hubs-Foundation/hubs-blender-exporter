@@ -6,6 +6,7 @@ import platform
 from os.path import join, dirname, realpath
 
 EXPORT_TMP_FILE_NAME = "__hubs_tmp_scene_.glb"
+EXPORT_TMP_SCREENSHOT_FILE_NAME = "__hubs_tmp_screenshot_"
 
 
 def get_addon_pref(context):

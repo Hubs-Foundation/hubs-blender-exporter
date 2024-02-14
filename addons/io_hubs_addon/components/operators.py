@@ -641,20 +641,18 @@ class OpenImage(Operator):
         layout.prop(self, "relative_path")
 
     def execute(self, context):
-        #dirname = os.path.dirname(self.filepath) #dirname fails if path selected in the Blender File View is relative (starts with //)
-
         if not self.files[0].name:
             self.report({'INFO'}, "Open image cancelled.  No image selected.")
             return {'CANCELLED'}
 
-        old_img = self.hubs_component[self.target_property]
+        old_img = getattr(self.target, self.target_property)
 
         # Load/Reload the first image and assign it to the target property, then load the rest of the images if they're not already loaded. This mimics Blender's default open files behavior.
         filepath = os.path.join(self.directory, self.files[0].name)
         primary_img = bpy.data.images.load(
             filepath=filepath, check_existing=True)
         primary_img.reload()
-        self.hubs_component[self.target_property] = primary_img
+        setattr(self.target, self.target_property, primary_img)
 
         for f in self.files[1:]:
             bpy.data.images.load(filepath=os.path.join( #join works with both relative and absolute paths
@@ -668,6 +666,7 @@ class OpenImage(Operator):
         self.hubs_component = context.hubs_component
         if type(self.hubs_component[self.target_property]) == bpy.types.Image: #if the component has been assigned before, get its filepath
             self.filepath = self.hubs_component[self.target_property].filepath #start the file browser at the location of the previous file
+        self.target = context.target
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
