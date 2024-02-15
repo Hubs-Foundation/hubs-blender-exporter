@@ -642,7 +642,6 @@ class OpenImage(Operator):
     
     def execute(self, context):
         #dirname = os.path.dirname(self.filepath) #dirname fails if path selected in the Blender File View is relative (starts with //) on Windows
-        print("filepath:", self.filepath)
         if not self.files[0].name:
             self.report({'INFO'}, "Open image cancelled. No image selected.")
             return {'CANCELLED'}
