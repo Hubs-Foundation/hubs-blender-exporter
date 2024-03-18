@@ -509,7 +509,7 @@ class ReportViewer(Operator):
 
 
 def split_and_prefix_report_messages(report_string):
-    return [f"{i+1:02d}   {message}" for i, message in enumerate(report_string.split("\n\n"))]
+    return [f"{i + 1:02d}   {message}" for i, message in enumerate(report_string.split("\n\n"))]
 
 
 class CopyHubsComponent(Operator):
@@ -606,11 +606,12 @@ class OpenImage(Operator):
     bl_label = "Open Image"
     bl_options = {'REGISTER', 'UNDO'}
 
+    directory: StringProperty()
     filepath: StringProperty(subtype="FILE_PATH")
     files: CollectionProperty(type=PropertyGroup)
     filter_folder: BoolProperty(default=True, options={"HIDDEN"})
     filter_image: BoolProperty(default=True, options={"HIDDEN"})
-    target_property: StringProperty()
+    target_property: StringProperty(options={"HIDDEN"})
 
     relative_path: BoolProperty(
         name="Relative Path", description="Select the file relative to the blend file", default=True)
@@ -635,21 +636,15 @@ class OpenImage(Operator):
 
         return True
 
-    def draw(self, context):
-        layout = self.layout
-        layout.prop(self, "relative_path")
-
     def execute(self, context):
-        dirname = os.path.dirname(self.filepath)
-
         if not self.files[0].name:
-            self.report({'INFO'}, "Open image cancelled.  No image selected.")
+            self.report({'INFO'}, "Open image cancelled. No image selected.")
             return {'CANCELLED'}
 
         old_img = getattr(self.target, self.target_property)
 
         # Load/Reload the first image and assign it to the target property, then load the rest of the images if they're not already loaded. This mimics Blender's default open files behavior.
-        primary_filepath = os.path.join(dirname, self.files[0].name)
+        primary_filepath = os.path.join(self.directory, self.files[0].name)  # self.files is sorted alphabetically by Blender, self.files[0] is the 1. of the selection in alphabetical order
         primary_img = bpy.data.images.load(
             filepath=primary_filepath, check_existing=True)
         primary_img.reload()
@@ -657,15 +652,19 @@ class OpenImage(Operator):
 
         for f in self.files[1:]:
             bpy.data.images.load(filepath=os.path.join(
-                dirname, f.name), check_existing=True)
+                self.directory, f.name), check_existing=True)
 
         update_image_editors(old_img, primary_img)
         redraw_component_ui(context)
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        self.filepath = ""
         self.target = context.target
+
+        last_image = getattr(self.target, self.target_property)
+        if type(last_image) is bpy.types.Image:  # if the component has been assigned before, get its filepath
+            self.filepath = last_image.filepath  # start the file browser at the location of the previous file
+
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
