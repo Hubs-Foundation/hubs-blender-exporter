@@ -14,6 +14,15 @@ class Fog(HubsComponent):
         'version': (1, 0, 0)
     }
 
+    def draw(self, context, layout, panel):
+        '''Draw method to be called by the panel. The base class method will print all the component properties'''
+        layout.prop(data=self, property="type")
+        if self.type == "linear":
+            layout.prop(data=self, property="near")
+            layout.prop(data=self, property="far")
+        else:
+            layout.prop(data=self, property="density")
+
     type: EnumProperty(
         name="type",
         description="Fog Type",
@@ -29,7 +38,6 @@ class Fog(HubsComponent):
                                min=0,
                                max=1)
 
-    # TODO Make these properties to be displayed dynamically based on the fog type
     near: FloatProperty(
         name="Near", description="Fog Near Distance (linear only)", default=1.0)
 
