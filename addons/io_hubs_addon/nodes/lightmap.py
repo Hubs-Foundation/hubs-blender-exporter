@@ -17,6 +17,14 @@ node_categories = [
     ]),
 ]
 
+class NODE_MT_mozilla_hubs_nodes(bpy.types.Menu):
+    bl_label = "Hubs"
+    bl_idname = "NODE_MT_mozilla_hubs_nodes"
+
+    def draw(self, context):
+        layout = self.layout
+        # Example of adding a custom node to the menu
+        layout.operator("node.add_node", text="MOZ_lightmap settings").type = "MozLightmapNode"
 
 class MozLightmapNode(Node):
     """MOZ_lightmap settings node"""
@@ -45,12 +53,29 @@ class MozLightmapNode(Node):
     def draw_label(self):
         return "MOZ_lightmap"
 
+# def create_node_categories():
+#     return [NodeCategory("MOZ_NODES", "Moz Nodes", items=node_categories)]
+
+def menu_func(self, context):
+    self.layout.menu("NODE_MT_mozilla_hubs_nodes")
 
 def register():
+    bpy.utils.register_class(NODE_MT_mozilla_hubs_nodes)
+    bpy.types.NODE_MT_shader_node_add_all.append(menu_func)
     bpy.utils.register_class(MozLightmapNode)
-    nodeitems_utils.register_node_categories("MOZ_NODES", node_categories)
-
 
 def unregister():
+    bpy.types.NODE_MT_shader_node_add_all.remove(menu_func)
+    bpy.utils.unregister_class(NODE_MT_mozilla_hubs_nodes)
     bpy.utils.unregister_class(MozLightmapNode)
-    nodeitems_utils.unregister_node_categories("MOZ_NODES")
+
+
+
+# def register():
+#     bpy.utils.register_class(MozLightmapNode)
+#     nodeitems_utils.register_manual_map(create_node_categories)
+
+# def unregister():
+#     bpy.utils.unregister_class(MozLightmapNode)
+#     nodeitems_utils.unregister_manual_map(create_node_categories)
+

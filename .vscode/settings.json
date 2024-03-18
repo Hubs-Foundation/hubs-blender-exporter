@@ -9,6 +9,9 @@
   "python.analysis.extraPaths": [
     "./fake_bpy_modules_3.3-20221006"
   ],
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportInvalidTypeForm": "none",
+  },
   "editor.defaultFormatter": "ms-python.autopep8",
   "editor.formatOnSave": true,
   "editor.formatOnSaveMode": "file",
