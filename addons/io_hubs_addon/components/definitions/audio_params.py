@@ -114,7 +114,7 @@ class AudioParams(HubsComponent):
             self.coneOuterAngle = radians(
                 self.coneOuterAngle)
 
-            if migration_type != MigrationType.GLOBAL or is_linked(ob) or type(ob) is bpy.types.Armature:
+            if migration_type != MigrationType.GLOBAL or is_linked(ob) or type(ob) == bpy.types.Armature:
                 host_reference = get_host_reference_message(panel_type, host, ob=ob)
                 migration_report.append(
                     f"Warning: The Media Cone angles may not have migrated correctly for the Audio Params component on the {panel_type.value} {host_reference}")

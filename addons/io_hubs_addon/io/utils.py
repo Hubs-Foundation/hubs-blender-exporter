@@ -332,7 +332,7 @@ def gather_lightmap_texture_info(blender_material, export_settings):
     lightmap_node = next(
         (n for n in nodes if isinstance(n, MozLightmapNode)), None)
 
-    if lightmap_node is None:
+    if not lightmap_node:
         return
     texture_socket = lightmap_node.inputs.get("Lightmap")
     intensity = lightmap_node.intensity
