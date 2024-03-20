@@ -341,12 +341,11 @@ def gather_lightmap_texture_info(blender_material, export_settings):
     # TODO this assumes a single image directly connected to the socket
     blender_image = texture_socket.links[0].from_node.image
     texture = gather_texture(blender_image, export_settings)
-    if bpy.app.version < (3, 2, 0):
+    if bpy.app.version < (3, 2, 0) or bpy.app.version >= (4, 0, 0):
         tex_transform, tex_coord = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
             texture_socket, export_settings)
     else:
-        #tex_transform, tex_coord, _ = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
-        tex_transform, tex_coord = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord( # gltf2 Blender 4.x only returns 2 parmas
+        tex_transform, tex_coord, _ = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
             texture_socket, export_settings)
     texture_info = gltf2_io.TextureInfo(
         extensions=gltf2_blender_gather_texture_info.__gather_extensions(
@@ -357,7 +356,6 @@ def gather_lightmap_texture_info(blender_material, export_settings):
     )
 
     if not texture_info:
-        print("Found no texture info")
         return
 
     return {
