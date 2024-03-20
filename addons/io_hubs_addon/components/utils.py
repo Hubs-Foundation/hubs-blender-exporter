@@ -297,7 +297,7 @@ def display_wrapped_text(layout, wrapped_text, *, heading_icon='NONE'):
 def get_host_reference_message(panel_type, host, ob=None):
     '''The ob argument is used for bone hosts and is the armature object, but will fall back to the armature if the armature object isn't available.'''
     if panel_type == PanelType.BONE:
-        ob_type = "armature" if type(ob) == bpy.types.Armature else "object"
+        ob_type = "armature" if type(ob) is bpy.types.Armature else "object"
         host_reference = f"\"{host.name}\" in {ob_type} \"{ob.name_full}\""
     else:
         host_reference = f"\"{host.name_full}\""
