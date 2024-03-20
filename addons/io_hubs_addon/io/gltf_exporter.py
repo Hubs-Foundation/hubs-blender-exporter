@@ -149,23 +149,28 @@ class glTF2ExportUserExtension:
         self.add_hubs_components(gltf2_object, blender_object, export_settings)
 
     def gather_material_hook(self, gltf2_object, blender_material, export_settings):
+        print("Gathering material:", blender_material.name)
+        if blender_material.name == "WithLightmap":
+            print("export_settings:", export_settings)
         if not self.properties.enabled:
+            print("Not enabled")
             return
 
         self.add_hubs_components(
             gltf2_object, blender_material, export_settings)
-
+        print("added components")
         from .utils import gather_lightmap_texture_info
         if blender_material.node_tree and blender_material.use_nodes:
             lightmap_texture_info = gather_lightmap_texture_info(
                 blender_material, export_settings)
+            print("gathered lightmap texture info:", lightmap_texture_info)
             if lightmap_texture_info:
                 gltf2_object.extensions["MOZ_lightmap"] = self.Extension(
                     name="MOZ_lightmap",
                     extension=lightmap_texture_info,
                     required=False,
                 )
-
+        print("Hook done")
     def gather_material_unlit_hook(self, gltf2_object, blender_material, export_settings):
         self.gather_material_hook(
             gltf2_object, blender_material, export_settings)

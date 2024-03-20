@@ -75,9 +75,8 @@ def gather_image(blender_image, export_settings):
             mime_type = "image/png"
     else:
         mime_type = "image/jpeg"
-
-    data = HubsExportImage.from_blender_image(blender_image).encode(mime_type, export_settings)
-
+    d1 = HubsExportImage.from_blender_image(blender_image)
+    data = d1.encode(mime_type, export_settings)
     if type(data) == tuple:
         data = data[0]
 
@@ -105,7 +104,6 @@ def gather_image(blender_image, export_settings):
 @cached
 def gather_texture(blender_image, export_settings):
     image = gather_image(blender_image, export_settings)
-
     if not image:
         return None
 
@@ -335,9 +333,8 @@ def gather_lightmap_texture_info(blender_material, export_settings):
     lightmap_node = next(
         (n for n in nodes if isinstance(n, MozLightmapNode)), None)
 
-    if not lightmap_node:
+    if lightmap_node is None:
         return
-
     texture_socket = lightmap_node.inputs.get("Lightmap")
     intensity = lightmap_node.intensity
 
@@ -348,7 +345,8 @@ def gather_lightmap_texture_info(blender_material, export_settings):
         tex_transform, tex_coord = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
             texture_socket, export_settings)
     else:
-        tex_transform, tex_coord, _ = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
+        #tex_transform, tex_coord, _ = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
+        tex_transform, tex_coord = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord( # gltf2 Blender 4.x only returns 2 parmas
             texture_socket, export_settings)
     texture_info = gltf2_io.TextureInfo(
         extensions=gltf2_blender_gather_texture_info.__gather_extensions(
@@ -359,6 +357,7 @@ def gather_lightmap_texture_info(blender_material, export_settings):
     )
 
     if not texture_info:
+        print("Found no texture info")
         return
 
     return {

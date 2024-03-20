@@ -23,7 +23,6 @@ class NODE_MT_mozilla_hubs_nodes(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        # Example of adding a custom node to the menu
         layout.operator("node.add_node", text="MOZ_lightmap settings").type = "moz_lightmap.node"
 
 class MozLightmapNode(Node):
@@ -33,7 +32,6 @@ class MozLightmapNode(Node):
     bl_icon = 'LIGHT'
     bl_width_min = 216.3
     bl_width_max = 330.0
-
     intensity: bpy.props.FloatProperty(
         name="Intensity", soft_min=0, soft_max=1, default=1)
 
@@ -72,13 +70,12 @@ def unregister_blender_4():
 
 def register_blender_3():
     print("Using Blender 3x")
-
     bpy.utils.register_class(MozLightmapNode)
-    nodeitems_utils.register_manual_map(create_node_categories)
+    nodeitems_utils.register_node_categories("MOZ_NODES", node_categories)
 
 def unregister_blender_3():
     bpy.utils.unregister_class(MozLightmapNode)
-    nodeitems_utils.unregister_manual_map(create_node_categories)
+    nodeitems_utils.unregister_node_categories("MOZ_NODES", node_categories)
 
 def register():
     if bpy.app.version < (4, 0, 0):
