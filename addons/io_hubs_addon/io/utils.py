@@ -75,9 +75,8 @@ def gather_image(blender_image, export_settings):
             mime_type = "image/png"
     else:
         mime_type = "image/jpeg"
-    d1 = HubsExportImage.from_blender_image(blender_image)
-    data = d1.encode(mime_type, export_settings)
-    if type(data) is tuple:
+    data = HubsExportImage.from_blender_image(blender_image).encode(mime_type, export_settings)
+    if type(data) == tuple:
         data = data[0]
 
     if export_settings['gltf_format'] == 'GLTF_SEPARATE':
@@ -157,13 +156,13 @@ def gather_property(export_settings, blender_object, target, property_name):
             return gather_vec_property(export_settings, blender_object, target, property_name)
 
     elif (property_definition.bl_rna.identifier == 'PointerProperty'):
-        if type(property_value) is bpy.types.Object:
+        if type(property_value) == bpy.types.Object:
             return gather_node_property(export_settings, blender_object, target, property_name)
-        elif type(property_value) is bpy.types.Material:
+        elif type(property_value) == bpy.types.Material:
             return gather_material_property(export_settings, blender_object, target, property_name)
-        elif type(property_value) is bpy.types.Image:
+        elif type(property_value) == bpy.types.Image:
             return gather_image_property(export_settings, blender_object, target, property_name)
-        elif type(property_value) is bpy.types.Texture:
+        elif type(property_value) == bpy.types.Texture:
             return gather_texture_property(export_settings, blender_object, target, property_name)
 
     return gltf2_blender_extras.__to_json_compatible(property_value)
