@@ -198,7 +198,7 @@ def patched_BlenderNode_create_object(gltf, vnode_id):
 
     import_hubs_components(node, vnode.blender_object, gltf)
 
-    #  Node hooks are not called for bones. Bones are created together with their armature.
+    # Node hooks are not called for bones. Bones are created together with their armature.
     # Unfortunately the bones are created after this hook is called so we need to wait until all nodes have been created.
     if vnode.is_arma:
         store_bones_for_import(gltf, vnode)

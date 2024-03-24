@@ -53,4 +53,4 @@ if bpy.app.version > (3, 0, 0):
 
 
 def register_panel():
-    return gltf_exporter.register_export_panel()
+    return panels.register_panels()
