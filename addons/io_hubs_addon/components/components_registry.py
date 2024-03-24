@@ -78,6 +78,9 @@ def register_component(component_class):
             PointerProperty(type=component_class)
         )
 
+    from ..io.gltf_exporter import glTF2ExportUserExtension
+    glTF2ExportUserExtension.add_excluded_property(component_class.get_id())
+
 
 def unregister_component(component_class):
     component_id = component_class.get_id()
@@ -92,6 +95,9 @@ def unregister_component(component_class):
 
     bpy.utils.unregister_class(component_class)
 
+    from ..io.gltf_exporter import glTF2ExportUserExtension
+    glTF2ExportUserExtension.remove_excluded_property(component_class.get_id())
+
     print("Component unregistered: " + component_class.get_name())
 
 
@@ -101,7 +107,7 @@ def load_components_registry():
     __components_registry = {}
     for module in get_component_definitions():
         for _, member in inspect.getmembers(module):
-            if inspect.isclass(member) and issubclass(member, HubsComponent) and member != HubsComponent:
+            if inspect.isclass(member) and issubclass(member, HubsComponent) and module.__name__ == member.__module__:
                 if hasattr(module, 'register_module'):
                     module.register_module()
                 register_component(member)
@@ -152,7 +158,10 @@ def get_components_icons():
 
 def get_component_by_name(component_name):
     global __components_registry
-    return next((component_class for _, component_class in __components_registry.items() if component_class.get_name() == component_name), None)
+    return next(
+        (component_class for _, component_class in __components_registry.items()
+         if component_class.get_name() == component_name),
+        None)
 
 
 def register():
@@ -173,6 +182,9 @@ def register():
     bpy.types.EditBone.hubs_component_list = PointerProperty(
         type=HubsComponentList)
 
+    from ..io.gltf_exporter import glTF2ExportUserExtension
+    glTF2ExportUserExtension.add_excluded_property("hubs_component_list")
+
 
 def unregister():
     del bpy.types.Object.hubs_component_list
@@ -183,6 +195,9 @@ def unregister():
 
     bpy.utils.unregister_class(HubsComponentName)
     bpy.utils.unregister_class(HubsComponentList)
+
+    from ..io.gltf_exporter import glTF2ExportUserExtension
+    glTF2ExportUserExtension.remove_excluded_property("hubs_component_list")
 
     unload_components_registry()
     unload_icons()

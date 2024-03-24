@@ -10,7 +10,8 @@ class Fog(HubsComponent):
         'category': Category.SCENE,
         'node_type': NodeType.SCENE,
         'panel_type': [PanelType.SCENE],
-        'icon': 'MOD_OCEAN'
+        'icon': 'MOD_OCEAN',
+        'version': (1, 0, 0)
     }
 
     type: EnumProperty(
@@ -22,7 +23,7 @@ class Fog(HubsComponent):
         default="linear")
 
     color: FloatVectorProperty(name="Color",
-                               subtype='COLOR',
+                               subtype='COLOR_GAMMA',
                                default=(1.0, 1.0, 1.0, 1.0),
                                size=4,
                                min=0,

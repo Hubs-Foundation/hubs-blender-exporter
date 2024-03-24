@@ -3,14 +3,15 @@ from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 
 
-class AmbientLight(HubsComponent):
+class PersonalSpaceInvader(HubsComponent):
     _definition = {
         'name': 'personal-space-invader',
         'display_name': 'Personal Space Invader',
         'category': Category.AVATAR,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
-        'icon': 'MATSHADERBALL'
+        'icon': 'MATSHADERBALL',
+        'version': (1, 0, 0)
     }
 
     radius: FloatProperty(name="Radius",

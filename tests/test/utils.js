@@ -71,10 +71,30 @@ function checkExtensionAdded(asset, etxName) {
   return Object.prototype.hasOwnProperty.call(asset.extensions, etxName);
 }
 
-exports.utils = {
-  UUID_REGEX: UUID_REGEX,
-  blenderFileToGltf: blenderFileToGltf,
-  blenderRoundtripGltf: blenderRoundtripGltf,
-  validateGltf: validateGltf,
-  checkExtensionAdded: checkExtensionAdded
+function nodeWithName(gltf, name) {
+  const node = gltf.nodes.filter(node => { return node.name === name; }).pop();
+  const index = gltf.nodes.indexOf(node);
+  return {
+    node,
+    index
+  };
+}
+
+function materialWithName(gltf, name) {
+  const node = gltf.materials.filter(node => { return node.name === name; }).pop();
+  const index = gltf.nodes.indexOf(node);
+  return {
+    node,
+    index
+  };
+}
+
+module.exports = {
+  UUID_REGEX,
+  blenderFileToGltf,
+  blenderRoundtripGltf,
+  validateGltf,
+  checkExtensionAdded,
+  nodeWithName,
+  materialWithName
 };

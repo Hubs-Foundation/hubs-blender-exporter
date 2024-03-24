@@ -10,7 +10,8 @@ class UVScroll(HubsComponent):
         'category': Category.ANIMATION,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT],
-        'icon': 'TEXTURE_DATA'
+        'icon': 'TEXTURE_DATA',
+        'version': (1, 0, 0)
     }
 
     speed: FloatVectorProperty(name="Speed",
@@ -25,15 +26,20 @@ class UVScroll(HubsComponent):
                                    subtype="XYZ",
                                    default=[0, 0])
 
+    @classmethod
+    def poll(cls, panel_type, host, ob=None):
+        return hasattr(ob.data, 'materials')
+
     def draw(self, context, layout, panel):
         has_texture = False
         for material in context.object.data.materials:
-            for node in material.node_tree.nodes:
-                if node.type == 'TEX_IMAGE':
-                    has_texture = True
+            if material:
+                for node in material.node_tree.nodes:
+                    if node.type == 'TEX_IMAGE' and node.image is not None:
+                        has_texture = True
 
         super().draw(context, layout, panel)
         if not has_texture:
             layout.alert = True
-            layout.label(text='This component requires a texture',
+            layout.label(text='This component requires an image texture',
                          icon='ERROR')

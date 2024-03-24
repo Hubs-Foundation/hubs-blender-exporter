@@ -10,14 +10,15 @@ class AudioSource(HubsComponent):
         'category': Category.MEDIA,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
-        'icon': 'MOD_WAVE'
+        'icon': 'MOD_WAVE',
+        'version': (1, 0, 0)
     }
 
     onlyMods: BoolProperty(
-        name="Only Mods", description="Only room moderators should be able to transmit audio from this source.", default=True)
+        name="Only Mods", description="Only room moderators are able to transmit audio from this source", default=True)
 
     muteSelf: BoolProperty(
-        name="Mute Self", description="Do not transmit your own audio to audio targets.", default=True)
+        name="Mute Self", description="Do not transmit your own audio to audio targets", default=True)
 
     debug: BoolProperty(
-        name="Debug", description="Play white noise when no audio source is in the zone.", default=False)
+        name="Debug", description="Play white noise when no audio source is in the zone", default=False)

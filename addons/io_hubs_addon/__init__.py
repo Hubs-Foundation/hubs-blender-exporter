@@ -1,14 +1,15 @@
-from . import (nodes, components)
-from .io import gltf_exporter, gltf_importer, panels
-import bpy
 from . import preferences
+from .io import gltf_exporter, gltf_importer
+from . import (nodes, components)
+from .io import gltf_exporter
+import bpy
 
 bl_info = {
     "name": "Hubs Blender Addon",
     "author": "Mozilla Hubs",
     "description": "Tools for developing glTF assets for Mozilla Hubs",
     "blender": (3, 1, 2),
-    "version": (1, 0, 0),
+    "version": (1, 1, 0),
     "location": "",
     "wiki_url": "https://github.com/MozillaReality/hubs-blender-exporter",
     "tracker_url": "https://github.com/MozillaReality/hubs-blender-exporter/issues",
@@ -20,19 +21,25 @@ bl_info = {
 
 def register():
     preferences.register()
-    panels.register()
-    gltf_exporter.register()
-    gltf_importer.register()
     nodes.register()
     components.register()
+    gltf_importer.register()
+    gltf_exporter.register()
+
+    # Migrate components if the add-on is enabled in the middle of a session.
+    if bpy.context.preferences.is_dirty:
+        def registration_migration():
+            # Passing True as the first argument of the operator forces an undo step to be created.
+            bpy.ops.wm.migrate_hubs_components(
+                True, is_registration=True)
+        bpy.app.timers.register(registration_migration)
 
 
 def unregister():
+    gltf_exporter.unregister()
+    gltf_importer.unregister()
     components.unregister()
     nodes.unregister()
-    gltf_importer.unregister()
-    gltf_exporter.unregister()
-    panels.unregister()
     preferences.unregister()
 
 

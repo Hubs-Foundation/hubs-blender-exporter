@@ -10,8 +10,9 @@ class Billboard(HubsComponent):
         'category': Category.OBJECT,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
-        'icon': 'IMAGE_PLANE'
+        'icon': 'IMAGE_PLANE',
+        'version': (1, 0, 0)
     }
 
     onlyY: BoolProperty(
-        name="Only Y", description="Rotate only in Y axis", default=False)
+        name="Only Y", description="Rotate only on the Y axis", default=False)

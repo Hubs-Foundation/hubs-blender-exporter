@@ -1,8 +1,6 @@
 import bpy
 from bpy.types import AddonPreferences
-from bpy.props import IntProperty, StringProperty
-from enum import Enum
-
+from bpy.props import IntProperty
 from .utils import get_addon_package
 
 
@@ -21,19 +19,11 @@ class HubsPreferences(AddonPreferences):
         min=0,
     )
 
-    tmp_path: StringProperty(
-        name="Temporary files path",
-        description="Path where temporary files will be stored.",
-        subtype="DIR_PATH",
-        default="//generated_cubemaps/"
-    )
-
     def draw(self, context):
         layout = self.layout
         box = layout.box()
 
         box.row().prop(self, "row_length")
-        box.row().prop(self, "tmp_path")
 
 
 def register():

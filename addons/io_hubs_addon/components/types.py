@@ -5,7 +5,6 @@ class PanelType(Enum):
     OBJECT = 'object'
     SCENE = 'scene'
     MATERIAL = 'material'
-    OBJECT_DATA = 'data'
     BONE = 'bone'
 
 
@@ -24,3 +23,9 @@ class Category(Enum):
     MISC = 'Misc'
     LIGHTS = 'Lights'
     MEDIA = 'Media'
+
+
+class MigrationType(Enum):
+    GLOBAL = 'global'
+    LOCAL = 'local'
+    REGISTRATION = 'registration'

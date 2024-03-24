@@ -1,8 +1,9 @@
 import bpy
-from bpy.props import FloatProperty, EnumProperty
+from bpy.props import BoolProperty, FloatProperty, EnumProperty
 from ..hubs_component import HubsComponent
-from ..types import PanelType, NodeType
-from ..consts import DISTACE_MODELS, MAX_ANGLE
+from ..types import PanelType, NodeType, MigrationType
+from ..utils import is_linked, get_host_reference_message
+from ..consts import DISTANCE_MODELS, MAX_ANGLE
 from math import degrees, radians
 
 AUDIO_TYPES = [("pannernode", "Positional audio (pannernode)",
@@ -16,8 +17,14 @@ class AudioParams(HubsComponent):
         'name': 'audio-params',
         'display_name': 'Audio Params',
         'node_type': NodeType.NODE,
-        'panel_type': [PanelType.OBJECT, PanelType.BONE]
+        'panel_type': [PanelType.OBJECT, PanelType.BONE],
+        'version': (1, 0, 0)
     }
+
+    overrideAudioSettings: BoolProperty(
+        name="Override Audio Settings",
+        description="Override Audio Settings",
+        default=True)
 
     audioType: EnumProperty(
         name="Audio Type",
@@ -28,98 +35,109 @@ class AudioParams(HubsComponent):
     distanceModel: EnumProperty(
         name="Distance Model",
         description="Distance Model",
-        items=DISTACE_MODELS,
+        items=DISTANCE_MODELS,
         default="inverse")
 
     gain: FloatProperty(
         name="Gain",
         description="How much to amplify the source audio by",
         default=1.0,
-        min=0.0,
-        soft_min=0.0)
-
-    # TODO Add conditional UI to show only the required properties per type
+        min=0.0)
 
     refDistance: FloatProperty(
         name="Ref Distance",
-        description="A double value representing the reference distance for reducing volume as the audio source moves further from the listener. For distances greater than this the volume will be reduced based on rolloffFactor and distanceModel.",
+        description="A double value representing the reference distance for reducing volume as the audio source moves further from the listener. For distances greater than this the volume will be reduced based on rolloffFactor and distanceModel",
         subtype="DISTANCE",
         unit="LENGTH",
         default=1.0,
-        min=0.0,
-        soft_min=0.0)
+        min=0.0)
 
     rolloffFactor: FloatProperty(
         name="Rolloff Factor",
-        description="A double value describing how quickly the volume is reduced as the source moves away from the listener. This value is used by all distance models.",
+        description="A double value describing how quickly the volume is reduced as the source moves away from the listener. This value is used by all distance models",
         default=1.0,
-        min=0.0,
-        soft_min=0.0)
+        min=0.0)
 
     maxDistance: FloatProperty(
         name="Max Distance",
-        description="A double value representing the maximum distance between the audio source and the listener, after which the volume is not reduced any further. This value is used only by the linear distance model.",
+        description="A double value representing the maximum distance between the audio source and the listener, after which the volume is not reduced any further. This value is used only by the linear distance model",
         subtype="DISTANCE",
         unit="LENGTH",
         default=10000.0,
-        min=0.0,
-        soft_min=0.0)
+        min=0.0)
 
     coneInnerAngle: FloatProperty(
         name="Cone Inner Angle",
-        description="A double value describing the angle, in degrees, of a cone inside of which there will be no volume reduction.",
+        description="A double value describing the angle, in degrees, of a cone inside of which there will be no volume reduction",
         subtype="ANGLE",
         default=MAX_ANGLE,
         min=0.0,
-        soft_min=0.0,
         max=MAX_ANGLE,
-        soft_max=MAX_ANGLE,
         precision=2)
 
     coneOuterAngle: FloatProperty(
         name="Cone Outer Angle",
-        description="A double value describing the angle, in degrees, of a cone outside of which the volume will be reduced by a constant value, defined by the coneOuterGain attribute.",
+        description="A double value describing the angle, in degrees, of a cone outside of which the volume will be reduced by a constant value, defined by the coneOuterGain attribute",
         subtype="ANGLE",
         default=0.0,
         min=0.0,
-        soft_min=0.0,
         max=MAX_ANGLE,
-        soft_max=MAX_ANGLE,
         precision=2)
 
     coneOuterGain: FloatProperty(
         name="Cone Outer Gain",
-        description="A double value describing the amount of volume reduction outside the cone defined by the coneOuterAngle attribute.",
+        description="A double value describing the amount of volume reduction outside the cone defined by the coneOuterAngle attribute",
         default=0.0,
         min=0.0,
-        soft_min=0.0)
+        max=1.0)
 
     def gather(self, export_settings, object):
-        return {
-            'audioType': self.audioType,
-            'distanceModel': self.distanceModel,
-            'gain': self.gain,
-            'refDistance': self.refDistance,
-            'rolloffFactor': self.rolloffFactor,
-            'maxDistance': self.maxDistance,
-            'coneInnerAngle': round(degrees(self.coneInnerAngle), 2),
-            'coneOuterAngle': round(degrees(self.coneOuterAngle), 2),
-            'coneOuterGain': self.coneOuterGain
-        }
+        if (self.overrideAudioSettings):
+            return {
+                'audioType': self.audioType,
+                'distanceModel': self.distanceModel,
+                'gain': self.gain,
+                'refDistance': self.refDistance,
+                'rolloffFactor': self.rolloffFactor,
+                'maxDistance': self.maxDistance,
+                'coneInnerAngle': round(degrees(self.coneInnerAngle), 2),
+                'coneOuterAngle': round(degrees(self.coneOuterAngle), 2),
+                'coneOuterGain': self.coneOuterGain
+            }
+
+    def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
+        migration_occurred = False
+        if instance_version < (1, 0, 0):
+            migration_occurred = True
+            self.coneInnerAngle = radians(
+                self.coneInnerAngle)
+            self.coneOuterAngle = radians(
+                self.coneOuterAngle)
+
+            if migration_type != MigrationType.GLOBAL or is_linked(ob) or type(ob) == bpy.types.Armature:
+                host_reference = get_host_reference_message(panel_type, host, ob=ob)
+                migration_report.append(
+                    f"Warning: The Media Cone angles may not have migrated correctly for the Audio Params component on the {panel_type.value} {host_reference}")
+
+        return migration_occurred
+
+    def draw(self, context, layout, panel):
+        layout.prop(data=self, property="overrideAudioSettings")
+        if not self.overrideAudioSettings:
+            return
+
+        layout.prop(data=self, property="audioType")
+        layout.prop(data=self, property="gain")
+
+        if self.audioType == "pannernode":
+            layout.prop(data=self, property="distanceModel")
+            layout.prop(data=self, property="rolloffFactor")
+            layout.prop(data=self, property="refDistance")
+            layout.prop(data=self, property="maxDistance")
+            layout.prop(data=self, property="coneInnerAngle")
+            layout.prop(data=self, property="coneOuterAngle")
+            layout.prop(data=self, property="coneOuterGain")
 
     @classmethod
-    def migrate(cls, version):
-        if version < (1, 0, 0):
-            def migrate_data(ob):
-                if cls.get_name() in ob.hubs_component_list.items:
-                    ob.hubs_component_audio_params.coneInnerAngle = radians(
-                        ob.hubs_component_audio_params.coneInnerAngle)
-                    ob.hubs_component_audio_params.coneOuterAngle = radians(
-                        ob.hubs_component_audio_params.coneOuterAngle)
-
-            for ob in bpy.data.objects:
-                migrate_data(ob)
-
-                if ob.type == 'ARMATURE':
-                    for bone in ob.data.bones:
-                        migrate_data(bone)
+    def gather_import(cls, gltf, blender_object, component_name, component_value):
+        blender_object.hubs_component_audio_params.overrideAudioSettings = True

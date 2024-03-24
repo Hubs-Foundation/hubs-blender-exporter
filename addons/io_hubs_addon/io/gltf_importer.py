@@ -1,5 +1,5 @@
 import bpy
-from io_scene_gltf2.io.com.gltf2_io_extensions import Extension
+from bpy.props import BoolProperty, PointerProperty
 from io_scene_gltf2.blender.imp.gltf2_blender_node import BlenderNode
 from io_scene_gltf2.blender.imp.gltf2_blender_material import BlenderMaterial
 from io_scene_gltf2.blender.imp.gltf2_blender_scene import BlenderScene
@@ -11,9 +11,18 @@ import traceback
 EXTENSION_NAME = HUBS_CONFIG["gltfExtensionName"]
 
 armatures = {}
+delayed_gathers = []
 
 
-def import_hubs_components(gltf_node, blender_object, import_settings):
+def call_delayed_gathers():
+    global delayed_gathers
+    for delayed_gather in delayed_gathers:
+        gather = delayed_gather
+        gather()
+    delayed_gathers.clear()
+
+
+def import_hubs_components(gltf_node, blender_object, gltf):
     if gltf_node and gltf_node.extensions and EXTENSION_NAME in gltf_node.extensions:
         components_data = gltf_node.extensions[EXTENSION_NAME]
         for component_name in components_data.keys():
@@ -21,8 +30,10 @@ def import_hubs_components(gltf_node, blender_object, import_settings):
             if component_class:
                 component_value = components_data[component_name]
                 try:
-                    component_class.gather_import(
-                        import_settings, blender_object, component_name, component_value)
+                    data = component_class.gather_import(
+                        gltf, blender_object, component_name, component_value)
+                    if data and hasattr(data, "delayed_gather"):
+                        delayed_gathers.append((data))
                 except Exception:
                     traceback.print_exc()
             else:
@@ -30,13 +41,13 @@ def import_hubs_components(gltf_node, blender_object, import_settings):
                       (component_name))
 
 
-def add_lightmap(gltf_material, blender_mat, import_settings):
+def add_lightmap(gltf_material, blender_mat, gltf):
     if gltf_material and gltf_material.extensions and 'MOZ_lightmap' in gltf_material.extensions:
         extension = gltf_material.extensions['MOZ_lightmap']
 
         texture_index = extension['index']
 
-        gltf_texture = import_settings.data.textures[texture_index]
+        gltf_texture = gltf.data.textures[texture_index]
         texture_extensions = gltf_texture.extensions
         if texture_extensions and texture_extensions.get('MOZ_texture_rgbe'):
             source = gltf_texture.extensions['MOZ_texture_rgbe']['source']
@@ -44,8 +55,8 @@ def add_lightmap(gltf_material, blender_mat, import_settings):
             source = gltf_texture.source
 
         BlenderImage.create(
-            import_settings, source)
-        pyimg = import_settings.data.images[source]
+            gltf, source)
+        pyimg = gltf.data.images[source]
         blender_image_name = pyimg.blender_image_name
         blender_image = bpy.data.images[blender_image_name]
         if pyimg.mime_type == "image/vnd.radiance":
@@ -68,7 +79,7 @@ def add_lightmap(gltf_material, blender_mat, import_settings):
             node_uv.outputs["UV"], node_tex.inputs["Vector"])
 
 
-def add_bones(import_settings):
+def add_bones(gltf):
     # Bones are created after the armatures so we need to wait until all nodes have been processed to be able to access the bones objects
     global armatures
     for armature in armatures.values():
@@ -77,82 +88,90 @@ def add_bones(import_settings):
         for bone in blender_object.data.bones:
             gltf_bone = gltf_bones[bone.name]
             import_hubs_components(
-                gltf_bone, bone, import_settings)
+                gltf_bone, bone, gltf)
 
 
-def store_bones_for_import(import_settings, vnode):
+def store_bones_for_import(gltf, vnode):
     # Store the glTF bones with the armature so their components can be imported once the Blender bones are created.
     global armatures
     children = vnode.children[:]
     gltf_bones = {}
     while children:
         child_index = children.pop()
-        child_vnode = import_settings.vnodes[child_index]
-        if child_vnode.type  == vnode.Bone:
-            gltf_bones[child_vnode.name] = import_settings.data.nodes[child_index]
+        child_vnode = gltf.vnodes[child_index]
+        if child_vnode.type == vnode.Bone:
+            gltf_bones[child_vnode.name] = gltf.data.nodes[child_index]
             children.extend(child_vnode.children)
 
-    armatures[vnode.blender_object.name] = {'armature': vnode.blender_object, 'gltf_bones': gltf_bones}
+    armatures[vnode.blender_object.name] = {
+        'armature': vnode.blender_object, 'gltf_bones': gltf_bones}
 
 
 class glTF2ImportUserExtension:
 
     def __init__(self):
+        from io_scene_gltf2.io.com.gltf2_io_extensions import Extension
         self.extensions = [
             Extension(name=EXTENSION_NAME, extension={}, required=True)]
-        self.properties = bpy.context.scene.hubs_import_properties
+        self.properties = bpy.context.scene.HubsComponentsExtensionImportProperties
+        global delayed_gathers
+        delayed_gathers = []
 
-    def gather_import_scene_before_hook(self, gltf_scene, blender_scene, import_settings):
+    def gather_import_scene_before_hook(self, gltf_scene, blender_scene, gltf):
         if not self.properties.enabled:
             return
 
         global armatures
         armatures.clear()
 
-        if import_settings.data.asset and import_settings.data.asset.extras:
-            if 'gltf_yup' in import_settings.data.asset.extras:
-                import_settings.import_settings['gltf_yup'] = import_settings.data.asset.extras[
+        if gltf.data.asset and gltf.data.asset.extras:
+            if 'gltf_yup' in gltf.data.asset.extras:
+                gltf.import_settings['gltf_yup'] = gltf.data.asset.extras[
                     'gltf_yup']
 
-    def gather_import_scene_after_nodes_hook(self, gltf_scene, blender_scene, import_settings):
+    def gather_import_scene_after_nodes_hook(self, gltf_scene, blender_scene, gltf):
         if not self.properties.enabled:
             return
 
-        import_hubs_components(gltf_scene, blender_scene, import_settings)
+        import_hubs_components(gltf_scene, blender_scene, gltf)
 
-        add_bones(import_settings)
+        add_bones(gltf)
         armatures.clear()
 
-    def gather_import_node_after_hook(self, vnode, gltf_node, blender_object, import_settings):
+    def gather_import_node_after_hook(self, vnode, gltf_node, blender_object, gltf):
         if not self.properties.enabled:
             return
 
         import_hubs_components(
-            gltf_node, blender_object, import_settings)
+            gltf_node, blender_object, gltf)
 
-        # Node hooks are not called for bones. Bones are created together with their armature.
+        #  Node hooks are not called for bones. Bones are created together with their armature.
         # Unfortunately the bones are created after this hook is called so we need to wait until all nodes have been created.
         if vnode.is_arma:
-            store_bones_for_import(import_settings, vnode)
+            store_bones_for_import(gltf, vnode)
 
-    def gather_import_image_after_hook(self, gltf_img, blender_image, import_settings):
+    def gather_import_image_after_hook(self, gltf_img, blender_image, gltf):
         # As of Blender 3.2.0 the importer doesn't import images that are not referenced by a material socket.
         # We handle this case by case in each component's gather_import override.
         pass
 
-    def gather_import_texture_after_hook(self, gltf_texture, node_tree, mh, tex_info, location, label, color_socket, alpha_socket, is_data, import_settings):
+    def gather_import_texture_after_hook(
+            self, gltf_texture, node_tree, mh, tex_info, location, label, color_socket, alpha_socket, is_data, gltf):
         # As of Blender 3.2.0 the importer doesn't import textures that are not referenced by a material socket image.
         # We handle this case by case in each component's gather_import override.
         pass
 
-    def gather_import_material_after_hook(self, gltf_material, vertex_color, blender_mat, import_settings):
+    def gather_import_material_after_hook(self, gltf_material, vertex_color, blender_mat, gltf):
         if not self.properties.enabled:
             return
 
         import_hubs_components(
-            gltf_material, blender_mat, import_settings)
+            gltf_material, blender_mat, gltf)
 
-        add_lightmap(gltf_material, blender_mat, import_settings)
+        add_lightmap(gltf_material, blender_mat, gltf)
+
+    def gather_import_scene_after_animation_hook(self, gltf_scene, blender_scene, gltf):
+        call_delayed_gathers()
 
 
 # import hooks were only recently added to the glTF exporter, so make a custom hook for now
@@ -202,7 +221,9 @@ def patched_BlenderMaterial_create(gltf, material_idx, vertex_color):
 @ staticmethod
 def patched_BlenderScene_create(gltf):
     global armatures
+    global delayed_gathers
     armatures.clear()
+    delayed_gathers = []
 
     orig_BlenderScene_create(gltf)
     gltf_scene = gltf.data.scenes[gltf.data.scene]
@@ -213,6 +234,66 @@ def patched_BlenderScene_create(gltf):
     add_bones(gltf)
     armatures.clear()
 
+    call_delayed_gathers()
+
+
+class HubsGLTFImportPanel(bpy.types.Panel):
+
+    bl_idname = "HBA_PT_Import_Panel"
+    bl_label = "Hubs Import Panel"
+    bl_space_type = 'FILE_BROWSER'
+    bl_region_type = 'TOOL_PROPS'
+    bl_label = "Hubs Components"
+    bl_parent_id = "GLTF_PT_import_user_extensions"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        sfile = context.space_data
+        operator = sfile.active_operator
+        return operator.bl_idname == "IMPORT_SCENE_OT_gltf"
+
+    def draw_header(self, context):
+        props = bpy.context.scene.HubsComponentsExtensionImportProperties
+        self.layout.prop(props, 'enabled', text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        props = bpy.context.scene.HubsComponentsExtensionImportProperties
+        layout.active = props.enabled
+
+        box = layout.box()
+        box.label(text="No options yet")
+
+
+class HubsImportProperties(bpy.types.PropertyGroup):
+    enabled: BoolProperty(
+        name="Import Hubs Components",
+        description='Import Hubs components from the glTF file',
+        default=True
+    )
+
+# called by gltf-blender-io after it has loaded
+
+
+def register_import_panel():
+    try:
+        bpy.utils.register_class(HubsGLTFImportPanel)
+    except Exception:
+        pass
+    return unregister_import_panel
+
+
+def unregister_import_panel():
+    # Since panel is registered on demand, it is possible it is not registered
+    try:
+        bpy.utils.unregister_class(HubsGLTFImportPanel)
+    except Exception:
+        pass
+
 
 def register():
     print("Register glTF Importer")
@@ -220,6 +301,10 @@ def register():
         BlenderNode.create_object = patched_BlenderNode_create_object
         BlenderMaterial.create = patched_BlenderMaterial_create
         BlenderScene.create = patched_BlenderScene_create
+    register_import_panel()
+    bpy.utils.register_class(HubsImportProperties)
+    bpy.types.Scene.HubsComponentsExtensionImportProperties = PointerProperty(
+        type=HubsImportProperties)
 
 
 def unregister():
@@ -228,3 +313,6 @@ def unregister():
         BlenderNode.create_object = orig_BlenderNode_create_object
         BlenderMaterial.create = orig_BlenderMaterial_create
         BlenderScene.create = orig_BlenderScene_create
+    del bpy.types.Scene.HubsComponentsExtensionImportProperties
+    bpy.utils.unregister_class(HubsImportProperties)
+    unregister_import_panel()

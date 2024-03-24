@@ -1,18 +1,24 @@
-# Hubs Exporter for Blender
+# Hubs Blender Exporter and Importer
 
 This addon extends the glTF 2.0 exporter to support the `MOZ_hubs_components` and `MOZ_lightmap` extensions allowing you to add behavior to glTF assets for [Mozilla Hubs](https://hubs.mozilla.com).
 
+[![Test](https://github.com/MozillaReality/hubs-blender-exporter/actions/workflows/test.yml/badge.svg)](https://github.com/MozillaReality/hubs-blender-exporter/actions/workflows/test.yml)
+[![Publish](https://github.com/MozillaReality/hubs-blender-exporter/actions/workflows/publish.yml/badge.svg)](https://github.com/MozillaReality/hubs-blender-exporter/actions/workflows/publish.yml)
 
 # To Install
-Find the latest [release](https://github.com/MozillaReality/hubs-blender-exporter/releases) and download the add-on zip file.   
-<img alt="select add-on zip file" src="https://user-images.githubusercontent.com/837184/175948982-64e263b6-d070-4d15-8d0b-248417a592da.png" width=685px height=330px />  
 
-In Blender: `Edit > Preferences > Add-ons`  
-Click install and select the zip file of the latest release.  
-<img width="780" alt="in blender prefs install addon" src="https://user-images.githubusercontent.com/4493657/102955927-dcc56900-448b-11eb-8bfa-07e68b31cffd.png">  
+Find the latest [release](https://github.com/MozillaReality/hubs-blender-exporter/releases) and download the add-on zip file.
 
-Ensure the hubs component exporter is checked and enabled.  
-<img width="494" alt="hubs blender exporter installed" src="https://user-images.githubusercontent.com/4493657/102956859-c9b39880-448d-11eb-9f02-2f529f14c139.png">
+<img alt="select add-on zip file" src="https://user-images.githubusercontent.com/837184/204576860-316b32de-8654-48a7-b9a7-3c0de1c1b652.png" width=685px height=330px />
+
+In Blender: `Edit > Preferences > Add-ons`
+Click install and select the zip file of the latest release.
+
+<img width="780" alt="in blender prefs install addon" src="https://user-images.githubusercontent.com/4493657/102955927-dcc56900-448b-11eb-8bfa-07e68b31cffd.png">
+
+Ensure the Hubs add-on is checked and enabled.
+
+<img width="494" alt="hubs blender add-on installed" src="https://user-images.githubusercontent.com/4493657/102956859-c9b39880-448d-11eb-9f02-2f529f14c139.png">
 
 # Adding Components
 
@@ -24,17 +30,17 @@ Click "Add Component" and select the component you wish to add from the list. On
 
 # Using Lightmaps
 
-To use a lightmap, create a `MOZ_lightmap` node from the `Add > Hubs` menu and hook up a image texture to the `Lightmap` input. Use a `UV Map` node to control what UV set should be used for the lightmap, as you would any other texture in Blender. 
+To use a lightmap, create a `MOZ_lightmap` node from the `Add > Hubs` menu and hook up a image texture to the `Lightmap` input. Use a `UV Map` node to control what UV set should be used for the lightmap, as you would any other texture in Blender.
 
 ![lightmap node](https://user-images.githubusercontent.com/130735/83931408-65c7bd80-a751-11ea-86b9-a2ae889ec5df.png)
 
-Note that for use in Hubs, you currently **MUST** use the second UV set, as ThreeJS is currently hardcoded to use that for lightmaps. This will likely be fixed in the future so the exporter does not enforce this.
+Note that for use in Hubs, you currently **MUST** use the second UV set, as ThreeJS is currently hardcoded to use that for lightmaps. This will likely be fixed in the future so the add-on does not enforce this.
 
 ![setting bake UV](https://user-images.githubusercontent.com/130735/83697782-b9e96b00-a5b4-11ea-986b-6690c69d8a3f.png)
 
 # Exporting
 
-This addon works in conjunction with the official glTF exporter, so exporting is done through it. Select "File > Export > glTF 2.0" and then ensure "Hubs Components" is enabled under "Extensions".
+This addon works in conjunction with the official glTF add-on, so exporting is done through it. Select "File > Export > glTF 2.0" and then ensure "Hubs Components" is enabled under "Extensions".
 
 ![gltf export window](https://user-images.githubusercontent.com/130735/84547591-be9ad700-acb8-11ea-8c58-7b1104f0a3a7.png)
 
@@ -53,13 +59,21 @@ It is also possible to use the GLB file to replace the scene for an existing Hub
 # Development
 
 ## Code Completion
-To enable code completion for the Blender Python API you can install the [Fake Blender Python API module collection]([](https://github.com/nutti/fake-bpy-module/)). You can download the modules using the `setup.sh` script from the repository root or using [pip]([](https://github.com/nutti/fake-bpy-module/#install-via-pip-package)).
+To enable code completion for the Blender Python API you can install the [Fake Blender Python API module collection](https://github.com/nutti/fake-bpy-module/). You can download the modules using the `setup.sh` script from the repository root or using [pip](https://github.com/nutti/fake-bpy-module/#install-via-pip-package).
+## Code style
+
+Tis repository follows the [PEP8](https://peps.python.org/pep-0008/) style convention for python files. If you use VSCode this repository already includes a setting to autoformat every python file when saved. If you don't use VSCode you can probably add a similar setting in your favorite editor. We are happy to add settings for other editors so feel free to open a PR if you want you editor's settings included.
+
+We also includes a `format.py` python script that will formats the whole codebase when run. You can run it before pushing the PR to make sure that all the new code follows PEP8.
+
+Both the python script and the VSCode settings rely on the [autopep8](https://pypi.org/project/autopep8/) command line tool for formatting so make sure that it's installed in your system.
 
 ## Addon development
+
 It might be useful while developing to be able to load the addon directly from the checkout folder without needing to install it. You can do it in two ways:
 
 - ### Overriding the Blender user scripts directory
-You can override the Blender user scripts directory from the console to point to the addon repo directory.
+  You can override the Blender user scripts directory from the console to point to the addon repo directory.
 
 **MacOS**
 
@@ -69,15 +83,14 @@ You can override the Blender user scripts directory from the console to point to
 
 `BLENDER_USER_SCRIPTS=full_path_to_/hubs-blender-exporter blender`
 
-- ### Symlinking you addon to the Blender user scripts directory
-You can create a symbolic link pointing to `full_path_to_/hubs-blender-exporter/addons/io_hubs_addon` in your current Python scripts directory in Blender. This way you will also load any other addons that you have in that directory.
+- ### Symlinking your addon to the Blender user scripts directory
+  You can create a symbolic link pointing to `full_path_to_/hubs-blender-exporter/addons/io_hubs_addon` in your current Python scripts directory in Blender. This way you will also load any other addons that you have in that directory.
 
 **MacOS and Linux**
 
 `ln -s full_path_to/hubs-blender-exporter/addons/io_hubs_addon full_path_to/blender_user_scrips_dir`
 
 You can set or see the current Blender user scripts in the Preferences -> File Paths -> Scripts
-
 
 # Debugging
 
@@ -87,6 +100,7 @@ You can debug the addon code with PyCharm or VSCode:
 - [Debug with VSCode](DEBUGGING.md)
 
 # Continuous Integration Tests
+
 To run the tests locally, your system should have a blender executable in the path that launches the desired version of Blender.
 
 The latest version of [Yarn](https://yarnpkg.com/en/) should also be installed.

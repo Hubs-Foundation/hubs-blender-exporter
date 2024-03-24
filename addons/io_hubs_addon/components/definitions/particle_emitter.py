@@ -11,15 +11,17 @@ class ParticleEmitter(HubsComponent):
         'category': Category.ELEMENTS,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
-        'icon': 'PARTICLES'
+        'icon': 'PARTICLES',
+        'version': (1, 0, 0)
     }
 
     src: StringProperty(
-        name="Source", description="Source", default="https://mozilla.org")
+        name="Image Source", description="The web address (URL) of the image to use for each particle",
+        default="https://mozilla.org")
 
     startColor: FloatVectorProperty(name="Start Color",
                                     description="Start Color",
-                                    subtype='COLOR',
+                                    subtype='COLOR_GAMMA',
                                     default=(1.0, 1.0, 1.0, 1.0),
                                     size=4,
                                     min=0,
@@ -27,7 +29,7 @@ class ParticleEmitter(HubsComponent):
 
     middleColor: FloatVectorProperty(name="Middle Color",
                                      description="Middle Color",
-                                     subtype='COLOR',
+                                     subtype='COLOR_GAMMA',
                                      default=(1.0, 1.0, 1.0, 1.0),
                                      size=4,
                                      min=0,
@@ -35,7 +37,7 @@ class ParticleEmitter(HubsComponent):
 
     endColor: FloatVectorProperty(name="End Color",
                                   description="End Color",
-                                  subtype='COLOR',
+                                  subtype='COLOR_GAMMA',
                                   default=(1.0, 1.0, 1.0, 1.0),
                                   size=4,
                                   min=0,
@@ -75,7 +77,7 @@ class ParticleEmitter(HubsComponent):
         name="Age Randomness", description="Age Randomness", default=0.0)
 
     lifetime: FloatProperty(
-        name="Lifetime", description="Lifetime  ", unit="TIME", subtype="TIME", default=1.0)
+        name="Lifetime", description="Lifetime", unit="TIME", subtype="TIME", default=1.0)
 
     lifetimeRandomness: FloatProperty(
         name="Lifetime Randomness", description="Lifetime Randomness", default=0.0)

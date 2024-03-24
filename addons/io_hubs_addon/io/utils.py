@@ -4,14 +4,12 @@ from io_scene_gltf2.blender.com import gltf2_blender_extras
 from io_scene_gltf2.blender.exp import gltf2_blender_gather_materials, gltf2_blender_gather_nodes, gltf2_blender_gather_joints
 from io_scene_gltf2.blender.exp import gltf2_blender_gather_texture_info, gltf2_blender_export_keys
 from io_scene_gltf2.blender.exp.gltf2_blender_gather_cache import cached
-from io_scene_gltf2.io.com.gltf2_io_extensions import Extension
-from io_scene_gltf2.io.com.gltf2_io import Texture, Image, TextureInfo
-from io_scene_gltf2.io.exp.gltf2_io_binary_data import BinaryData
-from io_scene_gltf2.io.exp.gltf2_io_image_data import ImageData
-from io_scene_gltf2.blender.exp.gltf2_blender_image import ExportImage
-from io_scene_gltf2.blender.exp.gltf2_blender_gather_cache import cached
-from io_scene_gltf2.blender.exp import gltf2_blender_export_keys
-from typing import Optional
+from io_scene_gltf2.io.com import gltf2_io_extensions
+from io_scene_gltf2.io.com import gltf2_io
+from io_scene_gltf2.io.exp import gltf2_io_binary_data
+from io_scene_gltf2.io.exp import gltf2_io_image_data
+from io_scene_gltf2.blender.exp import gltf2_blender_image
+from typing import Optional, Tuple, Union
 from ..nodes.lightmap import MozLightmapNode
 import re
 
@@ -23,7 +21,7 @@ HUBS_CONFIG = {
 # gather_texture/image with HDR support via MOZ_texture_rgbe
 
 
-class HubsImageData(ImageData):
+class HubsImageData(gltf2_io_image_data.ImageData):
     @property
     def file_extension(self):
         if self._mime_type == "image/vnd.radiance":
@@ -31,7 +29,7 @@ class HubsImageData(ImageData):
         return super().file_extension
 
 
-class HubsExportImage(ExportImage):
+class HubsExportImage(gltf2_blender_image.ExportImage):
     @staticmethod
     def from_blender_image(image: bpy.types.Image):
         export_image = HubsExportImage()
@@ -39,14 +37,14 @@ class HubsExportImage(ExportImage):
             export_image.fill_image(image, dst_chan=chan, src_chan=chan)
         return export_image
 
-    def encode(self, mime_type: Optional[str]) -> bytes:
+    def encode(self, mime_type: Optional[str]) -> Union[Tuple[bytes, bool], bytes]:
         if mime_type == "image/vnd.radiance":
             return self.encode_from_image_hdr(self.blender_image())
         return super().encode(mime_type)
 
     # TODO this should allow conversion from other HDR formats (namely EXR),
     # in memory images, and combining separate channels like SDR images
-    def encode_from_image_hdr(self, image: bpy.types.Image) -> bytes:
+    def encode_from_image_hdr(self, image: bpy.types.Image) -> Union[Tuple[bytes, bool], bytes]:
         if image.file_format == "HDR" and image.source == 'FILE' and not image.is_dirty:
             if image.packed_file is not None:
                 return image.packed_file.data
@@ -78,14 +76,17 @@ def gather_image(blender_image, export_settings):
 
     data = HubsExportImage.from_blender_image(blender_image).encode(mime_type)
 
+    if type(data) == tuple:
+        data = data[0]
+
     if export_settings[gltf2_blender_export_keys.FORMAT] == 'GLTF_SEPARATE':
         uri = HubsImageData(data=data, mime_type=mime_type, name=name)
         buffer_view = None
     else:
         uri = None
-        buffer_view = BinaryData(data=data)
+        buffer_view = gltf2_io_binary_data.BinaryData(data=data)
 
-    return Image(
+    return gltf2_io.Image(
         buffer_view=buffer_view,
         extensions=None,
         extras=None,
@@ -111,7 +112,7 @@ def gather_texture(blender_image, export_settings):
 
     if is_hdr:
         ext_name = "MOZ_texture_rgbe"
-        texture_extensions[ext_name] = Extension(
+        texture_extensions[ext_name] = gltf2_io_extensions.Extension(
             name=ext_name,
             extension={
                 "source": image
@@ -121,7 +122,7 @@ def gather_texture(blender_image, export_settings):
 
     # export_user_extensions('gather_texture_hook', export_settings, texture, blender_shader_sockets)
 
-    return Texture(
+    return gltf2_io.Texture(
         extensions=texture_extensions,
         extras=None,
         name=None,
@@ -149,8 +150,9 @@ def gather_property(export_settings, blender_object, target, property_name):
     isArray = getattr(property_definition, 'is_array', None)
 
     if isArray and property_definition.is_array:
-        if property_definition.subtype == 'COLOR':
-            return gather_color_property(export_settings, blender_object, target, property_name)
+        if property_definition.subtype.startswith('COLOR'):
+            return gather_color_property(
+                export_settings, blender_object, target, property_name, property_definition.subtype)
         else:
             return gather_vec_property(export_settings, blender_object, target, property_name)
 
@@ -195,10 +197,7 @@ def gather_node_property(export_settings, blender_object, target, property_name)
             vtree = export_settings['vtree']
             vnode = vtree.nodes[next((uuid for uuid in vtree.nodes if (
                 vtree.nodes[uuid].blender_object == blender_object)), None)]
-            node = gltf2_blender_gather_nodes.gather_node(
-                vnode,
-                export_settings
-            )
+            node = vnode.node
 
         return {
             "__mhc_link_type": "node",
@@ -224,8 +223,8 @@ def gather_joint_property(export_settings, blender_object, target, property_name
         else:
             vtree = export_settings['vtree']
             vnode = vtree.nodes[next((uuid for uuid in vtree.nodes if (
-                vtree.nodes[uuid].joint == joint)), None)]
-            node = gltf2_blender_gather_joints.gather_joint_vnode(
+                vtree.nodes[uuid].blender_bone == joint)), None)]
+            node = vnode.node or gltf2_blender_gather_joints.gather_joint_vnode(
                 vnode,
                 export_settings
             )
@@ -300,10 +299,37 @@ def gather_texture_property(export_settings, blender_object, target, property_na
         return None
 
 
-def gather_color_property(export_settings, object, component, property_name):
-    # Convert RGB color array to hex. Blender stores colors in linear space and glTF color factors are typically in linear space
-    c = getattr(component, property_name)
-    return "#{0:02x}{1:02x}{2:02x}".format(max(0, min(int(c[0] * 256.0), 255)), max(0, min(int(c[1] * 256.0), 255)), max(0, min(int(c[2] * 256.0), 255)))
+def srgb2lin(s):
+    if s <= 0.0404482362771082:
+        lin = s / 12.92
+    else:
+        lin = pow(((s + 0.055) / 1.055), 2.4)
+    return lin
+
+
+def lin2srgb(lin):
+    if lin > 0.0031308:
+        s = 1.055 * (pow(lin, (1.0 / 2.4))) - 0.055
+    else:
+        s = 12.92 * lin
+    return s
+
+
+def gather_color_property(export_settings, object, component, property_name, color_type):
+    c = list(getattr(component, property_name))
+
+    # Blender stores colors in linear space for subtype COLOR and sRGB for COLOR_GAMMA
+    if color_type == "COLOR":
+        c[0] = lin2srgb(c[0])
+        c[1] = lin2srgb(c[1])
+        c[2] = lin2srgb(c[2])
+
+    c[0] = max(0, min(int(c[0] * 256.0), 255))
+    c[1] = max(0, min(int(c[1] * 256.0), 255))
+    c[2] = max(0, min(int(c[2] * 256.0), 255))
+
+    return "#{0:02x}{1:02x}{2:02x}".format(c[0], c[1], c[2], 255)
+
 
 # MOZ_lightmap extension data
 
@@ -328,7 +354,7 @@ def gather_lightmap_texture_info(blender_material, export_settings):
     else:
         tex_transform, tex_coord, _ = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
             texture_socket, export_settings)
-    texture_info = TextureInfo(
+    texture_info = gltf2_io.TextureInfo(
         extensions=gltf2_blender_gather_texture_info.__gather_extensions(
             tex_transform, export_settings),
         extras=None,
@@ -361,19 +387,11 @@ def import_component(component_name, blender_object):
 
 def set_color_from_hex(blender_component, property_name, hexcolor):
     hexcolor = hexcolor.lstrip('#')
-    rgb_int = [int(hexcolor[i:i+2], 16) for i in (0, 2, 4)]
+    rgb_int = [int(hexcolor[i:i + 2], 16) for i in (0, 2, 4)]
 
     for x, value in enumerate(rgb_int):
-        rgb_float = value/255 if value > 0 else 0
-
-        # convert sRGB values to linear
-        if rgb_float < 0.04045:
-            rgb_float_linear = rgb_float * (1.0 / 12.92)
-
-        else:
-            rgb_float_linear = ((rgb_float + 0.055) * (1.0 / 1.055)) ** 2.4
-
-        getattr(blender_component, property_name)[x] = rgb_float_linear
+        rgb_float = value / 255 if value > 0 else 0
+        getattr(blender_component, property_name)[x] = rgb_float
 
 
 def assign_property(vnodes, blender_component, property_name, property_value):

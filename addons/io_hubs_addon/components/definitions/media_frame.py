@@ -4,8 +4,8 @@ from bpy.types import (Gizmo, Bone, EditBone)
 from ..gizmos import bone_matrix_world
 from ..models import box
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType, NodeType
-from ..utils import V_S1
+from ..types import Category, PanelType, NodeType, MigrationType
+from ..utils import V_S1, is_linked, get_host_reference_message
 from .networked import migrate_networked
 from mathutils import Matrix, Vector
 from ...io.utils import import_component, assign_property
@@ -56,12 +56,13 @@ class MediaFrame(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'OBJECT_DATA',
-        'deps': ['networked']
+        'deps': ['networked'],
+        'version': (1, 0, 0)
     }
 
     bounds: FloatVectorProperty(
         name="Bounds",
-        description="Bounding box to fit objects into when they are snapped into the media frame.",
+        description="Bounding box to fit objects into when they are snapped into the media frame",
         unit='LENGTH',
         subtype="XYZ",
         default=(1.0, 1.0, 1.0))
@@ -69,17 +70,17 @@ class MediaFrame(HubsComponent):
     mediaType: EnumProperty(
         name="Media Type",
         description="Limit what type of media this frame will capture",
-        items=[("all", "All Media", "Allow any type of media."),
-               ("all-2d", "Only 2D Media", "Allow only Images, Videos, and PDFs."),
-               ("model", "Only 3D Models", "Allow only 3D models."),
-               ("image", "Only Images", "Allow only images."),
-               ("video", "Only Videos", "Allow only videos."),
-               ("pdf", "Only PDFs", "Allow only PDFs.")],
+        items=[("all", "All Media", "Allow any type of media"),
+               ("all-2d", "Only 2D Media", "Allow only Images, Videos, and PDFs"),
+               ("model", "Only 3D Models", "Allow only 3D models"),
+               ("image", "Only Images", "Allow only images"),
+               ("video", "Only Videos", "Allow only videos"),
+               ("pdf", "Only PDFs", "Allow only PDFs")],
         default="all-2d")
 
     snapToCenter: BoolProperty(
         name="Snap To Center",
-        description="Snap the media to the center of the media frame when capturing. If set to false the object will just remain in the place it was dorpped but still be considered \"captured\" by the media frame.",
+        description="Snap the media to the center of the media frame when capturing. If set to false the object will just remain in the place it was dropped but still be considered \"captured\" by the media frame",
         default=True
     )
 
@@ -118,23 +119,21 @@ class MediaFrame(HubsComponent):
 
         return gizmo
 
-    @classmethod
-    def migrate(cls, version):
-        migrate_networked(cls.get_name())
+    def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
+        migration_occurred = False
+        if instance_version < (1, 0, 0):
+            migration_occurred = True
+            migrate_networked(host)
+            bounds = self.bounds.copy()
+            bounds = Vector((bounds.x, bounds.z, bounds.y))
+            self.bounds = bounds
 
-        if version < (1, 0, 0):
-            def migrate_data(ob):
-                if cls.get_name() in ob.hubs_component_list.items:
-                    bounds = ob.hubs_component_media_frame.bounds.copy()
-                    bounds = Vector((bounds.x, bounds.z, bounds.y))
-                    ob.hubs_component_media_frame.bounds = bounds
+            if migration_type != MigrationType.GLOBAL or is_linked(ob) or type(ob) == bpy.types.Armature:
+                host_reference = get_host_reference_message(panel_type, host, ob=ob)
+                migration_report.append(
+                    f"Warning: The Media Frame component's Y and Z bounds on the {panel_type.value} {host_reference} may not have migrated correctly")
 
-            for ob in bpy.data.objects:
-                migrate_data(ob)
-
-                if ob.type == 'ARMATURE':
-                    for bone in ob.data.bones:
-                        migrate_data(bone)
+        return migration_occurred
 
     @staticmethod
     def register():
@@ -170,7 +169,7 @@ class MediaFrame(HubsComponent):
                 col = layout.column()
                 col.alert = True
                 col.label(
-                    text="The media-frame object, and it's parents, scale needs to be [1,1,1]", icon='ERROR')
+                    text="The media-frame object, and its parents' scale need to be [1,1,1]", icon='ERROR')
 
                 break
 
@@ -181,15 +180,15 @@ class MediaFrame(HubsComponent):
                 parents.insert(0, parent.parent.pose.bones[parent.parent_bone])
 
     @classmethod
-    def gather_import(cls, import_settings, blender_object, component_name, component_value):
+    def gather_import(cls, gltf, blender_object, component_name, component_value):
         blender_component = import_component(
             component_name, blender_object)
 
-        gltf_yup = import_settings.import_settings.get('gltf_yup', True)
+        gltf_yup = gltf.import_settings.get('gltf_yup', True)
 
         for property_name, property_value in component_value.items():
             if property_name == 'bounds' and gltf_yup:
                 property_value['y'], property_value['z'] = property_value['z'], property_value['y']
 
-            assign_property(import_settings.vnodes, blender_component,
-                                property_name, property_value)
+            assign_property(gltf.vnodes, blender_component,
+                            property_name, property_value)

@@ -10,12 +10,13 @@ class HemisphereLight(HubsComponent):
         'category': Category.LIGHTS,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
-        'icon': 'LIGHT_AREA'
+        'icon': 'LIGHT_AREA',
+        'version': (1, 0, 0)
     }
 
     skyColor: FloatVectorProperty(name="Sky Color",
                                   description="Sky Color",
-                                  subtype='COLOR',
+                                  subtype='COLOR_GAMMA',
                                   default=(1.0, 1.0, 1.0, 1.0),
                                   size=4,
                                   min=0,
@@ -23,7 +24,7 @@ class HemisphereLight(HubsComponent):
 
     groundColor: FloatVectorProperty(name="Ground Color",
                                      description="Ground Color",
-                                     subtype='COLOR',
+                                     subtype='COLOR_GAMMA',
                                      default=(1.0, 1.0, 1.0, 1.0),
                                      size=4,
                                      min=0,

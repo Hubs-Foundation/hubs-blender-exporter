@@ -11,29 +11,16 @@ class Networked(HubsComponent):
         'name': 'networked',
         'display_name': 'Networked',
         'node_type': NodeType.NODE,
-        'panel_type': [PanelType.OBJECT, PanelType.BONE]
+        'panel_type': [PanelType.OBJECT, PanelType.BONE],
+        'version': (1, 0, 0)
     }
 
-    id: StringProperty(
-        name="Network ID",
-        description="Network ID",
-        default=str(uuid.uuid4()).upper()
-    )
-
-    def draw(self, context, layout, panel):
-        layout.label(text="Network ID:")
-        layout.label(text=self.id)
+    def gather(self, export_settings, object):
+        return {
+            'id': str(uuid.uuid4()).upper()
+        }
 
 
-def migrate_networked(component_name):
-    def migrate_data(ob):
-        if component_name in ob.hubs_component_list.items:
-            if Networked.get_name() not in ob.hubs_component_list.items:
-                add_component(ob, Networked.get_name())
-
-    for ob in bpy.data.objects:
-        migrate_data(ob)
-
-        if ob.type == 'ARMATURE':
-            for bone in ob.data.bones:
-                migrate_data(bone)
+def migrate_networked(host):
+    if Networked.get_name() not in host.hubs_component_list.items:
+        add_component(host, Networked.get_name())

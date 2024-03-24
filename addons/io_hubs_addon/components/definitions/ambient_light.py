@@ -10,12 +10,13 @@ class AmbientLight(HubsComponent):
         'category': Category.LIGHTS,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
-        'icon': 'LIGHT_HEMI'
+        'icon': 'LIGHT_HEMI',
+        'version': (1, 0, 0)
     }
 
     color: FloatVectorProperty(name="Color",
                                description="Color",
-                               subtype='COLOR',
+                               subtype='COLOR_GAMMA',
                                default=(1.0, 1.0, 1.0, 1.0),
                                size=4,
                                min=0,
