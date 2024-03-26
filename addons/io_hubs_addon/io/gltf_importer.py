@@ -16,9 +16,8 @@ delayed_gathers = []
 
 def call_delayed_gathers():
     global delayed_gathers
-    for delayed_gather in delayed_gathers:
-        gather = delayed_gather
-        gather()
+    for gather_import in delayed_gathers:
+        gather_import()
     delayed_gathers.clear()
 
 
@@ -33,6 +32,7 @@ def import_hubs_components(gltf_node, blender_host, gltf, blender_ob=None):
                     data = component_class.gather_import(
                         gltf, blender_host, component_name, component_value, blender_ob)
                     if data and hasattr(data, "delayed_gather"):
+                        global delayed_gathers
                         delayed_gathers.append((data))
                 except Exception:
                     traceback.print_exc()
@@ -115,7 +115,7 @@ class glTF2ImportUserExtension:
             Extension(name=EXTENSION_NAME, extension={}, required=True)]
         self.properties = bpy.context.scene.HubsComponentsExtensionImportProperties
         global delayed_gathers
-        delayed_gathers = []
+        delayed_gathers.clear()
 
     def gather_import_scene_before_hook(self, gltf_scene, blender_scene, gltf):
         if not self.properties.enabled:
@@ -123,6 +123,8 @@ class glTF2ImportUserExtension:
 
         global armatures
         armatures.clear()
+        global delayed_gathers
+        delayed_gathers.clear()
 
         if gltf.data.asset and gltf.data.asset.extras:
             if 'gltf_yup' in gltf.data.asset.extras:
@@ -223,7 +225,7 @@ def patched_BlenderScene_create(gltf):
     global armatures
     global delayed_gathers
     armatures.clear()
-    delayed_gathers = []
+    delayed_gathers.clear()
 
     orig_BlenderScene_create(gltf)
     gltf_scene = gltf.data.scenes[gltf.data.scene]
