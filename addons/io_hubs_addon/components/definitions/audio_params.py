@@ -4,6 +4,7 @@ from ..hubs_component import HubsComponent
 from ..types import PanelType, NodeType, MigrationType
 from ..utils import is_linked, get_host_reference_message
 from ..consts import DISTANCE_MODELS, MAX_ANGLE
+from ...io.utils import assign_property
 from math import degrees, radians
 
 AUDIO_TYPES = [("pannernode", "Positional audio (pannernode)",
@@ -140,4 +141,8 @@ class AudioParams(HubsComponent):
 
     @classmethod
     def gather_import(cls, gltf, blender_object, component_name, component_value):
-        blender_object.hubs_component_audio_params.overrideAudioSettings = True
+        component = blender_object.hubs_component_audio_params
+        component.overrideAudioSettings = True
+        for property_name, property_value in component_value.items():
+            assign_property(gltf.vnodes, component,
+                            property_name, property_value)
