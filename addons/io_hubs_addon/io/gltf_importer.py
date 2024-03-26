@@ -276,24 +276,6 @@ class HubsImportProperties(bpy.types.PropertyGroup):
         default=True
     )
 
-# called by gltf-blender-io after it has loaded
-
-
-def register_import_panel():
-    try:
-        bpy.utils.register_class(HubsGLTFImportPanel)
-    except Exception:
-        pass
-    return unregister_import_panel
-
-
-def unregister_import_panel():
-    # Since panel is registered on demand, it is possible it is not registered
-    try:
-        bpy.utils.unregister_class(HubsGLTFImportPanel)
-    except Exception:
-        pass
-
 
 def register():
     print("Register glTF Importer")
@@ -301,7 +283,6 @@ def register():
         BlenderNode.create_object = patched_BlenderNode_create_object
         BlenderMaterial.create = patched_BlenderMaterial_create
         BlenderScene.create = patched_BlenderScene_create
-    register_import_panel()
     bpy.utils.register_class(HubsImportProperties)
     bpy.types.Scene.HubsComponentsExtensionImportProperties = PointerProperty(
         type=HubsImportProperties)
@@ -315,4 +296,3 @@ def unregister():
         BlenderScene.create = orig_BlenderScene_create
     del bpy.types.Scene.HubsComponentsExtensionImportProperties
     bpy.utils.unregister_class(HubsImportProperties)
-    unregister_import_panel()

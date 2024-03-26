@@ -1,7 +1,6 @@
 from . import preferences
-from .io import gltf_exporter, gltf_importer
+from .io import gltf_exporter, gltf_importer, panels
 from . import (nodes, components)
-from .io import gltf_exporter
 import bpy
 
 bl_info = {
@@ -25,6 +24,7 @@ def register():
     components.register()
     gltf_importer.register()
     gltf_exporter.register()
+    panels.register_panels()
 
     # Migrate components if the add-on is enabled in the middle of a session.
     if bpy.context.preferences.is_dirty:
@@ -36,6 +36,7 @@ def register():
 
 
 def unregister():
+    panels.unregister_panels()
     gltf_exporter.unregister()
     gltf_importer.unregister()
     components.unregister()

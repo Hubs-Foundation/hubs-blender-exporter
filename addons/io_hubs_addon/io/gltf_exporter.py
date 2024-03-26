@@ -252,28 +252,9 @@ class HubsGLTFExportPanel(bpy.types.Panel):
         box = layout.box()
         box.label(text="No options yet")
 
-# called by gltf-blender-io after it has loaded
-
-
-def register_export_panel():
-    try:
-        bpy.utils.register_class(HubsGLTFExportPanel)
-    except Exception:
-        pass
-    return unregister_export_panel
-
-
-def unregister_export_panel():
-    # Since panel is registered on demand, it is possible it is not registered
-    try:
-        bpy.utils.unregister_class(HubsGLTFExportPanel)
-    except Exception:
-        pass
-
 
 def register():
     print("Register glTF Exporter")
-    register_export_panel()
     if bpy.app.version < (3, 0, 0):
         gltf2_blender_export.__gather_gltf = patched_gather_gltf
     bpy.utils.register_class(HubsComponentsExtensionProperties)
@@ -284,10 +265,8 @@ def register():
 
 def unregister():
     print("Unregister glTF Exporter")
-    unregister_export_panel()
     del bpy.types.Scene.HubsComponentsExtensionProperties
     bpy.utils.unregister_class(HubsComponentsExtensionProperties)
     if bpy.app.version < (3, 0, 0):
         gltf2_blender_export.__gather_gltf = orig_gather_gltf
-    unregister_export_panel()
     glTF2ExportUserExtension.remove_excluded_property("HubsComponentsExtensionProperties")
