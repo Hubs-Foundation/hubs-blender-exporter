@@ -144,5 +144,7 @@ class AudioParams(HubsComponent):
         component = blender_host.hubs_component_audio_params
         component.overrideAudioSettings = True
         for property_name, property_value in component_value.items():
+            if property_name in ['coneInnerAngle', 'coneOuterAngle']:
+                property_value = radians(property_value)
             assign_property(gltf.vnodes, component,
                             property_name, property_value)
