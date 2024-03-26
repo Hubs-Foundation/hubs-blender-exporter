@@ -188,8 +188,8 @@ class Text(HubsComponent):
         default="auto")
 
     @classmethod
-    def gather_import(cls, gltf, blender_object, component_name, component_value):
-        blender_component = import_component(component_name, blender_object)
+    def gather_import(cls, gltf, blender_host, component_name, component_value, blender_ob=None):
+        blender_component = import_component(component_name, blender_host)
 
         for property_name, property_value in component_value.items():
             if property_name in SPOKE_PROPS_TO_FIX and type(property_value == int):

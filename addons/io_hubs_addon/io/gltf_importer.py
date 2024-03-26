@@ -22,7 +22,7 @@ def call_delayed_gathers():
     delayed_gathers.clear()
 
 
-def import_hubs_components(gltf_node, blender_object, gltf):
+def import_hubs_components(gltf_node, blender_host, gltf, blender_ob=None):
     if gltf_node and gltf_node.extensions and EXTENSION_NAME in gltf_node.extensions:
         components_data = gltf_node.extensions[EXTENSION_NAME]
         for component_name in components_data.keys():
@@ -31,7 +31,7 @@ def import_hubs_components(gltf_node, blender_object, gltf):
                 component_value = components_data[component_name]
                 try:
                     data = component_class.gather_import(
-                        gltf, blender_object, component_name, component_value)
+                        gltf, blender_host, component_name, component_value, blender_ob)
                     if data and hasattr(data, "delayed_gather"):
                         delayed_gathers.append((data))
                 except Exception:
@@ -88,7 +88,7 @@ def add_bones(gltf):
         for bone in blender_object.data.bones:
             gltf_bone = gltf_bones[bone.name]
             import_hubs_components(
-                gltf_bone, bone, gltf)
+                gltf_bone, bone, gltf, blender_ob=blender_object)
 
 
 def store_bones_for_import(gltf, vnode):

@@ -120,8 +120,8 @@ class HubsComponent(PropertyGroup):
         return gather_properties(export_settings, object, self)
 
     @classmethod
-    def gather_import(cls, gltf, blender_object, component_name, component_value):
-        component = import_component(component_name, blender_object)
+    def gather_import(cls, gltf, blender_host, component_name, component_value, blender_ob=None):
+        component = import_component(component_name, blender_host)
         for property_name, property_value in component_value.items():
             assign_property(gltf.vnodes, component,
                             property_name, property_value)

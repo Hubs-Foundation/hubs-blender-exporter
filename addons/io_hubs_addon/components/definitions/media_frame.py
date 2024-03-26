@@ -180,9 +180,9 @@ class MediaFrame(HubsComponent):
                 parents.insert(0, parent.parent.pose.bones[parent.parent_bone])
 
     @classmethod
-    def gather_import(cls, gltf, blender_object, component_name, component_value):
+    def gather_import(cls, gltf, blender_host, component_name, component_value, blender_ob=None):
         blender_component = import_component(
-            component_name, blender_object)
+            component_name, blender_host)
 
         gltf_yup = gltf.import_settings.get('gltf_yup', True)
 

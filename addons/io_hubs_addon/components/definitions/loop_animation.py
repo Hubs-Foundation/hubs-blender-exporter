@@ -287,8 +287,9 @@ def is_valid_shape_key_track(ob, track):
     return False
 
 
-def migrate_data(tracks, ob, host=None):
-    host = host or ob
+def migrate_data(tracks, host, ob=None):
+    # ob is only included when the component is on a bone so fallback to host if ob is empty
+    ob = ob or host
     if LoopAnimation.get_name() in host.hubs_component_list.items:
         for track_name in tracks:
             try:
@@ -717,14 +718,14 @@ class LoopAnimation(HubsComponent):
 
     @classmethod
     @delayed_gather
-    def gather_import(cls, gltf, blender_object, component_name, component_value):
+    def gather_import(cls, gltf, blender_host, component_name, component_value, blender_ob=None):
         blender_component = import_component(
-            component_name, blender_object)
+            component_name, blender_host)
 
         for property_name, property_value in component_value.items():
             if property_name == 'clip':
                 tracks = property_value.split(",")
-                migrate_data(tracks, blender_object)
+                migrate_data(tracks, blender_host, blender_ob)
             else:
                 assign_property(gltf.vnodes, blender_component,
                                 property_name, property_value)
