@@ -192,8 +192,9 @@ class Text(HubsComponent):
         blender_component = import_component(component_name, blender_host)
 
         for property_name, property_value in component_value.items():
-            if property_name in SPOKE_PROPS_TO_FIX and type(property_value == int):
-                property_value = str(property_value)
+            if property_name in SPOKE_PROPS_TO_FIX:
+                if type(property_value) == int or type(property_value) == float:
+                    property_value = str(property_value)
 
             assign_property(gltf.vnodes, blender_component,
                             property_name, property_value)
