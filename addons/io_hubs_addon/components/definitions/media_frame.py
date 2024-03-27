@@ -11,7 +11,7 @@ from mathutils import Matrix, Vector
 
 
 def is_bone(ob):
-    return type(ob) == EditBone or type(ob) == Bone
+    return type(ob) is EditBone or type(ob) is Bone
 
 
 class MediaFrameGizmo(Gizmo):
@@ -157,7 +157,7 @@ class MediaFrame(HubsComponent):
             bounds = Vector((bounds.x, bounds.z, bounds.y))
             self.bounds = bounds
 
-            if migration_type != MigrationType.GLOBAL or is_linked(ob) or type(ob) == bpy.types.Armature:
+            if migration_type is not MigrationType.GLOBAL or is_linked(ob) or type(ob) is bpy.types.Armature:
                 host_reference = get_host_reference_message(panel_type, host, ob=ob)
                 migration_report.append(
                     f"Warning: The Media Frame component's Y and Z bounds on the {panel_type.value} {host_reference} may not have migrated correctly")

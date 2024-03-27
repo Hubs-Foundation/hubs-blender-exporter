@@ -82,7 +82,7 @@ def register_blender_3():
 
 def unregister_blender_3():
     bpy.utils.unregister_class(MozLightmapNode)
-    nodeitems_utils.unregister_node_categories("MOZ_NODES", node_categories)
+    nodeitems_utils.unregister_node_categories("MOZ_NODES")
 
 
 def register():

@@ -16,6 +16,11 @@ const blenderVersions = (() => {
       "blender"
     ];
   }
+  else if (process.platform == 'win32') {
+    return [
+      "C:\\Program Files\\Blender Foundation\\Blender 3.6\\blender.exe",
+    ];
+  }
 })();
 
 var utils = require('./utils.js').utils;
@@ -32,15 +37,16 @@ describe('Exporter', function () {
 
     variants.forEach(function (variant) {
       const args = variant[1];
-      describe(blenderVersion + '_export' + variant[0], function () {
+      describe(blenderVersion + ', exporting:' + variant[0], function () {
         blenderSampleScenes.forEach((scene) => {
           it(scene, function (done) {
             let outDirName = 'out' + blenderVersion + variant[0];
             let blenderPath = `scenes/${scene}.blend`;
             let ext = args.indexOf('--glb') === -1 ? '.gltf' : '.glb';
-            let outDirPath = path.resolve(OUT_PREFIX, 'scenes', outDirName);
+            let outDirPath = path.resolve(OUT_PREFIX, 'scenes');
             let dstPath = path.resolve(outDirPath, `${scene}${ext}`);
-            utils.blenderFileToGltf(blenderVersion, blenderPath, outDirPath, (error) => {
+            //utils.blenderFileToGltf(blenderVersion, blenderPath, outDirPath, (error) => {
+            utils.blenderFileToGltf(blenderVersion, blenderPath, dstPath, (error) => {
               if (error)
                 return done(error);
 
@@ -51,9 +57,9 @@ describe('Exporter', function () {
       });
     });
 
-    describe(blenderVersion + '_export_results', function () {
-      let outDirName = 'out' + blenderVersion;
-      let outDirPath = path.resolve(OUT_PREFIX, 'scenes', outDirName);
+    describe(blenderVersion + ' export_results', function () {
+      let outDirName = 'out';// + blenderVersion;
+      let outDirPath = path.resolve(OUT_PREFIX, 'scenes');//, outDirName);
 
       it('can export link', function () {
         let gltfPath = path.resolve(outDirPath, 'link.gltf');

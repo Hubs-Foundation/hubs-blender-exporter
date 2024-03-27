@@ -16,34 +16,35 @@ import bpy
 import os
 import sys
 
-bpy.ops.preferences.addon_enable(module="io_hubs_addon")
 
-try:
-    argv = sys.argv
-    if "--" in argv:
-        argv = argv[argv.index("--") + 1:]  # get all args after "--"
-    else:
-        argv = []
+bpy.ops.preferences.addon_enable(module="io_hubs_addon") #it throws an error on windows and it's not necessary, since the commandline already enables the addon
 
-    extension = '.gltf'
-    if '--glb' in argv:
-        extension = '.glb'
+#try:
+argv = sys.argv
+if "--" in argv:
+    argv = argv[argv.index("--") + 1:]  # get all args after "--"
+else:
+    argv = []
 
-    path = os.path.splitext(bpy.data.filepath)[0] + extension
-    path_parts = os.path.split(path)
-    output_dir = os.path.join(path_parts[0], argv[0])
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-    args = {
-        # Settings from "Remember Export Settings"
-        **dict(bpy.context.scene.get('glTF2ExportSettings', {})),
+extension = '.glb' if '--glb' in argv else '.gltf'
 
-        'export_format': ('GLB' if extension == '.glb' else 'GLTF_SEPARATE'),
-        'filepath': os.path.join(output_dir, path_parts[1]),
-        'export_cameras': True,
-        'export_extras': True
-    }
-    bpy.ops.export_scene.gltf(**args)
-except Exception as err:
-    print(err, file=sys.stderr)
-    sys.exit(1)
+path = os.path.splitext(bpy.data.filepath)[0] + extension
+path_parts = os.path.split(path)
+output_dir = os.path.join(path_parts[0], argv[0])
+print("Saving to " + output_dir)
+# if not os.path.exists(output_dir): #no need, Blender export always creates the dirs
+#     os.makedirs(output_dir)
+args = {
+    # Settings from "Remember Export Settings"
+    **dict(bpy.context.scene.get('glTF2ExportSettings', {})),
+
+    'export_format': ('GLB' if extension == '.glb' else 'GLTF_SEPARATE'),
+    'filepath': output_dir,#, path_parts[1]),
+    'export_cameras': True,
+    'export_extras': True
+}
+print("Got args, exporting")
+bpy.ops.export_scene.gltf(**args)
+# except Exception as err:
+#     print(err, file=sys.stderr)
+#     sys.exit(1)
