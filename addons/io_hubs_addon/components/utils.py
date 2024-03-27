@@ -210,7 +210,7 @@ else:  # Linux/Mac
 
 @contextmanager
 def redirect_c_stdout(binary_stream):
-    #this causes an error on windows when the addon is enabled using:  bpy.ops.preferences.addon_enable(module="io_hubs_addon")
+    # this causes an error on windows when the addon is enabled using:  bpy.ops.preferences.addon_enable(module="io_hubs_addon")
     stdout_file_descriptor = sys.stdout.fileno()
     original_stdout_file_descriptor_copy = os.dup(stdout_file_descriptor)
     try:

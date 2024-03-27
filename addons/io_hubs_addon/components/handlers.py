@@ -233,7 +233,7 @@ def find_active_undo_step_index(undo_steps):
 
 @persistent
 def undo_stack_handler(dummy, depsgraph):
-    return  #this fails on windows, sys.stdout.fileno() is not supported
+    return  # this fails on windows, sys.stdout.fileno() is not supported
     global previous_undo_steps_dump
     global previous_undo_step_index
     global file_loading
