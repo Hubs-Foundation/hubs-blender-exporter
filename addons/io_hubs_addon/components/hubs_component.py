@@ -45,7 +45,8 @@ class HubsComponent(PropertyGroup):
         return cls.__get_definition('name', cls.get_id())
 
     @classmethod
-    def get_display_name(cls, default=__name__):
+    def get_display_name(cls, default=None):
+        default = cls.__name__ if default is None else default
         return cls.__get_definition('display_name', default)
 
     @classmethod
@@ -114,7 +115,7 @@ class HubsComponent(PropertyGroup):
         '''This is called by the exporter before starting the export process'''
         pass
 
-    def gather(self, export_settings, blender_object):
+    def gather(self, export_settings, object):
         '''This is called by the exporter and will return all the component properties by default'''
         from ..io.utils import gather_properties
         return gather_properties(export_settings, object, self)
@@ -141,6 +142,10 @@ class HubsComponent(PropertyGroup):
         Returns a boolean to indicate whether a migration was performed.
         '''
         return False
+
+    @classmethod
+    def gather_name(cls):
+        return cls.get_name()
 
     @classmethod
     def draw_global(cls, context, layout, panel):

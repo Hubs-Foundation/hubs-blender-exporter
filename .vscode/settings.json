@@ -9,5 +9,10 @@
   "python.analysis.extraPaths": [
     "./fake_bpy_modules_3.3-20221006"
   ],
-  "editor.formatOnSave": true
+  "editor.defaultFormatter": "ms-python.autopep8",
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "file",
+  "autopep8.args": [
+    "--exclude=models", "--max-line-length", "120", "--experimental"
+  ],
 }

@@ -1,5 +1,6 @@
+import tempfile
 import bpy
-from .components_registry import get_component_by_name
+from .components_registry import get_component_by_name, get_components_registry
 from .gizmos import update_gizmos
 from .types import PanelType
 from mathutils import Vector
@@ -22,7 +23,6 @@ def add_component(obj, component_name):
         if 'create_gizmo' in component_class.__dict__:
             update_gizmos()
         component_class.init_instance_version(obj)
-        component_class.init(obj)
         for dep_name in component_class.get_deps():
             dep_class = get_component_by_name(dep_name)
             if dep_class:
@@ -32,6 +32,7 @@ def add_component(obj, component_name):
             else:
                 print("Dependency '%s' from module '%s' not registered" %
                       (dep_name, component_name))
+        component_class.init(obj)
 
 
 def remove_component(obj, component_name):
@@ -53,6 +54,10 @@ def remove_component(obj, component_name):
             else:
                 print("Dependecy '%s' from module '%s' not registered" %
                       (dep_name, component_name))
+
+
+def get_objects_with_component(component_name):
+    return [ob for ob in bpy.context.view_layer.objects if has_component(ob, component_name)]
 
 
 def has_component(obj, component_name):
@@ -93,10 +98,6 @@ def get_object_source(context, panel_type):
         return context.object
 
 
-def dash_to_title(s):
-    return s.replace("-", " ").title()
-
-
 def children_recurse(ob, result):
     for child in ob.children:
         result.append(child)
@@ -127,10 +128,19 @@ def redraw_component_ui(context):
 def is_linked(datablock):
     if not datablock:
         return False
-    return bool(datablock.library or datablock.override_library)
+    return bool(datablock.id_data.library or datablock.id_data.override_library)
 
+
+def update_image_editors(old_img, img):
+    for window in bpy.context.window_manager.windows:
+        for area in window.screen.areas:
+            if area.type == 'IMAGE_EDITOR':
+                if area.spaces.active.image == old_img:
+                    area.spaces.active.image = img
 
 # Note: Set up stuff specifically for C FILE pointers so that they aren't truncated to 32 bits on 64 bit systems.
+
+
 class _FILE(ctypes.Structure):
     """opaque C FILE type"""
 
@@ -165,6 +175,7 @@ if platform.system() == "Windows":
 
         def c_fflush():
             print("Error: Unable to flush the C stdout")
+
 
 else:  # Linux/Mac
     try:  # get the C runtime
@@ -201,26 +212,25 @@ else:  # Linux/Mac
 def redirect_c_stdout(binary_stream):
     stdout_file_descriptor = sys.stdout.fileno()
     original_stdout_file_descriptor_copy = os.dup(stdout_file_descriptor)
-    pipe_read_end, pipe_write_end = os.pipe()  # os.pipe returns two file descriptors.
-
     try:
         # Flush the C-level buffer of stdout before redirecting.  This should make sure that only the desired data is captured.
         c_fflush()
+        #  Move the file pointer to the start of the file
+        __stack_tmp_file.seek(0)
         # Redirect stdout to your pipe.
-        os.dup2(pipe_write_end, stdout_file_descriptor)
+        os.dup2(__stack_tmp_file.fileno(), stdout_file_descriptor)
         yield  # wait for input
     finally:
         # Flush the C-level buffer of stdout before returning things to normal.  This seems to be mainly needed on Windows because it looks like Windows changes the buffering policy to be fully buffered when redirecting stdout.
         c_fflush()
         # Redirect stdout back to the original file descriptor.
         os.dup2(original_stdout_file_descriptor_copy, stdout_file_descriptor)
-        # Close the write end of the pipe to allow reading.
-        os.close(pipe_write_end)
-        # Read what was written to the pipe and pass it to the binary stream for use outside this function.
-        pipe_reader = os.fdopen(pipe_read_end, 'rb')
-        binary_stream.write(pipe_reader.read())
-        # Close the reader, also closes the pipe_read_end file descriptor.
-        pipe_reader.close()
+        # Truncate file to the written amount of bytes
+        __stack_tmp_file.truncate()
+        #  Move the file pointer to the start of the file
+        __stack_tmp_file.seek(0)
+        # Write back to the input stream
+        binary_stream.write(__stack_tmp_file.read())
         # Close the remaining open file descriptor.
         os.close(original_stdout_file_descriptor_copy)
 
@@ -293,3 +303,17 @@ def get_host_reference_message(panel_type, host, ob=None):
         host_reference = f"\"{host.name_full}\""
 
     return host_reference
+
+
+__stack_tmp_file = None
+
+
+def register():
+    global __stack_tmp_file
+    __stack_tmp_file = tempfile.NamedTemporaryFile(
+        mode='w+b', buffering=0, delete=False, dir=bpy.app.tempdir)
+
+
+def unregister():
+    __stack_tmp_file.close()
+    os.unlink(__stack_tmp_file.name)

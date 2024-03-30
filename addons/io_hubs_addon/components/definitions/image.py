@@ -1,6 +1,6 @@
 from ..models import image
-from ..gizmos import CustomModelGizmo
-from bpy.props import EnumProperty, StringProperty, BoolProperty
+from ..gizmos import CustomModelGizmo, bone_matrix_world
+from bpy.props import EnumProperty, FloatProperty, StringProperty, BoolProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ..consts import PROJECTION_MODE, TRANSPARENCY_MODE
@@ -33,11 +33,26 @@ class Image(HubsComponent):
         items=TRANSPARENCY_MODE,
         default="opaque")
 
+    alphaCutoff: FloatProperty(
+        name="Alpha Cutoff",
+        description="Pixels with alpha values lower than this will be transparent on Binary transparency mode",
+        default=0.5,
+        min=0.0,
+        max=1.0)
+
     projection: EnumProperty(
         name="Projection",
         description="Projection",
         items=PROJECTION_MODE,
         default="flat")
+
+    def draw(self, context, layout, panel_type):
+        layout.prop(self, "src")
+        layout.prop(self, "controls")
+        layout.prop(self, "alphaMode")
+        if self.alphaMode == "mask":
+            layout.prop(self, "alphaCutoff")
+        layout.prop(self, "projection")
 
     def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
         migration_occurred = False

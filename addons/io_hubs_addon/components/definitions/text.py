@@ -64,7 +64,9 @@ class Text(HubsComponent):
                                description="Color",
                                subtype='COLOR_GAMMA',
                                default=(1.0, 1.0, 1.0, 1.0),
-                               size=4)
+                               size=4,
+                               min=0,
+                               max=1)
 
     letterSpacing: FloatProperty(
         name="Letter Space",
@@ -86,7 +88,7 @@ class Text(HubsComponent):
         name="Outline Color",
         description="The color to use for the text outline when outlineWidth, outlineBlur, and/or outlineOffsetX/Y are set",
         subtype='COLOR_GAMMA', default=(0.0, 0.0, 0.0, 1.0),
-        size=4)
+        size=4, min=0, max=1)
 
     outlineBlur: StringProperty(name="Outline Blur",
                                 description="Specifies a blur radius applied to the outer edge of the text's outlineWidth. If the outlineWidth is zero, the blur will be applied at the glyph edge, like CSS's text-shadow blur radius. A blur plus a nonzero outlineWidth can give a solid outline with a fuzzy outer edge.\n\nThe blur radius can be specified as either an absolute number in local meters, or as a percentage string e.g. \"12%\" which is treated as a percentage of the fontSize",
@@ -125,7 +127,9 @@ class Text(HubsComponent):
                                      description="The color of the text stroke, when strokeWidth is nonzero",
                                      subtype='COLOR_GAMMA',
                                      default=(0.0, 0.0, 0.0, 1.0),
-                                     size=4)
+                                     size=4,
+                                     min=0,
+                                     max=1)
 
     strokeOpacity: FloatProperty(name="Stroke Opacity",
                                  description="The opacity of the text stroke, when strokeWidth is nonzero",

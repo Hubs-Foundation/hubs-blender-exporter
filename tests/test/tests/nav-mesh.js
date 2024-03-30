@@ -16,6 +16,11 @@ module.exports = {
         assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
-        assert.deepStrictEqual(ext, { 'nav-mesh': {} });
+        assert.deepStrictEqual(ext, { 
+            'nav-mesh': {}, 
+            'visible': {
+                'visible': false
+            }
+        });
     }
 };

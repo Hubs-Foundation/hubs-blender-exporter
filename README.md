@@ -56,6 +56,10 @@ This will bring up the Publish Scene From Blender dialog where you can upload yo
 
 It is also possible to use the GLB file to replace the scene for an existing Hubs room directly by going to Room Settings > Change Scene > Custom Scene and entering the URL of the GLB file. This assumes the file has been already uploaded to an online storage provider.
 
+# Scene debugger
+
+The Hubs Blender add-on includes a scene debugger, enabling you to see the Blender scene updates in Hubs with just one click. For additional information, please visit:  https://github.com/MozillaReality/hubs-blender-exporter/wiki/Hubs-scene-debugger/
+
 # Development
 
 ## Code Completion

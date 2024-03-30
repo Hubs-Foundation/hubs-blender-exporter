@@ -7,7 +7,6 @@ from bpy.types import Object
 from ...utils import delayed_gather
 from .video_texture_source import VideoTextureSource
 
-
 BLANK_ID = "pXph8WBzMu9fung"
 
 

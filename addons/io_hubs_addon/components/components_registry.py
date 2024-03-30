@@ -1,5 +1,4 @@
 from .types import NodeType
-import bpy.utils.previews
 import bpy
 from bpy.props import BoolProperty, StringProperty, CollectionProperty, PointerProperty
 from bpy.types import PropertyGroup
@@ -7,7 +6,6 @@ from bpy.types import PropertyGroup
 import importlib
 import inspect
 import os
-from os import listdir
 from os.path import join, isfile, isdir, dirname, realpath
 
 from .hubs_component import HubsComponent
@@ -17,6 +15,7 @@ class HubsComponentName(PropertyGroup):
     # For backwards compatibility reasons this attribute is called "name" but it actually points to the component id
     name: StringProperty(name="name")
     expanded: BoolProperty(name="expanded", default=True)
+    isDependency: BoolProperty(name="dependency", default=False)
 
 
 class HubsComponentList(PropertyGroup):
@@ -124,36 +123,12 @@ def unload_components_registry():
             module.unregister_module()
 
 
-def load_icons():
-    global __component_icons
-    __component_icons = {}
-    pcoll = bpy.utils.previews.new()
-    icons_dir = os.path.join(os.path.dirname(__file__), "icons")
-    icons = [f for f in listdir(icons_dir) if isfile(join(icons_dir, f))]
-    for icon in icons:
-        pcoll.load(icon, os.path.join(icons_dir, icon), 'IMAGE')
-        print("Loading icon: " + icon)
-    __component_icons["hubs"] = pcoll
-
-
-def unload_icons():
-    global __component_icons
-    __component_icons["hubs"].close()
-    del __component_icons
-
-
-__component_icons = {}
 __components_registry = {}
 
 
 def get_components_registry():
     global __components_registry
     return __components_registry
-
-
-def get_components_icons():
-    global __component_icons
-    return __component_icons["hubs"]
 
 
 def get_component_by_name(component_name):
@@ -165,7 +140,6 @@ def get_component_by_name(component_name):
 
 
 def register():
-    load_icons()
     load_components_registry()
 
     bpy.utils.register_class(HubsComponentName)
@@ -200,7 +174,6 @@ def unregister():
     glTF2ExportUserExtension.remove_excluded_property("hubs_component_list")
 
     unload_components_registry()
-    unload_icons()
 
     global __components_registry
     del __components_registry

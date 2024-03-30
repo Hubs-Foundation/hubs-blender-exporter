@@ -1,14 +1,19 @@
-from . import preferences
+from .utils import create_prefs_dir
+from .utils import get_user_python_path
+import sys
+import bpy
 from .io import gltf_exporter, gltf_importer, panels
 from . import (nodes, components)
-import bpy
-
+from . import preferences
+from . import third_party
+from . import debugger
+from . import icons
 bl_info = {
     "name": "Hubs Blender Addon",
     "author": "Mozilla Hubs",
     "description": "Tools for developing glTF assets for Mozilla Hubs",
     "blender": (3, 1, 2),
-    "version": (1, 1, 0),
+    "version": (1, 4, 0, "dev_build"),
     "location": "",
     "wiki_url": "https://github.com/MozillaReality/hubs-blender-exporter",
     "tracker_url": "https://github.com/MozillaReality/hubs-blender-exporter/issues",
@@ -17,14 +22,21 @@ bl_info = {
     "category": "Generic"
 }
 
+sys.path.insert(0, get_user_python_path())
+
+create_prefs_dir()
+
 
 def register():
+    icons.register()
     preferences.register()
     nodes.register()
     components.register()
     gltf_importer.register()
     gltf_exporter.register()
     panels.register_panels()
+    third_party.register()
+    debugger.register()
 
     # Migrate components if the add-on is enabled in the middle of a session.
     if bpy.context.preferences.is_dirty:
@@ -36,15 +48,19 @@ def register():
 
 
 def unregister():
+    third_party.unregister()
     panels.unregister_panels()
     gltf_exporter.unregister()
     gltf_importer.unregister()
     components.unregister()
     nodes.unregister()
     preferences.unregister()
+    debugger.unregister()
+    icons.unregister()
 
 
 # called by gltf-blender-io after it has loaded
+
 
 glTF2ExportUserExtension = gltf_exporter.glTF2ExportUserExtension
 glTF2_pre_export_callback = gltf_exporter.glTF2_pre_export_callback
