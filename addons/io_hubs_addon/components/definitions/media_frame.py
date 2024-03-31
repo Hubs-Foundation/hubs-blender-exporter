@@ -229,5 +229,24 @@ class MediaFrame(HubsComponent):
             if property_name == 'bounds' and gltf_yup:
                 property_value['y'], property_value['z'] = property_value['z'], property_value['y']
 
-            assign_property(gltf.vnodes, blender_component,
+                assign_property(gltf.vnodes, blender_component,
+                            property_name, property_value)
+
+            elif property_name == 'align':
+                align = {
+                    'x':property_value['x'],
+                    'y':property_value['y'],
+                    'z':property_value['z']
+                    }
+                if gltf_yup:
+                    align['y'] = "min" if property_value['z'] == "max" else "max" if property_value['z'] == "min" else property_value['z']
+                    align['z'] = property_value['y']
+
+                blender_component.alignX = align['x']
+                blender_component.alignY = align['y']
+                blender_component.alignZ = align['z']
+
+
+            else:
+                assign_property(gltf.vnodes, blender_component,
                             property_name, property_value)
