@@ -7,6 +7,7 @@ from ..models import particle_emitter
 from ..utils import is_linked, get_host_reference_message
 import bpy
 from mathutils import Vector
+from ...io.utils import import_component, assign_property
 
 
 class ParticleEmitter(HubsComponent):
@@ -160,3 +161,18 @@ class ParticleEmitter(HubsComponent):
         gizmo.alpha_highlight = 1.0
 
         return gizmo
+
+    @classmethod
+    def gather_import(cls, gltf, blender_host, component_name, component_value, blender_ob=None):
+        blender_component = import_component(
+            component_name, blender_host)
+
+        gltf_yup = gltf.import_settings.get('gltf_yup', True)
+
+        for property_name, property_value in component_value.items():
+            if property_name in ['startVelocity', 'endVelocity'] and gltf_yup:
+                property_value['y'], property_value['z'] = property_value['z'], property_value['y']
+
+            assign_property(gltf.vnodes, blender_component,
+                            property_name, property_value)
+
