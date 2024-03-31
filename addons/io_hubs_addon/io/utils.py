@@ -399,7 +399,10 @@ def import_image(gltf, gltf_texture):
     blender_image_name = pyimg.blender_image_name
     blender_image = bpy.data.images[blender_image_name]
     if pyimg.mime_type == "image/vnd.radiance":
-        blender_image.colorspace_settings.name = "Linear"
+        if bpy.app.version < (4, 0, 0):
+            blender_image.colorspace_settings.name = "Linear"
+        else:
+            blender_image.colorspace_settings.name = "Linear Rec.709"
 
     return blender_image_name, source
 
