@@ -14,6 +14,7 @@ from io_scene_gltf2.io.com import gltf2_io_extensions
 from io_scene_gltf2.io.com import gltf2_io
 from io_scene_gltf2.io.exp import gltf2_io_binary_data
 from io_scene_gltf2.io.exp import gltf2_io_image_data
+from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
 from typing import Optional, Tuple, Union
 from ..nodes.lightmap import MozLightmapNode
 import re
@@ -384,6 +385,23 @@ def gather_lightmap_texture_info(blender_material, export_settings):
         "texCoord": texture_info.tex_coord
     }
 
+
+def import_image(gltf, gltf_texture):
+    texture_extensions = gltf_texture.extensions
+    if texture_extensions and texture_extensions.get('MOZ_texture_rgbe'):
+        source = gltf_texture.extensions['MOZ_texture_rgbe']['source']
+    else:
+        source = gltf_texture.source
+
+    BlenderImage.create(
+        gltf, source)
+    pyimg = gltf.data.images[source]
+    blender_image_name = pyimg.blender_image_name
+    blender_image = bpy.data.images[blender_image_name]
+    if pyimg.mime_type == "image/vnd.radiance":
+        blender_image.colorspace_settings.name = "Linear"
+
+    return blender_image_name, source
 
 def import_component(component_name, blender_object):
     from ..components.utils import add_component, has_component

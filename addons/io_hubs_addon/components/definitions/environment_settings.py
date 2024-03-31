@@ -1,6 +1,6 @@
 from bpy.props import FloatProperty, EnumProperty, FloatVectorProperty, PointerProperty, BoolProperty
 from bpy.types import Image
-from ...io.utils import import_component, assign_property
+from ...io.utils import import_component, assign_property, import_image
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ..utils import is_linked
@@ -171,28 +171,13 @@ class EnvironmentSettings(HubsComponent):
 
         images = {}
         for gltf_texture in gltf.data.textures:
-            extensions = gltf_texture.extensions
-            source = None
-            if extensions:
-                MOZ_texture_rgbe = extensions.get('MOZ_texture_rgbe')
-                if MOZ_texture_rgbe:
-                    source = MOZ_texture_rgbe['source']
-            else:
-                source = gltf_texture.source
-
-            from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
-            BlenderImage.create(
-                gltf, source)
-            pyimg = gltf.data.images[source]
-            blender_image_name = pyimg.blender_image_name
+            blender_image_name, source = import_image(gltf, gltf_texture)
             images[source] = blender_image_name
 
         for property_name, property_value in component_value.items():
             if isinstance(property_value, dict) and property_value['__mhc_link_type'] == "texture":
                 blender_image_name = images[property_value['index']]
                 blender_image = bpy.data.images[blender_image_name]
-                if blender_image.file_format == 'HDR':
-                    blender_image.colorspace_settings.name = 'Linear'
                 setattr(blender_component, property_name, blender_image)
 
             else:

@@ -4,7 +4,7 @@ from io_scene_gltf2.blender.imp.gltf2_blender_node import BlenderNode
 from io_scene_gltf2.blender.imp.gltf2_blender_material import BlenderMaterial
 from io_scene_gltf2.blender.imp.gltf2_blender_scene import BlenderScene
 from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
-from .utils import HUBS_CONFIG
+from .utils import HUBS_CONFIG, import_image
 from ..components.components_registry import get_component_by_name
 import traceback
 
@@ -48,19 +48,8 @@ def add_lightmap(gltf_material, blender_mat, gltf):
         texture_index = extension['index']
 
         gltf_texture = gltf.data.textures[texture_index]
-        texture_extensions = gltf_texture.extensions
-        if texture_extensions and texture_extensions.get('MOZ_texture_rgbe'):
-            source = gltf_texture.extensions['MOZ_texture_rgbe']['source']
-        else:
-            source = gltf_texture.source
-
-        BlenderImage.create(
-            gltf, source)
-        pyimg = gltf.data.images[source]
-        blender_image_name = pyimg.blender_image_name
+        blender_image_name, _ = import_image(gltf, gltf_texture)
         blender_image = bpy.data.images[blender_image_name]
-        if pyimg.mime_type == "image/vnd.radiance":
-            blender_image.colorspace_settings.name = "Linear"
 
         blender_mat.use_nodes = True
         nodes = blender_mat.node_tree.nodes

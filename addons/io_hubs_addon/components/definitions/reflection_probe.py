@@ -9,7 +9,7 @@ from ..components_registry import get_components_registry
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType, MigrationType
 from ..ui import add_link_indicator
-from ...io.utils import import_component, assign_property
+from ...io.utils import import_component, assign_property, import_image
 from ...utils import rgetattr, rsetattr
 from ..utils import get_host_reference_message
 from ..models import reflection_probe
@@ -930,18 +930,9 @@ class ReflectionProbe(HubsComponent):
         blender_component = import_component(
             component_name, blender_host)
         images = {}
-        from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
         for gltf_texture in gltf.data.textures:
-            extensions = gltf_texture.extensions
-            source = None
-            if extensions:
-                MOZ_texture_rgbe = extensions.get('MOZ_texture_rgbe')
-                if MOZ_texture_rgbe:
-                    source = MOZ_texture_rgbe['source']
-                    BlenderImage.create(gltf, source)
-                    pyimg = gltf.data.images[source]
-                    blender_image_name = pyimg.blender_image_name
-                    images[source] = blender_image_name
+            blender_image_name, source = import_image(gltf, gltf_texture)
+            images[source] = blender_image_name
         for property_name, property_value in component_value.items():
             if isinstance(property_value, dict) and property_value['__mhc_link_type'] == "texture":
                 blender_image_name = images[property_value['index']]
