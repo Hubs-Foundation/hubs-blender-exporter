@@ -1,6 +1,6 @@
-from ...io.utils import import_component, set_color_from_hex
-from ..hubs_component import HubsComponent
-from ..types import NodeType
+from ....io.utils import import_component, set_color_from_hex
+from ...hubs_component import HubsComponent
+from ...types import NodeType
 
 
 class Background(HubsComponent):
