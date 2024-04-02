@@ -874,7 +874,7 @@ class LoopAnimation(HubsComponent):
             component_name, blender_host)
 
         for property_name, property_value in component_value.items():
-            if property_name == 'clip':
+            if property_name == 'clip' and property_value != "":
                 tracks = property_value.split(",")
                 import_tracks(tracks, blender_ob, blender_component)
             else:
