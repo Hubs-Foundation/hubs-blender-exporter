@@ -12,6 +12,7 @@ EXTENSION_NAME = HUBS_CONFIG["gltfExtensionName"]
 
 armatures = {}
 delayed_gathers = []
+import_report = []
 
 
 def call_delayed_gathers():
@@ -22,6 +23,7 @@ def call_delayed_gathers():
 
 
 def import_hubs_components(gltf_node, blender_host, gltf, blender_ob=None):
+    global import_report
     if gltf_node and gltf_node.extensions and EXTENSION_NAME in gltf_node.extensions:
         components_data = gltf_node.extensions[EXTENSION_NAME]
         for component_name in components_data.keys():
@@ -36,9 +38,13 @@ def import_hubs_components(gltf_node, blender_host, gltf, blender_ob=None):
                         delayed_gathers.append((data))
                 except Exception:
                     traceback.print_exc()
+                    print(f"Failed to import {component_name} component on {blender_host.name} continuing on...")
+                    import_report.append(f"Failed to import {component_name} component on {blender_host.name}.  See the console for details.")
             else:
-                print('Could not import unsupported component "%s"' %
-                      (component_name))
+                if component_name != "heightfield":
+                    # heightfield is a Spoke-only component and not needed in Blender.
+                    print(f'Could not import unsupported component "{component_name}"')
+                    import_report.append(f"Could not import unsupported component {component_name} component on {blender_host.name}.")
 
 
 def add_lightmap(gltf_material, blender_mat, gltf):
@@ -95,6 +101,16 @@ def store_bones_for_import(gltf, vnode):
     armatures[vnode.blender_object.name] = {
         'armature': vnode.blender_object, 'gltf_bones': gltf_bones}
 
+def show_import_report():
+    global import_report
+    if not import_report:
+        return
+
+    title = "Import Report"
+    def report_import():
+        bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title=title, report_string='\n\n'.join(import_report))
+    bpy.app.timers.register(report_import)
+
 
 class glTF2ImportUserExtension:
 
@@ -114,6 +130,8 @@ class glTF2ImportUserExtension:
         armatures.clear()
         global delayed_gathers
         delayed_gathers.clear()
+        global import_report
+        import_report.clear()
 
         if gltf.data.asset and gltf.data.asset.extras:
             if 'gltf_yup' in gltf.data.asset.extras:
@@ -163,6 +181,7 @@ class glTF2ImportUserExtension:
 
     def gather_import_scene_after_animation_hook(self, gltf_scene, blender_scene, gltf):
         call_delayed_gathers()
+        show_import_report()
 
 
 # import hooks were only recently added to the glTF exporter, so make a custom hook for now
@@ -213,8 +232,10 @@ def patched_BlenderMaterial_create(gltf, material_idx, vertex_color):
 def patched_BlenderScene_create(gltf):
     global armatures
     global delayed_gathers
+    global import_report
     armatures.clear()
     delayed_gathers.clear()
+    import_report.clear()
 
     orig_BlenderScene_create(gltf)
     gltf_scene = gltf.data.scenes[gltf.data.scene]
@@ -226,6 +247,7 @@ def patched_BlenderScene_create(gltf):
     armatures.clear()
 
     call_delayed_gathers()
+    show_import_report()
 
 
 class HubsGLTFImportPanel(bpy.types.Panel):
