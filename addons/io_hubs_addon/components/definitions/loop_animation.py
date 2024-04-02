@@ -363,35 +363,32 @@ def get_animation_name(ob, track):
         return track.name
 
 
-def migrate_data(tracks, host, ob=None):
-    # ob is only included when the component is on a bone so fallback to host if ob is empty
-    ob = ob or host
-    if LoopAnimation.get_name() in host.hubs_component_list.items:
-        for track_name in tracks:
+def import_tracks(tracks, ob, component):
+    for track_name in tracks:
+        try:
+            nla_track = ob.animation_data.nla_tracks[track_name]
+            track_type = "object"
+        except (AttributeError, KeyError):
             try:
-                nla_track = ob.animation_data.nla_tracks[track_name]
-                track_type = "object"
+                nla_track = ob.data.shape_keys.animation_data.nla_tracks[track_name]
+                track_type = "shape_key"
             except (AttributeError, KeyError):
-                try:
-                    nla_track = ob.data.shape_keys.animation_data.nla_tracks[track_name]
-                    track_type = "shape_key"
-                except (AttributeError, KeyError):
-                    track = host.hubs_component_loop_animation.tracks_list.add()
-                    track.name = track_name
-                    continue
+                track = component.tracks_list.add()
+                track.name = track_name
+                continue
 
-            if not has_track(host.hubs_component_loop_animation.tracks_list, nla_track):
-                track = host.hubs_component_loop_animation.tracks_list.add()
-                strip_name = get_strip_name(nla_track)
-                action_name = get_action_name(nla_track)
-                track.name = get_display_name(
-                    nla_track.name, strip_name)
-                track.track_name = nla_track.name
-                track.strip_name = strip_name if is_default_name(
-                    nla_track.name) else ''
-                track.action_name = action_name if is_default_name(
-                    nla_track.name) else ''
-                track.track_type = track_type
+        if not has_track(component.tracks_list, nla_track):
+            track = component.tracks_list.add()
+            strip_name = get_strip_name(nla_track)
+            action_name = get_action_name(nla_track)
+            track.name = get_display_name(
+                nla_track.name, strip_name)
+            track.track_name = nla_track.name
+            track.strip_name = strip_name if is_default_name(
+                nla_track.name) else ''
+            track.action_name = action_name if is_default_name(
+                nla_track.name) else ''
+            track.track_type = track_type
 
 
 class TracksList(bpy.types.UIList):
@@ -879,7 +876,7 @@ class LoopAnimation(HubsComponent):
         for property_name, property_value in component_value.items():
             if property_name == 'clip':
                 tracks = property_value.split(",")
-                migrate_data(tracks, blender_host, blender_ob)
+                import_tracks(tracks, blender_ob, blender_component)
             else:
                 assign_property(gltf.vnodes, blender_component,
                                 property_name, property_value)
