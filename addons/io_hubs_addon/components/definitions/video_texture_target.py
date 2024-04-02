@@ -164,3 +164,8 @@ class VideoTextureTarget(HubsComponent):
             'srcNode': gather_joint_property(export_settings, self.srcNode, self, 'bone') if self.bone_id != BLANK_ID else gather_node_property(
                 export_settings, object, self, 'srcNode'),
         }
+
+    @classmethod
+    @delayed_gather
+    def gather_import(cls, gltf, blender_host, component_name, component_value, blender_ob=None):
+        super().gather_import(gltf, blender_host, component_name, component_value, blender_ob=blender_ob)

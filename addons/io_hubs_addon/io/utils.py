@@ -451,8 +451,17 @@ def assign_property(vnodes, blender_component, property_name, property_value):
         if property_value.get('__mhc_link_type'):
             if len(property_value) == 2:
                 if property_value['__mhc_link_type'] == "node":
-                    setattr(blender_component, property_name,
-                            vnodes[property_value['index']].blender_object)
+                    try:
+                        setattr(blender_component, property_name,
+                                vnodes[property_value['index']].blender_object)
+                    except AttributeError:
+                        # Assume that the target is a bone
+                        bone_vnode = vnodes[property_value['index']]
+                        armature_vnode = vnodes[bone_vnode.bone_arma]
+                        setattr(blender_component, property_name,
+                                armature_vnode.blender_object)
+                        setattr(blender_component, "bone",
+                                bone_vnode.blender_bone_name)
                 elif property_value['__mhc_link_type'] == "texture":
                     global imported_images
                     blender_image_name = imported_images[property_value['index']]
