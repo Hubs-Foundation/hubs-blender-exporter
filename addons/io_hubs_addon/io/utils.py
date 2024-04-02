@@ -331,6 +331,7 @@ def gather_color_property(export_settings, object, component, property_name, col
     c = list(getattr(component, property_name))
 
     # Blender stores colors in linear space for subtype COLOR and sRGB for COLOR_GAMMA
+    # Hubs expects colors in the glTF components to be in sRGB so we convert them here if needed.
     if color_type == "COLOR":
         c[0] = lin2srgb(c[0])
         c[1] = lin2srgb(c[1])
@@ -423,6 +424,10 @@ def set_color_from_hex(blender_component, property_name, hexcolor):
 
     for x, value in enumerate(rgb_int):
         rgb_float = value / 255 if value > 0 else 0
+        if blender_component.bl_rna.properties[property_name].subtype == 'COLOR':
+            # Blender stores colors in linear space for subtype COLOR and sRGB for COLOR_GAMMA
+            # Colors in the glTF components are in sRGB so we convert them here if needed.
+            rgb_float = srgb2lin(rgb_float)
         getattr(blender_component, property_name)[x] = rgb_float
 
 
