@@ -9,7 +9,6 @@ from ..components_registry import get_components_registry
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType, MigrationType
 from ..ui import add_link_indicator
-from ...io.utils import import_component, assign_property, import_image
 from ...utils import rgetattr, rsetattr
 from ..utils import get_host_reference_message
 from ..models import reflection_probe
@@ -925,22 +924,6 @@ class ReflectionProbe(HubsComponent):
 
         return gizmo
 
-    @classmethod
-    def gather_import(cls, gltf, blender_host, component_name, component_value, blender_ob=None):
-        blender_component = import_component(
-            component_name, blender_host)
-        images = {}
-        for gltf_texture in gltf.data.textures:
-            blender_image_name, source = import_image(gltf, gltf_texture)
-            images[source] = blender_image_name
-        for property_name, property_value in component_value.items():
-            if isinstance(property_value, dict) and property_value['__mhc_link_type'] == "texture":
-                blender_image_name = images[property_value['index']]
-                blender_image = bpy.data.images[blender_image_name]
-                setattr(blender_component, property_name, blender_image)
-            else:
-                assign_property(gltf.vnodes, blender_component,
-                                property_name, property_value)
 
     @ staticmethod
     def register():

@@ -24,6 +24,8 @@ HUBS_CONFIG = {
     "gltfExtensionVersion": 4,
 }
 
+imported_images = {}
+
 # gather_texture/image with HDR support via MOZ_texture_rgbe
 
 
@@ -407,6 +409,19 @@ def import_image(gltf, gltf_texture):
 
     return blender_image_name, source
 
+
+def import_all_images(gltf):
+    global imported_images
+    imported_images.clear()
+
+    if not gltf.data.textures:
+        return
+
+    for gltf_texture in gltf.data.textures:
+        blender_image_name, source = import_image(gltf, gltf_texture)
+        imported_images[source] = blender_image_name
+
+
 def import_component(component_name, blender_object):
     from ..components.utils import add_component, has_component
     from ..components.components_registry import get_component_by_name
@@ -435,8 +450,14 @@ def assign_property(vnodes, blender_component, property_name, property_value):
     if isinstance(property_value, dict):
         if property_value.get('__mhc_link_type'):
             if len(property_value) == 2:
-                setattr(blender_component, property_name,
-                        vnodes[property_value['index']].blender_object)
+                if property_value['__mhc_link_type'] == "node":
+                    setattr(blender_component, property_name,
+                            vnodes[property_value['index']].blender_object)
+                elif property_value['__mhc_link_type'] == "texture":
+                    global imported_images
+                    blender_image_name = imported_images[property_value['index']]
+                    blender_image = bpy.data.images[blender_image_name]
+                    setattr(blender_component, property_name, blender_image)
 
         else:
             blender_subcomponent = getattr(blender_component, property_name)
