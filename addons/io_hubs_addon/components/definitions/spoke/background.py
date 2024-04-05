@@ -11,7 +11,7 @@ class Background(HubsComponent):
     }
 
     @classmethod
-    def gather_import(cls, gltf, blender_host, component_name, component_value, blender_ob=None):
+    def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
         blender_component = import_component(
             'environment-settings', blender_host)
         blender_component.toneMapping = "LinearToneMapping"

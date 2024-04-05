@@ -10,7 +10,7 @@ class SpawnPoint(HubsComponent):
     }
 
     @classmethod
-    def gather_import(cls, gltf, blender_host, component_name, component_value, blender_ob=None):
+    def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
         blender_component = import_component('waypoint', blender_host)
         assign_property(gltf.vnodes, blender_component,
                         "canBeSpawnPoint", True)

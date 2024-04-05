@@ -32,7 +32,7 @@ def import_hubs_components(gltf_node, blender_host, gltf, blender_ob=None):
                 component_value = components_data[component_name]
                 try:
                     data = component_class.gather_import(
-                        gltf, blender_host, component_name, component_value, blender_ob=blender_ob)
+                        gltf, blender_host, component_name, component_value, import_report, blender_ob=blender_ob)
                     if data and hasattr(data, "delayed_gather"):
                         global delayed_gathers
                         delayed_gathers.append((data))

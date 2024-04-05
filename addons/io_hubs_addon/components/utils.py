@@ -305,6 +305,22 @@ def get_host_reference_message(panel_type, host, ob=None):
     return host_reference
 
 
+def get_host_or_parents_scaled(obj):
+    parents = [obj]
+    while parents:
+        parent = parents.pop()
+        if parent.scale != V_S1:
+            return True
+
+        if parent.parent:
+            parents.insert(0, parent.parent)
+
+        if hasattr(parent, 'parent_bone') and parent.parent_bone:
+            parents.insert(0, parent.parent.pose.bones[parent.parent_bone])
+
+    return False
+
+
 __stack_tmp_file = None
 
 

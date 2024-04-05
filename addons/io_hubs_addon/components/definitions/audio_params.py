@@ -140,7 +140,7 @@ class AudioParams(HubsComponent):
             layout.prop(data=self, property="coneOuterGain")
 
     @classmethod
-    def gather_import(cls, gltf, blender_host, component_name, component_value, blender_ob=None):
+    def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
         component = blender_host.hubs_component_audio_params
         component.overrideAudioSettings = True
         for property_name, property_value in component_value.items():

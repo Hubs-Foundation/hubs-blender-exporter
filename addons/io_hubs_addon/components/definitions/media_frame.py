@@ -5,7 +5,7 @@ from ..gizmos import bone_matrix_world
 from ..models import box
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType, MigrationType
-from ..utils import V_S1, is_linked, get_host_reference_message
+from ..utils import get_host_or_parents_scaled, is_linked, get_host_reference_message
 from .networked import migrate_networked
 from mathutils import Matrix, Vector
 from ...io.utils import import_component, assign_property
@@ -201,25 +201,14 @@ class MediaFrame(HubsComponent):
     def draw(self, context, layout, panel):
         super().draw(context, layout, panel)
 
-        parents = [context.object]
-        while parents:
-            parent = parents.pop()
-            if parent.scale != V_S1:
-                col = layout.column()
-                col.alert = True
-                col.label(
-                    text="The media-frame object, and its parents' scale need to be [1,1,1]", icon='ERROR')
-
-                break
-
-            if parent.parent:
-                parents.insert(0, parent.parent)
-
-            if hasattr(parent, 'parent_bone') and parent.parent_bone:
-                parents.insert(0, parent.parent.pose.bones[parent.parent_bone])
+        if get_host_or_parents_scaled(context.object):
+            col = layout.column()
+            col.alert = True
+            col.label(
+                text="The media-frame object, and its parents' scale need to be [1,1,1]", icon='ERROR')
 
     @classmethod
-    def gather_import(cls, gltf, blender_host, component_name, component_value, blender_ob=None):
+    def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
         blender_component = import_component(
             component_name, blender_host)
 
@@ -250,3 +239,6 @@ class MediaFrame(HubsComponent):
             else:
                 assign_property(gltf.vnodes, blender_component,
                             property_name, property_value)
+
+        if get_host_or_parents_scaled(blender_host):
+            import_report.append(f"The media-frame {blender_host.name} or one of its parents' scales isn't [1,1,1].  If this file is being imported from Spoke, then you may need to multiply the bounds parameter by the parents' scale before resetting the scale to [1,1,1].")
