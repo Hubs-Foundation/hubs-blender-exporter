@@ -18,13 +18,13 @@ class AudioParams(HubsComponent):
         'display_name': 'Audio Params',
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
-        'version': (1, 0, 0)
+        'version': (1, 0, 1)
     }
 
     overrideAudioSettings: BoolProperty(
         name="Override Audio Settings",
         description="Override Audio Settings",
-        default=True)
+        default=False)
 
     audioType: EnumProperty(
         name="Audio Type",
@@ -118,6 +118,11 @@ class AudioParams(HubsComponent):
                 host_reference = get_host_reference_message(panel_type, host, ob=ob)
                 migration_report.append(
                     f"Warning: The Media Cone angles may not have migrated correctly for the Audio Params component on the {panel_type.value} {host_reference}")
+
+        if instance_version <= (1, 0, 0):
+            if self.get("overrideAudioSettings") is None:
+                migration_occurred = True
+                self.overrideAudioSettings = True
 
         return migration_occurred
 
