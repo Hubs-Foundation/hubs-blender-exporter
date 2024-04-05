@@ -201,12 +201,23 @@ def patched_BlenderNode_create_object(gltf, vnode_id):
 
     if vnode.camera_node_idx is not None:
         parent_vnode = gltf.vnodes[vnode.parent]
-        if parent_vnode.name:
-            node = [n for n in gltf.data.nodes if n.name == parent_vnode.name][0]
+        node = gltf.data.nodes[vnode.parent]
+        if node.name != parent_vnode.name:
+            if parent_vnode.name:
+                print("Falling back to getting the node from the vnode name.")
+                node = [n for n in gltf.data.nodes if n.name == parent_vnode.name][0]
+            else:
+                print("Couldn't find the equivalent node for the vnode.")
+
 
     else:
-        if vnode.name:
-            node = [n for n in gltf.data.nodes if n.name == vnode.name][0]
+        node = gltf.data.nodes[vnode_id]
+        if node.name != vnode.name:
+            if vnode.name:
+                print("Falling back to getting the node from the vnode name.")
+                node = [n for n in gltf.data.nodes if n.name == vnode.name][0]
+            else:
+                print("Couldn't find the equivalent node for the vnode.")
 
     import_hubs_components(node, vnode.blender_object, gltf, blender_ob=vnode.blender_object)
 
