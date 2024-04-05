@@ -644,7 +644,8 @@ class OpenImage(Operator):
         old_img = getattr(self.target, self.target_property)
 
         # Load/Reload the first image and assign it to the target property, then load the rest of the images if they're not already loaded. This mimics Blender's default open files behavior.
-        primary_filepath = os.path.join(self.directory, self.files[0].name)  # self.files is sorted alphabetically by Blender, self.files[0] is the 1. of the selection in alphabetical order
+        # self.files is sorted alphabetically by Blender, self.files[0] is the 1. of the selection in alphabetical order
+        primary_filepath = os.path.join(self.directory, self.files[0].name)
         primary_img = bpy.data.images.load(
             filepath=primary_filepath, check_existing=True)
         primary_img.reload()

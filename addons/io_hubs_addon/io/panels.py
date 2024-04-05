@@ -19,4 +19,3 @@ def unregister_panels():
         bpy.utils.unregister_class(HubsGLTFExportPanel)
     except Exception:
         pass
-

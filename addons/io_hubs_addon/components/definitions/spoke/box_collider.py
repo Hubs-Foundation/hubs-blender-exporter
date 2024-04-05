@@ -1,6 +1,5 @@
 from ...types import NodeType
 from ...hubs_component import HubsComponent
-from ...utils import add_component
 from ....io.utils import assign_property, import_component
 import bpy
 
@@ -17,7 +16,7 @@ class BoxCollider(HubsComponent):
                         "type", 'box')
         assign_property(gltf.vnodes, blender_component,
                         "fit", 'manual')
-        
+
         # These settings don't get applied when set as normal here, so use a timer to set them later.
         def set_half_extents_and_offsets():
             loc, _, scale = blender_host.matrix_world.decompose()

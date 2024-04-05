@@ -42,9 +42,11 @@ def get_component_definitions():
         for name in component_module_names
     ]
 
+
 def get_component_module_name(component_class):
     relative_module_name = component_class.__module__.replace(f"{__package__}.definitions.", "")
     return ".".join(relative_module_name.split(".")[:-1])
+
 
 def register_component(component_class):
     component_module_name = get_component_module_name(component_class)

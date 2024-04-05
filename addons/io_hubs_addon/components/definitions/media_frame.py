@@ -219,14 +219,14 @@ class MediaFrame(HubsComponent):
                 property_value['y'], property_value['z'] = property_value['z'], property_value['y']
 
                 assign_property(gltf.vnodes, blender_component,
-                            property_name, property_value)
+                                property_name, property_value)
 
             elif property_name == 'align':
                 align = {
-                    'x':property_value['x'],
-                    'y':property_value['y'],
-                    'z':property_value['z']
-                    }
+                    'x': property_value['x'],
+                    'y': property_value['y'],
+                    'z': property_value['z']
+                }
                 if gltf_yup:
                     align['y'] = "min" if property_value['z'] == "max" else "max" if property_value['z'] == "min" else property_value['z']
                     align['z'] = property_value['y']
@@ -235,10 +235,10 @@ class MediaFrame(HubsComponent):
                 blender_component.alignY = align['y']
                 blender_component.alignZ = align['z']
 
-
             else:
                 assign_property(gltf.vnodes, blender_component,
-                            property_name, property_value)
+                                property_name, property_value)
 
         if get_host_or_parents_scaled(blender_host):
-            import_report.append(f"The media-frame {blender_host.name} or one of its parents' scales isn't [1,1,1].  If this file is being imported from Spoke, then you may need to multiply the bounds parameter by the parents' scale before resetting the scale to [1,1,1].")
+            import_report.append(
+                f"The media-frame {blender_host.name} or one of its parents' scales isn't [1,1,1].  If this file is being imported from Spoke, then you may need to multiply the bounds parameter by the parents' scale before resetting the scale to [1,1,1].")

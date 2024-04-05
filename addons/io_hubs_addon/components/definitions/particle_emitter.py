@@ -175,4 +175,3 @@ class ParticleEmitter(HubsComponent):
 
             assign_property(gltf.vnodes, blender_component,
                             property_name, property_value)
-

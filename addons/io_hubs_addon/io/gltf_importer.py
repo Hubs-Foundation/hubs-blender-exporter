@@ -39,12 +39,14 @@ def import_hubs_components(gltf_node, blender_host, gltf, blender_ob=None):
                 except Exception:
                     traceback.print_exc()
                     print(f"Failed to import {component_name} component on {blender_host.name} continuing on...")
-                    import_report.append(f"Failed to import {component_name} component on {blender_host.name}.  See the console for details.")
+                    import_report.append(
+                        f"Failed to import {component_name} component on {blender_host.name}.  See the console for details.")
             else:
                 if component_name != "heightfield":
                     # heightfield is a Spoke-only component and not needed in Blender.
                     print(f'Could not import unsupported component "{component_name}"')
-                    import_report.append(f"Could not import unsupported component {component_name} component on {blender_host.name}.")
+                    import_report.append(
+                        f"Could not import unsupported component {component_name} component on {blender_host.name}.")
 
 
 def add_lightmap(gltf_material, blender_mat, gltf):
@@ -101,12 +103,14 @@ def store_bones_for_import(gltf, vnode):
     armatures[vnode.blender_object.name] = {
         'armature': vnode.blender_object, 'gltf_bones': gltf_bones}
 
+
 def show_import_report():
     global import_report
     if not import_report:
         return
 
     title = "Import Report"
+
     def report_import():
         bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title=title, report_string='\n\n'.join(import_report))
     bpy.app.timers.register(report_import)
@@ -209,7 +213,6 @@ def patched_BlenderNode_create_object(gltf, vnode_id):
             else:
                 print("Couldn't find the equivalent node for the vnode.")
 
-
     else:
         node = gltf.data.nodes[vnode_id]
         if node.name != vnode.name:
@@ -221,7 +224,7 @@ def patched_BlenderNode_create_object(gltf, vnode_id):
 
     import_hubs_components(node, vnode.blender_object, gltf, blender_ob=vnode.blender_object)
 
-    # Node hooks are not called for bones. Bones are created together with their armature.
+    #  Node hooks are not called for bones. Bones are created together with their armature.
     # Unfortunately the bones are created after this hook is called so we need to wait until all nodes have been created.
     if vnode.is_arma:
         store_bones_for_import(gltf, vnode)
