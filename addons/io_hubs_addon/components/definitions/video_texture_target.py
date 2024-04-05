@@ -168,4 +168,4 @@ class VideoTextureTarget(HubsComponent):
     @classmethod
     @delayed_gather
     def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
-        super().gather_import(gltf, blender_host, component_name, component_value,  import_report, blender_ob=blender_ob)
+        super().gather_import(gltf, blender_host, component_name, component_value, import_report, blender_ob=blender_ob)
