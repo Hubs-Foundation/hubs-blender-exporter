@@ -8,12 +8,17 @@ process.env['BLENDER_USER_SCRIPTS'] = path.join(process.cwd(), '..');
 const blenderVersions = (() => {
   if (process.platform == 'darwin') {
     return [
-      "/Applications/Blender.app/Contents/MacOS/Blender"
+      ["latest", "/Applications/Blender.app/Contents/MacOS/Blender"]
     ];
   }
   else if (process.platform == 'linux') {
     return [
-      "blender"
+      ["latest", "blender"]
+    ];
+  }
+  else if (process.platform == 'win32') {
+    return [
+      ["latest", 'C:\\Blender\\blender-4.0.0-beta+v40.bbf87ee78c42-windows.amd64-release\\blender.exe']
     ];
   }
 })();
@@ -32,15 +37,15 @@ describe('Exporter', function () {
 
     variants.forEach(function (variant) {
       const args = variant[1];
-      describe(blenderVersion + '_export' + variant[0], function () {
+      describe("blender-" + blenderVersion[0] + '_export' + variant[0], function () {
         blenderSampleScenes.forEach((scene) => {
           it(scene, function (done) {
-            let outDirName = 'out' + blenderVersion + variant[0];
-            let blenderPath = `scenes/${scene}.blend`;
+            let outDirName = 'out' + "blender-" + blenderVersion[0] + variant[0];
+            let blenderPath = path.resolve("scenes", `${scene}.blend`);
             let ext = args.indexOf('--glb') === -1 ? '.gltf' : '.glb';
             let outDirPath = path.resolve(OUT_PREFIX, 'scenes', outDirName);
             let dstPath = path.resolve(outDirPath, `${scene}${ext}`);
-            utils.blenderFileToGltf(blenderVersion, blenderPath, outDirPath, (error) => {
+            utils.blenderFileToGltf(blenderVersion[1], blenderPath, outDirPath, (error) => {
               if (error)
                 return done(error);
 
@@ -50,9 +55,10 @@ describe('Exporter', function () {
         });
       });
     });
+    
 
-    describe(blenderVersion + '_export_results', function () {
-      let outDirName = 'out' + blenderVersion;
+    describe("blender-" + blenderVersion[0] + '_export_results', function () {
+      let outDirName = 'out' + "blender-" + blenderVersion[0];
       let outDirPath = path.resolve(OUT_PREFIX, 'scenes', outDirName);
 
       it('can export link', function () {
