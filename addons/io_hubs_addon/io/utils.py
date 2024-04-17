@@ -187,7 +187,7 @@ def gather_node_property(export_settings, blender_object, target, property_name)
     blender_object = getattr(target, property_name)
 
     if blender_object:
-        if bpy.app.version < (3, 2, 0):
+        if bpy.app.version < (3, 2, 0) or bpy.app.version >= (4, 0, 0):
             node = gltf2_blender_gather_nodes.gather_node(
                 blender_object,
                 blender_object.library.name if blender_object.library else None,

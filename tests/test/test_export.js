@@ -18,7 +18,8 @@ const blenderVersions = (() => {
   }
   else if (process.platform == 'win32') {
     return [
-      ["latest", 'C:\\Blender\\blender-4.0.0-beta+v40.bbf87ee78c42-windows.amd64-release\\blender.exe']
+      ["latest", 'C:\\Program Files\\Blender Foundation\\Blender 4.0\\blender.exe']
+      //["latest", 'C:\\Program Files\\Blender Foundation\\Blender 3.6\\blender.exe']
     ];
   }
 })();
