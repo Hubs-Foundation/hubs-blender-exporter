@@ -4,7 +4,9 @@ from bpy.props import StringProperty, CollectionProperty, IntProperty, EnumPrope
 from bpy.types import PropertyGroup, Menu, Operator
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
+from ...io.utils import import_component, assign_property
 from ..utils import redraw_component_ui, get_host_reference_message
+from ...utils import delayed_gather
 
 msgbus_owners = []
 
@@ -359,6 +361,34 @@ def get_animation_name(ob, track):
             track.track_name) else track.action_name
     else:
         return track.name
+
+
+def import_tracks(tracks, ob, component):
+    for track_name in tracks:
+        try:
+            nla_track = ob.animation_data.nla_tracks[track_name]
+            track_type = "object"
+        except (AttributeError, KeyError):
+            try:
+                nla_track = ob.data.shape_keys.animation_data.nla_tracks[track_name]
+                track_type = "shape_key"
+            except (AttributeError, KeyError):
+                track = component.tracks_list.add()
+                track.name = track_name
+                continue
+
+        if not has_track(component.tracks_list, nla_track):
+            track = component.tracks_list.add()
+            strip_name = get_strip_name(nla_track)
+            action_name = get_action_name(nla_track)
+            track.name = get_display_name(
+                nla_track.name, strip_name)
+            track.track_name = nla_track.name
+            track.strip_name = strip_name if is_default_name(
+                nla_track.name) else ''
+            track.action_name = action_name if is_default_name(
+                nla_track.name) else ''
+            track.track_type = track_type
 
 
 class TracksList(bpy.types.UIList):
@@ -836,6 +866,20 @@ class LoopAnimation(HubsComponent):
             bpy.app.handlers.redo_post.remove(undo_redo_post)
 
         unregister_msgbus()
+
+    @classmethod
+    @delayed_gather
+    def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
+        blender_component = import_component(
+            component_name, blender_host)
+
+        for property_name, property_value in component_value.items():
+            if property_name == 'clip' and property_value != "":
+                tracks = property_value.split(",")
+                import_tracks(tracks, blender_ob, blender_component)
+            else:
+                assign_property(gltf.vnodes, blender_component,
+                                property_name, property_value)
 
     def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
         migration_occurred = False

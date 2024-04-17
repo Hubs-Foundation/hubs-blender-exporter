@@ -187,6 +187,9 @@ def depsgraph_update_post(dummy):
                 edited_objects = set(window.view_layer.objects.selected)
                 edited_objects.add(active_object)
                 for ob in edited_objects:
+                    if ob.type != 'ARMATURE':
+                        # edited/selected objects can include objects other armatures.
+                        continue
                     if len(ob.data.edit_bones) != ob.data.hubs_old_bones_length:
                         do_gizmo_update = True
                         ob.data.hubs_old_bones_length = len(ob.data.edit_bones)

@@ -1,13 +1,9 @@
 import bpy
+from .utils import HUBS_CONFIG
 from bpy.props import PointerProperty
 from ..components.components_registry import get_components_registry
 from ..components.utils import get_host_components
 import traceback
-
-hubs_config = {
-    "gltfExtensionName": "MOZ_hubs_components",
-    "gltfExtensionVersion": 4,
-}
 
 if bpy.app.version < (3, 0, 0):
     from io_scene_gltf2.io.exp.gltf2_io_user_extensions import export_user_extensions
@@ -23,6 +19,10 @@ def patched_gather_gltf(exporter, export_settings):
     export_user_extensions('hubs_gather_gltf_hook',
                            export_settings, exporter._GlTF2Exporter__gltf)
     exporter._GlTF2Exporter__traverse(exporter._GlTF2Exporter__gltf.extensions)
+
+
+EXTENSION_NAME = HUBS_CONFIG["gltfExtensionName"]
+EXTENSION_VERSION = HUBS_CONFIG["gltfExtensionVersion"]
 
 
 def get_version_string():
@@ -117,11 +117,11 @@ class glTF2ExportUserExtension:
         if not self.properties.enabled or not self.was_used:
             return
 
-        extension_name = hubs_config["gltfExtensionName"]
+        extension_name = EXTENSION_NAME
         gltf2_object.extensions[extension_name] = self.Extension(
             name=extension_name,
             extension={
-                "version": hubs_config["gltfExtensionVersion"],
+                "version": EXTENSION_VERSION,
                 "exporterVersion": get_version_string()
             },
             required=False
@@ -131,6 +131,7 @@ class glTF2ExportUserExtension:
             gltf2_object.asset.extras = {}
         gltf2_object.asset.extras["HUBS_blenderExporterVersion"] = get_version_string(
         )
+        gltf2_object.asset.extras["gltf_yup"] = export_settings['gltf_yup']
 
     def gather_gltf_extensions_hook(self, gltf2_plan, export_settings):
         self.hubs_gather_gltf_hook(gltf2_plan, export_settings)
@@ -139,20 +140,20 @@ class glTF2ExportUserExtension:
         if not self.properties.enabled:
             return
 
-        self.add_hubs_components(gltf2_object, blender_scene, export_settings)
+        self.export_hubs_components(gltf2_object, blender_scene, export_settings)
         self.call_delayed_gathers()
 
     def gather_node_hook(self, gltf2_object, blender_object, export_settings):
         if not self.properties.enabled:
             return
 
-        self.add_hubs_components(gltf2_object, blender_object, export_settings)
+        self.export_hubs_components(gltf2_object, blender_object, export_settings)
 
     def gather_material_hook(self, gltf2_object, blender_material, export_settings):
         if not self.properties.enabled:
             return
 
-        self.add_hubs_components(
+        self.export_hubs_components(
             gltf2_object, blender_material, export_settings)
 
         from .utils import gather_lightmap_texture_info
@@ -173,7 +174,7 @@ class glTF2ExportUserExtension:
     def gather_joint_hook(self, gltf2_object, blender_pose_bone, export_settings):
         if not self.properties.enabled:
             return
-        self.add_hubs_components(
+        self.export_hubs_components(
             gltf2_object, blender_pose_bone.bone, export_settings)
 
     def call_delayed_gathers(self):
@@ -182,13 +183,13 @@ class glTF2ExportUserExtension:
             component_data[component_name] = gather()
         self.delayed_gathers.clear()
 
-    def add_hubs_components(self, gltf2_object, blender_object, export_settings):
+    def export_hubs_components(self, gltf2_object, blender_object, export_settings):
         component_list = blender_object.hubs_component_list
 
         registered_hubs_components = get_components_registry()
 
         if component_list.items:
-            extension_name = hubs_config["gltfExtensionName"]
+            extension_name = EXTENSION_NAME
             component_data = {}
 
             for component_item in component_list.items:
@@ -257,28 +258,9 @@ class HubsGLTFExportPanel(bpy.types.Panel):
         box = layout.box()
         box.label(text="No options yet")
 
-# called by gltf-blender-io after it has loaded
-
-
-def register_export_panel():
-    try:
-        bpy.utils.register_class(HubsGLTFExportPanel)
-    except Exception:
-        pass
-    return unregister_export_panel
-
-
-def unregister_export_panel():
-    # Since panel is registered on demand, it is possible it is not registered
-    try:
-        bpy.utils.unregister_class(HubsGLTFExportPanel)
-    except Exception:
-        pass
-
 
 def register():
-    print("Register GLTF Exporter")
-    register_export_panel()
+    print("Register glTF Exporter")
     if bpy.app.version < (3, 0, 0):
         gltf2_blender_export.__gather_gltf = patched_gather_gltf
     bpy.utils.register_class(HubsComponentsExtensionProperties)
@@ -288,11 +270,9 @@ def register():
 
 
 def unregister():
-    print("Unregister GLTF Exporter")
-    unregister_export_panel()
+    print("Unregister glTF Exporter")
     del bpy.types.Scene.HubsComponentsExtensionProperties
     bpy.utils.unregister_class(HubsComponentsExtensionProperties)
     if bpy.app.version < (3, 0, 0):
         gltf2_blender_export.__gather_gltf = orig_gather_gltf
-    unregister_export_panel()
     glTF2ExportUserExtension.remove_excluded_property("HubsComponentsExtensionProperties")

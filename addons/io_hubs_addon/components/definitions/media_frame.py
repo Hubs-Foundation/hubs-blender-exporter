@@ -5,9 +5,10 @@ from ..gizmos import bone_matrix_world
 from ..models import box
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType, MigrationType
-from ..utils import V_S1, is_linked, get_host_reference_message
+from ..utils import get_host_or_parents_scaled, is_linked, get_host_reference_message
 from .networked import migrate_networked
 from mathutils import Matrix, Vector
+from ...io.utils import import_component, assign_property
 
 
 def is_bone(ob):
@@ -200,19 +201,44 @@ class MediaFrame(HubsComponent):
     def draw(self, context, layout, panel):
         super().draw(context, layout, panel)
 
-        parents = [context.object]
-        while parents:
-            parent = parents.pop()
-            if parent.scale != V_S1:
-                col = layout.column()
-                col.alert = True
-                col.label(
-                    text="The media-frame object, and its parents' scale need to be [1,1,1]", icon='ERROR')
+        if get_host_or_parents_scaled(context.object):
+            col = layout.column()
+            col.alert = True
+            col.label(
+                text="The media-frame object, and its parents' scale need to be [1,1,1]", icon='ERROR')
 
-                break
+    @classmethod
+    def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
+        blender_component = import_component(
+            component_name, blender_host)
 
-            if parent.parent:
-                parents.insert(0, parent.parent)
+        gltf_yup = gltf.import_settings.get('gltf_yup', True)
 
-            if hasattr(parent, 'parent_bone') and parent.parent_bone:
-                parents.insert(0, parent.parent.pose.bones[parent.parent_bone])
+        for property_name, property_value in component_value.items():
+            if property_name == 'bounds' and gltf_yup:
+                property_value['y'], property_value['z'] = property_value['z'], property_value['y']
+
+                assign_property(gltf.vnodes, blender_component,
+                                property_name, property_value)
+
+            elif property_name == 'align':
+                align = {
+                    'x': property_value['x'],
+                    'y': property_value['y'],
+                    'z': property_value['z']
+                }
+                if gltf_yup:
+                    align['y'] = "min" if property_value['z'] == "max" else "max" if property_value['z'] == "min" else property_value['z']
+                    align['z'] = property_value['y']
+
+                blender_component.alignX = align['x']
+                blender_component.alignY = align['y']
+                blender_component.alignZ = align['z']
+
+            else:
+                assign_property(gltf.vnodes, blender_component,
+                                property_name, property_value)
+
+        if get_host_or_parents_scaled(blender_host):
+            import_report.append(
+                f"The media-frame {blender_host.name} or one of its parents' scales isn't [1,1,1].  If this file is being imported from Spoke, then you may need to multiply the bounds parameter by the parents' scale before resetting the scale to [1,1,1].")

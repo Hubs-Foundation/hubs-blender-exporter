@@ -43,8 +43,17 @@ def get_component_definitions():
     ]
 
 
+def get_component_module_name(component_class):
+    relative_module_name = component_class.__module__.replace(f"{__package__}.definitions.", "")
+    return ".".join(relative_module_name.split(".")[:-1])
+
+
 def register_component(component_class):
-    print("Registering component: " + component_class.get_name())
+    component_module_name = get_component_module_name(component_class)
+    if component_module_name:
+        print(f"Registering component: {component_module_name} - {component_class.get_name()}")
+    else:
+        print(f"Registering component: {component_class.get_name()}")
     bpy.utils.register_class(component_class)
 
     component_id = component_class.get_id()
@@ -97,7 +106,11 @@ def unregister_component(component_class):
     from ..io.gltf_exporter import glTF2ExportUserExtension
     glTF2ExportUserExtension.remove_excluded_property(component_class.get_id())
 
-    print("Component unregistered: " + component_class.get_name())
+    component_module_name = get_component_module_name(component_class)
+    if component_module_name:
+        print(f"Component unregistered: {component_module_name} - {component_class.get_name()}")
+    else:
+        print(f"Component unregistered: {component_class.get_name()}")
 
 
 def load_components_registry():

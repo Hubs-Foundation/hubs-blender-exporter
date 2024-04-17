@@ -1,11 +1,12 @@
 from bpy.types import PropertyGroup
 from bpy.props import IntVectorProperty
 from .types import Category, PanelType, NodeType
+from ..io.utils import import_component, assign_property
 
 
 class HubsComponent(PropertyGroup):
     _definition = {
-        # The name that will be used in the GLTF file MOZ_hubs_components object when exporting the component.
+        # The name that will be used in the glTF file MOZ_hubs_components object when exporting the component.
         'name': 'template',
         # Name to be used in the panels, if not set the component name will be used
         'display_name': 'Hubs Component Template',
@@ -118,6 +119,13 @@ class HubsComponent(PropertyGroup):
         '''This is called by the exporter and will return all the component properties by default'''
         from ..io.utils import gather_properties
         return gather_properties(export_settings, object, self)
+
+    @classmethod
+    def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
+        component = import_component(component_name, blender_host)
+        for property_name, property_value in component_value.items():
+            assign_property(gltf.vnodes, component,
+                            property_name, property_value)
 
     def post_export(self, export_settings, host, ob=None):
         '''This is called by the exporter after the export process has finished'''

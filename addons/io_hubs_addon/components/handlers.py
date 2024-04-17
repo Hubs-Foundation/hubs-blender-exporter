@@ -391,7 +391,8 @@ def register():
     if load_post not in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.append(load_post)
 
-    if undo_stack_handler not in bpy.app.handlers.depsgraph_update_post:
+    # Calling undo_stack_handler in background mode causes a segmentation fault so we skip in that mode.
+    if undo_stack_handler not in bpy.app.handlers.depsgraph_update_post and not bpy.app.background:
         bpy.app.handlers.depsgraph_update_post.append(undo_stack_handler)
 
     bpy.types.TOPBAR_HT_upper_bar.append(scene_and_view_layer_update_notifier)
@@ -405,7 +406,7 @@ def unregister():
     if load_post in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.remove(load_post)
 
-    if undo_stack_handler in bpy.app.handlers.depsgraph_update_post:
+    if undo_stack_handler in bpy.app.handlers.depsgraph_update_post and not bpy.app.background:
         bpy.app.handlers.depsgraph_update_post.remove(undo_stack_handler)
 
     bpy.types.TOPBAR_HT_upper_bar.remove(scene_and_view_layer_update_notifier)

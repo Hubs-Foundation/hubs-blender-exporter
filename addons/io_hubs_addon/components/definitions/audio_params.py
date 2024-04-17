@@ -4,6 +4,7 @@ from ..hubs_component import HubsComponent
 from ..types import PanelType, NodeType, MigrationType
 from ..utils import is_linked, get_host_reference_message
 from ..consts import DISTANCE_MODELS, MAX_ANGLE
+from ...io.utils import assign_property
 from math import degrees, radians
 
 AUDIO_TYPES = [("pannernode", "Positional audio (pannernode)",
@@ -137,3 +138,13 @@ class AudioParams(HubsComponent):
             layout.prop(data=self, property="coneInnerAngle")
             layout.prop(data=self, property="coneOuterAngle")
             layout.prop(data=self, property="coneOuterGain")
+
+    @classmethod
+    def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
+        component = blender_host.hubs_component_audio_params
+        component.overrideAudioSettings = True
+        for property_name, property_value in component_value.items():
+            if property_name in ['coneInnerAngle', 'coneOuterAngle']:
+                property_value = radians(property_value)
+            assign_property(gltf.vnodes, component,
+                            property_name, property_value)
