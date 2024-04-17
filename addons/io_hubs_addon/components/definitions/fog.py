@@ -15,8 +15,9 @@ class Fog(HubsComponent):
     }
 
     def draw(self, context, layout, panel):
-        '''Draw method to be called by the panel. The base class method will print all the component properties'''
+        '''Draw method to be called by the panel.'''
         layout.prop(data=self, property="type")
+        layout.prop(data=self, property="color")
         if self.type == "linear":
             layout.prop(data=self, property="near")
             layout.prop(data=self, property="far")
