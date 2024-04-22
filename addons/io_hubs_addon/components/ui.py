@@ -141,6 +141,18 @@ class HubsObjectPanel(bpy.types.Panel):
     def draw(self, context):
         draw_components_list(self, context)
 
+class HubsObjectLightmapPanel(bpy.types.Panel):
+    bl_label = "Hubs Lightmap Baker"
+    bl_idname = "OBJECT_PT_hubs_lightmap_baker"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "object"
+
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.operator("object.bake_lightmaps", text="Bake Lightmaps of selected objects")
+
 
 class HUBS_PT_ToolsPanel(bpy.types.Panel):
     bl_idname = "HUBS_PT_ToolsPanel"
@@ -230,6 +242,7 @@ def register():
     bpy.utils.register_class(HubsBonePanel)
     bpy.utils.register_class(TooltipLabel)
     bpy.utils.register_class(HUBS_PT_ToolsPanel)
+    bpy.utils.register_class(HubsObjectLightmapPanel)
 
     bpy.types.TOPBAR_MT_window.append(window_menu_addition)
     bpy.types.VIEW3D_MT_object.append(object_menu_addition)
@@ -243,6 +256,7 @@ def unregister():
     bpy.utils.unregister_class(HubsBonePanel)
     bpy.utils.unregister_class(TooltipLabel)
     bpy.utils.unregister_class(HUBS_PT_ToolsPanel)
+    bpy.utils.unregister_class(HubsObjectLightmapPanel)
 
     bpy.types.TOPBAR_MT_window.remove(window_menu_addition)
     bpy.types.VIEW3D_MT_object.remove(object_menu_addition)
