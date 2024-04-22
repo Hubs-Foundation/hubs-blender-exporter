@@ -61,6 +61,10 @@ class AudioZone(HubsComponent):
 
         return gizmo
 
+    @classmethod
+    def init(cls, obj):
+        obj.hubs_component_audio_params.overrideAudioSettings = True
+
     def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
         migration_occurred = False
         if instance_version < (1, 0, 0):

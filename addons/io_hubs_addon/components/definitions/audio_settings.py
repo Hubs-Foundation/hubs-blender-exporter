@@ -4,6 +4,7 @@ from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType, MigrationType
 from ..utils import is_linked
 from ..consts import DISTANCE_MODELS, MAX_ANGLE
+from ...io.utils import import_component, assign_property
 from math import degrees, radians
 
 
@@ -128,3 +129,12 @@ class AudioSettings(HubsComponent):
                     f"Warning: The Media Cone angles may not have migrated correctly for the Audio Settings component on scene \"{host.name_full}\"")
 
         return migration_occurred
+
+    @classmethod
+    def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
+        component = import_component(component_name, blender_host)
+        for property_name, property_value in component_value.items():
+            if property_name in ['mediaConeInnerAngle', 'mediaConeOuterAngle']:
+                property_value = radians(property_value)
+            assign_property(gltf.vnodes, component,
+                            property_name, property_value)

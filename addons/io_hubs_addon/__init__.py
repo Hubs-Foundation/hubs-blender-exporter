@@ -2,7 +2,7 @@ from .utils import create_prefs_dir
 from .utils import get_user_python_path
 import sys
 import bpy
-from .io import gltf_exporter
+from .io import gltf_exporter, gltf_importer, panels
 from . import (nodes, components)
 from . import preferences
 from . import third_party
@@ -11,9 +11,9 @@ from . import icons
 bl_info = {
     "name": "Hubs Blender Addon",
     "author": "Mozilla Hubs",
-    "description": "Tools for developing GLTF assets for Mozilla Hubs",
+    "description": "Tools for developing glTF assets for Mozilla Hubs",
     "blender": (3, 1, 2),
-    "version": (1, 4, 0, "dev_build"),
+    "version": (1, 5, 0, "dev_build"),
     "location": "",
     "wiki_url": "https://github.com/MozillaReality/hubs-blender-exporter",
     "tracker_url": "https://github.com/MozillaReality/hubs-blender-exporter/issues",
@@ -32,7 +32,9 @@ def register():
     preferences.register()
     nodes.register()
     components.register()
+    gltf_importer.register()
     gltf_exporter.register()
+    panels.register_panels()
     third_party.register()
     debugger.register()
 
@@ -47,7 +49,9 @@ def register():
 
 def unregister():
     third_party.unregister()
+    panels.unregister_panels()
     gltf_exporter.unregister()
+    gltf_importer.unregister()
     components.unregister()
     nodes.unregister()
     preferences.unregister()
@@ -61,7 +65,9 @@ def unregister():
 glTF2ExportUserExtension = gltf_exporter.glTF2ExportUserExtension
 glTF2_pre_export_callback = gltf_exporter.glTF2_pre_export_callback
 glTF2_post_export_callback = gltf_exporter.glTF2_post_export_callback
+if bpy.app.version > (3, 0, 0):
+    glTF2ImportUserExtension = gltf_importer.glTF2ImportUserExtension
 
 
 def register_panel():
-    return gltf_exporter.register_export_panel()
+    return panels.register_panels()

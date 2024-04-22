@@ -4,6 +4,7 @@ from ..hubs_component import HubsComponent
 from ..types import PanelType, NodeType, MigrationType
 from ..utils import is_linked, get_host_reference_message
 from ..consts import DISTANCE_MODELS, MAX_ANGLE
+from ...io.utils import assign_property
 from math import degrees, radians
 
 AUDIO_TYPES = [("pannernode", "Positional audio (pannernode)",
@@ -18,13 +19,13 @@ class AudioParams(HubsComponent):
         'display_name': 'Audio Params',
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
-        'version': (1, 0, 0)
+        'version': (1, 0, 1)
     }
 
     overrideAudioSettings: BoolProperty(
         name="Override Audio Settings",
         description="Override Audio Settings",
-        default=True)
+        default=False)
 
     audioType: EnumProperty(
         name="Audio Type",
@@ -119,6 +120,11 @@ class AudioParams(HubsComponent):
                 migration_report.append(
                     f"Warning: The Media Cone angles may not have migrated correctly for the Audio Params component on the {panel_type.value} {host_reference}")
 
+        if instance_version <= (1, 0, 0):
+            if self.get("overrideAudioSettings") is None:
+                migration_occurred = True
+                self.overrideAudioSettings = True
+
         return migration_occurred
 
     def draw(self, context, layout, panel):
@@ -137,3 +143,13 @@ class AudioParams(HubsComponent):
             layout.prop(data=self, property="coneInnerAngle")
             layout.prop(data=self, property="coneOuterAngle")
             layout.prop(data=self, property="coneOuterGain")
+
+    @classmethod
+    def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
+        component = blender_host.hubs_component_audio_params
+        component.overrideAudioSettings = True
+        for property_name, property_value in component_value.items():
+            if property_name in ['coneInnerAngle', 'coneOuterAngle']:
+                property_value = radians(property_value)
+            assign_property(gltf.vnodes, component,
+                            property_name, property_value)

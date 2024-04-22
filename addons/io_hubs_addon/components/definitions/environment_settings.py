@@ -4,6 +4,8 @@ from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ..utils import is_linked
 from ..ui import add_link_indicator
+from ...io.utils import import_component, assign_property
+import bpy
 
 
 TOME_MAPPING = [("NoToneMapping", "None", "No tone mapping"),
@@ -161,3 +163,16 @@ class EnvironmentSettings(HubsComponent):
                 }
 
         return output
+
+    @classmethod
+    def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
+        component = import_component(component_name, blender_host)
+        for property_name, property_value in component_value.items():
+            if property_name == "bloom":
+                for subproperty_name, subproperty_value in property_value.items():
+                    assign_property(gltf.vnodes, component,
+                                    f"bloom{subproperty_name.capitalize()}",
+                                    subproperty_value)
+            else:
+                assign_property(gltf.vnodes, component,
+                                property_name, property_value)

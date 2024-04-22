@@ -90,7 +90,7 @@ function materialWithName(gltf, name) {
   };
 }
 
-exports.utils = {
+module.exports = {
   UUID_REGEX,
   blenderFileToGltf,
   blenderRoundtripGltf,

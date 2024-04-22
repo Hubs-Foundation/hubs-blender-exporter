@@ -1,6 +1,10 @@
 from bpy.props import FloatProperty, EnumProperty, FloatVectorProperty, StringProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
+from ...io.utils import gather_property, assign_property, import_component
+
+SPOKE_PROPS_TO_FIX = ['outlineBlur', 'outlineOffsetX',
+                      'outlineOffsetY', 'outlineWidth', 'strokeWidth']
 
 
 class Text(HubsComponent):
@@ -11,7 +15,7 @@ class Text(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'FONT_DATA',
-        'version': (1, 0, 0)
+        'version': (1, 1, 0)
     }
 
     value: StringProperty(
@@ -69,6 +73,16 @@ class Text(HubsComponent):
         description="Sets a uniform adjustment to spacing between letters after kerning is applied, in local meters. Positive numbers increase spacing and negative numbers decrease it",
         unit='LENGTH',
         default=0.0)
+
+    clipRectMin: FloatVectorProperty(
+        name="Clip Rect Min",
+        description="This defines the X and Y coordinate of the bottom left corner of a rectangle outside of which you won't be able to see that part of the text anymore. Setting all the Clip Rect values to zero disables",
+        subtype='XYZ', size=2, default=(0.0, 0.0))
+
+    clipRectMax: FloatVectorProperty(
+        name="Clip Rect Max",
+        description="This defines the X and Y coordinate of the top right corner of a rectangle outside of which you won't be able to see that part of the text anymore. Setting all the Clip Rect values to zero disables",
+        subtype='XYZ', size=2, default=(0.0, 0.0))
 
     lineHeight: FloatProperty(
         name="Line Height",
@@ -186,3 +200,43 @@ class Text(HubsComponent):
                ("ltr", "Left to Right", "Order text left to right"),
                ("rtl", "Right to Left", "Order text right to left")],
         default="auto")
+
+    def gather(self, export_settings, object):
+        component_json = {}
+        clipRect = None
+
+        for key in self.get_properties():
+            if key in ["clipRectMin", "clipRectMax"]:
+                if clipRect is None and list(self.clipRectMin) + list(self.clipRectMax) != [0, 0, 0, 0]:
+                    clipRect = [
+                        self.clipRectMin.x,
+                        self.clipRectMin.y,
+                        self.clipRectMax.x,
+                        self.clipRectMax.y
+                    ]
+
+                component_json["clipRect"] = clipRect
+                continue
+
+            component_json[key] = gather_property(
+                export_settings, object, self, key)
+
+        return component_json
+
+    @classmethod
+    def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
+        blender_component = import_component(component_name, blender_host)
+
+        for property_name, property_value in component_value.items():
+            if property_name == "clipRect":
+                if property_value:
+                    blender_component.clipRectMin = (property_value[0], property_value[1])
+                    blender_component.clipRectMax = (property_value[2], property_value[3])
+                continue
+
+            if property_name in SPOKE_PROPS_TO_FIX:
+                if type(property_value) == int or type(property_value) == float:
+                    property_value = str(property_value)
+
+            assign_property(gltf.vnodes, blender_component,
+                            property_name, property_value)

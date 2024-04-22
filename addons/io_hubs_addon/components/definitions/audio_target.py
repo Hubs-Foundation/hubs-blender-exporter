@@ -122,6 +122,10 @@ class AudioTarget(HubsComponent):
         description="Show debug visuals",
         default=False)
 
+    @classmethod
+    def init(cls, obj):
+        obj.hubs_component_audio_params.overrideAudioSettings = True
+
     def draw(self, context, layout, panel):
         dep_name = AudioSource.get_name()
 

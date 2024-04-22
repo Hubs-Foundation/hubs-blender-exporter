@@ -14,8 +14,17 @@ from io_scene_gltf2.io.com import gltf2_io_extensions
 from io_scene_gltf2.io.com import gltf2_io
 from io_scene_gltf2.io.exp import gltf2_io_binary_data
 from io_scene_gltf2.io.exp import gltf2_io_image_data
+from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
 from typing import Optional, Tuple, Union
 from ..nodes.lightmap import MozLightmapNode
+import re
+
+HUBS_CONFIG = {
+    "gltfExtensionName": "MOZ_hubs_components",
+    "gltfExtensionVersion": 4,
+}
+
+imported_images = {}
 
 # gather_texture/image with HDR support via MOZ_texture_rgbe
 
@@ -304,6 +313,14 @@ def gather_texture_property(export_settings, blender_object, target, property_na
         return None
 
 
+def srgb2lin(s):
+    if s <= 0.0404482362771082:
+        lin = s / 12.92
+    else:
+        lin = pow(((s + 0.055) / 1.055), 2.4)
+    return lin
+
+
 def lin2srgb(lin):
     if lin > 0.0031308:
         s = 1.055 * (pow(lin, (1.0 / 2.4))) - 0.055
@@ -316,6 +333,7 @@ def gather_color_property(export_settings, object, component, property_name, col
     c = list(getattr(component, property_name))
 
     # Blender stores colors in linear space for subtype COLOR and sRGB for COLOR_GAMMA
+    # Hubs expects colors in the glTF components to be in sRGB so we convert them here if needed.
     if color_type == "COLOR":
         c[0] = lin2srgb(c[0])
         c[1] = lin2srgb(c[1])
@@ -326,6 +344,7 @@ def gather_color_property(export_settings, object, component, property_name, col
     c[2] = max(0, min(int(c[2] * 256.0), 255))
 
     return "#{0:02x}{1:02x}{2:02x}".format(c[0], c[1], c[2], 255)
+
 
 # MOZ_lightmap extension data
 
@@ -368,3 +387,94 @@ def gather_lightmap_texture_info(blender_material, export_settings):
         "index": texture_info.index,
         "texCoord": texture_info.tex_coord
     }
+
+
+def import_image(gltf, gltf_texture):
+    texture_extensions = gltf_texture.extensions
+    if texture_extensions and texture_extensions.get('MOZ_texture_rgbe'):
+        source = gltf_texture.extensions['MOZ_texture_rgbe']['source']
+    else:
+        source = gltf_texture.source
+
+    BlenderImage.create(
+        gltf, source)
+    pyimg = gltf.data.images[source]
+    blender_image_name = pyimg.blender_image_name
+    blender_image = bpy.data.images[blender_image_name]
+    if pyimg.mime_type == "image/vnd.radiance":
+        if bpy.app.version < (4, 0, 0):
+            blender_image.colorspace_settings.name = "Linear"
+        else:
+            blender_image.colorspace_settings.name = "Linear Rec.709"
+
+    return blender_image_name, source
+
+
+def import_all_images(gltf):
+    global imported_images
+    imported_images.clear()
+
+    if not gltf.data.textures:
+        return
+
+    for gltf_texture in gltf.data.textures:
+        blender_image_name, source = import_image(gltf, gltf_texture)
+        imported_images[source] = blender_image_name
+
+
+def import_component(component_name, blender_object):
+    from ..components.utils import add_component, has_component
+    from ..components.components_registry import get_component_by_name
+    component_class = get_component_by_name(component_name)
+    if component_class:
+        if not has_component(blender_object, component_name):
+            add_component(blender_object, component_name)
+
+    return getattr(blender_object, component_class.get_id())
+
+
+def set_color_from_hex(blender_component, property_name, hexcolor):
+    hexcolor = hexcolor.lstrip('#')
+    rgb_int = [int(hexcolor[i:i + 2], 16) for i in (0, 2, 4)]
+
+    for x, value in enumerate(rgb_int):
+        rgb_float = value / 255 if value > 0 else 0
+        if blender_component.bl_rna.properties[property_name].subtype == 'COLOR':
+            # Blender stores colors in linear space for subtype COLOR and sRGB for COLOR_GAMMA
+            # Colors in the glTF components are in sRGB so we convert them here if needed.
+            rgb_float = srgb2lin(rgb_float)
+        getattr(blender_component, property_name)[x] = rgb_float
+
+
+def assign_property(vnodes, blender_component, property_name, property_value):
+    if isinstance(property_value, dict):
+        if property_value.get('__mhc_link_type'):
+            if len(property_value) == 2:
+                if property_value['__mhc_link_type'] == "node":
+                    try:
+                        setattr(blender_component, property_name,
+                                vnodes[property_value['index']].blender_object)
+                    except AttributeError:
+                        # Assume that the target is a bone
+                        bone_vnode = vnodes[property_value['index']]
+                        armature_vnode = vnodes[bone_vnode.bone_arma]
+                        setattr(blender_component, property_name,
+                                armature_vnode.blender_object)
+                        setattr(blender_component, "bone",
+                                bone_vnode.blender_bone_name)
+                elif property_value['__mhc_link_type'] == "texture":
+                    global imported_images
+                    blender_image_name = imported_images[property_value['index']]
+                    blender_image = bpy.data.images[blender_image_name]
+                    setattr(blender_component, property_name, blender_image)
+
+        else:
+            blender_subcomponent = getattr(blender_component, property_name)
+            for x, subproperty_value in enumerate(property_value.values()):
+                blender_subcomponent[x] = subproperty_value
+
+    elif re.fullmatch("#[0-9a-fA-F]*", str(property_value)):
+        set_color_from_hex(blender_component, property_name, property_value)
+
+    else:
+        setattr(blender_component, property_name, property_value)

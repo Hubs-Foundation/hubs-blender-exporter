@@ -1,7 +1,7 @@
 from bpy.props import FloatProperty, EnumProperty, FloatVectorProperty, BoolProperty
 from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
-from ..utils import V_S1
+from ..utils import get_host_or_parents_scaled
 
 
 class AmmoShape(HubsComponent):
@@ -71,19 +71,8 @@ class AmmoShape(HubsComponent):
     def draw(self, context, layout, panel):
         super().draw(context, layout, panel)
 
-        parents = [context.object]
-        while parents:
-            parent = parents.pop()
-            if parent.scale != V_S1:
-                col = layout.column()
-                col.alert = True
-                col.label(
-                    text="The ammo-shape object, and its parents' scale need to be [1,1,1]", icon='ERROR')
-
-                break
-
-            if parent.parent:
-                parents.insert(0, parent.parent)
-
-            if hasattr(parent, 'parent_bone') and parent.parent_bone:
-                parents.insert(0, parent.parent.pose.bones[parent.parent_bone])
+        if get_host_or_parents_scaled(context.object):
+            col = layout.column()
+            col.alert = True
+            col.label(
+                text="The ammo-shape object, and its parents' scale need to be [1,1,1]", icon='ERROR')
