@@ -1,13 +1,13 @@
-from bpy.props import FloatProperty, EnumProperty, FloatVectorProperty, BoolProperty
+from bpy.props import BoolProperty, FloatProperty, EnumProperty, FloatVectorProperty
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType, NodeType
-from ..utils import get_host_or_parents_scaled
+from ..types import NodeType, PanelType, Category
 
 
-class AmmoShape(HubsComponent):
+class PhysicsShape(HubsComponent):
     _definition = {
-        'name': 'ammo-shape',
-        'display_name': 'Ammo Shape',
+        'name': 'physics-shape',
+        'display_name': 'Physics Shape',
+        'category': Category.OBJECT,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'SCENE_DATA',
@@ -24,12 +24,11 @@ class AmmoShape(HubsComponent):
                 "A shape made of the actual vertices of the object. This can be expensive for large meshes")],
         default="hull")
 
-    #  TODO Add conditional UI to show only the required properties per type
     fit: EnumProperty(
-        name="Shape Fitting Mode",
+        name="Fit Mode",
         description="Shape fitting mode",
         items=[("all", "Automatic fit all", "Automatically match the shape to fit the object's vertices"),
-               ("manual", "Manual fit", "Use the manually specified dimensions to define the shape, ignoring the object's vertices")],
+               ("manual", "Manual", "Use the manually specified dimensions to define the shape, ignoring the object's vertices")],
         default="all")
 
     halfExtents: FloatVectorProperty(
@@ -68,10 +67,22 @@ class AmmoShape(HubsComponent):
         default=False)
 
     def draw(self, context, layout, panel):
-        super().draw(context, layout, panel)
+        layout.prop(self, "type")
+        layout.prop(self, "fit")
+        if self.fit == "manual":
+            if self.type == "box":
+                layout.prop(self, "halfExtents")
+            elif self.type == "sphere":
+                layout.prop(self, "sphereRadius")
+        else:
+            if self.type == "box":
+                layout.prop(self, "minHalfExtent")
+                layout.prop(self, "maxHalfExtent")
+            layout.prop(self, "includeInvisible")
+        layout.prop(self, "offset")
 
-        if get_host_or_parents_scaled(context.object):
+        if self.fit == "manual" and (self.type == "mesh" or self.type == "hull"):
             col = layout.column()
             col.alert = True
             col.label(
-                text="The ammo-shape object, and its parents' scale need to be [1,1,1]", icon='ERROR')
+                text="'Hull' and 'Mesh' do not support 'manual' fit mode", icon='ERROR')
