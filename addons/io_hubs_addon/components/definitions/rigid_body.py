@@ -107,9 +107,18 @@ class RigidBody(HubsComponent):
         props = super().gather(export_settings, object)
         props['collisionMask'] = [value for i, (value, _label, _desc) in enumerate(
             collision_masks) if self.collisionMask[i]]
+
         # prefer to store as an array for new components
-        props['gravity'] = [v for v in self.gravity]
-        props['angularFactor'] = [v for v in self.angularFactor]
+        props['angularFactor'] = [
+            self.angularFactor[0],
+            self.angularFactor[2] if export_settings['gltf_yup'] else self.angularFactor[1],
+            self.angularFactor[1] if export_settings['gltf_yup'] else self.angularFactor[2],
+        ]
+        props['gravity'] = [
+            self.gravity[0],
+            self.gravity[2] if export_settings['gltf_yup'] else self.gravity[1],
+            self.gravity[1] if export_settings['gltf_yup'] else self.gravity[2],
+        ]
         return props
 
     def draw(self, context, layout, panel):
@@ -139,20 +148,6 @@ class RigidBody(HubsComponent):
     @classmethod
     def init(cls, obj):
         obj.hubs_component_list.items.get('physics-shape').isDependency = True
-
-    def gather(self, export_settings, object):
-        props = super().gather(export_settings, object)
-        props['angularFactor'] = {
-            'x': self.angularFactor[0],
-            'y': self.angularFactor[2] if export_settings['gltf_yup'] else self.angularFactor[1],
-            'z': self.angularFactor[1] if export_settings['gltf_yup'] else self.angularFactor[2],
-        }
-        props['gravity'] = {
-            'x': self.gravity[0],
-            'y': self.gravity[2] if export_settings['gltf_yup'] else self.gravity[1],
-            'z': self.gravity[1] if export_settings['gltf_yup'] else self.gravity[2],
-        }
-        return props
 
     def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
         migration_occurred = False
