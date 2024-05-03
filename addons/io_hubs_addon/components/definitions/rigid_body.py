@@ -1,6 +1,7 @@
 from bpy.props import BoolProperty, FloatProperty, EnumProperty, BoolVectorProperty, FloatVectorProperty
 from ..hubs_component import HubsComponent
 from ..types import NodeType, PanelType, Category
+from mathutils import Vector
 
 
 collision_masks = [
@@ -21,7 +22,7 @@ class RigidBody(HubsComponent):
         'panel_type': [PanelType.OBJECT],
         'icon': 'PHYSICS',
         'deps': ['physics-shape'],
-        'version': (1, 0, 0)
+        'version': (1, 0, 1)
     }
 
     type: EnumProperty(
@@ -138,3 +139,32 @@ class RigidBody(HubsComponent):
     @classmethod
     def init(cls, obj):
         obj.hubs_component_list.items.get('physics-shape').isDependency = True
+
+    def gather(self, export_settings, object):
+        props = super().gather(export_settings, object)
+        props['angularFactor'] = {
+            'x': self.angularFactor[0],
+            'y': self.angularFactor[2] if export_settings['gltf_yup'] else self.angularFactor[1],
+            'z': self.angularFactor[1] if export_settings['gltf_yup'] else self.angularFactor[2],
+        }
+        props['gravity'] = {
+            'x': self.gravity[0],
+            'y': self.gravity[2] if export_settings['gltf_yup'] else self.gravity[1],
+            'z': self.gravity[1] if export_settings['gltf_yup'] else self.gravity[2],
+        }
+        return props
+
+    def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
+        migration_occurred = False
+        if instance_version <= (1, 0, 0):
+            migration_occurred = True
+
+            angularFactor = self.angularFactor.copy()
+            angularFactor = Vector((angularFactor.x, angularFactor.z, angularFactor.y))
+            self.angularFactor = angularFactor
+
+            gravity = self.gravity.copy()
+            gravity = Vector((gravity.x, gravity.z, gravity.y))
+            self.gravity = gravity
+
+        return migration_occurred

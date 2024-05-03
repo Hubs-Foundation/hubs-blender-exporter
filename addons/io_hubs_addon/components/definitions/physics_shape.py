@@ -1,6 +1,7 @@
 from bpy.props import BoolProperty, FloatProperty, EnumProperty, FloatVectorProperty
 from ..hubs_component import HubsComponent
 from ..types import NodeType, PanelType, Category
+from mathutils import Vector
 
 
 class PhysicsShape(HubsComponent):
@@ -11,7 +12,7 @@ class PhysicsShape(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'SCENE_DATA',
-        'version': (1, 0, 0)
+        'version': (1, 0, 1)
     }
 
     type: EnumProperty(
@@ -86,3 +87,32 @@ class PhysicsShape(HubsComponent):
             col.alert = True
             col.label(
                 text="'Hull' and 'Mesh' do not support 'manual' fit mode", icon='ERROR')
+
+    def gather(self, export_settings, object):
+        props = super().gather(export_settings, object)
+        props['offset'] = {
+            'x': self.offset[0],
+            'y': self.offset[2] if export_settings['gltf_yup'] else self.offset[1],
+            'z': self.offset[1] if export_settings['gltf_yup'] else self.offset[2],
+        }
+        props['halfExtents'] = {
+            'x': self.halfExtents[0],
+            'y': self.halfExtents[2] if export_settings['gltf_yup'] else self.halfExtents[1],
+            'z': self.halfExtents[1] if export_settings['gltf_yup'] else self.halfExtents[2],
+        }
+        return props
+
+    def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
+        migration_occurred = False
+        if instance_version <= (1, 0, 0):
+            migration_occurred = True
+
+            offset = self.offset.copy()
+            offset = Vector((offset.x, offset.z, offset.y))
+            self.offset = offset
+
+            halfExtents = self.halfExtents.copy()
+            halfExtents = Vector((halfExtents.x, halfExtents.z, halfExtents.y))
+            self.halfExtents = halfExtents
+
+        return migration_occurred
