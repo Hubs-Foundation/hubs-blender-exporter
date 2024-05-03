@@ -101,7 +101,7 @@ class RigidBody(HubsComponent):
         name="Gravity", description="Object's Gravity",
         unit="ACCELERATION",
         subtype="ACCELERATION",
-        default=(0.0, -9.8, 0.0))
+        default=(0.0, 0.0, -9.8))
 
     def gather(self, export_settings, object):
         props = super().gather(export_settings, object)
