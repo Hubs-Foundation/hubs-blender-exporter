@@ -158,8 +158,11 @@ class RigidBody(HubsComponent):
             angularFactor = Vector((angularFactor.x, angularFactor.z, angularFactor.y))
             self.angularFactor = angularFactor
 
-            gravity = self.gravity.copy()
-            gravity = Vector((gravity.x, gravity.z, gravity.y))
-            self.gravity = gravity
+            # If the gravity property has not changed, it will take the default value so we don't swizzle
+            # in that case. Is there any way of checking if the property has been modified?
+            if self.gravity != Vector((0.0, 0.0, -9.8)):
+                gravity = self.gravity.copy()
+                gravity = Vector((gravity.x, gravity.z, gravity.y))
+                self.gravity = gravity
 
         return migration_occurred
