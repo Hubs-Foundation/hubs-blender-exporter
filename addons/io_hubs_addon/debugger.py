@@ -976,7 +976,7 @@ class HubsSceneDebuggerRoomExportPrefs(bpy.types.PropertyGroup):
     avatar_to_viewport: bpy.props.BoolProperty(
         name='Spawn using viewport transform',
         description='Spawn the avatar in the current viewport camera position/rotation',
-        default=False, options=set())
+        default=True, options=set())
 
 
 class HubsSceneProject(bpy.types.PropertyGroup):
