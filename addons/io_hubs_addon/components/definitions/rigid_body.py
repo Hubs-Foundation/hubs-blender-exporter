@@ -110,14 +110,14 @@ class RigidBody(HubsComponent):
 
         # prefer to store as an array for new components
         props['angularFactor'] = [
-            self.angularFactor[0],
-            self.angularFactor[2] if export_settings['gltf_yup'] else self.angularFactor[1],
-            self.angularFactor[1] if export_settings['gltf_yup'] else self.angularFactor[2],
+            self.angularFactor.x,
+            self.angularFactor.z if export_settings['gltf_yup'] else self.angularFactor.y,
+            self.angularFactor.y if export_settings['gltf_yup'] else self.angularFactor.z,
         ]
         props['gravity'] = [
-            self.gravity[0],
-            self.gravity[2] if export_settings['gltf_yup'] else self.gravity[1],
-            self.gravity[1] if export_settings['gltf_yup'] else self.gravity[2],
+            self.gravity.x,
+            self.gravity.z if export_settings['gltf_yup'] else self.gravity.y,
+            self.gravity.y if export_settings['gltf_yup'] else self.gravity.z,
         ]
         return props
 

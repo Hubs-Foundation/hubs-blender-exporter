@@ -91,14 +91,14 @@ class PhysicsShape(HubsComponent):
     def gather(self, export_settings, object):
         props = super().gather(export_settings, object)
         props['offset'] = {
-            'x': self.offset[0],
-            'y': self.offset[2] if export_settings['gltf_yup'] else self.offset[1],
-            'z': self.offset[1] if export_settings['gltf_yup'] else self.offset[2],
+            'x': self.offset.x,
+            'y': self.offset.z if export_settings['gltf_yup'] else self.offset.y,
+            'z': self.offset.y if export_settings['gltf_yup'] else self.offset.z,
         }
         props['halfExtents'] = {
-            'x': self.halfExtents[0],
-            'y': self.halfExtents[2] if export_settings['gltf_yup'] else self.halfExtents[1],
-            'z': self.halfExtents[1] if export_settings['gltf_yup'] else self.halfExtents[2],
+            'x': self.halfExtents.x,
+            'y': self.halfExtents.z if export_settings['gltf_yup'] else self.halfExtents.y,
+            'z': self.halfExtents.y if export_settings['gltf_yup'] else self.halfExtents.z,
         }
         return props
 
