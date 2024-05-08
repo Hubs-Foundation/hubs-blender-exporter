@@ -32,8 +32,13 @@ class Grabbable(HubsComponent):
         if instance_version <= (1, 0, 0):
             migration_occurred = True
 
-            remove_component(host, "capturable")
-            remove_component(host, "networked-object-properties")
+            # This was a component that has disappeared but it was usually added together with grababble so we try to remove those instances.
+            if "capturable" in host.hubs_component_list.items:
+                remove_component(host, "capturable")
+
+            if "networked-object-properties" in host.hubs_component_list.items:
+                remove_component(host, "networked-object-properties")
+
             add_component(host, NetworkedTransform.get_name())
 
         return migration_occurred
