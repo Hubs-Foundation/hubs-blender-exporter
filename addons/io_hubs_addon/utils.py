@@ -26,27 +26,69 @@ def delayed_gather(func):
     return wrapper_delayed_gather
 
 
-user_python_path = None
-
-
-def get_user_python_path():
-    global user_python_path
-    if not user_python_path:
-        import sys
-        import subprocess
-        result = subprocess.run([sys.executable, '-m', 'site',
-                                '--user-site'], capture_output=True, text=True, input="y")
-        user_python_path = result.stdout.strip("\n")
-    return user_python_path
-
-
-def isModuleAvailable(name):
-    import importlib
-    loader = importlib.util.find_spec(name)
+def get_or_create_deps_path(name):
     import os
-    from .utils import get_user_python_path
-    path = os.path.join(get_user_python_path(), name)
-    return loader and os.path.exists(path)
+    deps_path = os.path.abspath(os.path.join(
+        __file__, "..", ".__deps__", name))
+    if not os.path.exists(deps_path):
+        os.makedirs(deps_path, exist_ok=True)
+    return deps_path
+
+
+def is_module_available(name):
+    import sys
+    old_syspath = sys.path[:]
+    old_sysmod = sys.modules.copy()
+
+    try:
+        path = get_or_create_deps_path(name)
+
+        import importlib
+        sys.path.insert(0, str(path))
+
+        try:
+            loader = importlib.util.find_spec(name)
+        except ImportError as ex:
+            print(f'{name} not found')
+
+        import os
+        path = os.path.join(path, name)
+        return loader and os.path.exists(path)
+
+    finally:
+        # Restore without assigning a new list instance. That way references
+        # held by other code will stay valid.
+        sys.path[:] = old_syspath
+        sys.modules.clear()
+        sys.modules.update(old_sysmod)
+
+
+def load_dependency(name):
+    import sys
+    old_syspath = sys.path[:]
+    old_sysmod = sys.modules.copy()
+
+    module = None
+    try:
+        modules = name.split(".")
+        path = get_or_create_deps_path(modules[0])
+
+        import importlib
+        sys.path.insert(0, str(path))
+
+        try:
+            module = importlib.import_module(name)
+        except ImportError as ex:
+            print(f'Unable to load {name}')
+
+    finally:
+        # Restore without assigning a new list instance. That way references
+        # held by other code will stay valid.
+        sys.path[:] = old_syspath
+        sys.modules.clear()
+        sys.modules.update(old_sysmod)
+
+    return module
 
 
 HUBS_PREFS_DIR = ".__hubs_blender_addon_preferences"

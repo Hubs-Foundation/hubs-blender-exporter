@@ -3,7 +3,7 @@ import bpy
 from bpy.types import Context
 
 from .preferences import EXPORT_TMP_FILE_NAME, EXPORT_TMP_SCREENSHOT_FILE_NAME
-from .utils import isModuleAvailable, save_prefs, find_area, image_type_to_file_ext
+from .utils import is_module_available, save_prefs, find_area, image_type_to_file_ext
 from .icons import get_hubs_icons
 from .hubs_session import HubsSession, PARAMS_TO_STRING
 from . import api
@@ -238,7 +238,7 @@ class HUBS_PT_ToolsSceneDebuggerCreatePanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context: Context):
-        return isModuleAvailable("selenium")
+        return is_module_available("selenium")
 
     def draw(self, context: Context):
         prefs = context.window_manager.hubs_scene_debugger_prefs
@@ -270,7 +270,7 @@ class HUBS_PT_ToolsSceneDebuggerOpenPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context: Context):
-        return isModuleAvailable("selenium")
+        return is_module_available("selenium")
 
     def draw(self, context: Context):
         box = self.layout.box()
@@ -303,7 +303,7 @@ class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context: Context):
-        return isModuleAvailable("selenium")
+        return is_module_available("selenium")
 
     def draw(self, context: Context):
         box = self.layout.box()
@@ -379,7 +379,7 @@ class HUBS_PT_ToolsSceneSessionPanel(bpy.types.Panel):
     def draw(self, context):
         main_box = self.layout.box()
 
-        if isModuleAvailable("selenium"):
+        if is_module_available("selenium"):
             row = main_box.row(align=True)
             row.alignment = "CENTER"
             col = row.column()
@@ -454,7 +454,7 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context: Context):
-        return isModuleAvailable("selenium")
+        return is_module_available("selenium")
 
     def draw(self, context):
         params_icons = {}
@@ -860,7 +860,7 @@ class HUBS_PT_ToolsSceneDebuggerPublishScenePanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context: Context):
-        return isModuleAvailable("selenium")
+        return is_module_available("selenium")
 
     def draw(self, context: Context):
         if not hubs_session.is_alive() or not hubs_session.user_logged_in:
