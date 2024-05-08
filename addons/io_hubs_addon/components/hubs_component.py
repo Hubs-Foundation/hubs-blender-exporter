@@ -124,8 +124,11 @@ class HubsComponent(PropertyGroup):
     def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
         component = import_component(component_name, blender_host)
         for property_name, property_value in component_value.items():
-            assign_property(gltf.vnodes, component,
-                            property_name, property_value)
+            try:
+                assign_property(gltf.vnodes, component,
+                                property_name, property_value)
+            except Exception as err:
+                print(err)
 
     def post_export(self, export_settings, host, ob=None):
         '''This is called by the exporter after the export process has finished'''
