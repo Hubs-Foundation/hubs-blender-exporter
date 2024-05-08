@@ -716,8 +716,11 @@ class BakeLightmaps(Operator):
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.mesh.select_all(action='SELECT')
         # TODO: We need to warn the user at some place like the README that the uv_layer[1] gets completely overwritten if it is called 'UV1'
-        bpy.ops.uv.lightmap_pack()
+        # bpy.ops.uv.lightmap_pack()
+        bpy.ops.uv.smart_project()
         bpy.ops.object.mode_set(mode='OBJECT')
+        # Update the view layer so all parts take notice of the changed UV layout
+        bpy.context.view_layer.update()
 
         # Gather all materials on the selected objects
         materials = []
@@ -759,7 +762,7 @@ class BakeLightmaps(Operator):
         bake_settings.use_pass_indirect = True
         bake_settings.use_pass_color = False
         # The should be small because otherwise it could overwrite UV islands
-        bake_settings.margin = 1
+        bake_settings.margin = 0
         # Not sure whether this has any influence
         bake_settings.image_settings.file_format = 'HDR'
         context.scene.render.image_settings.file_format = 'HDR'
@@ -812,6 +815,7 @@ class BakeLightmaps(Operator):
 
         img = bpy.data.images.new('LightMap', self.resolution, self.resolution, alpha=False, float_buffer=True)
         lightmap_texture_node.image = img
+        lightmap_texture_node.image.colorspace_settings.name = 'Linear'
 
         UVmap_node = mat_nodes.new(type="ShaderNodeUVMap")
         UVmap_node.uv_map = "UV1"
