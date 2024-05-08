@@ -5,7 +5,7 @@ selenium = None
 
 def get_selenium():
     global selenium
-    if selenium == None:
+    if selenium is None:
         selenium = load_dependency("selenium.webdriver")
 
     return selenium
