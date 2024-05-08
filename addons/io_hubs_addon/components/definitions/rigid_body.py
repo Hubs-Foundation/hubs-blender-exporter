@@ -2,6 +2,7 @@ from bpy.props import BoolProperty, FloatProperty, EnumProperty, BoolVectorPrope
 from ..hubs_component import HubsComponent
 from ..types import NodeType, PanelType, Category
 from mathutils import Vector
+from ...io.utils import import_component, assign_property
 
 
 collision_masks = [
@@ -166,3 +167,33 @@ class RigidBody(HubsComponent):
                 self.gravity = gravity
 
         return migration_occurred
+
+    @classmethod
+    def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
+        HubsComponent.gather_import(gltf, blender_host, component_name,
+                                    component_value, import_report, blender_ob)
+
+        gltf_yup = gltf.import_settings.get('gltf_yup', True)
+
+        blender_component = import_component(component_name, blender_host)
+        for property_name, property_value in component_value.items():
+            if property_name == 'gravity' and gltf_yup:
+                property_value[1], property_value[2] = property_value[2], property_value[1]
+
+                assign_property(gltf.vnodes, blender_component,
+                                property_name, property_value)
+
+            elif property_name == 'angularFactor':
+                property_value[1], property_value[2] = property_value[2], property_value[1]
+
+                assign_property(gltf.vnodes, blender_component,
+                                property_name, property_value)
+
+            elif property_name == 'collisionMask':
+                blender_component.collisionMask = [
+                    'objects' in component_value['collisionMask'],
+                    'triggers' in component_value['collisionMask'],
+                    'environment' in component_value['collisionMask'],
+                    'avatars' in component_value['collisionMask'],
+                    'media-frames' in component_value['collisionMask'],
+                ]

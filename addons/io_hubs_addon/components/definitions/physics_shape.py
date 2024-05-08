@@ -2,6 +2,7 @@ from bpy.props import BoolProperty, FloatProperty, EnumProperty, FloatVectorProp
 from ..hubs_component import HubsComponent
 from ..types import NodeType, PanelType, Category
 from mathutils import Vector
+from ...io.utils import import_component, assign_property
 
 
 class PhysicsShape(HubsComponent):
@@ -116,3 +117,24 @@ class PhysicsShape(HubsComponent):
             self.halfExtents = halfExtents
 
         return migration_occurred
+
+    @classmethod
+    def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
+        HubsComponent.gather_import(gltf, blender_host, component_name,
+                                    component_value, import_report, blender_ob)
+
+        gltf_yup = gltf.import_settings.get('gltf_yup', True)
+
+        blender_component = import_component(component_name, blender_host)
+        for property_name, property_value in component_value.items():
+            if property_name == 'offset' and gltf_yup:
+                property_value['y'], property_value['z'] = property_value['z'], property_value['y']
+
+                assign_property(gltf.vnodes, blender_component,
+                                property_name, property_value)
+
+            elif property_name == 'halfExtents':
+                property_value['y'], property_value['z'] = property_value['z'], property_value['y']
+
+                assign_property(gltf.vnodes, blender_component,
+                                property_name, property_value)
