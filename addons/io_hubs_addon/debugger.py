@@ -53,7 +53,7 @@ def is_room_set(context):
 class HubsUpdateRoomOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.update_room"
     bl_label = "View Scene"
-    bl_description = "Update room"
+    bl_description = "Updates the currently opened room scene with the Blender scene"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -122,8 +122,8 @@ class HubsUpdateRoomOperator(bpy.types.Operator):
 
 class HubsCreateRoomOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.create_room"
-    bl_label = "Create Room"
-    bl_description = "Create room"
+    bl_label = "Create a new room"
+    bl_description = "Creates a new room in the selected instance"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -153,8 +153,8 @@ class HubsCreateRoomOperator(bpy.types.Operator):
 
 class HubsOpenRoomOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.open_room"
-    bl_label = "Open Room"
-    bl_description = "Open room"
+    bl_label = "Open selected room"
+    bl_description = "Opens the selected room"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -256,8 +256,7 @@ class HUBS_PT_ToolsSceneDebuggerCreatePanel(bpy.types.Panel):
                      icon='REMOVE', text="")
 
         row = box.row()
-        row.operator(HubsCreateRoomOperator.bl_idname,
-                     text='Create')
+        row.operator(HubsCreateRoomOperator.bl_idname)
 
 
 class HUBS_PT_ToolsSceneDebuggerOpenPanel(bpy.types.Panel):
@@ -289,8 +288,7 @@ class HUBS_PT_ToolsSceneDebuggerOpenPanel(bpy.types.Panel):
                      icon='REMOVE', text="")
 
         row = box.row()
-        row.operator(HubsOpenRoomOperator.bl_idname,
-                     text='Open')
+        row.operator(HubsOpenRoomOperator.bl_idname)
 
 
 class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
@@ -354,10 +352,10 @@ class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
             row.label(
                 text="You need to be signed in to Hubs to update the room scene")
 
-        update_mode = "Update Scene" if context.scene.hubs_scene_debugger_room_create_prefs.debugLocalScene else "Spawn as object"
+        update_mode = "Update current scene" if context.scene.hubs_scene_debugger_room_create_prefs.debugLocalScene else "Spawn as object"
         if hubs_session.is_alive():
             room_params = hubs_session.room_params
-            update_mode = "Update Scene" if "debugLocalScene" in room_params else "Spawn as object"
+            update_mode = "Update current scene" if "debugLocalScene" in room_params else "Spawn as object"
         row = box.row()
         row.operator(HubsUpdateRoomOperator.bl_idname,
                      text=f'{update_mode}')
