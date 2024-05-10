@@ -170,9 +170,6 @@ class RigidBody(HubsComponent):
 
     @classmethod
     def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
-        HubsComponent.gather_import(gltf, blender_host, component_name,
-                                    component_value, import_report, blender_ob)
-
         gltf_yup = gltf.import_settings.get('gltf_yup', True)
 
         blender_component = import_component(component_name, blender_host)
@@ -180,20 +177,17 @@ class RigidBody(HubsComponent):
             if property_name == 'gravity' and gltf_yup:
                 property_value[1], property_value[2] = property_value[2], property_value[1]
 
-                assign_property(gltf.vnodes, blender_component,
-                                property_name, property_value)
-
-            elif property_name == 'angularFactor':
+            elif property_name == 'angularFactor' and gltf_yup:
                 property_value[1], property_value[2] = property_value[2], property_value[1]
 
-                assign_property(gltf.vnodes, blender_component,
-                                property_name, property_value)
-
             elif property_name == 'collisionMask':
-                blender_component.collisionMask = [
-                    'objects' in component_value['collisionMask'],
-                    'triggers' in component_value['collisionMask'],
-                    'environment' in component_value['collisionMask'],
-                    'avatars' in component_value['collisionMask'],
-                    'media-frames' in component_value['collisionMask'],
+                property_value = [
+                    'objects' in property_value,
+                    'triggers' in property_value,
+                    'environment' in property_value,
+                    'avatars' in property_value,
+                    'media-frames' in property_value,
                 ]
+
+            assign_property(gltf.vnodes, blender_component,
+                            property_name, property_value)
