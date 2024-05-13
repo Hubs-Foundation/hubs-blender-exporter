@@ -1,7 +1,7 @@
 import bpy
 from bpy.app.handlers import persistent
 from .components_registry import get_components_registry
-from .utils import redirect_c_stdout, get_host_components, is_linked, get_host_reference_message
+from .utils import redirect_c_stdout, get_host_components, is_linked, get_host_reference_message, has_component
 from .gizmos import update_gizmos
 from .types import MigrationType, PanelType
 import io
@@ -65,6 +65,9 @@ def migrate_components(
 
     for scene in bpy.data.scenes:
         for component in get_host_components(scene):
+            if not has_component(scene, component.get_name()):
+                # The component was removed in a previous migration
+                continue
             try:
                 was_migrated = migrate(
                     component, migration_type, PanelType.SCENE, scene, migration_report)
@@ -83,6 +86,9 @@ def migrate_components(
 
     for ob in bpy.data.objects:
         for component in get_host_components(ob):
+            if not has_component(ob, component.get_name()):
+                # The component was removed in a previous migration
+                continue
             try:
                 was_migrated = migrate(
                     component, migration_type, PanelType.OBJECT, ob, migration_report, ob=ob)
@@ -112,6 +118,9 @@ def migrate_components(
         ob = armature_objects.get(armature.name_full, armature)
         for bone in armature.bones:
             for component in get_host_components(bone):
+                if not has_component(bone, component.get_name()):
+                    # The component was removed in a previous migration
+                    continue
                 try:
                     was_migrated = migrate(
                         component, migration_type, PanelType.BONE, bone, migration_report, ob=ob)
@@ -130,6 +139,9 @@ def migrate_components(
 
     for material in bpy.data.materials:
         for component in get_host_components(material):
+            if not has_component(material, component.get_name()):
+                # The component was removed in a previous migration
+                continue
             try:
                 was_migrated = migrate(
                     component, migration_type, PanelType.MATERIAL, material, migration_report)
