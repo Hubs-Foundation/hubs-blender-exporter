@@ -120,9 +120,6 @@ class PhysicsShape(HubsComponent):
 
     @classmethod
     def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
-        HubsComponent.gather_import(gltf, blender_host, component_name,
-                                    component_value, import_report, blender_ob)
-
         gltf_yup = gltf.import_settings.get('gltf_yup', True)
 
         blender_component = import_component(component_name, blender_host)
@@ -130,11 +127,8 @@ class PhysicsShape(HubsComponent):
             if property_name == 'offset' and gltf_yup:
                 property_value['y'], property_value['z'] = property_value['z'], property_value['y']
 
-                assign_property(gltf.vnodes, blender_component,
-                                property_name, property_value)
-
-            elif property_name == 'halfExtents':
+            elif property_name == 'halfExtents' and gltf_yup:
                 property_value['y'], property_value['z'] = property_value['z'], property_value['y']
 
-                assign_property(gltf.vnodes, blender_component,
-                                property_name, property_value)
+            assign_property(gltf.vnodes, blender_component,
+                            property_name, property_value)
