@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import AddonPreferences, Context
-from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, CollectionProperty, PointerProperty
+from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, PointerProperty
 from .utils import get_addon_package, is_module_available, get_browser_profile_directory
 import platform
 from os.path import join, dirname, realpath
@@ -72,11 +72,9 @@ class InstallDepsOperator(bpy.types.Operator):
 class UninstallDepsOperator(bpy.types.Operator):
     bl_idname = "pref.hubs_prefs_uninstall_dep"
     bl_label = "Uninstall a python dependency through pip"
-    bl_property = "dep_names"
     bl_options = {'REGISTER', 'UNDO'}
 
     dep_config: PointerProperty(type=DepsProperty)
-    force: BoolProperty(default=False)
 
     def execute(self, context):
         from .utils import get_or_create_deps_path
@@ -137,10 +135,6 @@ class HubsPreferences(AddonPreferences):
         items=[("Firefox", "Firefox", "Use Firefox as the viewer browser"),
                ("Chrome", "Chrome", "Use Chrome as the viewer browser")],
         default="Firefox")
-
-    force_uninstall: BoolProperty(
-        default=False, name="Force",
-        description="Force uninstall of the selenium dependencies by deleting the module directory")
 
     override_firefox_path: BoolProperty(
         name="Override Firefox executable path", description="Override Firefox executable path", default=False)
@@ -213,7 +207,6 @@ class HubsPreferences(AddonPreferences):
             "Selenium module not found. These modules are required to run the viewer")
         row = modules_box.row()
         if modules_available:
-            row.prop(self, "force_uninstall")
             op = row.operator(UninstallDepsOperator.bl_idname,
                               text="Uninstall dependencies (selenium)")
             op.dep_config.name = "selenium"
