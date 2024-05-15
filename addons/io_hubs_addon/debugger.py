@@ -134,7 +134,7 @@ class HubsUpdateRoomOperator(bpy.types.Operator):
 class HubsCreateRoomOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.create_room"
     bl_label = "Create a new room"
-    bl_description = "Creates a new room in the selected instance"
+    bl_description = "Creates a new room in the selected instance and opens it in the browser selected in the add-on preferences. The specified room flags will be applied"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -165,7 +165,7 @@ class HubsCreateRoomOperator(bpy.types.Operator):
 class HubsOpenRoomOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.open_room"
     bl_label = "Open selected room"
-    bl_description = "Opens the selected room"
+    bl_description = "Opens the selected room in the browser selected in the add-on preferences. The specified room flags will be applied"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
