@@ -53,8 +53,19 @@ def is_room_set(context):
 class HubsUpdateRoomOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.update_room"
     bl_label = "View Scene"
-    bl_description = "Updates the currently opened room scene with the Blender scene"
     bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def description(cls, context, properties):
+        is_scene_update = context.scene.hubs_scene_debugger_room_create_prefs.debugLocalScene
+        if hubs_session.is_alive():
+            room_params = hubs_session.room_params
+            is_scene_update = "debugLocalScene" in room_params
+
+        if is_scene_update:
+            return "Updates the currently opened room scene with the Blender scene"
+        else:
+            return "Spawns the Blender scene in the currently opened room as an object"
 
     @classmethod
     def poll(cls, context: Context):
