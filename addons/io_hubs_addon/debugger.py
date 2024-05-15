@@ -614,8 +614,8 @@ class HUBS_UL_ToolsSceneDebuggerRooms(bpy.types.UIList):
 
 class HubsPublishSceneOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.publish_scene"
-    bl_label = "Scene Manager"
-    bl_description = "Publish scene"
+    bl_label = "Publish"
+    bl_description = "Publish current Blender scene"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -684,7 +684,7 @@ class HubsPublishSceneOperator(bpy.types.Operator):
 class HubsUpdateSceneOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.update_scene"
     bl_label = "Update"
-    bl_description = "Update selected scene"
+    bl_description = "Updates the selected scene with the Blender scene"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -737,8 +737,8 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
 
 class HubsCreateRoomWithSceneOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.create_room_with_scene"
-    bl_label = "Create Room With Scene"
-    bl_description = "Create a room with the selected scene"
+    bl_label = "Create Room"
+    bl_description = "Creates a new room in the selected instance and opens it in the browser selected in the add-on preferences. The currently selected scene from the scenes list will be used. The specified room flags will be applied"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -799,7 +799,7 @@ class HubsCreateRoomWithSceneOperator(bpy.types.Operator):
 class HubsGetScenesOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.get_scenes"
     bl_label = "Get Scenes"
-    bl_description = "Get Scenes"
+    bl_description = "Gets the scene list from your account"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -894,16 +894,13 @@ class HUBS_PT_ToolsSceneDebuggerPublishScenePanel(bpy.types.Panel):
 
         row = box.row()
         col = row.column()
-        col.operator(HubsGetScenesOperator.bl_idname,
-                     text='Get Scenes')
+        col.operator(HubsGetScenesOperator.bl_idname)
         col = row.column()
-        col.operator(HubsUpdateSceneOperator.bl_idname,
-                     text='Update')
+        col.operator(HubsUpdateSceneOperator.bl_idname)
 
         row = box.row()
         row = row.column()
-        row.operator(HubsCreateRoomWithSceneOperator.bl_idname,
-                     text='Create Room')
+        row.operator(HubsCreateRoomWithSceneOperator.bl_idname)
 
         box = self.layout.box()
         row = box.row()
@@ -922,8 +919,7 @@ class HUBS_PT_ToolsSceneDebuggerPublishScenePanel(bpy.types.Panel):
         op = col.operator("image.hubs_open_image", text='', icon='FILE_FOLDER')
         op.target_property = "screenshot"
         row = box.row()
-        op = row.operator(HubsPublishSceneOperator.bl_idname,
-                          text='Publish')
+        op = row.operator(HubsPublishSceneOperator.bl_idname)
 
 
 class HubsSceneDebuggerRoomCreatePrefs(bpy.types.PropertyGroup):
