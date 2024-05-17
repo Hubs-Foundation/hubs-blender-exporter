@@ -683,8 +683,15 @@ class BakeLightmaps(Operator):
     def execute(self, context):
         # Check selected objects
         selected_objects = bpy.context.selected_objects
-        # Filter mesh objects
-        mesh_objs = [ob for ob in selected_objects if ob.type == 'MESH']
+        
+        # filter mesh objects and others
+        mesh_objs, other_objs = [], []
+        for ob in selected_objects:
+            (mesh_objs if ob.type == 'MESH' else other_objs).append(ob)
+
+        for ob in other_objs:
+            # Remove non-mesh objects from selection to ensure baking will work
+            ob.select_set(False)
 
         # set up UV layer structure. The first layer has to be UV0, the second one UV1 for the lightmap.
         for obj in mesh_objs:
@@ -762,7 +769,7 @@ class BakeLightmaps(Operator):
         bake_settings.use_pass_indirect = True
         bake_settings.use_pass_color = False
         # The should be small because otherwise it could overwrite UV islands
-        bake_settings.margin = 0
+        bake_settings.margin = 2
         # Not sure whether this has any influence
         bake_settings.image_settings.file_format = 'HDR'
         context.scene.render.image_settings.file_format = 'HDR'
