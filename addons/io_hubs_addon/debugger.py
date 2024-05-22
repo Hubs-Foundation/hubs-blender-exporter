@@ -53,8 +53,19 @@ def is_room_set(context):
 class HubsUpdateRoomOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.update_room"
     bl_label = "View Scene"
-    bl_description = "Update room"
     bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def description(cls, context, properties):
+        is_scene_update = context.scene.hubs_scene_debugger_room_create_prefs.debugLocalScene
+        if hubs_session.is_alive():
+            room_params = hubs_session.room_params
+            is_scene_update = "debugLocalScene" in room_params
+
+        if is_scene_update:
+            return "Updates the currently opened room scene with the Blender scene"
+        else:
+            return "Spawns the Blender scene in the currently opened room as an object"
 
     @classmethod
     def poll(cls, context: Context):
@@ -122,8 +133,8 @@ class HubsUpdateRoomOperator(bpy.types.Operator):
 
 class HubsCreateRoomOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.create_room"
-    bl_label = "Create Room"
-    bl_description = "Create room"
+    bl_label = "Create a new room"
+    bl_description = "Creates a new room in the selected instance and opens it in the browser selected in the add-on preferences. The specified room flags will be applied"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -153,8 +164,8 @@ class HubsCreateRoomOperator(bpy.types.Operator):
 
 class HubsOpenRoomOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.open_room"
-    bl_label = "Open Room"
-    bl_description = "Open room"
+    bl_label = "Open selected room"
+    bl_description = "Opens the selected room in the browser selected in the add-on preferences. The specified room flags will be applied"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -256,8 +267,7 @@ class HUBS_PT_ToolsSceneDebuggerCreatePanel(bpy.types.Panel):
                      icon='REMOVE', text="")
 
         row = box.row()
-        row.operator(HubsCreateRoomOperator.bl_idname,
-                     text='Create')
+        row.operator(HubsCreateRoomOperator.bl_idname)
 
 
 class HUBS_PT_ToolsSceneDebuggerOpenPanel(bpy.types.Panel):
@@ -289,8 +299,7 @@ class HUBS_PT_ToolsSceneDebuggerOpenPanel(bpy.types.Panel):
                      icon='REMOVE', text="")
 
         row = box.row()
-        row.operator(HubsOpenRoomOperator.bl_idname,
-                     text='Open')
+        row.operator(HubsOpenRoomOperator.bl_idname)
 
 
 class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
@@ -354,10 +363,10 @@ class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
             row.label(
                 text="You need to be signed in to Hubs to update the room scene")
 
-        update_mode = "Update Scene" if context.scene.hubs_scene_debugger_room_create_prefs.debugLocalScene else "Spawn as object"
+        update_mode = "Update current scene" if context.scene.hubs_scene_debugger_room_create_prefs.debugLocalScene else "Spawn as object"
         if hubs_session.is_alive():
             room_params = hubs_session.room_params
-            update_mode = "Update Scene" if "debugLocalScene" in room_params else "Spawn as object"
+            update_mode = "Update current scene" if "debugLocalScene" in room_params else "Spawn as object"
         row = box.row()
         row.operator(HubsUpdateRoomOperator.bl_idname,
                      text=f'{update_mode}')
@@ -605,8 +614,8 @@ class HUBS_UL_ToolsSceneDebuggerRooms(bpy.types.UIList):
 
 class HubsPublishSceneOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.publish_scene"
-    bl_label = "Scene Manager"
-    bl_description = "Publish scene"
+    bl_label = "Publish"
+    bl_description = "Publish current Blender scene"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -675,7 +684,7 @@ class HubsPublishSceneOperator(bpy.types.Operator):
 class HubsUpdateSceneOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.update_scene"
     bl_label = "Update"
-    bl_description = "Update selected scene"
+    bl_description = "Updates the selected scene with the Blender scene"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -728,8 +737,8 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
 
 class HubsCreateRoomWithSceneOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.create_room_with_scene"
-    bl_label = "Create Room With Scene"
-    bl_description = "Create a room with the selected scene"
+    bl_label = "Create Room"
+    bl_description = "Creates a new room in the selected instance and opens it in the browser selected in the add-on preferences. The currently selected scene from the scenes list will be used. The specified room flags will be applied"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -790,7 +799,7 @@ class HubsCreateRoomWithSceneOperator(bpy.types.Operator):
 class HubsGetScenesOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.get_scenes"
     bl_label = "Get Scenes"
-    bl_description = "Get Scenes"
+    bl_description = "Gets the scene list from your account"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -885,16 +894,13 @@ class HUBS_PT_ToolsSceneDebuggerPublishScenePanel(bpy.types.Panel):
 
         row = box.row()
         col = row.column()
-        col.operator(HubsGetScenesOperator.bl_idname,
-                     text='Get Scenes')
+        col.operator(HubsGetScenesOperator.bl_idname)
         col = row.column()
-        col.operator(HubsUpdateSceneOperator.bl_idname,
-                     text='Update')
+        col.operator(HubsUpdateSceneOperator.bl_idname)
 
         row = box.row()
         row = row.column()
-        row.operator(HubsCreateRoomWithSceneOperator.bl_idname,
-                     text='Create Room')
+        row.operator(HubsCreateRoomWithSceneOperator.bl_idname)
 
         box = self.layout.box()
         row = box.row()
@@ -913,8 +919,7 @@ class HUBS_PT_ToolsSceneDebuggerPublishScenePanel(bpy.types.Panel):
         op = col.operator("image.hubs_open_image", text='', icon='FILE_FOLDER')
         op.target_property = "screenshot"
         row = box.row()
-        op = row.operator(HubsPublishSceneOperator.bl_idname,
-                          text='Publish')
+        op = row.operator(HubsPublishSceneOperator.bl_idname)
 
 
 class HubsSceneDebuggerRoomCreatePrefs(bpy.types.PropertyGroup):
