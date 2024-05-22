@@ -11,18 +11,12 @@ process.env['BLENDER_USER_SCRIPTS'] = path.join(process.cwd(), '..');
 const blenderVersions = (() => {
   if (process.platform == 'darwin') {
     return [
-      ["latest", "/Applications/Blender.app/Contents/MacOS/Blender"]
+      "/Applications/Blender.app/Contents/MacOS/Blender"
     ];
   }
   else if (process.platform == 'linux') {
     return [
-      ["latest", "blender"]
-    ];
-  }
-  else if (process.platform == 'win32') {
-    return [
-      ["latest", 'C:\\Program Files\\Blender Foundation\\Blender 4.0\\blender.exe']
-      //["latest", 'C:\\Program Files\\Blender Foundation\\Blender 3.6\\blender.exe']
+      "blender"
     ];
   }
 })();
@@ -44,15 +38,15 @@ describe('Exporter', function () {
 
     variants.forEach(function (variant) {
       const args = variant[1];
-      describe("blender-" + blenderVersion[0] + '_export' + variant[0], function () {
+      describe(blenderVersion + '_export' + variant[0], function () {
         blenderSampleScenes.forEach((scene) => {
           it(scene, function (done) {
-            let outDirName = 'out' + "blender-" + blenderVersion[0] + variant[0];
-            let blenderPath = path.resolve("scenes", `${scene}.blend`);
+            let outDirName = 'out' + blenderVersion + variant[0];
+            let blenderPath = `scenes/${scene}.blend`;
             let ext = args.indexOf('--glb') === -1 ? '.gltf' : '.glb';
             let outDirPath = path.resolve(OUT_PREFIX, outDirName, 'export');
             let dstPath = path.resolve(outDirPath, `${scene}${ext}`);
-            utils.blenderFileToGltf(blenderVersion[1], blenderPath, outDirPath, (error) => {
+            utils.blenderFileToGltf(blenderVersion, blenderPath, outDirPath, (error) => {
               if (error)
                 return done(error);
 
@@ -62,7 +56,6 @@ describe('Exporter', function () {
         });
       });
     });
-    
 
     describe(blenderVersion + '_export_results', function () {
       let outDirName = 'out' + blenderVersion;
