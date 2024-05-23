@@ -130,6 +130,101 @@ class DeleteProfileOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
+def reload_user_components():
+    from .components.components_registry import unload_user_components, load_user_components
+    unload_user_components()
+    load_user_components()
+
+
+class HubsUserComponentsPath(bpy.types.PropertyGroup):
+    name: StringProperty(
+        name='User components path entry name',
+        description='The user components path entry name.',
+    )
+    path: StringProperty(
+        name='User components path path',
+        description='The user components path path. You can copy external components here.',
+        subtype='FILE_PATH'
+    )
+
+
+class HubsUserComponentsPathAdd(bpy.types.Operator):
+    bl_idname = "hubs_preferences.add_user_components_path"
+    bl_label = "Add user components path"
+    bl_description = "Adds a new component path entry"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    path: bpy.props.StringProperty(name="User Components Path", default="")
+
+    def execute(self, context):
+        addon_prefs = addon_prefs = get_addon_pref(bpy.context)
+        paths = addon_prefs.user_components_paths
+        new_path = paths.add()
+        new_path.path = self.path
+
+        return {'FINISHED'}
+
+
+class HubsUserComponentsPathRemove(bpy.types.Operator):
+    bl_idname = "hubs_preferences.remove_user_components_path"
+    bl_label = "Remove user components path entry"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    index: bpy.props.IntProperty(name="User Components Path Index", default=0)
+
+    def execute(self, context):
+        addon_prefs = addon_prefs = get_addon_pref(bpy.context)
+        paths = addon_prefs.user_components_paths
+        paths.remove(self.index)
+
+        return {'FINISHED'}
+
+
+def draw_user_modules_path_panel(context, layout, prefs):
+    box = layout.box()
+    box.row().label(text="Additional components directories:")
+
+    dirs_layout = box.row()
+
+    entries = prefs.user_components_paths
+
+    if len(entries) == 0:
+        dirs_layout.operator(HubsUserComponentsPathAdd.bl_idname,
+                             text="Add", icon='ADD')
+        return
+
+    dirs_layout.use_property_split = False
+    dirs_layout.use_property_decorate = False
+
+    box = dirs_layout.box()
+    split = box.split(factor=0.35)
+    name_col = split.column()
+    path_col = split.column()
+
+    row = name_col.row(align=True)  # Padding
+    row.separator()
+    row.label(text="Name")
+
+    row = path_col.row(align=True)  # Padding
+    row.separator()
+    row.label(text="Path")
+
+    row.operator(HubsUserComponentsPathAdd.bl_idname,
+                 text="", icon='ADD', emboss=False)
+
+    for i, entry in enumerate(entries):
+        row = name_col.row()
+        row.alert = not entry.name
+        row.prop(entry, "name", text="")
+
+        row = path_col.row()
+        subrow = row.row()
+        subrow.alert = not entry.path
+        subrow.prop(entry, "path", text="")
+        row.operator(HubsUserComponentsPathRemove.bl_idname,
+                     text="", icon='X', emboss=False).index = i
+
+
 class HubsPreferences(AddonPreferences):
     bl_idname = __package__
 
@@ -163,6 +258,8 @@ class HubsPreferences(AddonPreferences):
     chrome_path: StringProperty(
         name="Chrome executable path", description="Binary path", subtype='FILE_PATH')
 
+    user_components_paths: CollectionProperty(type=HubsUserComponentsPath)
+
     def draw(self, context):
         layout = self.layout
         box = layout.box()
@@ -170,11 +267,11 @@ class HubsPreferences(AddonPreferences):
         box.row().prop(self, "row_length")
         box.row().prop(self, "recast_lib_path")
 
-        selenium_available = is_module_available("selenium")
-        modules_available = selenium_available
+        draw_user_modules_path_panel(context, layout, self)
         box = layout.box()
         box.label(text="Scene debugger configuration")
 
+        modules_available = is_module_available("selenium")
         if modules_available:
             browser_box = box.box()
             row = browser_box.row()
@@ -236,6 +333,9 @@ class HubsPreferences(AddonPreferences):
 
 
 def register():
+    bpy.utils.register_class(HubsUserComponentsPath)
+    bpy.utils.register_class(HubsUserComponentsPathAdd)
+    bpy.utils.register_class(HubsUserComponentsPathRemove)
     bpy.utils.register_class(DepsProperty)
     bpy.utils.register_class(HubsPreferences)
     bpy.utils.register_class(InstallDepsOperator)
@@ -249,3 +349,6 @@ def unregister():
     bpy.utils.unregister_class(InstallDepsOperator)
     bpy.utils.unregister_class(HubsPreferences)
     bpy.utils.unregister_class(DepsProperty)
+    bpy.utils.unregister_class(HubsUserComponentsPathRemove)
+    bpy.utils.unregister_class(HubsUserComponentsPathAdd)
+    bpy.utils.unregister_class(HubsUserComponentsPath)

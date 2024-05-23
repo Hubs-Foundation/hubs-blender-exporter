@@ -34,6 +34,35 @@ def get_components_in_dir(dir):
     return sorted(components)
 
 
+def get_user_component_names():
+    component_names = []
+    from ..preferences import get_addon_pref
+    addon_prefs = get_addon_pref(bpy.context)
+    for _, entry in enumerate(addon_prefs.user_components_paths):
+        if entry.path:
+            component_names = get_components_in_dir(entry.path)
+    return component_names
+
+
+def get_user_component_definitions():
+    modules = []
+    component_names = get_user_component_names()
+    for name in component_names:
+        from ..preferences import get_addon_pref
+        addon_prefs = get_addon_pref(bpy.context)
+        for _, entry in enumerate(addon_prefs.user_components_paths):
+            file_path = os.path.join(entry.path, name + ".py")
+            try:
+                spec = importlib.util.spec_from_file_location(name, file_path)
+                mod = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(mod)
+                modules.append(mod)
+
+            except Exception as e:
+                print(f'Failed import of component {name}', e)
+    return modules
+
+
 def get_component_definitions():
     components_dir = join(dirname(realpath(__file__)), "definitions")
     component_module_names = get_components_in_dir(components_dir)
@@ -113,6 +142,28 @@ def unregister_component(component_class):
         print(f"Component unregistered: {component_class.get_name()}")
 
 
+def load_user_components():
+    global __components_registry
+    for module in get_user_component_definitions():
+        for _, member in inspect.getmembers(module):
+            if inspect.isclass(member) and issubclass(member, HubsComponent) and module.__name__ == member.__module__:
+                if hasattr(module, 'register_module'):
+                    module.register_module()
+                register_component(member)
+                __components_registry[member.get_name()] = member
+
+
+def unload_user_components():
+    global __components_registry
+    for _, component_class in __components_registry.items():
+        for module_name in get_user_component_names():
+            if module_name == component_class.get_name():
+                unregister_component(component_class)
+    for module in get_user_component_definitions():
+        if hasattr(module, 'unregister_module'):
+            module.unregister_module()
+
+
 def load_components_registry():
     """Recurse in the components directory to build the components registry"""
     global __components_registry
@@ -124,6 +175,8 @@ def load_components_registry():
                     module.register_module()
                 register_component(member)
                 __components_registry[member.get_name()] = member
+
+    load_user_components()
 
 
 def unload_components_registry():
