@@ -176,7 +176,11 @@ def load_components_registry():
                 register_component(member)
                 __components_registry[member.get_name()] = member
 
-    load_user_components()
+    # Preferences are not accessible until the add-on is enabled so we need to check that before loading the user
+    # components as they depend on the preferences.
+    from ..utils import is_addon_enabled
+    if is_addon_enabled():
+        load_user_components()
 
 
 def unload_components_registry():

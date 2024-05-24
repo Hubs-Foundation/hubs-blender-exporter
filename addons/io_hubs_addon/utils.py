@@ -286,3 +286,8 @@ def image_type_to_file_ext(image_type):
     elif image_type == 'TARGA_RAW':
         file_extension = '.tga'
     return file_extension
+
+
+def is_addon_enabled():
+    import bpy
+    return get_addon_package() in bpy.context.preferences.addons
