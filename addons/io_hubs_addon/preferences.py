@@ -51,7 +51,7 @@ class InstallDepsOperator(bpy.types.Operator):
             dep = f'{self.dep_config.name}=={self.dep_config.version}'
 
         result = subprocess.run(
-            [sys.executable, '-m', 'pip', 'install', dep,
+            [sys.executable, '-m', 'pip', 'install', '--upgrade', dep,
              '-t', get_or_create_deps_path(self.dep_config.name)],
             capture_output=True, text=True, input="y")
         failed = False
