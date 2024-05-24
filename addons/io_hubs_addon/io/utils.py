@@ -47,7 +47,10 @@ class HubsExportImage(gltf2_blender_image.ExportImage):
 
     def encode(self, mime_type: Optional[str], export_settings) -> Union[Tuple[bytes, bool], bytes]:
         if mime_type == "image/vnd.radiance":
-            return self.encode_from_image_hdr(self.blender_image())
+            if bpy.app.version < (4, 0, 0):
+                return self.encode_from_image_hdr(self.blender_image())
+            else:
+                return self.encode_from_image_hdr(self.blender_image(export_settings))
         if bpy.app.version < (3, 5, 0):
             return super().encode(mime_type)
         else:
