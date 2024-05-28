@@ -1,6 +1,6 @@
 # Hubs Blender Exporter and Importer
 
-This addon extends the glTF 2.0 exporter to support the `MOZ_hubs_components` and `MOZ_lightmap` extensions allowing you to add behavior to glTF assets for [Mozilla Hubs](https://hubs.mozilla.com).
+This addon extends the glTF 2.0 exporter to support the `MOZ_hubs_components` and `MOZ_lightmap` extensions allowing you to add behavior to glTF assets for Hubs.
 
 [![Test](https://github.com/MozillaReality/hubs-blender-exporter/actions/workflows/test.yml/badge.svg)](https://github.com/MozillaReality/hubs-blender-exporter/actions/workflows/test.yml)
 [![Publish](https://github.com/MozillaReality/hubs-blender-exporter/actions/workflows/publish.yml/badge.svg)](https://github.com/MozillaReality/hubs-blender-exporter/actions/workflows/publish.yml)
