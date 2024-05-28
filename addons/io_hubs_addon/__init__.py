@@ -11,7 +11,7 @@ from . import icons
 bl_info = {
     "name": "Hubs Blender Addon",
     "author": "Mozilla Hubs",
-    "description": "Tools for developing glTF assets for Mozilla Hubs",
+    "description": "Tools for developing glTF assets for Hubs",
     "blender": (3, 1, 2),
     "version": (1, 5, 0, "dev_build"),
     "location": "",

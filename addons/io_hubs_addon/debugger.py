@@ -9,7 +9,7 @@ from .hubs_session import HubsSession, PARAMS_TO_STRING
 from . import api
 from bpy.types import AnyType
 
-ROOM_FLAGS_DOC_URL = "https://hubs.mozilla.com/docs/hubs-query-string-parameters.html"
+ROOM_FLAGS_DOC_URL = "https://update-with-hubs-query-string-parameters"
 
 
 def export_scene(context):
@@ -284,7 +284,7 @@ class HUBS_PT_ToolsSceneDebuggerOpenPanel(bpy.types.Panel):
         col = row.column()
         op = col.operator(HubsSceneDebuggerRoomAdd.bl_idname,
                           icon='ADD', text="")
-        op.url = "https://hubs.mozilla.com/demo"
+        op.url = ""
         col.operator(HubsSceneDebuggerRoomRemove.bl_idname,
                      icon='REMOVE', text="")
 
@@ -491,7 +491,7 @@ def add_instance(context):
     prefs = context.window_manager.hubs_scene_debugger_prefs
     new_instance = prefs.hubs_instances.add()
     new_instance.name = "Demo Hub"
-    new_instance.url = "https://hubs.mozilla.com/demo"
+    new_instance.url = ""
     prefs.hubs_instance_idx = len(
         prefs.hubs_instances) - 1
 
@@ -1048,7 +1048,7 @@ def set_url(self, value):
         parsed = parsed._replace(scheme="https")
         self.url_ = urllib.parse.urlunparse(parsed)
     except Exception:
-        self.url_ = "https://hubs.mozilla.com/demo"
+        self.url_ = ""
 
 
 def get_url(self):

@@ -1,6 +1,6 @@
 # Hubs Blender Exporter and Importer
 
-This addon extends the glTF 2.0 exporter to support the `MOZ_hubs_components` and `MOZ_lightmap` extensions allowing you to add behavior to glTF assets for [Mozilla Hubs](https://hubs.mozilla.com).
+This addon extends the glTF 2.0 exporter to support the `MOZ_hubs_components` and `MOZ_lightmap` extensions allowing you to add behavior to glTF assets for Hubs.
 
 [![Test](https://github.com/MozillaReality/hubs-blender-exporter/actions/workflows/test.yml/badge.svg)](https://github.com/MozillaReality/hubs-blender-exporter/actions/workflows/test.yml)
 [![Publish](https://github.com/MozillaReality/hubs-blender-exporter/actions/workflows/publish.yml/badge.svg)](https://github.com/MozillaReality/hubs-blender-exporter/actions/workflows/publish.yml)
@@ -46,7 +46,7 @@ This addon works in conjunction with the official glTF add-on, so exporting is d
 
 # Import into Hubs
 
-The easiest way to use your scene file is through the Spoke [project creation page](https://hubs.mozilla.com/spoke/projects/create) and selecting _Import From Blender_:
+The easiest way to use your scene file is through the Spoke project creation page and selecting _Import From Blender_:
 
 <img width="710" alt="Screenshot 2021-10-31 at 14 05 21" src="https://user-images.githubusercontent.com/303516/139588457-8d9d7835-6101-4cfc-886b-ad3e86c37846.png">
 
