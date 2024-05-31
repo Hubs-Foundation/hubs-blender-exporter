@@ -27,12 +27,8 @@ EXTENSION_VERSION = HUBS_CONFIG["gltfExtensionVersion"]
 
 def get_version_string():
     from .. import (bl_info)
-    return str(bl_info['version'][0]) + '.' + str(bl_info['version'][1]) + '.' + str(bl_info['version'][2])
-    #  or (shorter):
     info = bl_info['version']
     return f"{info[0]}.{info[1]}.{info[2]}"
-    #  or (faster):
-    return '.'.join(map(str, bl_info['version']))
 
 
 def export_callback(callback_method, export_settings):
@@ -42,7 +38,7 @@ def export_callback(callback_method, export_settings):
     # mid iteration and so multiple callbacks could be executed for the same
     # component/host.
 
-    for scene in bpy.data.scenes[:]:  # I don't think we need to copy the dicts [:], since we can't even alter the list, this would save mem
+    for scene in bpy.data.scenes[:]:
         for component in get_host_components(scene):
             component_callback = getattr(component, callback_method)
             try:
