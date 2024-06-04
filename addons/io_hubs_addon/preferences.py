@@ -36,7 +36,6 @@ class DepsProperty(bpy.types.PropertyGroup):
 class InstallDepsOperator(bpy.types.Operator):
     bl_idname = "pref.hubs_prefs_install_dep"
     bl_label = "Install a python dependency through pip"
-    bl_property = "dep_names"
     bl_options = {'REGISTER', 'UNDO'}
 
     dep_config: PointerProperty(type=DepsProperty)
@@ -44,6 +43,25 @@ class InstallDepsOperator(bpy.types.Operator):
     def execute(self, context):
         import subprocess
         import sys
+
+        result = subprocess.run([sys.executable, '-m', 'ensurepip'],
+                                capture_output=False, text=True, input="y")
+        if result.returncode < 0:
+            print(result.stderr)
+            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
+                                          report_string='\n\n'.join(["Dependencies install has failed installing pip",
+                                                                     f'{result.stderr}']))
+            return {'CANCELLED'}
+
+        result = subprocess.run(
+            [sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'],
+            capture_output=False, text=True, input="y")
+        if result.returncode < 0:
+            print(result.stderr)
+            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
+                                          report_string='\n\n'.join(["Dependencies install has failed upgrading pip",
+                                                                     f'{result.stderr}']))
+            return {'CANCELLED'}
 
         from .utils import get_or_create_deps_path
         dep = self.dep_config.name
