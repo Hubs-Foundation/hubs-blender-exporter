@@ -130,20 +130,14 @@ class DeleteProfileOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-def reload_user_components():
-    from .components.components_registry import unload_user_components, load_user_components
-    unload_user_components()
-    load_user_components()
-
-
 class HubsUserComponentsPath(bpy.types.PropertyGroup):
     name: StringProperty(
         name='User components path entry name',
-        description='The user components path entry name.',
+        description='An optional, user defined label to allow quick discernment between different user component definition directories.',
     )
     path: StringProperty(
         name='User components path path',
-        description='The user components path path. You can copy external components here.',
+        description='The path to a user defined component definitions directory. You can copy external components here and they will be loaded automatically.',
         subtype='FILE_PATH'
     )
 
@@ -154,13 +148,10 @@ class HubsUserComponentsPathAdd(bpy.types.Operator):
     bl_description = "Adds a new component path entry"
     bl_options = {'REGISTER', 'UNDO'}
 
-    path: bpy.props.StringProperty(name="User Components Path", default="")
-
     def execute(self, context):
         addon_prefs = addon_prefs = get_addon_pref(bpy.context)
         paths = addon_prefs.user_components_paths
-        new_path = paths.add()
-        new_path.path = self.path
+        paths.add()
 
         return {'FINISHED'}
 

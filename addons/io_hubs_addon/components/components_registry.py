@@ -39,7 +39,7 @@ def get_user_component_names():
     from ..preferences import get_addon_pref
     addon_prefs = get_addon_pref(bpy.context)
     for _, entry in enumerate(addon_prefs.user_components_paths):
-        if entry.path:
+        if entry.path and os.path.isdir(entry.path):
             component_names = get_components_in_dir(entry.path)
     return component_names
 
@@ -147,10 +147,14 @@ def load_user_components():
     for module in get_user_component_definitions():
         for _, member in inspect.getmembers(module):
             if inspect.isclass(member) and issubclass(member, HubsComponent) and module.__name__ == member.__module__:
-                if hasattr(module, 'register_module'):
-                    module.register_module()
-                register_component(member)
-                __components_registry[member.get_name()] = member
+                try:
+                    if hasattr(module, 'register_module'):
+                        module.register_module()
+                    register_component(member)
+                    __components_registry[member.get_name()] = member
+                except Exception:
+                    import traceback
+                    traceback.print_exc()
 
 
 def unload_user_components():
