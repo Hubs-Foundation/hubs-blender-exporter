@@ -153,6 +153,8 @@ class HubsUserComponentsPathAdd(bpy.types.Operator):
         paths = addon_prefs.user_components_paths
         paths.add()
 
+        context.preferences.is_dirty = True
+
         return {'FINISHED'}
 
 
@@ -167,6 +169,8 @@ class HubsUserComponentsPathRemove(bpy.types.Operator):
         addon_prefs = addon_prefs = get_addon_pref(bpy.context)
         paths = addon_prefs.user_components_paths
         paths.remove(self.index)
+
+        context.preferences.is_dirty = True
 
         return {'FINISHED'}
 
