@@ -180,8 +180,9 @@ def load_components_registry():
                 register_component(member)
                 __components_registry[member.get_name()] = member
 
-    # Preferences are not accessible until the add-on is enabled so we need to check that before loading the user
-    # components as they depend on the preferences.
+    # When running Blender in factory startup mode and specifying an addon, that addon's register function is called.
+    # As preferences are not available until the addon is enabled, the user component load fails when accessing them.
+    # This happens when running tests and this guard avoids crashing in that scenario.
     from ..utils import is_addon_enabled
     if is_addon_enabled():
         load_user_components()
