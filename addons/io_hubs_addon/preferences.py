@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import AddonPreferences, Context
-from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, PointerProperty
+from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, PointerProperty, CollectionProperty
 from .utils import get_addon_package, is_module_available, get_browser_profile_directory
 import platform
 from os.path import join, dirname, realpath
