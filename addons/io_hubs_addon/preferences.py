@@ -130,15 +130,20 @@ class DeleteProfileOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
+def set_prefs_dirty(self, context):
+    context.preferences.is_dirty = True
+
+
 class HubsUserComponentsPath(bpy.types.PropertyGroup):
     name: StringProperty(
         name='User components path entry name',
         description='An optional, user defined label to allow quick discernment between different user component definition directories.',
-    )
+        update=set_prefs_dirty)
     path: StringProperty(
         name='User components path path',
         description='The path to a user defined component definitions directory. You can copy external components here and they will be loaded automatically.',
-        subtype='FILE_PATH'
+        subtype='FILE_PATH',
+        update=set_prefs_dirty
     )
 
 
