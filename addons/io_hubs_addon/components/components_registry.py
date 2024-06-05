@@ -38,28 +38,36 @@ def get_user_component_names():
     component_names = []
     from ..preferences import get_addon_pref
     addon_prefs = get_addon_pref(bpy.context)
-    for _, entry in enumerate(addon_prefs.user_components_paths):
+    for entry in addon_prefs.user_components_paths:
         if entry.path and os.path.isdir(entry.path):
-            component_names = get_components_in_dir(entry.path)
+            component_names.append(get_components_in_dir(entry.path))
     return component_names
+
+
+def get_user_component_paths():
+    component_paths = []
+    from ..preferences import get_addon_pref
+    addon_prefs = get_addon_pref(bpy.context)
+    for entry in addon_prefs.user_components_paths:
+        if entry.path and os.path.isdir(entry.path):
+            components = get_components_in_dir(entry.path)
+            for component in components:
+                component_paths.append(os.path.join(entry.path, component + ".py"))
+    return component_paths
 
 
 def get_user_component_definitions():
     modules = []
-    component_names = get_user_component_names()
-    for name in component_names:
-        from ..preferences import get_addon_pref
-        addon_prefs = get_addon_pref(bpy.context)
-        for _, entry in enumerate(addon_prefs.user_components_paths):
-            file_path = os.path.join(entry.path, name + ".py")
-            try:
-                spec = importlib.util.spec_from_file_location(name, file_path)
-                mod = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(mod)
-                modules.append(mod)
+    component_paths = get_user_component_paths()
+    for component_path in component_paths:
+        try:
+            spec = importlib.util.spec_from_file_location(component_path, component_path)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            modules.append(mod)
 
-            except Exception as e:
-                print(f'Failed import of component {name}', e)
+        except Exception as e:
+            print(f'Failed import of component {component_path}', e)
     return modules
 
 
