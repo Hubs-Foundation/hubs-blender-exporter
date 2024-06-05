@@ -1,5 +1,4 @@
 from .utils import create_prefs_dir
-from .utils import get_user_python_path
 import sys
 import bpy
 from .io import gltf_exporter, gltf_importer, panels
@@ -22,7 +21,6 @@ bl_info = {
     "category": "Generic"
 }
 
-sys.path.insert(0, get_user_python_path())
 
 create_prefs_dir()
 

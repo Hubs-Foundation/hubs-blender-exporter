@@ -1,7 +1,7 @@
 import bpy
 from bpy.types import AddonPreferences, Context
-from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, CollectionProperty
-from .utils import get_addon_package, isModuleAvailable, get_browser_profile_directory
+from bpy.props import IntProperty, StringProperty, EnumProperty, BoolProperty, PointerProperty
+from .utils import get_addon_package, is_module_available, get_browser_profile_directory
 import platform
 from os.path import join, dirname, realpath
 
@@ -36,10 +36,9 @@ class DepsProperty(bpy.types.PropertyGroup):
 class InstallDepsOperator(bpy.types.Operator):
     bl_idname = "pref.hubs_prefs_install_dep"
     bl_label = "Install a python dependency through pip"
-    bl_property = "dep_names"
     bl_options = {'REGISTER', 'UNDO'}
 
-    dep_names: CollectionProperty(type=DepsProperty)
+    dep_config: PointerProperty(type=DepsProperty)
 
     def execute(self, context):
         import subprocess
@@ -50,26 +49,32 @@ class InstallDepsOperator(bpy.types.Operator):
         if result.returncode < 0:
             print(result.stderr)
             bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                          report_string='\n\n'.join(["Dependencies install has failed",
+                                          report_string='\n\n'.join(["Dependencies install has failed installing pip",
                                                                      f'{result.stderr}']))
             return {'CANCELLED'}
 
-        deps = []
-        for _, dep in self.dep_names.items():
-            if dep.version:
-                deps.append(f'{dep.name}=={dep.version}')
-            else:
-                deps.append(dep.name)
-
-        from .utils import get_user_python_path
         result = subprocess.run(
-            [sys.executable, '-m', 'pip', 'install', *deps,
-             '-t', get_user_python_path()],
+            [sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'],
+            capture_output=False, text=True, input="y")
+        if result.returncode < 0:
+            print(result.stderr)
+            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
+                                          report_string='\n\n'.join(["Dependencies install has failed upgrading pip",
+                                                                     f'{result.stderr}']))
+            return {'CANCELLED'}
+
+        from .utils import get_or_create_deps_path
+        dep = self.dep_config.name
+        if self.dep_config.version:
+            dep = f'{self.dep_config.name}=={self.dep_config.version}'
+
+        result = subprocess.run(
+            [sys.executable, '-m', 'pip', 'install', '--upgrade', dep,
+             '-t', get_or_create_deps_path(self.dep_config.name)],
             capture_output=True, text=True, input="y")
         failed = False
-        for _, dep in self.dep_names.items():
-            if not isModuleAvailable(dep.name):
-                failed = True
+        if not is_module_available(self.dep_config.name):
+            failed = True
         if result.returncode != 0 or failed:
             print(result.stderr)
             bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
@@ -85,55 +90,15 @@ class InstallDepsOperator(bpy.types.Operator):
 class UninstallDepsOperator(bpy.types.Operator):
     bl_idname = "pref.hubs_prefs_uninstall_dep"
     bl_label = "Uninstall a python dependency through pip"
-    bl_property = "dep_names"
     bl_options = {'REGISTER', 'UNDO'}
 
-    dep_names: CollectionProperty(type=DepsProperty)
-    force: BoolProperty(default=False)
+    dep_config: PointerProperty(type=DepsProperty)
 
     def execute(self, context):
-        import subprocess
-        import sys
+        from .utils import get_or_create_deps_path
+        import shutil
+        shutil.rmtree(get_or_create_deps_path(self.dep_config.name))
 
-        result = subprocess.run([sys.executable, '-m', 'ensurepip'],
-                                capture_output=False, text=True, input="y")
-        if result.returncode < 0:
-            print(result.stderr)
-            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                          report_string='\n\n'.join(["Dependencies uninstall has failed",
-                                                                     f'{result.stderr}']))
-            return {'CANCELLED'}
-
-        for name, _ in self.dep_names.items():
-            del name
-
-        result = subprocess.run(
-            [sys.executable, '-m', 'pip', 'uninstall', *
-                [name for name, _ in self.dep_names.items()]],
-            capture_output=True, text=True, input="y")
-
-        failed = False
-        for name, _ in self.dep_names.items():
-            if isModuleAvailable(name):
-                failed = True
-        if result.returncode != 0 or failed:
-            print(result.stderr)
-            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                          report_string='\n\n'.join(["Dependencies install has failed",
-                                                                     f'{result.stderr}']))
-            return {'CANCELLED'}
-
-        if self.force:
-            import os
-            from .utils import get_user_python_path
-            deps_paths = [os.path.join(get_user_python_path(), name)
-                          for name, _ in self.dep_names.items()]
-            import shutil
-            for dep_path in deps_paths:
-                shutil.rmtree(dep_path)
-
-        bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                      report_string="Dependencies uninstalled successfully")
         return {'FINISHED'}
 
 
@@ -189,10 +154,6 @@ class HubsPreferences(AddonPreferences):
                ("Chrome", "Chrome", "Use Chrome as the viewer browser")],
         default="Firefox")
 
-    force_uninstall: BoolProperty(
-        default=False, name="Force",
-        description="Force uninstall of the selenium dependencies by deleting the module directory")
-
     override_firefox_path: BoolProperty(
         name="Override Firefox executable path", description="Override Firefox executable path", default=False)
     firefox_path: StringProperty(
@@ -209,7 +170,7 @@ class HubsPreferences(AddonPreferences):
         box.row().prop(self, "row_length")
         box.row().prop(self, "recast_lib_path")
 
-        selenium_available = isModuleAvailable("selenium")
+        selenium_available = is_module_available("selenium")
         modules_available = selenium_available
         box = layout.box()
         box.label(text="Scene debugger configuration")
@@ -264,16 +225,14 @@ class HubsPreferences(AddonPreferences):
             "Selenium module not found. These modules are required to run the viewer")
         row = modules_box.row()
         if modules_available:
-            row.prop(self, "force_uninstall")
             op = row.operator(UninstallDepsOperator.bl_idname,
                               text="Uninstall dependencies (selenium)")
-            op.dep_names.add().name = "selenium"
+            op.dep_config.name = "selenium"
         else:
             op = row.operator(InstallDepsOperator.bl_idname,
                               text="Install dependencies (selenium)")
-            dep = op.dep_names.add()
-            dep.name = "selenium"
-            dep.version = "4.15.2"
+            op.dep_config.name = "selenium"
+            op.dep_config.version = "4.15.2"
 
 
 def register():
