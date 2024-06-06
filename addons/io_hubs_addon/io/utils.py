@@ -9,6 +9,8 @@ else:
     from io_scene_gltf2.blender.exp import gltf2_blender_gather_materials, gltf2_blender_gather_nodes, gltf2_blender_gather_joints
     from io_scene_gltf2.blender.exp import gltf2_blender_gather_texture_info, gltf2_blender_export_keys
     from io_scene_gltf2.blender.exp import gltf2_blender_image
+if bpy.app.version >= (4, 0, 0):
+    from io_scene_gltf2.blender.exp.material import gltf2_blender_search_node_tree
 from io_scene_gltf2.blender.exp.gltf2_blender_gather_cache import cached
 from io_scene_gltf2.io.com import gltf2_io_extensions
 from io_scene_gltf2.io.com import gltf2_io
@@ -369,6 +371,10 @@ def gather_lightmap_texture_info(blender_material, export_settings):
     if bpy.app.version < (3, 2, 0):
         tex_transform, tex_coord = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
             texture_socket, export_settings)
+    elif bpy.app.version >= (4, 0, 0):
+        socket = gltf2_blender_search_node_tree.NodeSocket(texture_socket, blender_material)
+        tex_transform, tex_coord = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
+            socket, export_settings)
     else:
         tex_transform, tex_coord, _ = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
             texture_socket, export_settings)
