@@ -16,5 +16,8 @@ CMakeCache.txt
 Makefile
 lib
 
-#Selenium
+# Selenium
 __hubs_selenium_profile
+
+# Dependencies
+addons/io_hubs_addon/.__deps__

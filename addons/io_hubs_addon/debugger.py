@@ -3,13 +3,13 @@ import bpy
 from bpy.types import Context
 
 from .preferences import EXPORT_TMP_FILE_NAME, EXPORT_TMP_SCREENSHOT_FILE_NAME
-from .utils import isModuleAvailable, save_prefs, find_area, image_type_to_file_ext
+from .utils import is_module_available, save_prefs, find_area, image_type_to_file_ext
 from .icons import get_hubs_icons
 from .hubs_session import HubsSession, PARAMS_TO_STRING
 from . import api
 from bpy.types import AnyType
 
-ROOM_FLAGS_DOC_URL = "https://hubs.mozilla.com/docs/hubs-query-string-parameters.html"
+ROOM_FLAGS_DOC_URL = "https://update-with-hubs-query-string-parameters"
 
 
 def export_scene(context):
@@ -53,8 +53,19 @@ def is_room_set(context):
 class HubsUpdateRoomOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.update_room"
     bl_label = "View Scene"
-    bl_description = "Update room"
     bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def description(cls, context, properties):
+        is_scene_update = context.scene.hubs_scene_debugger_room_create_prefs.debugLocalScene
+        if hubs_session.is_alive():
+            room_params = hubs_session.room_params
+            is_scene_update = "debugLocalScene" in room_params
+
+        if is_scene_update:
+            return "Updates the currently opened room scene with the Blender scene"
+        else:
+            return "Spawns the Blender scene in the currently opened room as an object"
 
     @classmethod
     def poll(cls, context: Context):
@@ -122,8 +133,8 @@ class HubsUpdateRoomOperator(bpy.types.Operator):
 
 class HubsCreateRoomOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.create_room"
-    bl_label = "Create Room"
-    bl_description = "Create room"
+    bl_label = "Create a new room"
+    bl_description = "Creates a new room in the selected instance and opens it in the browser selected in the add-on preferences. The specified room flags will be applied"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -153,8 +164,8 @@ class HubsCreateRoomOperator(bpy.types.Operator):
 
 class HubsOpenRoomOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.open_room"
-    bl_label = "Open Room"
-    bl_description = "Open room"
+    bl_label = "Open selected room"
+    bl_description = "Opens the selected room in the browser selected in the add-on preferences. The specified room flags will be applied"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -238,7 +249,7 @@ class HUBS_PT_ToolsSceneDebuggerCreatePanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context: Context):
-        return isModuleAvailable("selenium")
+        return is_module_available("selenium")
 
     def draw(self, context: Context):
         prefs = context.window_manager.hubs_scene_debugger_prefs
@@ -256,8 +267,7 @@ class HUBS_PT_ToolsSceneDebuggerCreatePanel(bpy.types.Panel):
                      icon='REMOVE', text="")
 
         row = box.row()
-        row.operator(HubsCreateRoomOperator.bl_idname,
-                     text='Create')
+        row.operator(HubsCreateRoomOperator.bl_idname)
 
 
 class HUBS_PT_ToolsSceneDebuggerOpenPanel(bpy.types.Panel):
@@ -270,7 +280,7 @@ class HUBS_PT_ToolsSceneDebuggerOpenPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context: Context):
-        return isModuleAvailable("selenium")
+        return is_module_available("selenium")
 
     def draw(self, context: Context):
         box = self.layout.box()
@@ -284,13 +294,12 @@ class HUBS_PT_ToolsSceneDebuggerOpenPanel(bpy.types.Panel):
         col = row.column()
         op = col.operator(HubsSceneDebuggerRoomAdd.bl_idname,
                           icon='ADD', text="")
-        op.url = "https://hubs.mozilla.com/demo"
+        op.url = ""
         col.operator(HubsSceneDebuggerRoomRemove.bl_idname,
                      icon='REMOVE', text="")
 
         row = box.row()
-        row.operator(HubsOpenRoomOperator.bl_idname,
-                     text='Open')
+        row.operator(HubsOpenRoomOperator.bl_idname)
 
 
 class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
@@ -303,7 +312,7 @@ class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context: Context):
-        return isModuleAvailable("selenium")
+        return is_module_available("selenium")
 
     def draw(self, context: Context):
         box = self.layout.box()
@@ -354,10 +363,10 @@ class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
             row.label(
                 text="You need to be signed in to Hubs to update the room scene")
 
-        update_mode = "Update Scene" if context.scene.hubs_scene_debugger_room_create_prefs.debugLocalScene else "Spawn as object"
+        update_mode = "Update current scene" if context.scene.hubs_scene_debugger_room_create_prefs.debugLocalScene else "Spawn as object"
         if hubs_session.is_alive():
             room_params = hubs_session.room_params
-            update_mode = "Update Scene" if "debugLocalScene" in room_params else "Spawn as object"
+            update_mode = "Update current scene" if "debugLocalScene" in room_params else "Spawn as object"
         row = box.row()
         row.operator(HubsUpdateRoomOperator.bl_idname,
                      text=f'{update_mode}')
@@ -379,7 +388,7 @@ class HUBS_PT_ToolsSceneSessionPanel(bpy.types.Panel):
     def draw(self, context):
         main_box = self.layout.box()
 
-        if isModuleAvailable("selenium"):
+        if is_module_available("selenium"):
             row = main_box.row(align=True)
             row.alignment = "CENTER"
             col = row.column()
@@ -454,7 +463,7 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context: Context):
-        return isModuleAvailable("selenium")
+        return is_module_available("selenium")
 
     def draw(self, context):
         params_icons = {}
@@ -491,7 +500,7 @@ def add_instance(context):
     prefs = context.window_manager.hubs_scene_debugger_prefs
     new_instance = prefs.hubs_instances.add()
     new_instance.name = "Demo Hub"
-    new_instance.url = "https://hubs.mozilla.com/demo"
+    new_instance.url = ""
     prefs.hubs_instance_idx = len(
         prefs.hubs_instances) - 1
 
@@ -605,8 +614,8 @@ class HUBS_UL_ToolsSceneDebuggerRooms(bpy.types.UIList):
 
 class HubsPublishSceneOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.publish_scene"
-    bl_label = "Scene Manager"
-    bl_description = "Publish scene"
+    bl_label = "Publish"
+    bl_description = "Publish current Blender scene"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -675,7 +684,7 @@ class HubsPublishSceneOperator(bpy.types.Operator):
 class HubsUpdateSceneOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.update_scene"
     bl_label = "Update"
-    bl_description = "Update selected scene"
+    bl_description = "Updates the selected scene with the Blender scene"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -728,8 +737,8 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
 
 class HubsCreateRoomWithSceneOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.create_room_with_scene"
-    bl_label = "Create Room With Scene"
-    bl_description = "Create a room with the selected scene"
+    bl_label = "Create Room"
+    bl_description = "Creates a new room in the selected instance and opens it in the browser selected in the add-on preferences. The currently selected scene from the scenes list will be used. The specified room flags will be applied"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -790,7 +799,7 @@ class HubsCreateRoomWithSceneOperator(bpy.types.Operator):
 class HubsGetScenesOperator(bpy.types.Operator):
     bl_idname = "hubs_scene.get_scenes"
     bl_label = "Get Scenes"
-    bl_description = "Get Scenes"
+    bl_description = "Gets the scene list from your account"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -860,7 +869,7 @@ class HUBS_PT_ToolsSceneDebuggerPublishScenePanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context: Context):
-        return isModuleAvailable("selenium")
+        return is_module_available("selenium")
 
     def draw(self, context: Context):
         if not hubs_session.is_alive() or not hubs_session.user_logged_in:
@@ -885,16 +894,13 @@ class HUBS_PT_ToolsSceneDebuggerPublishScenePanel(bpy.types.Panel):
 
         row = box.row()
         col = row.column()
-        col.operator(HubsGetScenesOperator.bl_idname,
-                     text='Get Scenes')
+        col.operator(HubsGetScenesOperator.bl_idname)
         col = row.column()
-        col.operator(HubsUpdateSceneOperator.bl_idname,
-                     text='Update')
+        col.operator(HubsUpdateSceneOperator.bl_idname)
 
         row = box.row()
         row = row.column()
-        row.operator(HubsCreateRoomWithSceneOperator.bl_idname,
-                     text='Create Room')
+        row.operator(HubsCreateRoomWithSceneOperator.bl_idname)
 
         box = self.layout.box()
         row = box.row()
@@ -913,8 +919,7 @@ class HUBS_PT_ToolsSceneDebuggerPublishScenePanel(bpy.types.Panel):
         op = col.operator("image.hubs_open_image", text='', icon='FILE_FOLDER')
         op.target_property = "screenshot"
         row = box.row()
-        op = row.operator(HubsPublishSceneOperator.bl_idname,
-                          text='Publish')
+        op = row.operator(HubsPublishSceneOperator.bl_idname)
 
 
 class HubsSceneDebuggerRoomCreatePrefs(bpy.types.PropertyGroup):
@@ -976,7 +981,7 @@ class HubsSceneDebuggerRoomExportPrefs(bpy.types.PropertyGroup):
     avatar_to_viewport: bpy.props.BoolProperty(
         name='Spawn using viewport transform',
         description='Spawn the avatar in the current viewport camera position/rotation',
-        default=True, options=set())
+        default=False, options=set())
 
 
 class HubsSceneProject(bpy.types.PropertyGroup):
@@ -1048,7 +1053,7 @@ def set_url(self, value):
         parsed = parsed._replace(scheme="https")
         self.url_ = urllib.parse.urlunparse(parsed)
     except Exception:
-        self.url_ = "https://hubs.mozilla.com/demo"
+        self.url_ = ""
 
 
 def get_url(self):

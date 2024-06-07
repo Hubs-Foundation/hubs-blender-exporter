@@ -116,9 +116,14 @@ jobs:
       - name: Update build number
         run: |
           sed -i'' 's/"dev_build"/${{ github.run_number }}/g' $GITHUB_WORKSPACE/addons/io_hubs_addon/__init__.py
+      - name: Get version
+        id: get_version
+        run: |
+          VERSION=$(grep '"version"' $GITHUB_WORKSPACE/addons/io_hubs_addon/__init__.py | sed -E 's/.*\(([0-9]+), ([0-9]+), ([0-9]+), ([0-9]+)\).*/\1.\2.\3.\4/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
       - name: Upload addon artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: io_hubs_addon
+          name: io_hubs_addon_${{ steps.get_version.outputs.version }}
           path: addons
           if-no-files-found: error
