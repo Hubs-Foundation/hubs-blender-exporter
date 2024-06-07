@@ -10,6 +10,8 @@ else:
     from io_scene_gltf2.blender.exp import gltf2_blender_gather_texture_info, gltf2_blender_export_keys
     from io_scene_gltf2.blender.exp import gltf2_blender_image
 from io_scene_gltf2.blender.exp.gltf2_blender_gather_cache import cached
+if bpy.app.version >= (4, 0, 0):
+    from io_scene_gltf2.blender.exp.material import gltf2_blender_search_node_tree
 from io_scene_gltf2.io.com import gltf2_io_extensions
 from io_scene_gltf2.io.com import gltf2_io
 from io_scene_gltf2.io.exp import gltf2_io_binary_data
@@ -47,7 +49,10 @@ class HubsExportImage(gltf2_blender_image.ExportImage):
 
     def encode(self, mime_type: Optional[str], export_settings) -> Union[Tuple[bytes, bool], bytes]:
         if mime_type == "image/vnd.radiance":
-            return self.encode_from_image_hdr(self.blender_image())
+            if bpy.app.version < (4, 0, 0):
+                return self.encode_from_image_hdr(self.blender_image())
+            else:
+                return self.encode_from_image_hdr(self.blender_image(export_settings))
         if bpy.app.version < (3, 5, 0):
             return super().encode(mime_type)
         else:
@@ -196,7 +201,7 @@ def gather_node_property(export_settings, blender_object, target, property_name)
     blender_object = getattr(target, property_name)
 
     if blender_object:
-        if bpy.app.version < (3, 2, 0) or bpy.app.version >= (4, 0, 0):
+        if bpy.app.version < (3, 2, 0):
             node = gltf2_blender_gather_nodes.gather_node(
                 blender_object,
                 blender_object.library.name if blender_object.library else None,
@@ -366,8 +371,13 @@ def gather_lightmap_texture_info(blender_material, export_settings):
     if bpy.app.version < (3, 2, 0):
         tex_transform, tex_coord = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
             texture_socket, export_settings)
+    elif bpy.app.version >= (4, 0, 0):
+        socket = gltf2_blender_search_node_tree.NodeSocket(texture_socket, blender_material)
+        tex_transform, tex_coord = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
+            socket, export_settings)
     else:
-        tex_transform, tex_coord, _ = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
+        print("processing __gather_texture_transform_and_tex_coord")
+        tex_transform, tex_coord = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
             texture_socket, export_settings)
     texture_info = gltf2_io.TextureInfo(
         extensions=gltf2_blender_gather_texture_info.__gather_extensions(
