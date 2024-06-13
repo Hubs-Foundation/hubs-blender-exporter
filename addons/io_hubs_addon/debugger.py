@@ -9,7 +9,7 @@ from .hubs_session import HubsSession, PARAMS_TO_STRING
 from . import api
 from bpy.types import AnyType
 
-ROOM_FLAGS_DOC_URL = "https://update-with-hubs-query-string-parameters"
+ROOM_FLAGS_DOC_URL = "https://github.com/Hubs-Foundation/hubs-docs/blob/master/docs/hubs-query-string-parameters.md"
 
 
 def export_scene(context):
