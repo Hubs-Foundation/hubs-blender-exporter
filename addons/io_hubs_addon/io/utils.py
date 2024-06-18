@@ -26,7 +26,7 @@ HUBS_CONFIG = {
 
 imported_images = {}
 
-# gather_texture/image with HDR support via MOZ_texture_rgbe
+# gather_texture/image with HDR support via MOZ_texture_rgbe and OPEN_EXR support via MOZ_texture_exr
 
 
 class HubsImageData(gltf2_io_image_data.ImageData):
@@ -34,6 +34,8 @@ class HubsImageData(gltf2_io_image_data.ImageData):
     def file_extension(self):
         if self._mime_type == "image/vnd.radiance":
             return ".hdr"
+        if self._mime_type == "image/x-exr":
+            return ".exr"
         return super().file_extension
 
 
@@ -48,13 +50,14 @@ class HubsExportImage(gltf2_blender_image.ExportImage):
     def encode(self, mime_type: Optional[str], export_settings) -> Union[Tuple[bytes, bool], bytes]:
         if mime_type == "image/vnd.radiance":
             return self.encode_from_image_hdr(self.blender_image())
+        if mime_type == "image/x-exr":
+            return self.encode_from_image_exr(self.blender_image())
         if bpy.app.version < (3, 5, 0):
             return super().encode(mime_type)
         else:
             return super().encode(mime_type, export_settings)
 
-    # TODO this should allow conversion from other HDR formats (namely EXR),
-    # in memory images, and combining separate channels like SDR images
+    # TODO this should allow in memory images, and combining separate channels like SDR images
     def encode_from_image_hdr(self, image: bpy.types.Image) -> Union[Tuple[bytes, bool], bytes]:
         if image.file_format == "HDR" and image.source == 'FILE' and not image.is_dirty:
             if image.packed_file is not None:
@@ -68,6 +71,19 @@ class HubsExportImage(gltf2_blender_image.ExportImage):
         raise Exception(
             "HDR images must be saved as a .hdr file before exporting")
 
+    # TODO this should allow in memory images, and combining separate channels like SDR images
+    def encode_from_image_exr(self, image: bpy.types.Image) -> bytes:
+        if image.file_format == "OPEN_EXR" and image.source == 'FILE' and not image.is_dirty:
+            if image.packed_file is not None:
+                return image.packed_file.data
+            else:
+                src_path = bpy.path.abspath(image.filepath_raw)
+                if os.path.isfile(src_path):
+                    with open(src_path, 'rb') as f:
+                        return f.read()
+
+        raise Exception("EXR images must be saved as a .exr file before exporting")
+
 
 @cached
 def gather_image(blender_image, export_settings):
@@ -80,6 +96,8 @@ def gather_image(blender_image, export_settings):
     if export_settings["gltf_image_format"] == "AUTO":
         if blender_image.file_format == "HDR":
             mime_type = "image/vnd.radiance"
+        elif blender_image.file_format == "OPEN_EXR":
+            mime_type = "image/x-exr"
         else:
             mime_type = "image/png"
     else:
@@ -120,9 +138,18 @@ def gather_texture(blender_image, export_settings):
 
     texture_extensions = {}
     is_hdr = blender_image and blender_image.file_format == "HDR"
-
     if is_hdr:
         ext_name = "MOZ_texture_rgbe"
+        texture_extensions[ext_name] = gltf2_io_extensions.Extension(
+            name=ext_name,
+            extension={
+                "source": image
+            },
+            required=False
+        )
+    is_exr = blender_image and blender_image.file_format == "OPEN_EXR"
+    if is_exr:
+        ext_name = "MOZ_texture_exr"
         texture_extensions[ext_name] = gltf2_io_extensions.Extension(
             name=ext_name,
             extension={
@@ -138,7 +165,7 @@ def gather_texture(blender_image, export_settings):
         extras=None,
         name=None,
         sampler=None,
-        source=None if is_hdr else image
+        source=None if is_hdr or is_exr else image
     )
 
 
