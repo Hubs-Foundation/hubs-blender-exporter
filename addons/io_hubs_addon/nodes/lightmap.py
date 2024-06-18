@@ -18,6 +18,20 @@ node_categories = [
 ]
 
 
+def add_node_menu_blender4(self, context):
+    self.layout.menu("NODE_MT_mozilla_hubs_nodes")
+
+
+class NODE_MT_mozilla_hubs_nodes(bpy.types.Menu):
+    """Add node menu for Blender 4.x"""
+    bl_label = "Hubs"
+    bl_idname = "NODE_MT_mozilla_hubs_nodes"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("node.add_node", text="MOZ_lightmap settings").type = "moz_lightmap.node"
+
+
 class MozLightmapNode(Node):
     """MOZ_lightmap settings node"""
     bl_idname = 'moz_lightmap.node'
@@ -46,11 +60,37 @@ class MozLightmapNode(Node):
         return "MOZ_lightmap"
 
 
-def register():
+def register_blender_4():
+    bpy.utils.register_class(NODE_MT_mozilla_hubs_nodes)
+    bpy.types.NODE_MT_shader_node_add_all.append(add_node_menu_blender4)
+    bpy.utils.register_class(MozLightmapNode)
+
+
+def unregister_blender_4():
+    bpy.types.NODE_MT_shader_node_add_all.remove(add_node_menu_blender4)
+    bpy.utils.unregister_class(NODE_MT_mozilla_hubs_nodes)
+    bpy.utils.unregister_class(MozLightmapNode)
+
+
+def register_blender_3():
     bpy.utils.register_class(MozLightmapNode)
     nodeitems_utils.register_node_categories("MOZ_NODES", node_categories)
 
 
-def unregister():
+def unregister_blender_3():
     bpy.utils.unregister_class(MozLightmapNode)
     nodeitems_utils.unregister_node_categories("MOZ_NODES")
+
+
+def register():
+    if bpy.app.version < (4, 0, 0):
+        register_blender_3()
+    else:
+        register_blender_4()
+
+
+def unregister():
+    if bpy.app.version < (4, 0, 0):
+        unregister_blender_3()
+    else:
+        unregister_blender_4()
