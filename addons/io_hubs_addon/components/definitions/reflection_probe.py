@@ -1,15 +1,17 @@
 from ..operators import OpenImage
 import bpy
-from bpy.props import PointerProperty, EnumProperty, StringProperty, BoolProperty, CollectionProperty
-from bpy.types import Image, PropertyGroup, Operator
+from bpy.props import PointerProperty, EnumProperty, StringProperty, BoolProperty, CollectionProperty, FloatProperty
+from bpy.types import Image, PropertyGroup, Operator, Gizmo
 
 from ...components.utils import is_gpu_available, redraw_component_ui, is_linked, update_image_editors
 
 from ..components_registry import get_components_registry
 from ..hubs_component import HubsComponent
-from ..types import Category, PanelType, NodeType
+from ..types import Category, PanelType, NodeType, MigrationType
 from ..ui import add_link_indicator
 from ...utils import rgetattr, rsetattr
+from ..models import reflection_probe
+from mathutils import Matrix, Vector
 import math
 import os
 
@@ -346,8 +348,8 @@ class BakeProbeOperator(Operator):
         self.camera_data.cycles.latitude_min = -math.pi / 2
         self.camera_data.cycles.latitude_max = math.pi / 2
 
-        self.camera_data.clip_start = probe.data.clip_start
-        self.camera_data.clip_end = probe.data.clip_end
+        self.camera_data.clip_start = probe.hubs_component_reflection_probe.clipStart
+        self.camera_data.clip_end = probe.hubs_component_reflection_probe.clipEnd
 
         self.camera_object.matrix_world = probe.matrix_world.copy()
         self.camera_object.rotation_euler.x += math.pi / 2
@@ -644,6 +646,39 @@ class SelectMismatchedReflectionProbes(Operator):
         return {'FINISHED'}
 
 
+class ReflectionProbeGizmo(Gizmo):
+    """ReflectionProbe gizmo"""
+    bl_idname = "GIZMO_GT_hba_reflectionprobe_gizmo"
+    bl_target_properties = (
+        {"id": "influence_distance", "type": 'FLOAT'},
+    )
+
+    __slots__ = (
+        "hubs_gizmo_shape",
+        "custom_shape",
+    )
+
+    def _update_offset_matrix(self):
+        loc, rot, _ = self.matrix_basis.decompose()
+        radius = self.target_get_value("influence_distance")
+        mat_out = Matrix.Translation(
+            loc) @ rot.normalized().to_matrix().to_4x4() @ Matrix.Diagonal(Vector((radius, radius, radius))).to_4x4()
+        self.matrix_basis = mat_out
+
+    def draw(self, context):
+        self._update_offset_matrix()
+        self.draw_custom_shape(self.custom_shape)
+
+    def draw_select(self, context, select_id):
+        self._update_offset_matrix()
+        self.draw_custom_shape(self.custom_shape, select_id=select_id)
+
+    def setup(self):
+        if hasattr(self, "hubs_gizmo_shape"):
+            self.custom_shape = self.new_custom_shape(
+                'TRIS', self.hubs_gizmo_shape)
+
+
 class ReflectionProbe(HubsComponent):
     _definition = {
         'name': 'reflection-probe',
@@ -664,6 +699,33 @@ class ReflectionProbe(HubsComponent):
     locked: BoolProperty(
         name="Probe Lock",
         description="Toggle whether new environment maps can be assigned/baked to this reflection probe", default=False)
+
+    influence_distance: FloatProperty(
+        name="Influence Distance",
+        description="Influence distance of the probe",
+        default=2.5,
+        min=0,
+        subtype="DISTANCE",
+        unit="LENGTH"
+    )
+
+    clipStart: FloatProperty(
+        name="Clip Start",
+        description="Probe clip start, below which objects won't appear in the reflections",
+        default=0.8,
+        min=0.001,
+        subtype="DISTANCE",
+        unit="LENGTH"
+    )
+
+    clipEnd: FloatProperty(
+        name="Clip Start",
+        description="Probe clip end, beyond which objects won't appear in the reflections",
+        default=40,
+        min=0.001,
+        subtype="DISTANCE",
+        unit="LENGTH"
+    )
 
     def draw(self, context, layout, panel):
         row = layout.row()
@@ -723,6 +785,10 @@ class ReflectionProbe(HubsComponent):
                 row.label(text=f"{envmap_resolution} EnvMap doesn't match the scene probe resolution.",
                           icon='ERROR')
 
+        layout.prop(self, "influence_distance")
+        layout.prop(self, "clipStart")
+        layout.prop(self, "clipEnd")
+
         global bake_mode
         row = layout.row()
         row.context_pointer_set("bake_active_probe", None)
@@ -745,12 +811,29 @@ class ReflectionProbe(HubsComponent):
     def gather(self, export_settings, object):
         from ...io.utils import gather_texture
         return {
-            "size": object.data.influence_distance,
+            "size": self.influence_distance,
+            "clipStart": self.clipStart,
+            "clipEnd": self.clipEnd,
             "envMapTexture": {
                 "__mhc_link_type": "texture",
                 "index": gather_texture(self.envMapTexture, export_settings)
             }
         }
+
+    def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
+        migration_occurred = False
+
+        if host.type == 'LIGHT_PROBE' and instance_version < (1, 0, 1):
+            self.influence_distance = self.data.influence_distance
+            self.clipStart = self.data.clip_start
+            self.clipEnd = self.data.clip_end
+
+            if migration_type != MigrationType.GLOBAL or is_linked(ob) or type(ob) == bpy.types.Armature:
+                host_reference = get_host_reference_message(panel_type, host, ob=ob)
+                migration_report.append(
+                    f"Warning: The Reflection Probe component's influence_distance, clip_start and clip_end properties on the {panel_type.value} {host_reference} may not have migrated correctly")
+
+        return migration_occurred
 
     @ classmethod
     def draw_global(cls, context, layout, panel):
@@ -821,12 +904,29 @@ class ReflectionProbe(HubsComponent):
                 row.label(text="Baking requires Cycles addon to be enabled.",
                           icon='ERROR')
 
-    @ classmethod
-    def poll(cls, panel_type, host, ob=None):
-        return host.type == 'LIGHT_PROBE'
+    @classmethod
+    def create_gizmo(cls, ob, gizmo_group):
+        gizmo = gizmo_group.gizmos.new(ReflectionProbeGizmo.bl_idname)
+        setattr(gizmo, "hubs_gizmo_shape", reflection_probe.SHAPE)
+        gizmo.setup()
+        gizmo.use_draw_scale = False
+        gizmo.use_draw_modal = False
+        gizmo.color = (0.5, 0.8, 0.2)
+        gizmo.alpha = 1.0
+        gizmo.scale_basis = 1.0
+        gizmo.hide_select = True
+        gizmo.color_highlight = (0.5, 0.8, 0.2)
+        gizmo.alpha_highlight = 0.5
+
+        gizmo.target_set_prop(
+            "influence_distance", ob.hubs_component_reflection_probe, "influence_distance")
+
+        return gizmo
+
 
     @ staticmethod
     def register():
+        bpy.utils.register_class(ReflectionProbeGizmo)
         bpy.utils.register_class(BakeProbeOperator)
         bpy.utils.register_class(ReflectionProbeSceneProps)
         bpy.utils.register_class(OpenReflectionProbeEnvMap)
@@ -848,6 +948,7 @@ class ReflectionProbe(HubsComponent):
         bpy.utils.unregister_class(ImportReflectionProbeEnvMaps)
         bpy.utils.unregister_class(ExportReflectionProbeEnvMaps)
         bpy.utils.unregister_class(SelectMismatchedReflectionProbes)
+        bpy.utils.unregister_class(ReflectionProbeGizmo)
         del bpy.types.Scene.hubs_scene_reflection_probe_properties
         bpy.types.TOPBAR_MT_file_import.remove(import_menu_draw)
         bpy.types.TOPBAR_MT_file_export.remove(export_menu_draw)
