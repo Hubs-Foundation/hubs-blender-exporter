@@ -376,9 +376,10 @@ def gather_lightmap_texture_info(blender_material, export_settings):
         tex_transform, tex_coord = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
             socket, export_settings)
     else:
-        print("processing __gather_texture_transform_and_tex_coord")
+        socket = gltf2_blender_search_node_tree.NodeSocket(texture_socket, blender_material)
         tex_transform, tex_coord = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
-            texture_socket, export_settings)
+            socket, export_settings)
+
     texture_info = gltf2_io.TextureInfo(
         extensions=gltf2_blender_gather_texture_info.__gather_extensions(
             tex_transform, export_settings),
