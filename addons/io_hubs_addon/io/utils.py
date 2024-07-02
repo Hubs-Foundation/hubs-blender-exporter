@@ -368,17 +368,11 @@ def gather_lightmap_texture_info(blender_material, export_settings):
     # TODO this assumes a single image directly connected to the socket
     blender_image = texture_socket.links[0].from_node.image
     texture = gather_texture(blender_image, export_settings)
-    if bpy.app.version < (3, 2, 0):
-        tex_transform, tex_coord = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
-            texture_socket, export_settings)
-    elif bpy.app.version >= (4, 0, 0):
-        socket = gltf2_blender_search_node_tree.NodeSocket(texture_socket, blender_material)
-        tex_transform, tex_coord = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
-            socket, export_settings)
-    else:
-        print("processing __gather_texture_transform_and_tex_coord")
-        tex_transform, tex_coord = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
-            texture_socket, export_settings)
+    socket = lightmap_node.inputs.get("Lightmap") if bpy.app.version < (4, 0, 0) \
+        else gltf2_blender_search_node_tree.NodeSocket(texture_socket, blender_material)
+    tex_attributes = tuple(gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
+    socket, export_settings))
+    tex_transform, tex_coord = tex_attributes[:2]
     texture_info = gltf2_io.TextureInfo(
         extensions=gltf2_blender_gather_texture_info.__gather_extensions(
             tex_transform, export_settings),
