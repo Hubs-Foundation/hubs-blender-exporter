@@ -49,7 +49,7 @@ class HubsExportImage(gltf2_blender_image.ExportImage):
 
     def encode(self, mime_type: Optional[str], export_settings) -> Union[Tuple[bytes, bool], bytes]:
         if mime_type == "image/vnd.radiance":
-            if bpy.app.version < (4, 0, 0):
+            if bpy.app.version < (4, 1, 0):
                 return self.encode_from_image_hdr(self.blender_image())
             else:
                 return self.encode_from_image_hdr(self.blender_image(export_settings))
@@ -92,7 +92,7 @@ def gather_image(blender_image, export_settings):
 
     data = HubsExportImage.from_blender_image(blender_image).encode(mime_type, export_settings)
 
-    if type(data) == tuple:
+    if type(data) is tuple:
         data = data[0]
 
     if export_settings['gltf_format'] == 'GLTF_SEPARATE':
@@ -173,13 +173,13 @@ def gather_property(export_settings, blender_object, target, property_name):
             return gather_vec_property(export_settings, blender_object, target, property_name)
 
     elif (property_definition.bl_rna.identifier == 'PointerProperty'):
-        if type(property_value) == bpy.types.Object:
+        if type(property_value) is bpy.types.Object:
             return gather_node_property(export_settings, blender_object, target, property_name)
-        elif type(property_value) == bpy.types.Material:
+        elif type(property_value) is bpy.types.Material:
             return gather_material_property(export_settings, blender_object, target, property_name)
-        elif type(property_value) == bpy.types.Image:
+        elif type(property_value) is bpy.types.Image:
             return gather_image_property(export_settings, blender_object, target, property_name)
-        elif type(property_value) == bpy.types.Texture:
+        elif type(property_value) is bpy.types.Texture:
             return gather_texture_property(export_settings, blender_object, target, property_name)
 
     return gltf2_blender_extras.__to_json_compatible(property_value)
@@ -371,7 +371,7 @@ def gather_lightmap_texture_info(blender_material, export_settings):
     socket = lightmap_node.inputs.get("Lightmap") if bpy.app.version < (4, 0, 0) \
         else gltf2_blender_search_node_tree.NodeSocket(texture_socket, blender_material)
     tex_attributes = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
-    socket, export_settings)
+        socket, export_settings)
     tex_transform, tex_coord = tex_attributes[:2]
     texture_info = gltf2_io.TextureInfo(
         extensions=gltf2_blender_gather_texture_info.__gather_extensions(

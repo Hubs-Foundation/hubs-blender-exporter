@@ -25,7 +25,7 @@ def migrate(component, migration_type, panel_type, host, migration_report, ob=No
         was_migrated = component.migrate(
             migration_type, panel_type, instance_version, host, migration_report, ob=ob)
 
-        if type(was_migrated) != bool:
+        if type(was_migrated) is not bool:
             print(f"Warning: the {component.get_display_name()} component didn't return whether a migration occurred.")
             # Fall back to assuming there was a migration since the version increased.
             was_migrated = True
