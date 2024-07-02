@@ -370,8 +370,8 @@ def gather_lightmap_texture_info(blender_material, export_settings):
     texture = gather_texture(blender_image, export_settings)
     socket = lightmap_node.inputs.get("Lightmap") if bpy.app.version < (4, 0, 0) \
         else gltf2_blender_search_node_tree.NodeSocket(texture_socket, blender_material)
-    tex_attributes = tuple(gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
-    socket, export_settings))
+    tex_attributes = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
+    socket, export_settings)
     tex_transform, tex_coord = tex_attributes[:2]
     texture_info = gltf2_io.TextureInfo(
         extensions=gltf2_blender_gather_texture_info.__gather_extensions(
