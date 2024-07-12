@@ -10,7 +10,7 @@ else:
     from io_scene_gltf2.blender.exp import gltf2_blender_gather_texture_info, gltf2_blender_export_keys
     from io_scene_gltf2.blender.exp import gltf2_blender_image
 from io_scene_gltf2.blender.exp.gltf2_blender_gather_cache import cached
-if bpy.app.version >= (4, 0, 0):
+if bpy.app.version >= (4, 1, 0):
     from io_scene_gltf2.blender.exp.material import gltf2_blender_search_node_tree
 from io_scene_gltf2.io.com import gltf2_io_extensions
 from io_scene_gltf2.io.com import gltf2_io
@@ -368,7 +368,7 @@ def gather_lightmap_texture_info(blender_material, export_settings):
     # TODO this assumes a single image directly connected to the socket
     blender_image = texture_socket.links[0].from_node.image
     texture = gather_texture(blender_image, export_settings)
-    socket = lightmap_node.inputs.get("Lightmap") if bpy.app.version < (4, 0, 0) \
+    socket = lightmap_node.inputs.get("Lightmap") if bpy.app.version < (4, 1, 0) \
         else gltf2_blender_search_node_tree.NodeSocket(texture_socket, blender_material)
     tex_attributes = gltf2_blender_gather_texture_info.__gather_texture_transform_and_tex_coord(
         socket, export_settings)
