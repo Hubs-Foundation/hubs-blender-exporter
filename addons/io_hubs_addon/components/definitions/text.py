@@ -235,7 +235,7 @@ class Text(HubsComponent):
                 continue
 
             if property_name in SPOKE_PROPS_TO_FIX:
-                if type(property_value) == int or type(property_value) == float:
+                if type(property_value) is int or type(property_value) is float:
                     property_value = str(property_value)
 
             assign_property(gltf.vnodes, blender_component,
