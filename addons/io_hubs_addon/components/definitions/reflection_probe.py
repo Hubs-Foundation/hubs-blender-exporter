@@ -752,14 +752,16 @@ class ReflectionProbe(HubsComponent):
                 "index": gather_texture(self.envMapTexture, export_settings)
             }
         }
-    
+
     @classmethod
     def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
         # Reflection Probes import as empties, so add a Light Probe object to host the component and parent it to the empty.
         probe_type = 'CUBE' if bpy.app.version < (4, 1, 0) else 'SPHERE'
-        lightprobe_data = bpy.data.lightprobes.new(blender_host.name, probe_type)
-        lightprobe_data.influence_type ='BOX'
-        lightprobe_object = bpy.data.objects.new(blender_host.name, lightprobe_data)
+        reflecion_probe_name = blender_host.name
+        blender_host.name = f"{blender_host.name}_node"
+        lightprobe_data = bpy.data.lightprobes.new(reflecion_probe_name, probe_type)
+        lightprobe_data.influence_type = 'BOX'
+        lightprobe_object = bpy.data.objects.new(reflecion_probe_name, lightprobe_data)
         lightprobe_object.location = blender_host.location
         lightprobe_object.rotation_quaternion = blender_host.rotation_quaternion
         lightprobe_object.scale = blender_host.scale
