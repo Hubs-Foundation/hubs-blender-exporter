@@ -10,6 +10,7 @@ from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ..ui import add_link_indicator
 from ...utils import rgetattr, rsetattr
+from ...io.utils import import_component, assign_property
 import math
 import os
 
@@ -751,6 +752,28 @@ class ReflectionProbe(HubsComponent):
                 "index": gather_texture(self.envMapTexture, export_settings)
             }
         }
+    
+    @classmethod
+    def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
+        # Reflection Probes import as empties, so add a Light Probe object to host the component and parent it to the empty.
+        probe_type = 'CUBE' if bpy.app.version < (4, 1, 0) else 'SPHERE'
+        lightprobe_data = bpy.data.lightprobes.new(blender_host.name, probe_type)
+        lightprobe_data.influence_type ='BOX'
+        lightprobe_object = bpy.data.objects.new(blender_host.name, lightprobe_data)
+        lightprobe_object.location = blender_host.location
+        lightprobe_object.rotation_quaternion = blender_host.rotation_quaternion
+        lightprobe_object.scale = blender_host.scale
+        lightprobe_object.parent = blender_host
+        for collection in blender_host.users_collection:
+            collection.objects.link(lightprobe_object)
+        bpy.context.view_layer.update()
+        lightprobe_object.matrix_parent_inverse = blender_host.matrix_world.inverted()
+
+        # Import the component
+        component = import_component(component_name, lightprobe_object)
+        lightprobe_data.influence_distance = component_value["size"]
+        assign_property(gltf.vnodes, component,
+                        "envMapTexture", component_value["envMapTexture"])
 
     @ classmethod
     def draw_global(cls, context, layout, panel):
