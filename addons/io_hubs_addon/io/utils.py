@@ -26,7 +26,7 @@ HUBS_CONFIG = {
     "gltfExtensionVersion": 4,
 }
 
-imported_images = {}
+imported_textures = {}
 
 # gather_texture/image with HDR support via MOZ_texture_rgbe
 
@@ -414,16 +414,16 @@ def import_image(gltf, gltf_texture):
     return blender_image_name, source
 
 
-def import_all_images(gltf):
-    global imported_images
-    imported_images.clear()
+def import_all_textures(gltf):
+    global imported_textures
+    imported_textures.clear()
 
     if not gltf.data.textures:
         return
 
-    for gltf_texture in gltf.data.textures:
+    for index, gltf_texture in enumerate(gltf.data.textures):
         blender_image_name, source = import_image(gltf, gltf_texture)
-        imported_images[source] = blender_image_name
+        imported_textures[index] = blender_image_name
 
 
 def import_component(component_name, blender_object):
@@ -467,8 +467,8 @@ def assign_property(vnodes, blender_component, property_name, property_value):
                         setattr(blender_component, "bone",
                                 bone_vnode.blender_bone_name)
                 elif property_value['__mhc_link_type'] == "texture":
-                    global imported_images
-                    blender_image_name = imported_images[property_value['index']]
+                    global imported_textures
+                    blender_image_name = imported_textures[property_value['index']]
                     blender_image = bpy.data.images[blender_image_name]
                     setattr(blender_component, property_name, blender_image)
 
