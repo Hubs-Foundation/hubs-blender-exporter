@@ -763,6 +763,7 @@ class ReflectionProbe(HubsComponent):
         lightprobe_data.influence_type = 'BOX'
         lightprobe_object = bpy.data.objects.new(reflecion_probe_name, lightprobe_data)
         lightprobe_object.location = blender_host.location
+        lightprobe_object.rotation_mode = 'QUATERNION'
         lightprobe_object.rotation_quaternion = blender_host.rotation_quaternion
         lightprobe_object.scale = blender_host.scale
         lightprobe_object.parent = blender_host
