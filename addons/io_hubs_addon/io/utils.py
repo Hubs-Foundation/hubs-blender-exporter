@@ -475,10 +475,16 @@ def assign_property(vnodes, blender_component, property_name, property_value):
         else:
             blender_subcomponent = getattr(blender_component, property_name)
             for x, subproperty_value in enumerate(property_value.values()):
+                if type(blender_subcomponent[x]) is int:
+                    subproperty_value = round(subproperty_value)
                 blender_subcomponent[x] = subproperty_value
 
     elif re.fullmatch("#[0-9a-fA-F]*", str(property_value)):
         set_color_from_hex(blender_component, property_name, property_value)
 
     else:
+        if not hasattr(blender_component, property_name):
+            return
+        if type(getattr(blender_component, property_name)) is int:
+            property_value = round(property_value)
         setattr(blender_component, property_name, property_value)
