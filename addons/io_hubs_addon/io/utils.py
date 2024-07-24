@@ -481,4 +481,6 @@ def assign_property(vnodes, blender_component, property_name, property_value):
         set_color_from_hex(blender_component, property_name, property_value)
 
     else:
+        if not hasattr(blender_component, property_name):
+            return
         setattr(blender_component, property_name, property_value)
