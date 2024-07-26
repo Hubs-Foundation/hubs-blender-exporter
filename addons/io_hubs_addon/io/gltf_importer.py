@@ -4,7 +4,7 @@ from io_scene_gltf2.blender.imp.gltf2_blender_node import BlenderNode
 from io_scene_gltf2.blender.imp.gltf2_blender_material import BlenderMaterial
 from io_scene_gltf2.blender.imp.gltf2_blender_scene import BlenderScene
 from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
-from .utils import HUBS_CONFIG, import_image, import_all_images
+from .utils import HUBS_CONFIG, import_image, import_all_textures
 from ..components.components_registry import get_component_by_name
 import traceback
 
@@ -142,7 +142,7 @@ class glTF2ImportUserExtension:
                 gltf.import_settings['gltf_yup'] = gltf.data.asset.extras[
                     'gltf_yup']
 
-        import_all_images(gltf)
+        import_all_textures(gltf)
 
     def gather_import_scene_after_nodes_hook(self, gltf_scene, blender_scene, gltf):
         if not self.properties.enabled:
@@ -253,7 +253,7 @@ def patched_BlenderScene_create(gltf):
     delayed_gathers.clear()
     import_report.clear()
 
-    import_all_images(gltf)
+    import_all_textures(gltf)
     orig_BlenderScene_create(gltf)
     gltf_scene = gltf.data.scenes[gltf.data.scene]
     blender_object = bpy.data.scenes[gltf.blender_scene]
