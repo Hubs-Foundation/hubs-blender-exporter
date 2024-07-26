@@ -17,8 +17,18 @@ import_report = []
 
 def call_delayed_gathers():
     global delayed_gathers
+    global import_report
     for gather_import in delayed_gathers:
-        gather_import()
+        gather_import_args = gather_import.__closure__[0].cell_contents
+        blender_host = gather_import_args[2]
+        component_name = gather_import_args[3]
+        try:
+            gather_import()
+        except Exception:
+            traceback.print_exc()
+            print(f"Failed to import {component_name} component on {blender_host.name} continuing on...")
+            import_report.append(
+                f"Failed to import {component_name} component on {blender_host.name}.  See the console for details.")
     delayed_gathers.clear()
 
 
