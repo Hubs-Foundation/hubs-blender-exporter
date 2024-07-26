@@ -17,7 +17,7 @@ class PDF(HubsComponent):
         'version': (1, 0, 0)
     }
     src: StringProperty(
-        name="PDF URL", description="The web address of the PDF", default='https://mozilla.org')
+        name="PDF URL", description="The web address of the PDF", default='https://example.org/PdfFile.pdf')
     controls: BoolProperty(
         name="Controls",
         description="When enabled, shows pagination buttons when hovering your cursor over it in Hubs that allow you to switch pages",

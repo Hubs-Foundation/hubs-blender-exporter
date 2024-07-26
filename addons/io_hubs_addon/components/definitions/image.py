@@ -20,7 +20,7 @@ class Image(HubsComponent):
     }
 
     src: StringProperty(
-        name="Image URL", description="The web address of the image", default="https://mozilla.org")
+        name="Image URL", description="The web address of the image", default="https://example.org/ImageFile.webp")
 
     controls: BoolProperty(
         name="Controls",

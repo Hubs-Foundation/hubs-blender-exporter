@@ -19,13 +19,13 @@ node_categories = [
 
 
 def add_node_menu_blender4(self, context):
-    self.layout.menu("NODE_MT_mozilla_hubs_nodes")
+    self.layout.menu("NODE_MT_moz_nodes")
 
 
-class NODE_MT_mozilla_hubs_nodes(bpy.types.Menu):
+class NODE_MT_moz_nodes(bpy.types.Menu):
     """Add node menu for Blender 4.x"""
     bl_label = "Hubs"
-    bl_idname = "NODE_MT_mozilla_hubs_nodes"
+    bl_idname = "NODE_MT_moz_nodes"
 
     def draw(self, context):
         layout = self.layout
@@ -63,14 +63,14 @@ class MozLightmapNode(Node):
 
 
 def register_blender_4():
-    bpy.utils.register_class(NODE_MT_mozilla_hubs_nodes)
+    bpy.utils.register_class(NODE_MT_moz_nodes)
     bpy.types.NODE_MT_shader_node_add_all.append(add_node_menu_blender4)
     bpy.utils.register_class(MozLightmapNode)
 
 
 def unregister_blender_4():
     bpy.types.NODE_MT_shader_node_add_all.remove(add_node_menu_blender4)
-    bpy.utils.unregister_class(NODE_MT_mozilla_hubs_nodes)
+    bpy.utils.unregister_class(NODE_MT_moz_nodes)
     bpy.utils.unregister_class(MozLightmapNode)
 
 

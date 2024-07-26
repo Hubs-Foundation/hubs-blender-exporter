@@ -16,7 +16,7 @@ module.exports = {
         assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
-        assert.deepStrictEqual(ext['link'], { href: 'https://hubs.mozilla.com' });
+        assert.deepStrictEqual(ext['link'], { href: 'https://example.org' });
         assert.strictEqual(utils.UUID_REGEX.test(ext['networked']['id']), true);
     }
 };

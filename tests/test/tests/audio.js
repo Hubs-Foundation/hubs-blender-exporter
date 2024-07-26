@@ -17,7 +17,7 @@ module.exports = {
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext["audio"], {
-            "src": "https://uploads-prod.reticulum.io/files/a3670163-1e78-485c-b70d-9af51f6afaff.mp3",
+            "src": "https://example.org/files/a3670163-1e78-485c-b70d-9af51f6afaff.mp3",
             "autoPlay": true,
             "controls": true,
             "loop": true

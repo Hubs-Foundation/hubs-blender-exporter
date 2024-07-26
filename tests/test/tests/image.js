@@ -17,7 +17,7 @@ module.exports = {
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext["image"], {
-            "src": "https://uploads-prod.reticulum.io/files/81e942e8-6ae2-4cc5-b363-f064e9ea3f61.jpg",
+            "src": "https://example.org/files/81e942e8-6ae2-4cc5-b363-f064e9ea3f61.jpg",
             "controls": true,
             "alphaCutoff": 0.5,
             "alphaMode": "opaque",
