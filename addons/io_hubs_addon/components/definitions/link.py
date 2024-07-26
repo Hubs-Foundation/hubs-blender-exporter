@@ -19,7 +19,7 @@ class Link(HubsComponent):
     }
 
     href: StringProperty(name="Link URL", description="Link URL",
-                         default="https://mozilla.org")
+                         default="https://example.org")
 
     def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
         migration_occurred = False

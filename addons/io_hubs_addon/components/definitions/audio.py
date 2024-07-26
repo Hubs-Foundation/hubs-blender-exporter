@@ -19,7 +19,7 @@ class Audio(HubsComponent):
     }
 
     src: StringProperty(
-        name="Audio URL", description="Audio URL", default='https://mozilla.org')
+        name="Audio URL", description="Audio URL", default='https://example.org/AudioFile.mp3')
 
     autoPlay: BoolProperty(name="Auto Play",
                            description="Auto Play",

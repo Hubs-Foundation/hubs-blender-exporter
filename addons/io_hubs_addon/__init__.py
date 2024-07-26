@@ -9,13 +9,13 @@ from . import debugger
 from . import icons
 bl_info = {
     "name": "Hubs Blender Addon",
-    "author": "Mozilla Hubs",
+    "author": "The Hubs Community",
     "description": "Tools for developing glTF assets for Hubs",
     "blender": (3, 1, 2),
     "version": (1, 5, 0, "dev_build"),
     "location": "",
-    "wiki_url": "https://github.com/MozillaReality/hubs-blender-exporter",
-    "tracker_url": "https://github.com/MozillaReality/hubs-blender-exporter/issues",
+    "wiki_url": "https://github.com/Hubs-Foundation/hubs-blender-exporter",
+    "tracker_url": "https://github.com/Hubs-Foundation/hubs-blender-exporter/issues",
     "support": "COMMUNITY",
     "warning": "",
     "category": "Generic"

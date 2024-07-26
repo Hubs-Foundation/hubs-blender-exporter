@@ -2,12 +2,12 @@
 
 This addon extends the glTF 2.0 exporter to support the `MOZ_hubs_components` and `MOZ_lightmap` extensions allowing you to add behavior to glTF assets for Hubs.
 
-[![Test](https://github.com/MozillaReality/hubs-blender-exporter/actions/workflows/test.yml/badge.svg)](https://github.com/MozillaReality/hubs-blender-exporter/actions/workflows/test.yml)
-[![Publish](https://github.com/MozillaReality/hubs-blender-exporter/actions/workflows/publish.yml/badge.svg)](https://github.com/MozillaReality/hubs-blender-exporter/actions/workflows/publish.yml)
+[![Test](https://github.com/Hubs-Foundation/hubs-blender-exporter/actions/workflows/test.yml/badge.svg)](https://github.com/Hubs-Foundation/hubs-blender-exporter/actions/workflows/test.yml)
+[![Publish](https://github.com/Hubs-Foundation/hubs-blender-exporter/actions/workflows/publish.yml/badge.svg)](https://github.com/Hubs-Foundation/hubs-blender-exporter/actions/workflows/publish.yml)
 
 # To Install
 
-Find the latest [release](https://github.com/MozillaReality/hubs-blender-exporter/releases) and download the add-on zip file.
+Find the latest [release](https://github.com/Hubs-Foundation/hubs-blender-exporter/releases) and download the add-on zip file.
 
 <img alt="select add-on zip file" src="https://user-images.githubusercontent.com/837184/204576860-316b32de-8654-48a7-b9a7-3c0de1c1b652.png" width=685px height=330px />
 
@@ -58,7 +58,7 @@ It is also possible to use the GLB file to replace the scene for an existing Hub
 
 # Scene debugger
 
-The Hubs Blender add-on includes a scene debugger, enabling you to see the Blender scene updates in Hubs with just one click. For additional information, please visit:  https://github.com/MozillaReality/hubs-blender-exporter/wiki/Hubs-scene-debugger/
+The Hubs Blender add-on includes a scene debugger, enabling you to see the Blender scene updates in Hubs with just one click. For additional information, please visit:  https://github.com/Hubs-Foundation/hubs-blender-exporter/wiki/Hubs-scene-debugger/
 
 # Development
 

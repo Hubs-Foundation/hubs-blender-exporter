@@ -17,7 +17,7 @@ module.exports = {
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext["model"], {
-            "src": "https://mozilla.org"
+            "src": "https://example.org/ModelFile.glb"
         });
         assert.strictEqual(utils.UUID_REGEX.test(ext['networked']['id']), true);
     }
