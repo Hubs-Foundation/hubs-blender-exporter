@@ -29,7 +29,9 @@ class NODE_MT_mozilla_hubs_nodes(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("node.add_node", text="MOZ_lightmap settings").type = "moz_lightmap.node"
+        op = layout.operator("node.add_node", text="MOZ_lightmap settings")
+        op.type = "moz_lightmap.node"
+        op.use_transform = True
 
 
 class MozLightmapNode(Node):
