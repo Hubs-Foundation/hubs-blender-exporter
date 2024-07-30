@@ -6,6 +6,7 @@ from ..types import Category, PanelType, NodeType
 from ..ui import add_link_indicator
 from bpy.types import Object
 from ...utils import delayed_gather
+from ...io.utils import import_component, assign_property
 from .audio_source import AudioSource
 
 
@@ -175,3 +176,13 @@ class AudioTarget(HubsComponent):
             'minDelay': self.minDelay,
             'debug': self.debug
         }
+
+    @classmethod
+    def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
+        component = import_component(component_name, blender_host)
+        for property_name, property_value in component_value.items():
+            if property_name == "srcNode" and type(property_value) is int:
+                # This srcNode property was generated from an older version of the exporter which stored the index directly as an integer.
+                property_value = {"__mhc_link_type": "node", "index": property_value}
+            assign_property(gltf.vnodes, component,
+                            property_name, property_value)

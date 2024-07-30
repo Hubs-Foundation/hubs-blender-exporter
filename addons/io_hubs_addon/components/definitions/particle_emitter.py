@@ -26,7 +26,7 @@ class ParticleEmitter(HubsComponent):
 
     src: StringProperty(
         name="Image Source", description="The web address (URL) of the image to use for each particle",
-        default="https://hmc-assets.reticulum.io/spoke/assets/images/dot-75db99b125fe4e9afbe58696320bea73.png")
+        default="https://example.org/spoke/assets/images/dot-75db99b125fe4e9afbe58696320bea73.png")
 
     ageRandomness: FloatProperty(
         name="Age Randomness", description="Age Randomness", default=10.0)

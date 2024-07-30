@@ -878,6 +878,10 @@ class LoopAnimation(HubsComponent):
                 tracks = property_value.split(",")
                 import_tracks(tracks, blender_ob, blender_component)
             else:
+                if property_name == 'startOffset':
+                    fps = bpy.context.scene.render.fps / bpy.context.scene.render.fps_base
+                    property_value = round(property_value * fps)
+
                 assign_property(gltf.vnodes, blender_component,
                                 property_name, property_value)
 

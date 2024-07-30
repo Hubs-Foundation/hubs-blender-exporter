@@ -17,7 +17,7 @@ class Model(HubsComponent):
     }
 
     src: StringProperty(name="Model URL", description="Model URL",
-                        default="https://mozilla.org")
+                        default="https://example.org/ModelFile.glb")
 
     def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
         migration_occurred = False

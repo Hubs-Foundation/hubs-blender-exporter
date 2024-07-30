@@ -17,7 +17,7 @@ module.exports = {
 
         const ext = node.extensions['MOZ_hubs_components'];
         assert.deepStrictEqual(ext["video"], {
-            "src": "https://uploads-prod.reticulum.io/files/b4dc97b5-6523-4b61-91ae-d14a80ffd398.mp4",
+            "src": "https://example.org/files/b4dc97b5-6523-4b61-91ae-d14a80ffd398.mp4",
             "projection": "flat",
             "autoPlay": true,
             "controls": true,

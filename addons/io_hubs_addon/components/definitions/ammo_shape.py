@@ -7,7 +7,7 @@ from ..utils import get_host_or_parents_scaled
 class AmmoShape(HubsComponent):
     _definition = {
         'name': 'ammo-shape',
-        'display_name': 'Ammo Shape',
+        'display_name': 'Ammo Shape (deprecated)',
         'category': Category.OBJECT,
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],

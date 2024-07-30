@@ -1,6 +1,6 @@
 import bpy
 from .preferences import get_addon_pref, EXPORT_TMP_FILE_NAME
-from .utils import isModuleAvailable, get_browser_profile_directory
+from .utils import is_module_available, get_browser_profile_directory
 
 PARAMS_TO_STRING = {
     "newLoader": {
@@ -121,26 +121,27 @@ class HubsSession:
             file_path = get_browser_profile_directory(browser)
             if not os.path.exists(file_path):
                 os.mkdir(file_path)
+
+            from .dependencies import get_selenium
+            selenium = get_selenium()
             if browser == "Firefox":
-                from selenium import webdriver
-                options = webdriver.FirefoxOptions()
+                options = selenium.FirefoxOptions()
                 override_ff_path = get_addon_pref(
                     context).override_firefox_path
                 ff_path = get_addon_pref(context).firefox_path
                 if override_ff_path and ff_path:
                     options.binary_location = ff_path
                 # This should work but it doesn't https://github.com/SeleniumHQ/selenium/issues/11028 so using arguments instead
-                # firefox_profile = webdriver.FirefoxProfile(file_path)
+                # firefox_profile = selenium.FirefoxProfile(file_path)
                 # firefox_profile.accept_untrusted_certs = True
                 # firefox_profile.assume_untrusted_cert_issuer = True
                 # options.profile = firefox_profile
                 options.add_argument("-profile")
                 options.add_argument(file_path)
                 options.set_preference("javascript.options.shared_memory", True)
-                self._web_driver = webdriver.Firefox(options=options)
+                self._web_driver = selenium.Firefox(options=options)
             else:
-                from selenium import webdriver
-                options = webdriver.ChromeOptions()
+                options = selenium.ChromeOptions()
                 options.add_argument('--enable-features=SharedArrayBuffer')
                 options.add_argument('--ignore-certificate-errors')
                 options.add_argument(
@@ -150,7 +151,7 @@ class HubsSession:
                 chrome_path = get_addon_pref(context).chrome_path
                 if override_chrome_path and chrome_path:
                     options.binary_location = chrome_path
-                self._web_driver = webdriver.Chrome(options=options)
+                self._web_driver = selenium.Chrome(options=options)
 
     def update_session_state(self):
         if self.is_alive():
@@ -201,7 +202,7 @@ class HubsSession:
 
     def is_alive(self):
         try:
-            if not self._web_driver or not isModuleAvailable("selenium"):
+            if not self._web_driver or not is_module_available("selenium"):
                 return False
             else:
                 return bool(self._web_driver.current_url)

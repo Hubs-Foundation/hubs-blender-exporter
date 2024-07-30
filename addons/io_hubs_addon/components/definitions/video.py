@@ -20,7 +20,7 @@ class Video(HubsComponent):
     }
 
     src: StringProperty(
-        name="Video URL", description="The web address of the video", default='https://mozilla.org')
+        name="Video URL", description="The web address of the video", default='https://example.org/VideoFile.webm')
 
     projection: EnumProperty(
         name="Projection",

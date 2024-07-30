@@ -1,5 +1,4 @@
 from .utils import create_prefs_dir
-from .utils import get_user_python_path
 import sys
 import bpy
 from .io import gltf_exporter, gltf_importer, panels
@@ -10,19 +9,18 @@ from . import debugger
 from . import icons
 bl_info = {
     "name": "Hubs Blender Addon",
-    "author": "Mozilla Hubs",
-    "description": "Tools for developing glTF assets for Mozilla Hubs",
+    "author": "The Hubs Community",
+    "description": "Tools for developing glTF assets for Hubs",
     "blender": (3, 1, 2),
-    "version": (1, 5, 0, "dev_build"),
+    "version": (1, 6, 0, "dev_build"),
     "location": "",
-    "wiki_url": "https://github.com/MozillaReality/hubs-blender-exporter",
-    "tracker_url": "https://github.com/MozillaReality/hubs-blender-exporter/issues",
+    "wiki_url": "https://github.com/Hubs-Foundation/hubs-blender-exporter",
+    "tracker_url": "https://github.com/Hubs-Foundation/hubs-blender-exporter/issues",
     "support": "COMMUNITY",
     "warning": "",
     "category": "Generic"
 }
 
-sys.path.insert(0, get_user_python_path())
 
 create_prefs_dir()
 
