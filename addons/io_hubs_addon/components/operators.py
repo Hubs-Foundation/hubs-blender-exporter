@@ -676,20 +676,20 @@ class BakeLightmaps(Operator):
     bl_description = "Bake lightmaps of selected objects using the Cycles render engine and pack them into the .blend."
     bl_options = {'REGISTER', 'UNDO'}
 
-    default_intensity: FloatProperty(name="Lightmaps Intensity", 
-                                     default=3.14, 
+    default_intensity: FloatProperty(name="Lightmaps Intensity",
+                                     default=3.14,
                                      description="Multiplier for hubs on how to interpert the brightness of the image. Set this to 1.0 if you have set up the lightmaps manually and use a non-HDR format like png or jpg.")
-    resolution: IntProperty(name="Lightmaps Resolution", 
-                            default=2048, 
+    resolution: IntProperty(name="Lightmaps Resolution",
+                            default=2048,
                             description="The pixel resoltion of the resulting lightmap.")
-    samples: IntProperty(name="Max Samples", 
-                         default=1024, 
+    samples: IntProperty(name="Max Samples",
+                         default=1024,
                          description="The number of samples to use for baking. Higher values reduce noise but take longer.")
 
     def execute(self, context):
         # Check selected objects
         selected_objects = bpy.context.selected_objects
-        
+
         # filter mesh objects and others
         mesh_objs, other_objs = [], []
         for ob in selected_objects:
@@ -706,10 +706,6 @@ class BakeLightmaps(Operator):
             if len(obj_uv_layers) == 0:
                 obj_uv_layers.new(name='UV0')
                 obj_uv_layers.new(name='UV1')
-            # The first layer is usually used for regular texturing so don't touch it.
-            # elif obj_uv_layers[0].name != 'UV0':
-            #     # Rename the first UV layer to "UV0"                    
-            #     obj_uv_layers[0].name = 'UV0'
 
             # In case there is only one UV layer create a second one named "UV1" for the lightmap.
             if len(obj_uv_layers) == 1:
@@ -751,7 +747,7 @@ class BakeLightmaps(Operator):
         lightmap_texture_nodes = []
         for mat in materials:
             mat_nodes = mat.node_tree.nodes
-            lightmap_nodes = [node for node in mat_nodes if node.bl_idname=='moz_lightmap.node']
+            lightmap_nodes = [node for node in mat_nodes if node.bl_idname == 'moz_lightmap.node']
             if len(lightmap_nodes) > 1:
                 print("Too many lightmap nodes in node tree of material", mat.name)
             elif len(lightmap_nodes) < 1:
@@ -792,7 +788,7 @@ class BakeLightmaps(Operator):
             node.image.save()
             node.image.pack()
             # Update the filepath so it unpacks nicely for the user.
-            #TODO: Mechanism taken from reflection_probe.py line 300-306, de-duplicate
+            # TODO: Mechanism taken from reflection_probe.py line 300-306, de-duplicate
             new_filepath = f"//{node.image.name}.hdr"
             node.image.packed_files[0].filepath = new_filepath
             node.image.filepath_raw = new_filepath
@@ -803,10 +799,9 @@ class BakeLightmaps(Operator):
                 os.remove(file_path)
 
         return {'FINISHED'}
-    
+
     def invoke(self, context, event):
-        if bpy.data.is_saved == False:
-            # 
+        if bpy.data.is_saved is False:
             def draw(self, context):
                 self.layout.label(
                     text="You ned to save the .blend file before running this operator.")
@@ -815,7 +810,7 @@ class BakeLightmaps(Operator):
             return {'CANCELLED'}
         # needed to get the dialoge with the intensity
         return context.window_manager.invoke_props_dialog(self)
-    
+
     def setup_moz_lightmap_nodes(self, node_tree):
         ''' Returns the lightmap texture node of the newly created setup '''
         mat_nodes = node_tree.nodes
@@ -841,6 +836,7 @@ class BakeLightmaps(Operator):
         node_tree.nodes.active = lightmap_texture_node
 
         return lightmap_texture_node
+
 
 def register():
     bpy.utils.register_class(AddHubsComponent)

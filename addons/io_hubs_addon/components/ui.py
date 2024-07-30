@@ -141,6 +141,7 @@ class HubsObjectPanel(bpy.types.Panel):
     def draw(self, context):
         draw_components_list(self, context)
 
+
 class HubsObjectLightmapPanel(bpy.types.Panel):
     bl_label = "Hubs Lightmap Baker"
     bl_idname = "OBJECT_PT_hubs_lightmap_baker"
