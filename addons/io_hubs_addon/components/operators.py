@@ -676,9 +676,15 @@ class BakeLightmaps(Operator):
     bl_description = "Bake lightmaps of selected objects using the Cycles render engine and pack them into the .blend."
     bl_options = {'REGISTER', 'UNDO'}
 
-    default_intensity: FloatProperty(name = "Lightmaps Intensity", default = 3.14, description="Multiplier for hubs on how to interpert the brightness of the image. Set this to 1.0 if you have set up the lightmaps manually and use a non-HDR format like png or jpg.")
-    resolution: IntProperty(name = "Lightmaps Resolution", default = 2048, description="The pixel resoltion of the resulting lightmap.")
-    samples: IntProperty(name = "Max Samples", default = 1024, description="The number of samples to use for baking. Higher values reduce noise but take longer.")
+    default_intensity: FloatProperty(name="Lightmaps Intensity", 
+                                     default=3.14, 
+                                     description="Multiplier for hubs on how to interpert the brightness of the image. Set this to 1.0 if you have set up the lightmaps manually and use a non-HDR format like png or jpg.")
+    resolution: IntProperty(name="Lightmaps Resolution", 
+                            default=2048, 
+                            description="The pixel resoltion of the resulting lightmap.")
+    samples: IntProperty(name="Max Samples", 
+                         default=1024, 
+                         description="The number of samples to use for baking. Higher values reduce noise but take longer.")
 
     def execute(self, context):
         # Check selected objects
