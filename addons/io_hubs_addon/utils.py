@@ -35,25 +35,28 @@ def get_or_create_deps_path(name):
     return deps_path
 
 
-def is_module_available(name):
+def is_module_available(name, local_dependency=True):
     import sys
     old_syspath = sys.path[:]
     old_sysmod = sys.modules.copy()
 
     try:
-        path = get_or_create_deps_path(name)
+        if local_dependency:
+            path = get_or_create_deps_path(name)
+            sys.path.insert(0, str(path))
 
         import importlib
-        sys.path.insert(0, str(path))
-
         try:
             loader = importlib.util.find_spec(name)
         except ImportError as ex:
             print(f'{name} not found')
 
-        import os
-        path = os.path.join(path, name)
-        return loader and os.path.exists(path)
+        if local_dependency:
+            import os
+            path = os.path.join(path, name)
+            return bool(loader and os.path.exists(path))
+        else:
+            return bool(loader)
 
     finally:
         # Restore without assigning a new list instance. That way references
