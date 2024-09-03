@@ -767,7 +767,7 @@ class BakeLightmaps(Operator):
         samples_tmp = context.scene.cycles.samples
         context.scene.cycles.samples = self.samples
         # Baking needs to happen without the color pass because we only want the direct and indirect light contributions
-        bake_settings_before = context.scene.render.bake.copy()
+        bake_settings_before = context.scene.render.bake
         bake_settings = context.scene.render.bake
         bake_settings.use_pass_direct = True
         bake_settings.use_pass_indirect = True
@@ -808,13 +808,6 @@ class BakeLightmaps(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        if bpy.data.is_saved is False:
-            def draw(self, context):
-                self.layout.label(
-                    text="You ned to save the .blend file before running this operator.")
-            bpy.context.window_manager.popup_menu(
-                draw, title="File not saved.", icon='ERROR')
-            return {'CANCELLED'}
         # needed to get the dialoge with the intensity
         return context.window_manager.invoke_props_dialog(self)
 
