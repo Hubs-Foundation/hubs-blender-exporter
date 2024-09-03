@@ -11,6 +11,7 @@ from .handlers import migrate_components
 from .gizmos import update_gizmos
 from .utils import is_linked, redraw_component_ui
 from ..icons import get_hubs_icons
+from .consts import LIGHTMAP_LAYER_NAME
 import os
 
 
@@ -699,27 +700,27 @@ class BakeLightmaps(Operator):
             # Remove non-mesh objects from selection to ensure baking will work
             ob.select_set(False)
 
-        # set up UV layer structure. The first layer has to be UV0, the second one UV1 for the lightmap.
+        # set up UV layer structure. The first layer has to be UV0, the second one LIGHTMAP_LAYER_NAME for the lightmap.
         for obj in mesh_objs:
             obj_uv_layers = obj.data.uv_layers
             # Check whether there are any UV layers and if not, create the two that are required.
             if len(obj_uv_layers) == 0:
                 obj_uv_layers.new(name='UV0')
-                obj_uv_layers.new(name='UV1')
+                obj_uv_layers.new(name=LIGHTMAP_LAYER_NAME)
 
-            # In case there is only one UV layer create a second one named "UV1" for the lightmap.
+            # In case there is only one UV layer create a second one named LIGHTMAP_LAYER_NAME for the lightmap.
             if len(obj_uv_layers) == 1:
-                obj_uv_layers.new(name='UV1')
-            # Check if object has a second UV layer. If it is named "UV1", assume it is used for the lightmap.
-            # Otherwise add a new UV layer "UV1" and place it second in the slot list.
-            elif obj_uv_layers[1].name != 'UV1':
-                print("The second UV layer in hubs should be named UV1 and is reserved for the lightmap, all the layers >1 are ignored.")
-                obj_uv_layers.new(name='UV1')
+                obj_uv_layers.new(name=LIGHTMAP_LAYER_NAME)
+            # Check if object has a second UV layer. If it is named LIGHTMAP_LAYER_NAME, assume it is used for the lightmap.
+            # Otherwise add a new UV layer LIGHTMAP_LAYER_NAME and place it second in the slot list.
+            elif obj_uv_layers[1].name != LIGHTMAP_LAYER_NAME:
+                print("The second UV layer in hubs should be named " + LIGHTMAP_LAYER_NAME + " and is reserved for the lightmap, all the layers >1 are ignored.")
+                obj_uv_layers.new(name=LIGHTMAP_LAYER_NAME)
                 # The new layer is the last in the list, swap it for position 1
                 obj_uv_layers[1], obj_uv_layers[-1] = obj_uv_layers[-1], obj_uv_layers[1]
 
             # The layer for the lightmap needs to be the active one before lightmap packing
-            obj_uv_layers.active = obj_uv_layers['UV1']
+            obj_uv_layers.active = obj_uv_layers[LIGHTMAP_LAYER_NAME]
 
         # run UV lightmap packing on all selected objects
         bpy.ops.object.mode_set(mode='EDIT')
