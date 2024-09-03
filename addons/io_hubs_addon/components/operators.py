@@ -767,6 +767,7 @@ class BakeLightmaps(Operator):
         samples_tmp = context.scene.cycles.samples
         context.scene.cycles.samples = self.samples
         # Baking needs to happen without the color pass because we only want the direct and indirect light contributions
+        bake_settings_before = context.scene.render.bake.copy()
         bake_settings = context.scene.render.bake
         bake_settings.use_pass_direct = True
         bake_settings.use_pass_indirect = True
@@ -798,6 +799,11 @@ class BakeLightmaps(Operator):
             # Remove file from temporary directory to de-clutter the system. Especially on windows the temporary directory is rarely purged.
             if os.path.exists(file_path):
                 os.remove(file_path)
+
+        # return to old settings
+        bake_settings = bake_settings_before
+        context.scene.cycles.samples = samples_tmp
+        context.scene.render.engine = render_engine_tmp
 
         return {'FINISHED'}
 
