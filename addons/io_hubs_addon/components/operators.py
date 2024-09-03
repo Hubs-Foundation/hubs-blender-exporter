@@ -823,7 +823,10 @@ class BakeLightmaps(Operator):
 
         img = bpy.data.images.new('LightMap', self.resolution, self.resolution, alpha=False, float_buffer=True)
         lightmap_texture_node.image = img
-        lightmap_texture_node.image.colorspace_settings.name = 'Linear'
+        if bpy.app.version < (4, 0, 0):
+            lightmap_texture_node.image.colorspace_settings.name = "Linear"
+        else:
+            lightmap_texture_node.image.colorspace_settings.name = "Linear Rec.709"
 
         UVmap_node = mat_nodes.new(type="ShaderNodeUVMap")
         UVmap_node.uv_map = "UV1"
