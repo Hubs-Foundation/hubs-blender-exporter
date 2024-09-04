@@ -715,7 +715,6 @@ class BakeLightmaps(Operator):
         # run UV lightmap packing on all selected objects
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.mesh.select_all(action='SELECT')
-        # TODO: We need to warn the user at some place like the README that the uv_layer[1] gets completely overwritten if it is called 'UV1'
         # bpy.ops.uv.lightmap_pack()
         bpy.ops.uv.smart_project(island_margin=LIGHTMAP_UV_ISLAND_MARGIN)
         bpy.ops.object.mode_set(mode='OBJECT')
