@@ -1,6 +1,7 @@
 from math import pi
 
 LIGHTMAP_LAYER_NAME = "LightmapUV"
+LIGHTMAP_UV_ISLAND_MARGIN = 0.01
 
 DISTANCE_MODELS = [("inverse", "Inverse drop off (inverse)",
                     "Volume will decrease inversely with distance"),
