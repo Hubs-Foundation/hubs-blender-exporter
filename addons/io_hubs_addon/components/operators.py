@@ -709,7 +709,7 @@ class BakeLightmaps(Operator):
 
             # The layer for the lightmap needs to be the active one before lightmap packing
             obj_uv_layers.active = obj_uv_layers[LIGHTMAP_LAYER_NAME]
-            # Set the object as selected in object mode 
+            # Set the object as selected in object mode
             obj.select_set(True)
 
         # run UV lightmap packing on all selected objects
@@ -726,7 +726,7 @@ class BakeLightmaps(Operator):
         bpy.context.view_layer.update()
 
         return{'FINISHED'}
-    
+
     def execute(self, context):
         # Check selected objects
         selected_objects = bpy.context.selected_objects
