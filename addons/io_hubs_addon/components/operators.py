@@ -688,16 +688,21 @@ class BakeLightmaps(Operator):
                          description="The number of samples to use for baking. Higher values reduce noise but take longer.")
 
     def create_uv_layouts(self, context, mesh_objs):
+        # Sometimes the list can be empty, in that case do not unwrap but return directly
+        if len(mesh_objs) == 0:
+            return {'FINISHED'}
         # set up UV layer structure. The first layer has to be UV0, the second one LIGHTMAP_LAYER_NAME for the lightmap.
         for obj in mesh_objs:
             obj_uv_layers = obj.data.uv_layers
             # Check whether there are any UV layers and if not, create the two that are required.
             if len(obj_uv_layers) == 0:
+                print("Creating completely new UV layer setup for object " + str(obj.name))
                 obj_uv_layers.new(name='UV0')
                 obj_uv_layers.new(name=LIGHTMAP_LAYER_NAME)
 
             # In case there is only one UV layer create a second one named LIGHTMAP_LAYER_NAME for the lightmap.
             if len(obj_uv_layers) == 1:
+                print("Creating lightmap UV layer for object " + str(obj.name))
                 obj_uv_layers.new(name=LIGHTMAP_LAYER_NAME)
             # Check if object has a second UV layer. If it is named LIGHTMAP_LAYER_NAME, assume it is used for the lightmap.
             # Otherwise add a new UV layer LIGHTMAP_LAYER_NAME and place it second in the slot list.
@@ -756,21 +761,22 @@ class BakeLightmaps(Operator):
                             material_object_associations[mat] = []
                         material_object_associations[mat].append(obj)
             else:
-                # an object without materials should not be selected when running the bake operator
                 print("Object " + obj.name + " does not have material slots, removing from list of objects that will be unwrapped.")
-                # obj.select_set(False)
                 mesh_objs.remove(obj)
 
-        print(material_object_associations.items())
         # Set up the UV layer structure and auto-unwrap optimized for lightmaps
-        visited_objects = set()
+        visited_materials = set()
         for mat, obj_list in material_object_associations.items():
-            for ob in visited_objects:
-                if ob in obj_list:
-                    obj_list.remove(ob)
-            self.create_uv_layouts(context, obj_list)
-            for ob in obj_list:
-                visited_objects.add(ob)
+            objs_to_uv_unwrap = []
+            if mat not in visited_materials:
+                # Several objects can share the same material so bundle them all
+                for ob in obj_list:
+                    for slot in ob.material_slots:
+                        if slot.material is not None:
+                            objs_to_uv_unwrap.extend(material_object_associations[slot.material])
+                            visited_materials.add(slot.material)
+            print("Objects to UV unwrap: " + str(objs_to_uv_unwrap))
+            self.create_uv_layouts(context, objs_to_uv_unwrap)
 
         # Check for the required nodes and set them up if not present
         lightmap_texture_nodes = []
@@ -860,7 +866,7 @@ class BakeLightmaps(Operator):
             lightmap_texture_node.image.colorspace_settings.name = "Linear Rec.709"
 
         UVmap_node = mat_nodes.new(type="ShaderNodeUVMap")
-        UVmap_node.uv_map = "UV1"
+        UVmap_node.uv_map = LIGHTMAP_LAYER_NAME
         UVmap_node.location[0] -= 500
 
         node_tree.links.new(UVmap_node.outputs['UV'], lightmap_texture_node.inputs['Vector'])
