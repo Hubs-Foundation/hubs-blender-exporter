@@ -718,13 +718,13 @@ class BakeLightmaps(Operator):
         # bpy.ops.uv.lightmap_pack()
         bpy.ops.uv.smart_project(island_margin=LIGHTMAP_UV_ISLAND_MARGIN)
         bpy.ops.object.mode_set(mode='OBJECT')
-        # Deselct the objects again to return without changing the scene
+        # Deselect the objects again to return without changing the scene
         for obj in mesh_objs:
             obj.select_set(False)
         # Update the view layer so all parts take notice of the changed UV layout
         bpy.context.view_layer.update()
 
-        return{'FINISHED'}
+        return {'FINISHED'}
 
     def execute(self, context):
         # Check selected objects
@@ -745,20 +745,20 @@ class BakeLightmaps(Operator):
         # materials = []
         # Dictionary that stores which object has which materials so we can group them later
         material_object_associations = {}
-        for obj in mesh_objs:
+        # Iterate over a copy of mesh_objs because we are modifying it further down
+        for obj in list(mesh_objs):
             if len(obj.material_slots) >= 1:
                 # TODO: Make more efficient
                 for slot in obj.material_slots:
                     if slot.material is not None:
                         mat = slot.material
                         if mat not in material_object_associations:
-                            # materials.append(mat)
                             material_object_associations[mat] = []
                         material_object_associations[mat].append(obj)
             else:
                 # an object without materials should not be selected when running the bake operator
-                print("Object " + obj.name + " does not have material slots, removing from set")
-                obj.select_set(False)
+                print("Object " + obj.name + " does not have material slots, removing from list of objects that will be unwrapped.")
+                # obj.select_set(False)
                 mesh_objs.remove(obj)
 
         print(material_object_associations.items())
@@ -839,7 +839,7 @@ class BakeLightmaps(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        # needed to get the dialoge with the intensity
+        # needed to get the dialog with the intensity
         return context.window_manager.invoke_props_dialog(self)
 
     def setup_moz_lightmap_nodes(self, node_tree):

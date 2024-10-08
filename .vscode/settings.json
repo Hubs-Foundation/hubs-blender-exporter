@@ -15,4 +15,5 @@
   "autopep8.args": [
     "--exclude=models", "--max-line-length", "120", "--experimental"
   ],
+  "cmake.configureOnOpen": false,
 }
