@@ -753,7 +753,6 @@ class BakeLightmaps(Operator):
         # Iterate over a copy of mesh_objs because we are modifying it further down
         for obj in list(mesh_objs):
             if len(obj.material_slots) >= 1:
-                # TODO: Make more efficient
                 for slot in obj.material_slots:
                     if slot.material is not None:
                         mat = slot.material
