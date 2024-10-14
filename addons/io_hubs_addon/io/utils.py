@@ -157,7 +157,12 @@ def gather_properties(export_settings, object, component):
     if value:
         return value
     else:
-        return {"__empty_component_dummy": None}
+        # Hubs expects this to just be an empty dictionary, but the glTF exporter strips them out with its __fix_json function in gltf2_blender_export.py
+        # Add one dummy component per __fix_json call so that we end up with an empty dictionary.
+        if bpy.app.version < (4, 2, 0):
+            return {"__empty_component_dummy": None}
+        else:
+            return {"__empty_component_dummy": {"__empty_component_dummy": None}}
 
 
 def gather_property(export_settings, blender_object, target, property_name):
