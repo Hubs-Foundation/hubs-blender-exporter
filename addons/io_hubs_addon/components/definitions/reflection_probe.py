@@ -294,7 +294,7 @@ class BakeProbeOperator(Operator):
                         else:
                             update_image_editors(old_img, img)
 
-                    probe_component['envMapTexture'] = img
+                    probe_component.envMapTexture = img
 
                     # Pack image and update filepaths so that it displays/unpacks nicely for the user.
                     # Note: updating the filepaths prints an error to the terminal, but otherwise seems to work fine.
@@ -449,11 +449,11 @@ class ImportReflectionProbeEnvMaps(Operator):
             for probe in probes:
                 if f.name.startswith(f"{probe.name} - EnvMap"):
                     probe_component = probe.hubs_component_reflection_probe
-                    old_img = probe_component['envMapTexture']
+                    old_img = probe_component.envMapTexture
 
                     img = bpy.data.images.load(
                         filepath=os.path.join(dirname, f.name))
-                    probe_component['envMapTexture'] = img
+                    probe_component.envMapTexture = img
 
                     if old_img:
                         if self.overwrite_images:
