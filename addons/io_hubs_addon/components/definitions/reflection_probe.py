@@ -338,14 +338,15 @@ class BakeProbeOperator(Operator):
 
     def setup_probe_render(self, context):
         probe = self.probes[self.probe_index]
+        cycles_settings = self.camera_data.cycles if bpy.app.version < (4, 2, 0) else self.camera_data
 
         self.camera_data.type = "PANO"
-        self.camera_data.cycles.panorama_type = "EQUIRECTANGULAR"
+        cycles_settings.panorama_type = "EQUIRECTANGULAR"
 
-        self.camera_data.cycles.longitude_min = -math.pi
-        self.camera_data.cycles.longitude_max = math.pi
-        self.camera_data.cycles.latitude_min = -math.pi / 2
-        self.camera_data.cycles.latitude_max = math.pi / 2
+        cycles_settings.longitude_min = -math.pi
+        cycles_settings.longitude_max = math.pi
+        cycles_settings.latitude_min = -math.pi / 2
+        cycles_settings.latitude_max = math.pi / 2
 
         self.camera_data.clip_start = probe.data.clip_start
         self.camera_data.clip_end = probe.data.clip_end
