@@ -26,7 +26,7 @@ class ParticleEmitter(HubsComponent):
 
     src: StringProperty(
         name="Image Source", description="The web address (URL) of the image to use for each particle",
-        default="https://example.org/spoke/assets/images/dot-75db99b125fe4e9afbe58696320bea73.png")
+        default="https://assets.example.org/spoke/assets/images/dot-75db99b125fe4e9afbe58696320bea73.png")
 
     ageRandomness: FloatProperty(
         name="Age Randomness", description="Age Randomness", default=10.0)
@@ -106,6 +106,21 @@ class ParticleEmitter(HubsComponent):
 
     angularVelocity: FloatProperty(
         name="Angular Velocity", description="Angular Velocity", unit="VELOCITY", default=0.0)
+
+    def draw(self, context, layout, panel):
+        alert_src = getattr(self, "src") == self.bl_rna.properties['src'].default
+        for key in self.get_properties():
+            if not self.bl_rna.properties[key].is_hidden:
+                row = layout.row()
+                if key == "src" and alert_src:
+                    row.alert = True
+                row.prop(data=self, property=key)
+                if key == "src" and alert_src:
+                    warning_row = layout.row()
+                    warning_row.alert = True
+                    warning_row.label(
+                        text="Warning: the default URL won't work unless you replace 'example.org' with the domain of your Hubs instance.",
+                        icon='ERROR')
 
     def gather(self, export_settings, object):
         props = super().gather(export_settings, object)
