@@ -249,7 +249,10 @@ class HubsGLTFExportPanel(bpy.types.Panel):
         self.layout.prop(props, 'enabled', text="")
 
     def draw(self, context):
-        layout = self.layout
+        self.draw_body(context, self.layout)
+
+    @staticmethod
+    def draw_body(context, layout):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
