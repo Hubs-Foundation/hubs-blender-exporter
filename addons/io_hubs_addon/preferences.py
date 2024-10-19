@@ -45,23 +45,24 @@ class InstallDepsOperator(bpy.types.Operator):
         import sys
 
         result = subprocess.run([sys.executable, '-m', 'ensurepip'],
-                                capture_output=False, text=True, input="y")
-        if result.returncode < 0:
+                                capture_output=True, text=True, input="y")
+        if not is_module_available('pip', local_dependency=False):
             print(result.stderr)
+            report_messages = [
+                f"Installing {self.dep_config.name} has failed.  Pip is not present and can't be installed",
+                "See the terminal for more details.  Windows users can access their terminal by going to Window ‣ Toggle System Console"
+            ]
             bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                          report_string='\n\n'.join(["Dependencies install has failed installing pip",
-                                                                     f'{result.stderr}']))
+                                          report_string='\n\n'.join(report_messages))
             return {'CANCELLED'}
+        if result.returncode != 0:
+            print("ensurepip failed but pip appears to be present anyway.  Continuing on.")
 
         result = subprocess.run(
             [sys.executable, '-m', 'pip', 'install', '--upgrade', 'pip'],
-            capture_output=False, text=True, input="y")
-        if result.returncode < 0:
-            print(result.stderr)
-            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                          report_string='\n\n'.join(["Dependencies install has failed upgrading pip",
-                                                                     f'{result.stderr}']))
-            return {'CANCELLED'}
+            capture_output=True, text=True, input="y")
+        if result.returncode != 0:
+            print("Upgrading pip has failed.  Continuing on.")
 
         from .utils import get_or_create_deps_path
         dep = self.dep_config.name
@@ -72,18 +73,24 @@ class InstallDepsOperator(bpy.types.Operator):
             [sys.executable, '-m', 'pip', 'install', '--upgrade', dep,
              '-t', get_or_create_deps_path(self.dep_config.name)],
             capture_output=True, text=True, input="y")
-        failed = False
         if not is_module_available(self.dep_config.name):
-            failed = True
-        if result.returncode != 0 or failed:
-            print(result.stderr)
+            report_messages = [
+                f"Installing {self.dep_config.name} has failed.",
+                "See the terminal for more details.  Windows users can access their terminal by going to Window ‣ Toggle System Console"
+            ]
             bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                          report_string='\n\n'.join(["Dependencies install has failed",
-                                                                     f'{result.stderr}']))
+                                          report_string='\n\n'.join(report_messages))
             return {'CANCELLED'}
         else:
+            # Installing packages with pip always seems to have a successful return code,
+            # regardless of whether any errors were encountered.
+            # So don't bother trying to notify the user of any potential errors.
+            # We assume that since the module is there, everything is fine.
+            # If needed, change capture_output to False and check the terminal for any errors.
+            print(f"{self.dep_config.name} has been installed successfully.")
+            report_messages = [f"{self.dep_config.name} has been installed successfully."]
             bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                          report_string="Dependencies installed successfully")
+                                          report_string='\n\n'.join(report_messages))
             return {'FINISHED'}
 
 
