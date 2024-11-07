@@ -338,7 +338,7 @@ class BakeProbeOperator(Operator):
 
     def setup_probe_render(self, context):
         probe = self.probes[self.probe_index]
-        cycles_settings = self.camera_data.cycles if bpy.app.version < (4, 2, 0) else self.camera_data
+        cycles_settings = self.camera_data.cycles if bpy.app.version < (4, 0, 0) else self.camera_data
 
         self.camera_data.type = "PANO"
         cycles_settings.panorama_type = "EQUIRECTANGULAR"
