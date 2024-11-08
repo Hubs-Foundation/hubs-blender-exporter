@@ -1,6 +1,7 @@
 import bpy
 from bpy.props import StringProperty, IntProperty, BoolProperty, CollectionProperty
 from bpy.types import Operator, PropertyGroup
+
 from functools import reduce
 
 from .types import PanelType, MigrationType
@@ -11,6 +12,7 @@ from .handlers import migrate_components
 from .gizmos import update_gizmos
 from .utils import is_linked, redraw_component_ui
 from ..icons import get_hubs_icons
+from .definitions import component_tooltips
 import os
 
 
@@ -54,6 +56,23 @@ class AddHubsComponent(Operator):
                     return False
 
         return True
+
+    @classmethod
+    def description(cls, context, properties):
+        component = properties.component_name
+        if component == '':
+            panel_type = None
+            for item in properties.items():
+                _, panel_type = item
+            tooltip = "Add a hubs component to this object" if panel_type == "object" \
+                else "Add a hubs component to the scene"
+            return tooltip
+        try:
+            return component_tooltips.component_descriptions[component]
+        except:
+            print(properties.component_name + ': Please add me to component_tooltips.py')
+            return "No description available for " + component
+
 
     def execute(self, context):
         if self.component_name == '':
