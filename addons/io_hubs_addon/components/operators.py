@@ -67,11 +67,7 @@ class AddHubsComponent(Operator):
             tooltip = "Add a hubs component to this object" if panel_type == "object" \
                 else "Add a hubs component to the scene"
             return tooltip
-        try:
-            return component_tooltips.component_descriptions[component]
-        except:
-            print(properties.component_name + ': Please add me to component_tooltips.py')
-            return "No description available for " + component
+        return component_tooltips.component_descriptions[component]
 
     def execute(self, context):
         if self.component_name == '':
