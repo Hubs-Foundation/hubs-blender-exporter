@@ -73,7 +73,6 @@ class AddHubsComponent(Operator):
             print(properties.component_name + ': Please add me to component_tooltips.py')
             return "No description available for " + component
 
-
     def execute(self, context):
         if self.component_name == '':
             return
