@@ -1,5 +1,5 @@
 import bpy
-from bpy.props import StringProperty, IntProperty, BoolProperty, CollectionProperty
+from bpy.props import StringProperty, IntProperty, BoolProperty, CollectionProperty, FloatProperty
 from bpy.types import Operator, PropertyGroup
 from functools import reduce
 
@@ -11,6 +11,7 @@ from .handlers import migrate_components
 from .gizmos import update_gizmos
 from .utils import is_linked, redraw_component_ui
 from ..icons import get_hubs_icons
+from .consts import LIGHTMAP_LAYER_NAME, LIGHTMAP_UV_ISLAND_MARGIN
 import os
 
 
@@ -670,6 +671,212 @@ class OpenImage(Operator):
         return {'RUNNING_MODAL'}
 
 
+class BakeLightmaps(Operator):
+    bl_idname = "object.bake_lightmaps"
+    bl_label = "Bake Lightmaps"
+    bl_description = "Bake lightmaps of selected objects using the Cycles render engine and pack them into the .blend."
+    bl_options = {'REGISTER', 'UNDO'}
+
+    default_intensity: FloatProperty(name="Lightmaps Intensity",
+                                     default=3.14,
+                                     description="Multiplier for hubs on how to interpret the brightness of the image. Set this to 1.0 if you have set up the lightmaps manually and use a non-HDR format like png or jpg.")
+    resolution: IntProperty(name="Lightmaps Resolution",
+                            default=2048,
+                            description="The pixel resolution of the resulting lightmap.")
+    samples: IntProperty(name="Max Samples",
+                         default=1024,
+                         description="The number of samples to use for baking. Higher values reduce noise but take longer.")
+
+    def create_uv_layouts(self, context, mesh_objs):
+        # Sometimes the list can be empty, in that case do not unwrap but return directly
+        if len(mesh_objs) == 0:
+            return {'FINISHED'}
+        # set up UV layer structure. The first layer has to be UV0, the second one LIGHTMAP_LAYER_NAME for the lightmap.
+        for obj in mesh_objs:
+            obj_uv_layers = obj.data.uv_layers
+            # Check whether there are any UV layers and if not, create the two that are required.
+            if len(obj_uv_layers) == 0:
+                print("Creating completely new UV layer setup for object " + str(obj.name))
+                obj_uv_layers.new(name='UV0')
+                obj_uv_layers.new(name=LIGHTMAP_LAYER_NAME)
+
+            # In case there is only one UV layer create a second one named LIGHTMAP_LAYER_NAME for the lightmap.
+            if len(obj_uv_layers) == 1:
+                print("Creating lightmap UV layer for object " + str(obj.name))
+                obj_uv_layers.new(name=LIGHTMAP_LAYER_NAME)
+            # Check if object has a second UV layer. If it is named LIGHTMAP_LAYER_NAME, assume it is used for the lightmap.
+            # Otherwise add a new UV layer LIGHTMAP_LAYER_NAME and place it second in the slot list.
+            elif obj_uv_layers[1].name != LIGHTMAP_LAYER_NAME:
+                print("The second UV layer in hubs should be named " + LIGHTMAP_LAYER_NAME + " and is reserved for the lightmap, all the layers >1 are ignored.")
+                obj_uv_layers.new(name=LIGHTMAP_LAYER_NAME)
+                # The new layer is the last in the list, swap it for position 1
+                obj_uv_layers[1], obj_uv_layers[-1] = obj_uv_layers[-1], obj_uv_layers[1]
+
+            # The layer for the lightmap needs to be the active one before lightmap packing
+            obj_uv_layers.active = obj_uv_layers[LIGHTMAP_LAYER_NAME]
+            # Set the object as selected in object mode
+            obj.select_set(True)
+
+        # run UV lightmap packing on all selected objects
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.select_all(action='SELECT')
+        # bpy.ops.uv.lightmap_pack()
+        bpy.ops.uv.smart_project(island_margin=LIGHTMAP_UV_ISLAND_MARGIN)
+        bpy.ops.object.mode_set(mode='OBJECT')
+        # Deselect the objects again to return without changing the scene
+        for obj in mesh_objs:
+            obj.select_set(False)
+        # Update the view layer so all parts take notice of the changed UV layout
+        bpy.context.view_layer.update()
+
+        return {'FINISHED'}
+
+    def execute(self, context):
+        # Check selected objects
+        selected_objects = bpy.context.selected_objects
+
+        # filter mesh objects and others
+        mesh_objs, other_objs = [], []
+        for ob in selected_objects:
+            (mesh_objs if ob.type == 'MESH' else other_objs).append(ob)
+            # Remove all objects from selection so we can easily re-select subgroups later
+            ob.select_set(False)
+
+        # for ob in other_objs:
+            # Remove non-mesh objects from selection to ensure baking will work
+            # ob.select_set(False)
+
+        # Gather all materials on the selected objects
+        # materials = []
+        # Dictionary that stores which object has which materials so we can group them later
+        material_object_associations = {}
+        # Iterate over a copy of mesh_objs because we are modifying it further down
+        for obj in list(mesh_objs):
+            if len(obj.material_slots) >= 1:
+                for slot in obj.material_slots:
+                    if slot.material is not None:
+                        mat = slot.material
+                        if mat not in material_object_associations:
+                            material_object_associations[mat] = []
+                        material_object_associations[mat].append(obj)
+            else:
+                print("Object " + obj.name + " does not have material slots, removing from list of objects that will be unwrapped.")
+                mesh_objs.remove(obj)
+
+        # Set up the UV layer structure and auto-unwrap optimized for lightmaps
+        visited_materials = set()
+        for mat, obj_list in material_object_associations.items():
+            objs_to_uv_unwrap = []
+            if mat not in visited_materials:
+                # Several objects can share the same material so bundle them all
+                for ob in obj_list:
+                    for slot in ob.material_slots:
+                        if slot.material is not None:
+                            objs_to_uv_unwrap.extend(material_object_associations[slot.material])
+                            visited_materials.add(slot.material)
+            print("Objects to UV unwrap: " + str(objs_to_uv_unwrap))
+            self.create_uv_layouts(context, objs_to_uv_unwrap)
+
+        # Check for the required nodes and set them up if not present
+        lightmap_texture_nodes = []
+        for mat in material_object_associations.keys():
+            mat_nodes = mat.node_tree.nodes
+            lightmap_nodes = [node for node in mat_nodes if node.bl_idname == 'moz_lightmap.node']
+            if len(lightmap_nodes) > 1:
+                print("Too many lightmap nodes in node tree of material", mat.name)
+            elif len(lightmap_nodes) < 1:
+                lightmap_texture_nodes.append(self.setup_moz_lightmap_nodes(mat.node_tree))
+            else:
+                # TODO: Check wether all nodes are set up correctly, for now assume they are
+                lightmap_nodes[0].intensity = self.default_intensity
+                # the image texture node needs to be the active one for baking, it is connected to the lightmap node so get it from there
+                lightmap_texture_node = lightmap_nodes[0].inputs[0].links[0].from_node
+                mat.node_tree.nodes.active = lightmap_texture_node
+                lightmap_texture_nodes.append(lightmap_texture_node)
+
+        # Re-select all the objects that need baking before running the operator
+        for ob in mesh_objs:
+            ob.select_set(True)
+        # Baking has to happen in Cycles, it is not supported in EEVEE yet
+        render_engine_tmp = context.scene.render.engine
+        context.scene.render.engine = 'CYCLES'
+        samples_tmp = context.scene.cycles.samples
+        context.scene.cycles.samples = self.samples
+        # Baking needs to happen without the color pass because we only want the direct and indirect light contributions
+        bake_settings_before = context.scene.render.bake
+        bake_settings = context.scene.render.bake
+        bake_settings.use_pass_direct = True
+        bake_settings.use_pass_indirect = True
+        bake_settings.use_pass_color = False
+        # The should be small because otherwise it could overwrite UV islands
+        bake_settings.margin = 2
+        # Not sure whether this has any influence
+        bake_settings.image_settings.file_format = 'HDR'
+        context.scene.render.image_settings.file_format = 'HDR'
+        bpy.ops.object.bake(type='DIFFUSE')
+        # After baking is done, return everything back to normal
+        context.scene.cycles.samples = samples_tmp
+        context.scene.render.engine = render_engine_tmp
+        # Pack all newly created or updated images
+        for node in lightmap_texture_nodes:
+            file_path = bpy.path.abspath(f"{bpy.app.tempdir}/{node.image.name}.hdr")
+            # node.image.save_render(file_path)
+            node.image.filepath_raw = file_path
+            node.image.file_format = 'HDR'
+            node.image.save()
+            node.image.pack()
+            # Update the filepath so it unpacks nicely for the user.
+            # TODO: Mechanism taken from reflection_probe.py line 300-306, de-duplicate
+            new_filepath = f"//{node.image.name}.hdr"
+            node.image.packed_files[0].filepath = new_filepath
+            node.image.filepath_raw = new_filepath
+            node.image.filepath = new_filepath
+
+            # Remove file from temporary directory to de-clutter the system. Especially on windows the temporary directory is rarely purged.
+            if os.path.exists(file_path):
+                os.remove(file_path)
+
+        # return to old settings
+        bake_settings = bake_settings_before
+        context.scene.cycles.samples = samples_tmp
+        context.scene.render.engine = render_engine_tmp
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        # needed to get the dialog with the intensity
+        return context.window_manager.invoke_props_dialog(self)
+
+    def setup_moz_lightmap_nodes(self, node_tree):
+        ''' Returns the lightmap texture node of the newly created setup '''
+        mat_nodes = node_tree.nodes
+        # This function gets called when no lightmap node is present
+        lightmap_node = mat_nodes.new(type="moz_lightmap.node")
+        lightmap_node.intensity = self.default_intensity
+
+        lightmap_texture_node = mat_nodes.new(type="ShaderNodeTexImage")
+        lightmap_texture_node.location[0] -= 300
+
+        img = bpy.data.images.new('LightMap', self.resolution, self.resolution, alpha=False, float_buffer=True)
+        lightmap_texture_node.image = img
+        if bpy.app.version < (4, 0, 0):
+            lightmap_texture_node.image.colorspace_settings.name = "Linear"
+        else:
+            lightmap_texture_node.image.colorspace_settings.name = "Linear Rec.709"
+
+        UVmap_node = mat_nodes.new(type="ShaderNodeUVMap")
+        UVmap_node.uv_map = LIGHTMAP_LAYER_NAME
+        UVmap_node.location[0] -= 500
+
+        node_tree.links.new(UVmap_node.outputs['UV'], lightmap_texture_node.inputs['Vector'])
+        node_tree.links.new(lightmap_texture_node.outputs['Color'], lightmap_node.inputs['Lightmap'])
+
+        # the image texture node needs to be the active one for baking
+        node_tree.nodes.active = lightmap_texture_node
+
+        return lightmap_texture_node
+
+
 def register():
     bpy.utils.register_class(AddHubsComponent)
     bpy.utils.register_class(RemoveHubsComponent)
@@ -681,6 +888,7 @@ def register():
     bpy.utils.register_class(ViewReportInInfoEditor)
     bpy.utils.register_class(CopyHubsComponent)
     bpy.utils.register_class(OpenImage)
+    bpy.utils.register_class(BakeLightmaps)
     bpy.types.WindowManager.hubs_report_scroll_index = IntProperty(
         default=0, min=0)
     bpy.types.WindowManager.hubs_report_scroll_percentage = IntProperty(
@@ -700,6 +908,7 @@ def unregister():
     bpy.utils.unregister_class(ViewReportInInfoEditor)
     bpy.utils.unregister_class(CopyHubsComponent)
     bpy.utils.unregister_class(OpenImage)
+    bpy.utils.unregister_class(BakeLightmaps)
     del bpy.types.WindowManager.hubs_report_scroll_index
     del bpy.types.WindowManager.hubs_report_scroll_percentage
     del bpy.types.WindowManager.hubs_report_last_title
