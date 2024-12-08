@@ -1,12 +1,20 @@
 import bpy
-from bpy.props import BoolProperty, PointerProperty
-from io_scene_gltf2.blender.imp.gltf2_blender_node import BlenderNode
-from io_scene_gltf2.blender.imp.gltf2_blender_material import BlenderMaterial
-from io_scene_gltf2.blender.imp.gltf2_blender_scene import BlenderScene
-from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
+import traceback
 from .utils import HUBS_CONFIG, import_image, import_all_textures
 from ..components.components_registry import get_component_by_name
-import traceback
+from bpy.props import BoolProperty, PointerProperty
+
+# Version-specific imports
+if bpy.app.version >= (4, 3, 0):
+    from io_scene_gltf2.blender.imp.image import BlenderImage
+    from io_scene_gltf2.blender.imp.node import BlenderNode
+    from io_scene_gltf2.blender.imp.material import BlenderMaterial
+    from io_scene_gltf2.blender.imp.scene import BlenderScene
+else:
+    from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
+    from io_scene_gltf2.blender.imp.gltf2_blender_node import BlenderNode
+    from io_scene_gltf2.blender.imp.gltf2_blender_material import BlenderMaterial
+    from io_scene_gltf2.blender.imp.gltf2_blender_scene import BlenderScene
 
 EXTENSION_NAME = HUBS_CONFIG["gltfExtensionName"]
 
