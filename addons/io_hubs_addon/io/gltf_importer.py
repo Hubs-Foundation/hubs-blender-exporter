@@ -1,9 +1,19 @@
 import bpy
 from bpy.props import BoolProperty, PointerProperty
-from io_scene_gltf2.blender.imp.gltf2_blender_node import BlenderNode
-from io_scene_gltf2.blender.imp.gltf2_blender_material import BlenderMaterial
-from io_scene_gltf2.blender.imp.gltf2_blender_scene import BlenderScene
-from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
+
+
+if bpy.app.version >= (4, 3, 0):
+    from io_scene_gltf2.blender.imp.node import BlenderNode
+    from io_scene_gltf2.blender.imp.material import BlenderMaterial
+    from io_scene_gltf2.blender.imp.scene import BlenderScene
+    from io_scene_gltf2.blender.imp.image import BlenderImage
+
+else:
+    from io_scene_gltf2.blender.imp.gltf2_blender_node import BlenderNode
+    from io_scene_gltf2.blender.imp.gltf2_blender_material import BlenderMaterial
+    from io_scene_gltf2.blender.imp.gltf2_blender_scene import BlenderScene
+    from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
+    
 from .utils import HUBS_CONFIG, import_image, import_all_textures
 from ..components.components_registry import get_component_by_name
 import traceback

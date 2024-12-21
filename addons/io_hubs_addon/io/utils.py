@@ -1,22 +1,42 @@
 import os
 import bpy
-from io_scene_gltf2.blender.com import gltf2_blender_extras
-if bpy.app.version >= (3, 6, 0):
-    from io_scene_gltf2.blender.exp import gltf2_blender_gather_nodes, gltf2_blender_gather_joints
-    from io_scene_gltf2.blender.exp.material import gltf2_blender_gather_materials, gltf2_blender_gather_texture_info
-    from io_scene_gltf2.blender.exp.material.extensions import gltf2_blender_image
+
+
+if bpy.app.version >= (4, 3, 0):    
+    #global gltf2_io_image_data, gltf2_blender_extras, gltf2_blender_gather_joints, gltf2_blender_gather_nodes, gltf2_blender_gather_materials, gltf2_blender_gather_texture_info, gltf2_blender_search_node_tree, gltf2_io_binary_data, gltf2_blender_image
+    #gltf2_blender_extras = io_scene_gltf2.blender.com.extras 
+    from io_scene_gltf2.blender.exp import joints as gltf2_blender_gather_joints
+    from io_scene_gltf2.blender.exp import nodes as gltf2_blender_gather_nodes
+    from io_scene_gltf2.blender.exp.material import materials as gltf2_blender_gather_materials
+    from io_scene_gltf2.blender.exp.material import texture_info as gltf2_blender_gather_texture_info 
+    from io_scene_gltf2.blender.exp.material import search_node_tree as gltf2_blender_search_node_tree
+    from io_scene_gltf2.blender.exp.material import image as gltf2_blender_image
+    from io_scene_gltf2.blender.exp.cache import cached
+    from io_scene_gltf2.blender.imp import image #.BlenderImage #this fails somehow
+    BlenderImage = image.BlenderImage
+    from io_scene_gltf2.io.exp import binary_data as gltf2_io_binary_data
+    from io_scene_gltf2.io.exp import image_data as gltf2_io_image_data 
+
 else:
-    from io_scene_gltf2.blender.exp import gltf2_blender_gather_materials, gltf2_blender_gather_nodes, gltf2_blender_gather_joints
-    from io_scene_gltf2.blender.exp import gltf2_blender_gather_texture_info, gltf2_blender_export_keys
-    from io_scene_gltf2.blender.exp import gltf2_blender_image
-from io_scene_gltf2.blender.exp.gltf2_blender_gather_cache import cached
-if bpy.app.version >= (4, 1, 0):
-    from io_scene_gltf2.blender.exp.material import gltf2_blender_search_node_tree
-from io_scene_gltf2.io.com import gltf2_io_extensions
-from io_scene_gltf2.io.com import gltf2_io
-from io_scene_gltf2.io.exp import gltf2_io_binary_data
-from io_scene_gltf2.io.exp import gltf2_io_image_data
-from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
+    from io_scene_gltf2.blender.com import gltf2_blender_extras
+    if bpy.app.version >= (3, 6, 0):
+        from io_scene_gltf2.blender.exp import gltf2_blender_gather_nodes, gltf2_blender_gather_joints
+        from io_scene_gltf2.blender.exp.material import gltf2_blender_gather_materials, gltf2_blender_gather_texture_info
+        from io_scene_gltf2.blender.exp.material.extensions import gltf2_blender_image
+    else:
+        from io_scene_gltf2.blender.exp import gltf2_blender_gather_materials, gltf2_blender_gather_nodes, gltf2_blender_gather_joints
+        from io_scene_gltf2.blender.exp import gltf2_blender_gather_texture_info, gltf2_blender_export_keys
+        from io_scene_gltf2.blender.exp import gltf2_blender_image
+    from io_scene_gltf2.blender.exp.gltf2_blender_gather_cache import cached
+    
+    from io_scene_gltf2.io.com import gltf2_io_extensions
+    from io_scene_gltf2.io.com import gltf2_io
+    from io_scene_gltf2.io.exp import gltf2_io_binary_data
+    from io_scene_gltf2.io.exp import gltf2_io_image_data
+    from io_scene_gltf2.blender.imp.gltf2_blender_image import BlenderImage
+    if bpy.app.version >= (4, 1, 0):
+        from io_scene_gltf2.blender.exp.material import gltf2_blender_search_node_tree
+
 from typing import Optional, Tuple, Union
 from ..nodes.lightmap import MozLightmapNode
 import re
@@ -30,7 +50,8 @@ imported_textures = {}
 
 # gather_texture/image with HDR support via MOZ_texture_rgbe
 
-
+print("gather_joints:", gltf2_blender_gather_joints)
+print("gltf2_blender_image.ExportImage:", gltf2_blender_image.ExportImage)
 class HubsImageData(gltf2_io_image_data.ImageData):
     @property
     def file_extension(self):

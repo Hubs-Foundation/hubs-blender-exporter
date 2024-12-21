@@ -1,8 +1,12 @@
 from .utils import create_prefs_dir
 import sys
 import bpy
-from .io import gltf_exporter, gltf_importer, panels
-from . import (nodes, components)
+from .io import gltf_exporter
+from .io import gltf_importer
+from .io import panels
+from . import nodes
+from . import components
+
 from . import preferences
 from . import third_party
 from . import debugger
