@@ -6,8 +6,8 @@ from ..components.utils import get_host_components
 import traceback
 
 if bpy.app.version < (3, 0, 0):
-    from io_scene_gltf2.io.exp.gltf2_io_user_extensions import export_user_extensions
     from io_scene_gltf2.blender.exp import gltf2_blender_export
+    from io_scene_gltf2.io.exp.gltf2_io_user_extensions import export_user_extensions
 
     # gather_gltf_hook does not expose the info we need, make a custom hook for now
     # ideally we can resolve this upstream somehow https://github.com/KhronosGroup/glTF-Blender-IO/issues/1009
@@ -73,15 +73,26 @@ def export_callback(callback_method, export_settings):
 
 
 def glTF2_pre_export_callback(export_settings):
-    from io_scene_gltf2.blender.com.gltf2_blender_extras import BLACK_LIST
+    # Import BLACK_LIST here instead of at the beginning of the file to make sure we're always referencing the same one as the glTF add-on.
+    # https://github.com/Hubs-Foundation/hubs-blender-exporter/pull/166#issuecomment-1335083605
+    if bpy.app.version >= (4, 3, 0):
+        from io_scene_gltf2.blender.com.extras import BLACK_LIST
+    else:
+        from io_scene_gltf2.blender.com.gltf2_blender_extras import BLACK_LIST
+
     BLACK_LIST.extend(glTF2ExportUserExtension.EXCLUDED_PROPERTIES)
     export_callback("pre_export", export_settings)
 
 
 def glTF2_post_export_callback(export_settings):
-    export_callback("post_export", export_settings)
+    # Import BLACK_LIST here instead of at the beginning of the file to make sure we're always referencing the same one as the glTF add-on.
+    # https://github.com/Hubs-Foundation/hubs-blender-exporter/pull/166#issuecomment-1335083605
+    if bpy.app.version >= (4, 3, 0):
+        from io_scene_gltf2.blender.com.extras import BLACK_LIST
+    else:
+        from io_scene_gltf2.blender.com.gltf2_blender_extras import BLACK_LIST
 
-    from io_scene_gltf2.blender.com.gltf2_blender_extras import BLACK_LIST
+    export_callback("post_export", export_settings)
     for excluded_prop in glTF2ExportUserExtension.EXCLUDED_PROPERTIES:
         if excluded_prop in BLACK_LIST:
             BLACK_LIST.remove(excluded_prop)
@@ -249,7 +260,10 @@ class HubsGLTFExportPanel(bpy.types.Panel):
         self.layout.prop(props, 'enabled', text="")
 
     def draw(self, context):
-        layout = self.layout
+        self.draw_body(context, self.layout)
+
+    @staticmethod
+    def draw_body(context, layout):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 

@@ -294,7 +294,7 @@ class BakeProbeOperator(Operator):
                         else:
                             update_image_editors(old_img, img)
 
-                    probe_component['envMapTexture'] = img
+                    probe_component.envMapTexture = img
 
                     # Pack image and update filepaths so that it displays/unpacks nicely for the user.
                     # Note: updating the filepaths prints an error to the terminal, but otherwise seems to work fine.
@@ -338,14 +338,15 @@ class BakeProbeOperator(Operator):
 
     def setup_probe_render(self, context):
         probe = self.probes[self.probe_index]
+        cycles_settings = self.camera_data.cycles if bpy.app.version < (4, 0, 0) else self.camera_data
 
         self.camera_data.type = "PANO"
-        self.camera_data.cycles.panorama_type = "EQUIRECTANGULAR"
+        cycles_settings.panorama_type = "EQUIRECTANGULAR"
 
-        self.camera_data.cycles.longitude_min = -math.pi
-        self.camera_data.cycles.longitude_max = math.pi
-        self.camera_data.cycles.latitude_min = -math.pi / 2
-        self.camera_data.cycles.latitude_max = math.pi / 2
+        cycles_settings.longitude_min = -math.pi
+        cycles_settings.longitude_max = math.pi
+        cycles_settings.latitude_min = -math.pi / 2
+        cycles_settings.latitude_max = math.pi / 2
 
         self.camera_data.clip_start = probe.data.clip_start
         self.camera_data.clip_end = probe.data.clip_end
@@ -448,11 +449,11 @@ class ImportReflectionProbeEnvMaps(Operator):
             for probe in probes:
                 if f.name.startswith(f"{probe.name} - EnvMap"):
                     probe_component = probe.hubs_component_reflection_probe
-                    old_img = probe_component['envMapTexture']
+                    old_img = probe_component.envMapTexture
 
                     img = bpy.data.images.load(
                         filepath=os.path.join(dirname, f.name))
-                    probe_component['envMapTexture'] = img
+                    probe_component.envMapTexture = img
 
                     if old_img:
                         if self.overwrite_images:

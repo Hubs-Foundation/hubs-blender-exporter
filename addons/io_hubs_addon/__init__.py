@@ -12,7 +12,7 @@ bl_info = {
     "author": "The Hubs Community",
     "description": "Tools for developing glTF assets for Hubs",
     "blender": (3, 1, 2),
-    "version": (1, 6, 0, "dev_build"),
+    "version": (1, 7, 1, "dev_build"),
     "location": "",
     "wiki_url": "https://github.com/Hubs-Foundation/hubs-blender-exporter",
     "tracker_url": "https://github.com/Hubs-Foundation/hubs-blender-exporter/issues",
@@ -23,6 +23,30 @@ bl_info = {
 
 
 create_prefs_dir()
+
+
+# Blender 4.2+ glTF Extension Import/Export Settings Panel
+def draw(context, layout):
+    layout_header, layout_body = layout.panel('HBA_PT_Import_Export_Panel', default_closed=True)
+    sfile = context.space_data
+    operator = sfile.active_operator
+
+    # Panel Header
+    if operator.bl_idname == "EXPORT_SCENE_OT_gltf":
+        props = bpy.context.scene.HubsComponentsExtensionProperties
+    elif operator.bl_idname == "IMPORT_SCENE_OT_gltf":
+        props = bpy.context.scene.HubsComponentsExtensionImportProperties
+
+    layout_header.use_property_split = False
+    layout_header.prop(props, 'enabled', text="")
+    layout_header.label(text="Hubs Components")
+
+    # Panel Body
+    if layout_body:
+        if operator.bl_idname == "EXPORT_SCENE_OT_gltf":
+            gltf_exporter.HubsGLTFExportPanel.draw_body(context, layout_body)
+        elif operator.bl_idname == "IMPORT_SCENE_OT_gltf":
+            gltf_importer.HubsGLTFImportPanel.draw_body(context, layout_body)
 
 
 def register():
