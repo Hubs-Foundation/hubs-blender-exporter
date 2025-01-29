@@ -707,11 +707,17 @@ class BakeLightmaps(Operator):
             # Check if object has a second UV layer. If it is named LIGHTMAP_LAYER_NAME, assume it is used for the lightmap.
             # Otherwise add a new UV layer LIGHTMAP_LAYER_NAME and place it second in the slot list.
             elif obj_uv_layers[1].name != LIGHTMAP_LAYER_NAME:
-                print("The second UV layer in hubs should be named " + LIGHTMAP_LAYER_NAME + " and is reserved for the lightmap, all the layers >1 are ignored.")
-                obj_uv_layers.new(name=LIGHTMAP_LAYER_NAME)
-                # The new layer is the last in the list, swap it for position 1
-                obj_uv_layers[1], obj_uv_layers[-1] = obj_uv_layers[-1], obj_uv_layers[1]
-
+                print("The second UV layer " + str(obj_uv_layers[1].name) + " of object " + str(obj.name) + " should be named " + LIGHTMAP_LAYER_NAME + " for Hubs and is reserved for the lightmap, all the layers >1 are ignored.")
+                # The new layer is the last in the list and a full copy of the active one.
+                # The changed order is no problem in Blender where UV layers are mostly indexed by name
+                # Only when exporting to game engines the order matters, but most game engines have the lightmap on UV layer 1
+                # Blender is creating the names of duplicated layers with a suffix .001
+                # This needs to be avoided because otherwise existing setups cannot access it anymore
+                second_layer_name = obj_uv_layers[1].name
+                obj_uv_layers[1].name=LIGHTMAP_LAYER_NAME
+                obj_uv_layers.active = obj_uv_layers[1]
+                obj_uv_layers.new(name=second_layer_name)
+                
             # The layer for the lightmap needs to be the active one before lightmap packing
             obj_uv_layers.active = obj_uv_layers[LIGHTMAP_LAYER_NAME]
             # Set the object as selected in object mode
