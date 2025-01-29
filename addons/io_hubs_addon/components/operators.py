@@ -714,10 +714,10 @@ class BakeLightmaps(Operator):
                 # Blender is creating the names of duplicated layers with a suffix .001
                 # This needs to be avoided because otherwise existing setups cannot access it anymore
                 second_layer_name = obj_uv_layers[1].name
-                obj_uv_layers[1].name=LIGHTMAP_LAYER_NAME
+                obj_uv_layers[1].name = LIGHTMAP_LAYER_NAME
                 obj_uv_layers.active = obj_uv_layers[1]
                 obj_uv_layers.new(name=second_layer_name)
-                
+
             # The layer for the lightmap needs to be the active one before lightmap packing
             obj_uv_layers.active = obj_uv_layers[LIGHTMAP_LAYER_NAME]
             # Set the object as selected in object mode
