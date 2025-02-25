@@ -100,7 +100,8 @@ class HubsComponent(PropertyGroup):
     def is_dep_only(cls):
         return not cls.get_category()
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         if type(self) is HubsComponent:
             raise Exception(
                 'HubsComponent is an abstract class and cannot be instantiated directly')
