@@ -66,8 +66,6 @@ class AddHubsComponent(Operator):
                 else "Add a hubs component to this bone" 
             return tooltip
         component_class = get_component_by_name(component)
-        print("component:", component)
-        print("component_class:", component_class, "type:", type(component_class))
         return component_class.get_tooltip()
     
     def execute(self, context):
@@ -179,7 +177,6 @@ class AddHubsComponent(Operator):
                                         icon_value=hubs_icons[icon].icon_id)
                                     op.component_name = component_name
                                     op.panel_type = panel_type
-                                    print(". exists:", AddHubsComponent.bl_idname)
                             else:
                                 if has_component(obj, component_name):
                                     op = column.label(
@@ -189,8 +186,6 @@ class AddHubsComponent(Operator):
                                         AddHubsComponent.bl_idname, text=component_display_name, icon=icon)
                                     op.component_name = component_name
                                     op.panel_type = panel_type
-                                    print("no dot:", AddHubsComponent.bl_idname)
-
                         else:
                             if has_component(obj, component_name):
                                 op = column.label(text=component_display_name)
@@ -199,8 +194,6 @@ class AddHubsComponent(Operator):
                                     AddHubsComponent.bl_idname, text=component_display_name, icon='ADD')
                                 op.component_name = component_name
                                 op.panel_type = panel_type
-                                print("no icon:", AddHubsComponent.bl_idname)
-
 
                         added_comps += 1
 

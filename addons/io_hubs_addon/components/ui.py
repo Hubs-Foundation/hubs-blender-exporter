@@ -25,12 +25,11 @@ def draw_component(panel, context, obj, row, component_item):
             remove_component_operator = top_row.operator(
                 "wm.remove_hubs_component",
                 text="",
-                icon="X",
-                
+                icon="X"
             )
             remove_component_operator.component_name = component_name
             remove_component_operator.panel_type = panel.bl_context
-            return 
+            return
 
         component_id = component_class.get_id()
         component = getattr(obj, component_id)
