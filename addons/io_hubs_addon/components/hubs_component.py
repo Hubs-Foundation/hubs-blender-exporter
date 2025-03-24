@@ -3,6 +3,7 @@ from bpy.props import IntVectorProperty
 from .types import Category, PanelType, NodeType
 from ..io.utils import import_component, assign_property
 
+
 class HubsComponent(PropertyGroup):
     _definition = {
         # The name that will be used in the glTF file MOZ_hubs_components object when exporting the component.

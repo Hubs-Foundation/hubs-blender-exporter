@@ -14,6 +14,7 @@ from ..icons import get_hubs_icons
 from .components_registry import get_component_by_name
 import os
 
+
 class AddHubsComponent(Operator):
     bl_idname = "wm.add_hubs_component"
     bl_label = "Add Hubs Component"
@@ -53,7 +54,7 @@ class AddHubsComponent(Operator):
                             "Cannot add components to linked bones")
                     return False
         return True
-    
+
     @classmethod
     def description(cls, context, properties):
         component = properties.component_name
@@ -63,11 +64,11 @@ class AddHubsComponent(Operator):
                 _, panel_type = item
             tooltip = "Add a hubs component to this object" if panel_type == "object" \
                 else "Add a hubs component to the scene" if panel_type == "scene" \
-                else "Add a hubs component to this bone" 
+                else "Add a hubs component to this bone"
             return tooltip
         component_class = get_component_by_name(component)
         return component_class.get_tooltip()
-    
+
     def execute(self, context):
         if self.component_name == '':
             return
