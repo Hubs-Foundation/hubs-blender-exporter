@@ -18,7 +18,8 @@ class ParticleEmitter(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'PARTICLES',
-        'version': (1, 1, 0)
+        'version': (1, 1, 0),
+        'tooltip': 'Emit particles from this object'
     }
 
     particleCount: IntProperty(

@@ -11,8 +11,8 @@ from .handlers import migrate_components
 from .gizmos import update_gizmos
 from .utils import is_linked, redraw_component_ui
 from ..icons import get_hubs_icons
+from .components_registry import get_component_by_name
 import os
-from .definitions import component_tooltips
 
 class AddHubsComponent(Operator):
     bl_idname = "wm.add_hubs_component"
@@ -65,7 +65,10 @@ class AddHubsComponent(Operator):
                 else "Add a hubs component to the scene" if panel_type == "scene" \
                 else "Add a hubs component to this bone" 
             return tooltip
-        return component_tooltips.component_descriptions[component]
+        component_class = get_component_by_name(component)
+        print("component:", component)
+        print("component_class:", component_class, "type:", type(component_class))
+        return component_class.get_tooltip()
     
     def execute(self, context):
         if self.component_name == '':

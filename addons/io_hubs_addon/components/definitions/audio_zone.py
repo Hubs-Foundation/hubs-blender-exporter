@@ -15,7 +15,8 @@ class AudioZone(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'deps': ['networked', 'audio-params'],
         'icon': 'MATCUBE',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'Create an audio zone to control audio parameters within a specific area.'
     }
 
     inOut: BoolProperty(

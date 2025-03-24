@@ -12,7 +12,7 @@ class AudioSource(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'MOD_WAVE',
         'version': (1, 0, 0),
-        'tooltip': 'Play audio when an avatar enters a zone',
+        'tooltip': 'Difine settings for an audio source attached to this object.',
     }
 
     onlyMods: BoolProperty(

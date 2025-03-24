@@ -170,6 +170,10 @@ class HubsComponent(PropertyGroup):
         return True
 
     @classmethod
+    def get_tooltip(cls):
+        return cls.__get_definition('tooltip', None)
+
+    @classmethod
     def get_unsupported_host_message(cls, panel_type, host, ob=None):
         '''This method will return the message to use if this component isn't supported on this host.
         This is currently called during migrations.
