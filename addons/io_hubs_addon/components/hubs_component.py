@@ -3,7 +3,6 @@ from bpy.props import IntVectorProperty
 from .types import Category, PanelType, NodeType
 from ..io.utils import import_component, assign_property
 
-
 class HubsComponent(PropertyGroup):
     _definition = {
         # The name that will be used in the glTF file MOZ_hubs_components object when exporting the component.
@@ -21,7 +20,9 @@ class HubsComponent(PropertyGroup):
         # Name of the icon to load. It can be a image file in the icons directory or one of the Blender builtin icons id
         'icon': 'icon.png',
         # Version of the component. This will be used to trigger component migrations.
-        'version': (0, 0, 1)
+        'version': (0, 0, 1),
+        # tooltip to be displayed on mouse over button
+        'tooltip': 'Tooltip template',
     }
 
     # Properties defined here are for internal use and won't be displayed by default in components or exported.

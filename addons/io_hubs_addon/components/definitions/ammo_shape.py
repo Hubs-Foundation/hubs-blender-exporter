@@ -12,7 +12,8 @@ class AmmoShape(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'SCENE_DATA',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': '[DEPRECATED?] Define the physics shape of an entity',
     }
 
     type: EnumProperty(

@@ -77,7 +77,8 @@ class ScenePreviewCamera(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT],
         'icon': 'CAMERA_DATA',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'Define a camera for rendering a preview of the scene'
     }
 
     fov: FloatProperty(name="FOV", min=0, max=radians(180), default=radians(80), subtype="ANGLE", unit="ROTATION")

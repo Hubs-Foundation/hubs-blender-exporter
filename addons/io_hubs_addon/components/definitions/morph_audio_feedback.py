@@ -66,7 +66,8 @@ class MorphAudioFeedback(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT],
         'icon': 'MOD_SMOOTH',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'Control a shapekey for an avatar based on mic volume'
     }
 
     name: StringProperty(

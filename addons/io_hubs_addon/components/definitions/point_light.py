@@ -13,7 +13,8 @@ class PointLight(HubsComponent):
         'node_type': NodeType. NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'LIGHT_POINT',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'Add a point light'
     }
 
     color: FloatVectorProperty(name="Color",

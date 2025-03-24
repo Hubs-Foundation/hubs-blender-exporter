@@ -12,7 +12,8 @@ class Visible(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'HIDE_OFF',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'hide this object from the camrera'
     }
 
-    visible: BoolProperty(name="Visible", default=True)
+    visible: BoolProperty(name="Visible", default=False)

@@ -12,7 +12,7 @@ from .gizmos import update_gizmos
 from .utils import is_linked, redraw_component_ui
 from ..icons import get_hubs_icons
 import os
-
+from .definitions import component_tooltips
 
 class AddHubsComponent(Operator):
     bl_idname = "wm.add_hubs_component"
@@ -52,9 +52,21 @@ class AddHubsComponent(Operator):
                         cls.poll_message_set(
                             "Cannot add components to linked bones")
                     return False
-
         return True
-
+    
+    @classmethod
+    def description(cls, context, properties):
+        component = properties.component_name
+        if component == '':
+            panel_type = None
+            for item in properties.items():
+                _, panel_type = item
+            tooltip = "Add a hubs component to this object" if panel_type == "object" \
+                else "Add a hubs component to the scene" if panel_type == "scene" \
+                else "Add a hubs component to this bone" 
+            return tooltip
+        return component_tooltips.component_descriptions[component]
+    
     def execute(self, context):
         if self.component_name == '':
             return
@@ -164,6 +176,7 @@ class AddHubsComponent(Operator):
                                         icon_value=hubs_icons[icon].icon_id)
                                     op.component_name = component_name
                                     op.panel_type = panel_type
+                                    print(". exists:", AddHubsComponent.bl_idname)
                             else:
                                 if has_component(obj, component_name):
                                     op = column.label(
@@ -173,6 +186,8 @@ class AddHubsComponent(Operator):
                                         AddHubsComponent.bl_idname, text=component_display_name, icon=icon)
                                     op.component_name = component_name
                                     op.panel_type = panel_type
+                                    print("no dot:", AddHubsComponent.bl_idname)
+
                         else:
                             if has_component(obj, component_name):
                                 op = column.label(text=component_display_name)
@@ -181,6 +196,8 @@ class AddHubsComponent(Operator):
                                     AddHubsComponent.bl_idname, text=component_display_name, icon='ADD')
                                 op.component_name = component_name
                                 op.panel_type = panel_type
+                                print("no icon:", AddHubsComponent.bl_idname)
+
 
                         added_comps += 1
 

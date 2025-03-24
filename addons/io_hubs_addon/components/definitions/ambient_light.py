@@ -11,7 +11,8 @@ class AmbientLight(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'LIGHT_HEMI',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'A light that illuminates all objects in the scene',
     }
 
     color: FloatVectorProperty(name="Color",
