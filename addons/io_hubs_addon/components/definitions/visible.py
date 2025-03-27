@@ -13,7 +13,7 @@ class Visible(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'HIDE_OFF',
         'version': (1, 0, 0),
-        'tooltip': 'Hide this object from the camrera'
+        'tooltip': 'Hide this object from the camera'
     }
 
-    visible: BoolProperty(name="Visible", default=False)
+    visible: BoolProperty(name="Visible", default=True)
