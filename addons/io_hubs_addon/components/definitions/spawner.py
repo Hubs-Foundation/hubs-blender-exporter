@@ -13,7 +13,8 @@ class Spawner(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'MOD_PARTICLE_INSTANCE',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'Spawn objects (glb) loaded from a URL by dragging'
     }
 
     src: StringProperty(

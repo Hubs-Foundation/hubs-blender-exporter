@@ -57,7 +57,8 @@ class MediaFrame(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'OBJECT_DATA',
         'deps': ['networked'],
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'Add media like images, PDFs, and videos'
     }
 
     mediaType: EnumProperty(

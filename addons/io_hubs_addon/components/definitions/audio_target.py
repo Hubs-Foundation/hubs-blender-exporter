@@ -82,7 +82,8 @@ class AudioTarget(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'deps': ['audio-params'],
         'icon': 'SPEAKER',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'A component that plays audio based on the distance between two entities'
     }
 
     srcNode: PointerProperty(

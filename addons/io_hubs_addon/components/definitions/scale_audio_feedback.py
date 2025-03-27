@@ -11,7 +11,8 @@ class ScaleAudioFeedback(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'GRAPH',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'Control the scale of an object or bone based on mic volume'
     }
 
     minScale: FloatProperty(name="Min Scale",

@@ -15,7 +15,8 @@ class Link(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'LINKED',
         'deps': ['networked'],
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'Create an interactable hyperlink'
     }
 
     href: StringProperty(name="Link URL", description="Link URL",

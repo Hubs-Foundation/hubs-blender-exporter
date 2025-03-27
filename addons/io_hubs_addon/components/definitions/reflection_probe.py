@@ -654,7 +654,8 @@ class ReflectionProbe(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT],
         'icon': 'MATERIAL',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'A reflection probe is a type of light probe that captures the environment around it and uses that information to create reflections on objects in the scene',
     }
 
     envMapTexture: PointerProperty(

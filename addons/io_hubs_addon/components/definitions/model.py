@@ -13,7 +13,8 @@ class Model(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'SCENE_DATA',
         'deps': ['networked'],
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'Loads a 3D model (glb) from a URL'
     }
 
     src: StringProperty(name="Model URL", description="Model URL",

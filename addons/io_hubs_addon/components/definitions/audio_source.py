@@ -11,7 +11,8 @@ class AudioSource(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'MOD_WAVE',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'Difine settings for an audio source attached to this object.',
     }
 
     onlyMods: BoolProperty(

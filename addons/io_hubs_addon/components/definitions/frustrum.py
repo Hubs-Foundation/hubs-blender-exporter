@@ -11,7 +11,8 @@ class Frustrum(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT],
         'icon': 'IMAGE_PLANE',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'A component that defines a frustrum'
     }
 
     culled: BoolProperty(

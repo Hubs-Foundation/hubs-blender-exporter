@@ -16,7 +16,8 @@ class Waypoint(HubsComponent):
         'gizmo': 'waypoint',
         'icon': 'spawn-point.png',
         'deps': ['networked'],
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': "Add a waypoint to teleport to, can also be a spawn point"
     }
 
     canBeSpawnPoint: BoolProperty(
