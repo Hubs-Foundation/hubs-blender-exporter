@@ -12,7 +12,7 @@ class Billboard(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'IMAGE_PLANE',
         'version': (1, 0, 0),
-        'tooltip': 'Make this object always face the camera'
+        'tooltip': 'Make this object always face the user'
     }
 
     onlyY: BoolProperty(

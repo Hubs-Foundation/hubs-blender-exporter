@@ -15,7 +15,7 @@ class Mirror(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'MOD_MIRROR',
         'version': (1, 0, 0),
-        'tooltip': 'Adds a planar mirror to the room'
+        'tooltip': 'Add a mirror plane to the room'
     }
 
     color: FloatVectorProperty(name="Color",

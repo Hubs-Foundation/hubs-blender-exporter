@@ -761,7 +761,7 @@ class LoopAnimation(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'LOOP_BACK',
         'version': (1, 1, 0),
-        'tooltip': 'Play a looping animation on the object or bone',
+        'tooltip': 'Looping animation on the object or bone',
     }
 
     tracks_list: CollectionProperty(

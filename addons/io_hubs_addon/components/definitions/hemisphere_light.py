@@ -12,7 +12,7 @@ class HemisphereLight(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'LIGHT_AREA',
         'version': (1, 0, 0),
-        'tooltip': 'Add a hemispherical light, similar to a skydome'
+        'tooltip': 'A hemispherical light, similar to a skydome'
     }
 
     skyColor: FloatVectorProperty(name="Sky Color",
