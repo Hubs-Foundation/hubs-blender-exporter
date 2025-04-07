@@ -14,7 +14,7 @@ class DirectionalLight(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'LIGHT_SUN',
         'version': (1, 0, 0),
-        'tooltip': 'A light that emits parallel light in a specific direction, like the sun',
+        'tooltip': "Emit parallel light in a specific direction, like how the sun's rays appear on Earth",
     }
 
     color: FloatVectorProperty(name="Color",
