@@ -17,7 +17,7 @@ class AudioSettings(HubsComponent):
         'panel_type': [PanelType.SCENE],
         'icon': 'SPEAKER',
         'version': (1, 0, 0),
-        'tooltip': 'Define audio settings for the scene'
+        'tooltip': 'Define how audio behaves in the scene in general'
     }
 
     avatarDistanceModel: EnumProperty(
