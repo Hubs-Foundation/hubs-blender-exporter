@@ -14,7 +14,7 @@ class PointLight(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'LIGHT_POINT',
         'version': (1, 0, 0),
-        'tooltip': 'Add a point light'
+        'tooltip': 'A punctual light source that emits light in all directions',
     }
 
     color: FloatVectorProperty(name="Color",

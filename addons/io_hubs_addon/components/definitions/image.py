@@ -17,7 +17,7 @@ class Image(HubsComponent):
         'icon': 'FILE_IMAGE',
         'deps': ['networked'],
         'version': (1, 0, 0),
-        'tooltip': 'Displays an image from a URL'
+        'tooltip': 'Display an image from a URL'
     }
 
     src: StringProperty(

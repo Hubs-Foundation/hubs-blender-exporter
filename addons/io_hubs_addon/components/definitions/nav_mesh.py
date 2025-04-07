@@ -13,7 +13,7 @@ class NavMesh(HubsComponent):
         'icon': 'GRID',
         'version': (1, 0, 1),
         'deps': ['visible'],
-        'tooltip': 'A navmesh defines the area where avatars can walk'
+        'tooltip': 'Define the area where avatars can walk'
     }
 
     @classmethod

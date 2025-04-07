@@ -28,7 +28,7 @@ class EnvironmentSettings(HubsComponent):
         'panel_type': [PanelType.SCENE],
         'icon': 'WORLD',
         'version': (1, 0, 0),
-        'tooltip': 'Define Background image and Evnironment settings',
+        'tooltip': 'Define background image and environment settings',
     }
 
     toneMapping: EnumProperty(

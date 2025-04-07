@@ -19,8 +19,7 @@ class AudioParams(HubsComponent):
         'display_name': 'Audio Params',
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
-        'version': (1, 0, 1),
-        'tooltip': 'Define audio drop off settings',
+        'version': (1, 0, 1)
     }
 
     overrideAudioSettings: BoolProperty(
