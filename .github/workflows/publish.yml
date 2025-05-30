@@ -101,7 +101,7 @@ jobs:
           cd tests
           OUT_PREFIX=$GITHUB_WORKSPACE/tests/out yarn test-bail --reporter-options reportDir=out/mochawesome
       - name: Upload test artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-output-${{ matrix.version }}
           path: tests/out/mochawesome
@@ -122,8 +122,9 @@ jobs:
           VERSION=$(grep '"version"' $GITHUB_WORKSPACE/addons/io_hubs_addon/__init__.py | sed -E 's/.*\(([0-9]+), ([0-9]+), ([0-9]+), ([0-9]+)\).*/\1.\2.\3.\4/')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
       - name: Upload addon artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: io_hubs_addon_${{ steps.get_version.outputs.version }}
           path: addons
           if-no-files-found: error
+          include-hidden-files: true
