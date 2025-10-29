@@ -1,5 +1,5 @@
 import bpy
-from bpy.props import StringProperty, IntProperty, BoolProperty, CollectionProperty, FloatProperty
+from bpy.props import StringProperty, IntProperty, BoolProperty, CollectionProperty, FloatProperty, EnumProperty
 from bpy.types import Operator, PropertyGroup
 from functools import reduce
 
@@ -677,11 +677,16 @@ class BakeLightmaps(Operator):
     bl_description = "Bake lightmaps of selected objects using the Cycles render engine and pack them into the .blend."
     bl_options = {'REGISTER', 'UNDO'}
 
+    image_type: EnumProperty(items=
+                             (('0','HDR',''),
+                             ('1','JPEG','')),
+                             name="Image Type",
+                             description="The image type used to store the lighting information. HDR supports full 32 bit lighting information but can lead to huge files. JPG only stores limited lighting information but results in much smaller files.")
     default_intensity: FloatProperty(name="Lightmaps Intensity",
                                      default=3.14,
-                                     description="Multiplier for hubs on how to interpret the brightness of the image. Set this to 1.0 if you have set up the lightmaps manually and use a non-HDR format like png or jpg.")
+                                     description="Multiplier for hubs on how to interpret the brightness of the image. Set this to 1.0 if you use JPG or another non-HDR format.")
     resolution: IntProperty(name="Lightmaps Resolution",
-                            default=2048,
+                            default=1024,
                             description="The pixel resolution of the resulting lightmap.")
     samples: IntProperty(name="Max Samples",
                          default=1024,
@@ -783,28 +788,15 @@ class BakeLightmaps(Operator):
             print("Objects to UV unwrap: " + str(objs_to_uv_unwrap))
             self.create_uv_layouts(context, objs_to_uv_unwrap)
 
-        # Check for the required nodes and set them up if not present
-        lightmap_texture_nodes = []
-        for mat in material_object_associations.keys():
-            mat_nodes = mat.node_tree.nodes
-            lightmap_nodes = [node for node in mat_nodes if node.bl_idname == 'moz_lightmap.node']
-            if len(lightmap_nodes) > 1:
-                print("Too many lightmap nodes in node tree of material", mat.name)
-            elif len(lightmap_nodes) < 1:
-                lightmap_texture_nodes.append(self.setup_moz_lightmap_nodes(mat.node_tree))
-            else:
-                # TODO: Check wether all nodes are set up correctly, for now assume they are
-                lightmap_nodes[0].intensity = self.default_intensity
-                # the image texture node needs to be the active one for baking, it is connected to the lightmap node so get it from there
-                lightmap_texture_node = lightmap_nodes[0].inputs[0].links[0].from_node
-                mat.node_tree.nodes.active = lightmap_texture_node
-                lightmap_texture_nodes.append(lightmap_texture_node)
+        lightmap_texture_nodes = self.get_lightmap_texture_nodes(material_object_associations)
+        
 
         # Re-select all the objects that need baking before running the operator
         for ob in mesh_objs:
             ob.select_set(True)
         # Baking has to happen in Cycles, it is not supported in EEVEE yet
         render_engine_tmp = context.scene.render.engine
+        render_file_format_tmp = context.scene.render.image_settings.file_format
         context.scene.render.engine = 'CYCLES'
         samples_tmp = context.scene.cycles.samples
         context.scene.cycles.samples = self.samples
@@ -816,24 +808,28 @@ class BakeLightmaps(Operator):
         bake_settings.use_pass_color = False
         # The should be small because otherwise it could overwrite UV islands
         bake_settings.margin = 2
+        # Get the image type from the enum. 
+        # Because it stores only the index we need all items first and then select by index.
+        enum_items = self.properties.bl_rna.properties['image_type'].enum_items
+        image_type_name = enum_items.get(self.image_type).name
         # Not sure whether this has any influence
-        bake_settings.image_settings.file_format = 'HDR'
-        context.scene.render.image_settings.file_format = 'HDR'
+        bake_settings.image_settings.file_format = image_type_name
+        context.scene.render.image_settings.file_format = image_type_name
         bpy.ops.object.bake(type='DIFFUSE')
         # After baking is done, return everything back to normal
         context.scene.cycles.samples = samples_tmp
         context.scene.render.engine = render_engine_tmp
         # Pack all newly created or updated images
         for node in lightmap_texture_nodes:
-            file_path = bpy.path.abspath(f"{bpy.app.tempdir}/{node.image.name}.hdr")
+            file_path = bpy.path.abspath(f"{bpy.app.tempdir}/{node.image.name}.{image_type_name.lower()}")
             # node.image.save_render(file_path)
             node.image.filepath_raw = file_path
-            node.image.file_format = 'HDR'
+            node.image.file_format = image_type_name
             node.image.save()
             node.image.pack()
             # Update the filepath so it unpacks nicely for the user.
             # TODO: Mechanism taken from reflection_probe.py line 300-306, de-duplicate
-            new_filepath = f"//{node.image.name}.hdr"
+            new_filepath = f"//{node.image.name}.{image_type_name.lower()}"
             node.image.packed_files[0].filepath = new_filepath
             node.image.filepath_raw = new_filepath
             node.image.filepath = new_filepath
@@ -846,6 +842,7 @@ class BakeLightmaps(Operator):
         bake_settings = bake_settings_before
         context.scene.cycles.samples = samples_tmp
         context.scene.render.engine = render_engine_tmp
+        context.scene.render.image_settings.file_format = render_file_format_tmp
 
         return {'FINISHED'}
 
@@ -881,6 +878,26 @@ class BakeLightmaps(Operator):
         node_tree.nodes.active = lightmap_texture_node
 
         return lightmap_texture_node
+    
+    def get_lightmap_texture_nodes(self, material_object_associations):
+        # Check for the required nodes and set them up if not present
+        lightmap_texture_nodes = []
+        for mat in material_object_associations.keys():
+            mat_nodes = mat.node_tree.nodes
+            lightmap_nodes = [node for node in mat_nodes if node.bl_idname == 'moz_lightmap.node']
+            number_of_lightmap_nodes = len(lightmap_nodes)
+            if number_of_lightmap_nodes > 1:
+                print(str(number_of_lightmap_nodes) + " lightmap nodes in node tree of material "  + mat.name + ". There should only be one!")
+            elif len(lightmap_nodes) < 1:
+                lightmap_texture_nodes.append(self.setup_moz_lightmap_nodes(mat.node_tree))
+            else:
+                # TODO: Check wether all nodes are set up correctly. There is another pull request open for this. For now assume they are.
+                lightmap_nodes[0].intensity = self.default_intensity
+                # the image texture node needs to be the active one for baking, it is connected to the lightmap node so get it from there
+                lightmap_texture_node = lightmap_nodes[0].inputs[0].links[0].from_node
+                mat.node_tree.nodes.active = lightmap_texture_node
+                lightmap_texture_nodes.append(lightmap_texture_node)
+        return lightmap_texture_nodes
 
 
 def register():
