@@ -677,11 +677,10 @@ class BakeLightmaps(Operator):
     bl_description = "Bake lightmaps of selected objects using the Cycles render engine and pack them into the .blend."
     bl_options = {'REGISTER', 'UNDO'}
 
-    image_type: EnumProperty(items=
-                             (('0','HDR',''),
-                             ('1','JPEG','')),
-                             name="Image Type",
-                             description="The image type used to store the lighting information. HDR supports full 32 bit lighting information but can lead to huge files. JPG only stores limited lighting information but results in much smaller files.")
+    image_type: EnumProperty(items=(('0', 'HDR', ''),
+                                    ('1', 'JPEG', '')),
+                                    name="Image Type",
+                                    description="The image type used to store the lighting information. HDR supports full 32 bit lighting information but can lead to huge files. JPG only stores limited lighting information but results in much smaller files.")
     default_intensity: FloatProperty(name="Lightmaps Intensity",
                                      default=3.14,
                                      description="Multiplier for hubs on how to interpret the brightness of the image. Set this to 1.0 if you use JPG or another non-HDR format.")
@@ -789,7 +788,6 @@ class BakeLightmaps(Operator):
             self.create_uv_layouts(context, objs_to_uv_unwrap)
 
         lightmap_texture_nodes = self.get_lightmap_texture_nodes(material_object_associations)
-        
 
         # Re-select all the objects that need baking before running the operator
         for ob in mesh_objs:
@@ -808,7 +806,7 @@ class BakeLightmaps(Operator):
         bake_settings.use_pass_color = False
         # The should be small because otherwise it could overwrite UV islands
         bake_settings.margin = 2
-        # Get the image type from the enum. 
+        # Get the image type from the enum.
         # Because it stores only the index we need all items first and then select by index.
         enum_items = self.properties.bl_rna.properties['image_type'].enum_items
         image_type_name = enum_items.get(self.image_type).name
@@ -878,7 +876,7 @@ class BakeLightmaps(Operator):
         node_tree.nodes.active = lightmap_texture_node
 
         return lightmap_texture_node
-    
+
     def get_lightmap_texture_nodes(self, material_object_associations):
         # Check for the required nodes and set them up if not present
         lightmap_texture_nodes = []
@@ -887,7 +885,7 @@ class BakeLightmaps(Operator):
             lightmap_nodes = [node for node in mat_nodes if node.bl_idname == 'moz_lightmap.node']
             number_of_lightmap_nodes = len(lightmap_nodes)
             if number_of_lightmap_nodes > 1:
-                print(str(number_of_lightmap_nodes) + " lightmap nodes in node tree of material "  + mat.name + ". There should only be one!")
+                print(str(number_of_lightmap_nodes) + " lightmap nodes in node tree of material " + mat.name + ". There should only be one!")
             elif len(lightmap_nodes) < 1:
                 lightmap_texture_nodes.append(self.setup_moz_lightmap_nodes(mat.node_tree))
             else:
