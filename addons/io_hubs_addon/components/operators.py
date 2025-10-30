@@ -846,6 +846,18 @@ class BakeLightmaps(Operator):
     def invoke(self, context, event):
         # needed to get the dialog with the intensity
         return context.window_manager.invoke_props_dialog(self)
+    
+    @classmethod
+    def poll(cls, context):
+        # Check whether operator can run, otherwise the button is greyed out
+        # It needs to be run in object mode...
+        if context.mode != 'OBJECT':
+            return False
+        
+        # ...and it needs at least one MESH object selected.
+        selected_mesh_objects = [obj for obj in context.selected_objects if obj.type == 'MESH']
+        return len(selected_mesh_objects) >= 1
+
 
     def setup_moz_lightmap_nodes(self, node_tree):
         ''' Returns the lightmap texture node of the newly created setup '''
