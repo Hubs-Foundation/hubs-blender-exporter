@@ -764,7 +764,7 @@ class BakeLightmaps(Operator):
                             visited_materials.add(slot.material)
             print("Objects to UV unwrap: " + str(objs_to_uv_unwrap))
         return objs_to_uv_unwrap
-    
+
     def execute(self, context):
         # This function manages the handler that will run over and over
         self._timer = context.window_manager.event_timer_add(
