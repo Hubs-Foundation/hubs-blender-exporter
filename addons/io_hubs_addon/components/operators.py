@@ -677,6 +677,16 @@ class BakeLightmaps(Operator):
     bl_description = "Bake lightmaps of selected objects using the Cycles render engine and pack them into the .blend."
     bl_options = {'REGISTER', 'UNDO'}
 
+    # Global vars for modal operator
+    _timer = None
+    done = False
+    bake_started = False
+    cycles_samples_tmp = 1024
+    render_engine_tmp = 'CYCLES'
+    render_file_format_tmp = 'JPG'
+    bake_settings_before = False
+    lightmap_texture_nodes = []
+
     image_type: EnumProperty(items=(('0', 'HDR', ''), ('1', 'JPEG', '')),
                              name="Image Type",
                              description="The image type used to store the lighting information. HDR supports full 32 bit lighting information but can lead to huge files. JPG only stores limited lighting information but results in much smaller files.")
@@ -740,38 +750,7 @@ class BakeLightmaps(Operator):
 
         return {'FINISHED'}
 
-    def execute(self, context):
-        # Check selected objects
-        selected_objects = bpy.context.selected_objects
-
-        # filter mesh objects and others
-        mesh_objs, other_objs = [], []
-        for ob in selected_objects:
-            (mesh_objs if ob.type == 'MESH' else other_objs).append(ob)
-            # Remove all objects from selection so we can easily re-select subgroups later
-            ob.select_set(False)
-
-        # for ob in other_objs:
-            # Remove non-mesh objects from selection to ensure baking will work
-            # ob.select_set(False)
-
-        # Gather all materials on the selected objects
-        # materials = []
-        # Dictionary that stores which object has which materials so we can group them later
-        material_object_associations = {}
-        # Iterate over a copy of mesh_objs because we are modifying it further down
-        for obj in list(mesh_objs):
-            if len(obj.material_slots) >= 1:
-                for slot in obj.material_slots:
-                    if slot.material is not None:
-                        mat = slot.material
-                        if mat not in material_object_associations:
-                            material_object_associations[mat] = []
-                        material_object_associations[mat].append(obj)
-            else:
-                print("Object " + obj.name + " does not have material slots, removing from list of objects that will be unwrapped.")
-                mesh_objs.remove(obj)
-
+    def gather_objects_to_unwrap(self, material_object_associations):
         # Set up the UV layer structure and auto-unwrap optimized for lightmaps
         visited_materials = set()
         for mat, obj_list in material_object_associations.items():
@@ -784,64 +763,112 @@ class BakeLightmaps(Operator):
                             objs_to_uv_unwrap.extend(material_object_associations[slot.material])
                             visited_materials.add(slot.material)
             print("Objects to UV unwrap: " + str(objs_to_uv_unwrap))
-            self.create_uv_layouts(context, objs_to_uv_unwrap)
+        return objs_to_uv_unwrap
+    
+    def execute(self, context):
+        # This function manages the handler that will run over and over
+        self._timer = context.window_manager.event_timer_add(
+            0.5, window=context.window)
+        context.window_manager.modal_handler_add(self)
+        return {"RUNNING_MODAL"}
 
-        lightmap_texture_nodes = self.get_lightmap_texture_nodes(material_object_associations)
+    def modal(self, context, event):
+        print("Running Modal")
+        if event.type == 'TIMER':
+            if not self.bake_started:
+                # Check selected objects
+                selected_objects = bpy.context.selected_objects
 
-        # Re-select all the objects that need baking before running the operator
-        for ob in mesh_objs:
-            ob.select_set(True)
-        # Baking has to happen in Cycles, it is not supported in EEVEE yet
-        render_engine_tmp = context.scene.render.engine
-        render_file_format_tmp = context.scene.render.image_settings.file_format
-        context.scene.render.engine = 'CYCLES'
-        samples_tmp = context.scene.cycles.samples
-        context.scene.cycles.samples = self.samples
-        # Baking needs to happen without the color pass because we only want the direct and indirect light contributions
-        bake_settings_before = context.scene.render.bake
-        bake_settings = context.scene.render.bake
-        bake_settings.use_pass_direct = True
-        bake_settings.use_pass_indirect = True
-        bake_settings.use_pass_color = False
-        # The should be small because otherwise it could overwrite UV islands
-        bake_settings.margin = 2
-        # Get the image type from the enum.
-        # Because it stores only the index we need all items first and then select by index.
-        enum_items = self.properties.bl_rna.properties['image_type'].enum_items
-        image_type_name = enum_items.get(self.image_type).name
-        # Not sure whether this has any influence
-        bake_settings.image_settings.file_format = image_type_name
-        context.scene.render.image_settings.file_format = image_type_name
-        bpy.ops.object.bake(type='DIFFUSE')
-        # After baking is done, return everything back to normal
-        context.scene.cycles.samples = samples_tmp
-        context.scene.render.engine = render_engine_tmp
-        # Pack all newly created or updated images
-        for node in lightmap_texture_nodes:
-            file_path = bpy.path.abspath(f"{bpy.app.tempdir}/{node.image.name}.{image_type_name.lower()}")
-            # node.image.save_render(file_path)
-            node.image.filepath_raw = file_path
-            node.image.file_format = image_type_name
-            node.image.save()
-            node.image.pack()
-            # Update the filepath so it unpacks nicely for the user.
-            # TODO: Mechanism taken from reflection_probe.py line 300-306, de-duplicate
-            new_filepath = f"//{node.image.name}.{image_type_name.lower()}"
-            node.image.packed_files[0].filepath = new_filepath
-            node.image.filepath_raw = new_filepath
-            node.image.filepath = new_filepath
+                # filter mesh objects and others
+                mesh_objs, other_objs = [], []
+                for ob in selected_objects:
+                    (mesh_objs if ob.type == 'MESH' else other_objs).append(ob)
+                    # Remove all objects from selection so we can easily re-select subgroups later
+                    ob.select_set(False)
 
-            # Remove file from temporary directory to de-clutter the system. Especially on windows the temporary directory is rarely purged.
-            if os.path.exists(file_path):
-                os.remove(file_path)
+                # The active object should be a MESH object
+                if context.active_object.type != 'MESH':
+                    context.view_layer.objects.active = mesh_objs[0]
 
-        # return to old settings
-        bake_settings = bake_settings_before
-        context.scene.cycles.samples = samples_tmp
-        context.scene.render.engine = render_engine_tmp
-        context.scene.render.image_settings.file_format = render_file_format_tmp
+                # Dictionary that stores which object has which materials so we can group them later
+                material_object_associations = {}
+                # Iterate over a copy of mesh_objs because we are modifying it further down
+                for obj in list(mesh_objs):
+                    if len(obj.material_slots) >= 1:
+                        for slot in obj.material_slots:
+                            if slot.material is not None:
+                                mat = slot.material
+                                if mat not in material_object_associations:
+                                    material_object_associations[mat] = []
+                                material_object_associations[mat].append(obj)
+                    else:
+                        print("Object " + obj.name + " does not have material slots, removing from list of objects that will be unwrapped.")
+                        mesh_objs.remove(obj)
 
-        return {'FINISHED'}
+                objs_to_uv_unwrap = self.gather_objects_to_unwrap(material_object_associations)
+
+                self.create_uv_layouts(context, objs_to_uv_unwrap)
+
+                self.lightmap_texture_nodes = self.get_lightmap_texture_nodes(material_object_associations)
+
+                # Re-select all the objects that need baking before running the operator
+                for ob in mesh_objs:
+                    ob.select_set(True)
+                # Baking has to happen in Cycles, it is not supported in EEVEE yet
+                self.render_engine_tmp = context.scene.render.engine
+                self.render_file_format_tmp = context.scene.render.image_settings.file_format
+                context.scene.render.engine = 'CYCLES'
+                self.cycles_samples_tmp = context.scene.cycles.samples
+                context.scene.cycles.samples = self.samples
+                # Baking needs to happen without the color pass because we only want the direct and indirect light contributions
+                self.bake_settings_before = context.scene.render.bake
+                bake_settings = context.scene.render.bake
+                bake_settings.use_pass_direct = True
+                bake_settings.use_pass_indirect = True
+                bake_settings.use_pass_color = False
+                # The should be small because otherwise it could overwrite UV islands
+                bake_settings.margin = 2
+                # Get the image type from the enum.
+                # Because it stores only the index we need all items first and then select by index.
+                enum_items = self.properties.bl_rna.properties['image_type'].enum_items
+                self.image_type_name = enum_items.get(self.image_type).name
+                # Not sure whether this has any influence
+                bake_settings.image_settings.file_format = self.image_type_name
+                context.scene.render.image_settings.file_format = self.image_type_name
+
+                bpy.ops.object.bake('INVOKE_DEFAULT', type='DIFFUSE')
+                self.bake_started = True
+                return {"PASS_THROUGH"}
+            elif bpy.app.is_job_running('OBJECT_BAKE'):
+                return {"PASS_THROUGH"}
+            else:
+                # Pack all newly created or updated images
+                for node in self.lightmap_texture_nodes:
+                    file_path = bpy.path.abspath(f"{bpy.app.tempdir}/{node.image.name}.{self.image_type_name.lower()}")
+                    # node.image.save_render(file_path)
+                    node.image.filepath_raw = file_path
+                    node.image.file_format = self.image_type_name
+                    node.image.save()
+                    node.image.pack()
+                    # Update the filepath so it unpacks nicely for the user.
+                    # TODO: Mechanism taken from reflection_probe.py line 300-306, de-duplicate
+                    new_filepath = f"//{node.image.name}.{self.image_type_name.lower()}"
+                    node.image.packed_files[0].filepath = new_filepath
+                    node.image.filepath_raw = new_filepath
+                    node.image.filepath = new_filepath
+
+                    # Remove file from temporary directory to de-clutter the system. Especially on windows the temporary directory is rarely purged.
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+
+                # return to old settings
+                bake_settings = self.bake_settings_before
+                context.scene.cycles.samples = self.cycles_samples_tmp
+                context.scene.render.engine = self.render_engine_tmp
+                context.scene.render.image_settings.file_format = self.render_file_format_tmp
+                return {"FINISHED"}
+
+        return {'PASS_THROUGH'}
 
     def invoke(self, context, event):
         # needed to get the dialog with the intensity
