@@ -880,6 +880,9 @@ class BakeLightmaps(Operator):
         # It needs to be run in object mode...
         if context.mode != 'OBJECT':
             return False
+        # There is a tricky bug that happens when the active object is not a MESH object so prevent this case as well
+        if context.view_layer.objects.active.type != 'MESH':
+            return False
 
         # ...and it needs at least one MESH object selected.
         selected_mesh_objects = [obj for obj in context.selected_objects if obj.type == 'MESH']
