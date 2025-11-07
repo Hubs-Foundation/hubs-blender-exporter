@@ -12,7 +12,7 @@ class Shadow(HubsComponent):
         'panel_type': [PanelType.OBJECT],
         'icon': 'MOD_MASK',
         'version': (1, 0, 0),
-        'tooltip': 'Make this object cast dynamic shadows'
+        'tooltip': 'Control whether this object casts or receives dynamic shadows'
     }
 
     cast: BoolProperty(

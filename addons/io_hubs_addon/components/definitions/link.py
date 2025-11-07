@@ -16,7 +16,7 @@ class Link(HubsComponent):
         'icon': 'LINKED',
         'deps': ['networked'],
         'version': (1, 0, 0),
-        'tooltip': 'Create an interactable hyperlink'
+        'tooltip': 'Display a preview of interactive website or Hubs asset. If combined with other components, overrides auto-generated preview'
     }
 
     href: StringProperty(name="Link URL", description="Link URL",

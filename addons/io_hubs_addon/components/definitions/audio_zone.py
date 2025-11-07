@@ -16,7 +16,7 @@ class AudioZone(HubsComponent):
         'deps': ['networked', 'audio-params'],
         'icon': 'MATCUBE',
         'version': (1, 0, 0),
-        'tooltip': 'Define an audio zone to control audio parameters within a specific area.'
+        'tooltip': 'Define an audio zone to control audio parameters within a specific area'
     }
 
     inOut: BoolProperty(

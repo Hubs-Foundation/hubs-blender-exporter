@@ -14,7 +14,7 @@ class Model(HubsComponent):
         'icon': 'SCENE_DATA',
         'deps': ['networked'],
         'version': (1, 0, 0),
-        'tooltip': 'Load a 3D model (glb) from a URL'
+        'tooltip': 'Using an existing URL, generate an object (glb) that a user can optionally duplicate by dragging'
     }
 
     src: StringProperty(name="Model URL", description="Model URL",

@@ -655,7 +655,7 @@ class ReflectionProbe(HubsComponent):
         'panel_type': [PanelType.OBJECT],
         'icon': 'MATERIAL',
         'version': (1, 0, 0),
-        'tooltip': 'A reflection probe is a type of light probe that captures the environment around it and uses that information to create reflections on objects in the scene',
+        'tooltip': 'Define a specific area to apply the lighting and reflections from a spherical High Dynamic Range (HDR) image and allow baking the surrounding environment into a spherical HDR',
     }
 
     envMapTexture: PointerProperty(

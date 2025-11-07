@@ -12,7 +12,7 @@ class ScaleAudioFeedback(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'GRAPH',
         'version': (1, 0, 0),
-        'tooltip': 'Control the scale of an object or bone based on mic volume'
+        'tooltip': "Use the user's transmitted audio to animate the scale of an object or bone in the avatar. Larger numbers cause more movement"
     }
 
     minScale: FloatProperty(name="Min Scale",

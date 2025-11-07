@@ -19,7 +19,7 @@ class ParticleEmitter(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'PARTICLES',
         'version': (1, 1, 0),
-        'tooltip': 'Emit particles from this object'
+        'tooltip': 'Send forth a continuous stream of 2D billboarded images (particles). This can be used to approximate things like fire, rain, smoke, and other effects'
     }
 
     particleCount: IntProperty(

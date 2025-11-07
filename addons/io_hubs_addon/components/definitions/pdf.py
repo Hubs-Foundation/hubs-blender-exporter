@@ -15,7 +15,7 @@ class PDF(HubsComponent):
         'deps': ['networked'],
         'icon': 'FILE_IMAGE',
         'version': (1, 0, 0),
-        'tooltip': 'Load a PDF from a URL and show it in the scene.'
+        'tooltip': 'Display a PDF from a URL'
     }
     src: StringProperty(
         name="PDF URL", description="The web address of the PDF", default='https://example.org/PdfFile.pdf')

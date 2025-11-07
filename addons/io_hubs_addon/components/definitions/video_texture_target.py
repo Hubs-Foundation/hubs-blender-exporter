@@ -78,7 +78,8 @@ class VideoTextureTarget(HubsComponent):
         'node_type': NodeType.MATERIAL,
         'panel_type': [PanelType.MATERIAL],
         'icon': 'IMAGE_DATA',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'Use a video texture as a material map on this object',
     }
 
     targetBaseColorMap: BoolProperty(

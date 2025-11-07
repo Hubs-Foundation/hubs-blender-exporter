@@ -64,7 +64,9 @@ class AddHubsComponent(Operator):
                 _, panel_type = item
             tooltip = "Add a hubs component to this object" if panel_type == "object" \
                 else "Add a hubs component to the scene" if panel_type == "scene" \
-                else "Add a hubs component to this bone"
+                else "Add a hubs component to this bone" if panel_type == "bone" \
+                else "Add a hubs component to this material" 
+                
             return tooltip
         component_class = get_component_by_name(component)
         return component_class.get_tooltip()
