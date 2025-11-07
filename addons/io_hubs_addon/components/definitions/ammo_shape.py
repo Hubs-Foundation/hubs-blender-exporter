@@ -13,7 +13,7 @@ class AmmoShape(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'SCENE_DATA',
         'version': (1, 0, 0),
-        'tooltip': '[DEPRECATED?] Define the physics shape of an entity',
+        'tooltip': 'Override the collision properties of the object and control how it will interact with the physics system',
     }
 
     type: EnumProperty(
