@@ -618,7 +618,7 @@ class OpenImage(Operator):
 
     disabled_message = "Can't open/assign images to linked data blocks. Please make it local first"
 
-    @ classmethod
+    @classmethod
     def description(cls, context, properties):
         description_text = "Load an external image "
         if bpy.app.version < (3, 0, 0) and is_linked(context.host):
@@ -626,7 +626,7 @@ class OpenImage(Operator):
 
         return description_text
 
-    @ classmethod
+    @classmethod
     def poll(cls, context):
         if hasattr(context, "host"):
             if is_linked(context.host):
