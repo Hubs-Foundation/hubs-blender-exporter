@@ -38,6 +38,10 @@ Note that for use in Hubs, you currently **MUST** use the second UV set, as Thre
 
 ![setting bake UV](https://user-images.githubusercontent.com/130735/83697782-b9e96b00-a5b4-11ea-986b-6690c69d8a3f.png)
 
+# Automatically baking Lightmaps
+
+To automatically create the node-setup needed to bake lightmaps and run baking on one step, select all objects you want to bake lightmaps for and got to `Object Properties > Hubs Lightmap Baker` and click on `Bake Lightmaps of selected objects`. **WARNING**: If a second UV layer is present on an object but it does not have a material with a `MOZ_lightmap` node, the UV layer will be overwritten!
+
 # Exporting
 
 This addon works in conjunction with the official glTF add-on, so exporting is done through it. Select "File > Export > glTF 2.0" and then ensure "Hubs Components" is enabled under "Extensions".
