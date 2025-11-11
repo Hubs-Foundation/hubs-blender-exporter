@@ -753,14 +753,14 @@ class BakeLightmaps(Operator):
     def gather_objects_to_unwrap(self, material_object_associations):
         # Set up the UV layer structure and auto-unwrap optimized for lightmaps
         visited_materials = set()
-        for mat, obj_list in material_object_associations.items():
-            objs_to_uv_unwrap = []
+        objs_to_uv_unwrap = set()
+        for mat, obj_list in material_object_associations.items():            
             if mat not in visited_materials:
                 # Several objects can share the same material so bundle them all
                 for ob in obj_list:
                     for slot in ob.material_slots:
                         if slot.material is not None:
-                            objs_to_uv_unwrap.extend(material_object_associations[slot.material])
+                            objs_to_uv_unwrap.update(material_object_associations[slot.material])
                             visited_materials.add(slot.material)
             print("Objects to UV unwrap: " + str(objs_to_uv_unwrap))
         return objs_to_uv_unwrap
