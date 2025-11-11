@@ -754,7 +754,7 @@ class BakeLightmaps(Operator):
         # Set up the UV layer structure and auto-unwrap optimized for lightmaps
         visited_materials = set()
         objs_to_uv_unwrap = set()
-        for mat, obj_list in material_object_associations.items():            
+        for mat, obj_list in material_object_associations.items():
             if mat not in visited_materials:
                 # Several objects can share the same material so bundle them all
                 for ob in obj_list:
