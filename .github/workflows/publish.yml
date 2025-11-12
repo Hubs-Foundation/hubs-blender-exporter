@@ -57,8 +57,9 @@ jobs:
     needs: lint
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        version: ["3.5.0", "3.4.0", "3.3.1", "2.93.9"]
+        version: ["3.6.23", "4.0.2", "4.1.1", "4.2.19", "4.3.2", "4.4.3", "4.5.8", "5.0.1", "5.1.1" ]
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
