@@ -123,10 +123,10 @@ class ScenePreviewCamera(HubsComponent):
         op = row.operator("render.hubs_render", text="Render Preview Camera")
         op.fov = self.fov
 
-    @ staticmethod
+    @staticmethod
     def register():
         bpy.utils.register_class(RenderOperator)
 
-    @ staticmethod
+    @staticmethod
     def unregister():
         bpy.utils.unregister_class(RenderOperator)
