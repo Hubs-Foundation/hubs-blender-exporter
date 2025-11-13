@@ -15,7 +15,8 @@ class Audio(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'deps': ['networked', 'audio-params'],
         'icon': 'OUTLINER_OB_SPEAKER',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'Play an audio file from a URL',
     }
 
     src: StringProperty(

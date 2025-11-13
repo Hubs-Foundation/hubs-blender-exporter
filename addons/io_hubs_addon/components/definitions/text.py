@@ -15,7 +15,8 @@ class Text(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'FONT_DATA',
-        'version': (1, 1, 0)
+        'version': (1, 1, 0),
+        'tooltip': 'Show customizable text in 3D space'
     }
 
     value: StringProperty(

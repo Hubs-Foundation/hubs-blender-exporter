@@ -11,7 +11,8 @@ class AudioSource(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'MOD_WAVE',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'Broadcast audio from within the adjacent area to a corresponding audio target. A virtual microphone',
     }
 
     onlyMods: BoolProperty(

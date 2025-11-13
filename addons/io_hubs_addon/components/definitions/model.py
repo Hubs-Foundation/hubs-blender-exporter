@@ -13,7 +13,8 @@ class Model(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'SCENE_DATA',
         'deps': ['networked'],
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'Using an existing URL, generate an object (glb) that a user can optionally duplicate by dragging'
     }
 
     src: StringProperty(name="Model URL", description="Model URL",

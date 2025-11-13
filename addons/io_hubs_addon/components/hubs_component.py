@@ -21,7 +21,9 @@ class HubsComponent(PropertyGroup):
         # Name of the icon to load. It can be a image file in the icons directory or one of the Blender builtin icons id
         'icon': 'icon.png',
         # Version of the component. This will be used to trigger component migrations.
-        'version': (0, 0, 1)
+        'version': (0, 0, 1),
+        # tooltip to be displayed on mouse over button
+        'tooltip': 'Tooltip template',
     }
 
     # Properties defined here are for internal use and won't be displayed by default in components or exported.
@@ -168,6 +170,10 @@ class HubsComponent(PropertyGroup):
         This is currently called when checking if the component should be added to the components pop-up, when the components properties panel is drawn, and during migrations to warn about unsupported hosts.
         The ob argument is guaranteed to be present only for objects/bones, although it will fall back to using the armature for bones if the object isn't available.'''
         return True
+
+    @classmethod
+    def get_tooltip(cls):
+        return cls.__get_definition('tooltip', None)
 
     @classmethod
     def get_unsupported_host_message(cls, panel_type, host, ob=None):

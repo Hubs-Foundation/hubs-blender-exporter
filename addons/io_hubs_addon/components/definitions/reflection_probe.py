@@ -654,7 +654,8 @@ class ReflectionProbe(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT],
         'icon': 'MATERIAL',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'Define a specific area to apply the lighting and reflections from a spherical High Dynamic Range (HDR) image and allow baking the surrounding environment into a spherical HDR',
     }
 
     envMapTexture: PointerProperty(
