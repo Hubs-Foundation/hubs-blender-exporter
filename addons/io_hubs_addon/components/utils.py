@@ -42,7 +42,7 @@ def remove_component(obj, component_name):
 
     component_class = get_component_by_name(component_name)
     if component_class:
-        del obj[component_class.get_id()]
+        obj.property_unset(component_class.get_id())
         if 'create_gizmo' in component_class.__dict__:
             update_gizmos()
         for dep_name in component_class.get_deps():

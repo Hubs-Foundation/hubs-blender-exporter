@@ -588,15 +588,15 @@ class CopyHubsComponent(Operator):
             if not has_component(dest_host, self.component_name):
                 add_component(dest_host, self.component_name)
 
-            for key, value in src_host[component_id].items():
-                dest_host[component_id][key] = value
+            for key, value in getattr(src_host, component_id).items():
+                getattr(dest_host, component_id)[key] = value
 
             deps_names = component_class.get_deps()
             for dep_name in deps_names:
                 dep_class = get_component_by_name(dep_name)
                 dep_id = dep_class.get_id()
-                for key, value in src_host[dep_id].items():
-                    dest_host[dep_id][key] = value
+                for key, value in getattr(src_host, dep_id).items():
+                    getattr(dest_host, dep_id)[key] = value
 
         return {'FINISHED'}
 
