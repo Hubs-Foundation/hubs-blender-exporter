@@ -14,7 +14,7 @@ class Spawner(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'MOD_PARTICLE_INSTANCE',
         'version': (1, 0, 0),
-        'tooltip': 'Spawn objects (glb) loaded from a URL by dragging'
+        'tooltip': 'Using an existing URL, generate an object (glb) that a user can optionally duplicate by dragging'
     }
 
     src: StringProperty(
