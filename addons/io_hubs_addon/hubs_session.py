@@ -181,7 +181,7 @@ class HubsSession:
                         ret_host = self._get_env_meta("reticulum_server")
                 if ret_host:
                     ret_port = urllib.parse.urlparse(ret_host).port
-                    self._reticulum_url = f'https://{ret_host}{":"+ret_port if ret_port else ""}'
+                    self._reticulum_url = f'https://{ret_host}{":" + ret_port if ret_port else ""}'
 
         else:
             self._user_logged_in = False

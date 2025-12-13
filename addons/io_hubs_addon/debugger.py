@@ -780,7 +780,7 @@ class HubsCreateRoomWithSceneOperator(bpy.types.Operator):
                 from urllib.parse import urlparse
                 parsed = urlparse(hubs_session.client_url)
                 port = str(parsed.port)
-                url = f'{parsed.scheme}://{parsed.hostname}{":"+port if port else ""}/hub.html?hub_id={response["hub_id"]}&{params}'
+                url = f'{parsed.scheme}://{parsed.hostname}{":" + port if port else ""}/hub.html?hub_id={response["hub_id"]}&{params}'
             else:
                 url = f'{response["url"]}?{params}'
 
