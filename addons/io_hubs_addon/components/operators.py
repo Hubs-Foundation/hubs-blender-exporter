@@ -4,12 +4,12 @@ from bpy.types import Operator, PropertyGroup
 from functools import reduce
 
 from .types import PanelType, MigrationType
-from .utils import get_object_source, has_component, add_component, remove_component, wrap_text, display_wrapped_text, is_dep_required, update_image_editors
+from .utils import get_object_source, has_component, add_component, remove_component, wrap_text, display_wrapped_text, is_dep_required, update_image_editors, is_linked, redraw_component_ui
 from .components_registry import get_components_registry, get_component_by_name
 from ..preferences import get_addon_pref
 from .handlers import migrate_components
 from .gizmos import update_gizmos
-from .utils import is_linked, redraw_component_ui
+from ..utils import rgetattr, rsetattr
 from ..icons import get_hubs_icons
 from .consts import LIGHTMAP_LAYER_NAME, LIGHTMAP_UV_ISLAND_MARGIN
 import os
@@ -681,11 +681,8 @@ class BakeLightmaps(Operator):
     _timer = None
     done = False
     bake_started = False
-    cycles_samples_tmp = 1024
-    render_engine_tmp = 'CYCLES'
-    render_file_format_tmp = 'JPG'
-    bake_settings_before = False
     lightmap_texture_nodes = []
+    saved_props = {}
 
     image_type: EnumProperty(items=(('HDR', 'HDR', ''), ('JPEG', 'JPEG', '')),
                              name="Image Type",
@@ -767,13 +764,26 @@ class BakeLightmaps(Operator):
 
     def execute(self, context):
         # This function manages the handler that will run over and over
+        self.saved_props = {}
         self._timer = context.window_manager.event_timer_add(
             0.5, window=context.window)
         context.window_manager.modal_handler_add(self)
         return {"RUNNING_MODAL"}
 
     def modal(self, context, event):
-        print("Running Modal")
+        overrides = [
+                    # Baking has to happen in Cycles, it is not supported in EEVEE yet
+                    ("scene.render.engine", 'CYCLES'),
+                    ("scene.cycles.samples", self.samples),
+                    ("scene.render.image_settings.file_format", self.image_type),
+                    ("scene.render.bake.image_settings.file_format", self.image_type),
+                    ("scene.render.bake.use_pass_direct", True),
+                    ("scene.render.bake.use_pass_indirect", True),
+                    # Baking needs to happen without the color pass because we only want the direct and indirect light contributions
+                    ("scene.render.bake.use_pass_color", False),
+                    # The should be small because otherwise it could overwrite UV islands
+                    ("scene.render.bake.margin", 2)
+                ]
         if event.type == 'TIMER':
             if not self.bake_started:
                 # Check selected objects
@@ -814,28 +824,11 @@ class BakeLightmaps(Operator):
                 # Re-select all the objects that need baking before running the operator
                 for ob in mesh_objs:
                     ob.select_set(True)
-                # Baking has to happen in Cycles, it is not supported in EEVEE yet
-                self.render_engine_tmp = context.scene.render.engine
-                self.render_file_format_tmp = context.scene.render.image_settings.file_format
-                context.scene.render.engine = 'CYCLES'
-                self.cycles_samples_tmp = context.scene.cycles.samples
-                context.scene.cycles.samples = self.samples
-                # Baking needs to happen without the color pass because we only want the direct and indirect light contributions
-                self.bake_settings_before = context.scene.render.bake
-                bake_settings = context.scene.render.bake
-                bake_settings.use_pass_direct = True
-                bake_settings.use_pass_indirect = True
-                bake_settings.use_pass_color = False
-                # The should be small because otherwise it could overwrite UV islands
-                bake_settings.margin = 2
-                # Get the image type from the enum.
-                # Because it stores only the index we need all items first and then select by index.
-                enum_items = self.properties.bl_rna.properties['image_type'].enum_items
-                self.image_type_name = enum_items.get(self.image_type).name
-                # Not sure whether this has any influence
-                bake_settings.image_settings.file_format = self.image_type_name
-                context.scene.render.image_settings.file_format = self.image_type_name
-
+                # store all properties that would be changed, then override them
+                for (prop, value) in overrides:
+                    if prop not in self.saved_props:
+                        self.saved_props[prop] = rgetattr(bpy.context, prop)
+                    rsetattr(bpy.context, prop, value)
                 bpy.ops.object.bake('INVOKE_DEFAULT', type='DIFFUSE')
                 self.bake_started = True
                 return {"PASS_THROUGH"}
@@ -844,15 +837,15 @@ class BakeLightmaps(Operator):
             else:
                 # Pack all newly created or updated images
                 for node in self.lightmap_texture_nodes:
-                    file_path = bpy.path.abspath(f"{bpy.app.tempdir}/{node.image.name}.{self.image_type_name.lower()}")
+                    file_path = bpy.path.abspath(f"{bpy.app.tempdir}/{node.image.name}.{self.image_type.lower()}")
                     # node.image.save_render(file_path)
                     node.image.filepath_raw = file_path
-                    node.image.file_format = self.image_type_name
+                    node.image.file_format = self.image_type
                     node.image.save()
                     node.image.pack()
                     # Update the filepath so it unpacks nicely for the user.
                     # TODO: Mechanism taken from reflection_probe.py line 300-306, de-duplicate
-                    new_filepath = f"//{node.image.name}.{self.image_type_name.lower()}"
+                    new_filepath = f"//{node.image.name}.{self.image_type.lower()}"
                     node.image.packed_files[0].filepath = new_filepath
                     node.image.filepath_raw = new_filepath
                     node.image.filepath = new_filepath
@@ -862,10 +855,8 @@ class BakeLightmaps(Operator):
                         os.remove(file_path)
 
                 # return to old settings
-                bake_settings = self.bake_settings_before
-                context.scene.cycles.samples = self.cycles_samples_tmp
-                context.scene.render.engine = self.render_engine_tmp
-                context.scene.render.image_settings.file_format = self.render_file_format_tmp
+                for prop in self.saved_props:
+                    rsetattr(bpy.context, prop, self.saved_props[prop])
                 return {"FINISHED"}
 
         return {'PASS_THROUGH'}
