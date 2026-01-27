@@ -40,7 +40,7 @@ Note that for use in Hubs, you currently **MUST** use the second UV set, as Thre
 
 # Automatically baking Lightmaps
 
-To automatically create the node-setup needed to bake lightmaps and run baking on one step, select all objects you want to bake lightmaps for and got to `Object Properties > Hubs Lightmap Baker` and click on `Bake Lightmaps of selected objects`. **WARNING**: If a second UV layer is present on an object but it does not have a material with a `MOZ_lightmap` node, the UV layer will be overwritten!
+To automatically create the node-setup needed to bake lightmaps and run baking on one step, select all objects you want to bake lightmaps for and go to `Object Properties > Hubs Lightmap Baker` and click on `Bake Lightmaps of selected objects`. **WARNING**: If a second UV layer is present on an object but it does not have a material with a `MOZ_lightmap` node, the UV layer will be overwritten!
 
 # Exporting
 
