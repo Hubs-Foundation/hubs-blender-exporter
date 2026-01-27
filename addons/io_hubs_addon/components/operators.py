@@ -687,7 +687,7 @@ class BakeLightmaps(Operator):
     bake_settings_before = False
     lightmap_texture_nodes = []
 
-    image_type: EnumProperty(items=(('0', 'HDR', ''), ('1', 'JPEG', '')),
+    image_type: EnumProperty(items=(('HDR', 'HDR', ''), ('JPEG', 'JPEG', '')),
                              name="Image Type",
                              description="The image type used to store the lighting information. HDR supports full 32 bit lighting information but can lead to huge files. JPG only stores limited lighting information but results in much smaller files.")
     default_intensity: FloatProperty(name="Lightmaps Intensity",
