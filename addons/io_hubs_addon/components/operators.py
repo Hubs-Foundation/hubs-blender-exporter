@@ -772,18 +772,18 @@ class BakeLightmaps(Operator):
 
     def modal(self, context, event):
         overrides = [
-                    # Baking has to happen in Cycles, it is not supported in EEVEE yet
-                    ("scene.render.engine", 'CYCLES'),
-                    ("scene.cycles.samples", self.samples),
-                    ("scene.render.image_settings.file_format", self.image_type),
-                    ("scene.render.bake.image_settings.file_format", self.image_type),
-                    ("scene.render.bake.use_pass_direct", True),
-                    ("scene.render.bake.use_pass_indirect", True),
-                    # Baking needs to happen without the color pass because we only want the direct and indirect light contributions
-                    ("scene.render.bake.use_pass_color", False),
-                    # The should be small because otherwise it could overwrite UV islands
-                    ("scene.render.bake.margin", 2)
-                ]
+            # Baking has to happen in Cycles, it is not supported in EEVEE yet
+            ("scene.render.engine", 'CYCLES'),
+            ("scene.cycles.samples", self.samples),
+            ("scene.render.image_settings.file_format", self.image_type),
+            ("scene.render.bake.image_settings.file_format", self.image_type),
+            ("scene.render.bake.use_pass_direct", True),
+            ("scene.render.bake.use_pass_indirect", True),
+            # Baking needs to happen without the color pass because we only want the direct and indirect light contributions
+            ("scene.render.bake.use_pass_color", False),
+            # The should be small because otherwise it could overwrite UV islands
+            ("scene.render.bake.margin", 2)
+        ]
         if event.type == 'TIMER':
             if not self.bake_started:
                 # Check selected objects
