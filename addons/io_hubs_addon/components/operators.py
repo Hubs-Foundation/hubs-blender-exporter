@@ -866,13 +866,16 @@ class BakeLightmaps(Operator):
         # Check whether operator can run, otherwise the button is greyed out
         # It needs to be run in object mode...
         if context.mode != 'OBJECT':
+            cls.poll_message_set("Baking only works in Object Mode.")
             return False
-        # There is a tricky bug that happens when the active object is not a MESH object so prevent this case as well
+        # ...there is a tricky bug that happens when the active object is not a MESH object so prevent this case as well...
         if context.view_layer.objects.active.type != 'MESH':
+            cls.poll_message_set("The active object needs to be a mesh object.")
             return False
-
         # ...and it needs at least one MESH object selected.
         selected_mesh_objects = [obj for obj in context.selected_objects if obj.type == 'MESH']
+        if len(selected_mesh_objects) < 1:
+            cls.poll_message_set("There needes to be at least one mesh object selected.")
         return len(selected_mesh_objects) >= 1
 
     def setup_moz_lightmap_nodes(self, node_tree):
