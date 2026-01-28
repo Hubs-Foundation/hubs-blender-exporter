@@ -796,10 +796,6 @@ class BakeLightmaps(Operator):
                     # Remove all objects from selection so we can easily re-select subgroups later
                     ob.select_set(False)
 
-                # The active object should be a MESH object
-                if context.active_object.type != 'MESH':
-                    context.view_layer.objects.active = mesh_objs[0]
-
                 # Dictionary that stores which object has which materials so we can group them later
                 material_object_associations = {}
                 # Iterate over a copy of mesh_objs because we are modifying it further down
