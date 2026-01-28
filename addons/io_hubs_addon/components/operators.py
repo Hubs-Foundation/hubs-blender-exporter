@@ -682,6 +682,8 @@ class BakeLightmaps(Operator):
     done = False
     bake_started = False
     lightmap_texture_nodes = []
+    # properties to restore after operator is finished
+    selected_objects = []
     saved_props = {}
 
     image_type: EnumProperty(items=(('HDR', 'HDR', ''), ('JPEG', 'JPEG', '')),
@@ -698,9 +700,6 @@ class BakeLightmaps(Operator):
                          description="The number of samples to use for baking. Higher values reduce noise but take longer.")
 
     def create_uv_layouts(self, context, mesh_objs):
-        # Sometimes the list can be empty, in that case do not unwrap but return directly
-        if len(mesh_objs) == 0:
-            return {'FINISHED'}
         # set up UV layer structure. The first layer has to be UV0, the second one LIGHTMAP_LAYER_NAME for the lightmap.
         for obj in mesh_objs:
             obj_uv_layers = obj.data.uv_layers
@@ -786,12 +785,12 @@ class BakeLightmaps(Operator):
         ]
         if event.type == 'TIMER':
             if not self.bake_started:
-                # Check selected objects
-                selected_objects = bpy.context.selected_objects
+                # Check selected objects and store them for later restoration
+                self.selected_objects = context.selected_objects
 
                 # filter mesh objects and others
                 mesh_objs, other_objs = [], []
-                for ob in selected_objects:
+                for ob in self.selected_objects:
                     (mesh_objs if ob.type == 'MESH' else other_objs).append(ob)
                     # Remove all objects from selection so we can easily re-select subgroups later
                     ob.select_set(False)
@@ -808,8 +807,17 @@ class BakeLightmaps(Operator):
                                     material_object_associations[mat] = []
                                 material_object_associations[mat].append(obj)
                     else:
-                        print("Object " + obj.name + " does not have material slots, removing from list of objects that will be unwrapped.")
+                        self.report(
+                            {'INFO'}, f"Object {obj.name} does not have material slots, removing it from list of objects that will be unwrapped and baked.")
                         mesh_objs.remove(obj)
+                
+                if len(mesh_objs) < 1:
+                    self.report(
+                            {'ERROR'}, f"No objects valid for baking in the current selection, aborting. \nObjects need materials assigned, otherwise they will not be baked.")
+                    # return to old selection state
+                    for ob in self.selected_objects:
+                        ob.select_set(True)
+                    return {'CANCELLED'}
 
                 objs_to_uv_unwrap = self.gather_objects_to_unwrap(material_object_associations)
 
@@ -851,6 +859,9 @@ class BakeLightmaps(Operator):
                 # return to old settings
                 for prop in self.saved_props:
                     rsetattr(bpy.context, prop, self.saved_props[prop])
+                # context.selected_objects is not writable so we have to set the selection state on each individual object
+                for ob in self.selected_objects:
+                    ob.select_set(True)
                 return {"FINISHED"}
 
         return {'PASS_THROUGH'}
