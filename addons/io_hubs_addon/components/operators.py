@@ -828,8 +828,6 @@ class BakeLightmaps(Operator):
                 bpy.ops.object.bake('INVOKE_DEFAULT', type='DIFFUSE')
                 self.bake_started = True
                 return {"PASS_THROUGH"}
-            elif bpy.app.is_job_running('OBJECT_BAKE'):
-                return {"PASS_THROUGH"}
             else:
                 # Pack all newly created or updated images
                 for node in self.lightmap_texture_nodes:
@@ -871,6 +869,10 @@ class BakeLightmaps(Operator):
         # ...there is a tricky bug that happens when the active object is not a MESH object so prevent this case as well...
         if context.view_layer.objects.active.type != 'MESH':
             cls.poll_message_set("The active object needs to be a mesh object.")
+            return False
+        # ...no other bake jobs should be running...
+        if bpy.app.is_job_running('OBJECT_BAKE'):
+            cls.poll_message_set("Cannot start baking while another bake job is running.")
             return False
         # ...and it needs at least one MESH object selected.
         selected_mesh_objects = [obj for obj in context.selected_objects if obj.type == 'MESH']
