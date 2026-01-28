@@ -810,10 +810,10 @@ class BakeLightmaps(Operator):
                         self.report(
                             {'INFO'}, f"Object {obj.name} does not have material slots, removing it from list of objects that will be unwrapped and baked.")
                         mesh_objs.remove(obj)
-                
+
                 if len(mesh_objs) < 1:
                     self.report(
-                            {'ERROR'}, f"No objects valid for baking in the current selection, aborting. \nObjects need materials assigned, otherwise they will not be baked.")
+                        {'ERROR'}, f"No objects valid for baking in the current selection, aborting. \nObjects need materials assigned, otherwise they will not be baked.")
                     # return to old selection state
                     for ob in self.selected_objects:
                         ob.select_set(True)
