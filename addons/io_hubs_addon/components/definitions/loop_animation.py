@@ -42,26 +42,26 @@ class TrackPropertyType(PropertyGroup):
 class Errors():
     _errors = {}
 
-    @ classmethod
+    @classmethod
     def log(cls, track, error_type, error_message, severity='Error'):
         has_error = cls._errors.get(track.track_type + track.name, '')
         if not has_error:
             cls._errors[track.track_type + track.name] = {
                 'type': error_type, 'message': error_message, 'severity': severity}
 
-    @ classmethod
+    @classmethod
     def get(cls, track):
         return cls._errors.get(track.track_type + track.name, '')
 
-    @ classmethod
+    @classmethod
     def clear(cls):
         cls._errors.clear()
 
-    @ classmethod
+    @classmethod
     def are_present(cls):
         return bool(cls._errors)
 
-    @ classmethod
+    @classmethod
     def display_error(cls, layout, error):
         message_lines = error['message'].split('\n')
         padding = layout.row(align=False)
@@ -107,13 +107,13 @@ def unregister_msgbus():
     msgbus_owners.clear()
 
 
-@ persistent
+@persistent
 def load_post(dummy):
     unregister_msgbus()
     register_msgbus()
 
 
-@ persistent
+@persistent
 def undo_redo_post(dummy):
     unregister_msgbus()
     register_msgbus()
@@ -506,7 +506,7 @@ class RemoveTrackOperator(Operator):
     bl_label = "Remove Track"
     bl_options = {'REGISTER', 'UNDO'}
 
-    @ classmethod
+    @classmethod
     def poll(cls, context):
         if hasattr(context, "panel"):
             panel_type = PanelType(context.panel.bl_context)
@@ -831,7 +831,7 @@ class LoopAnimation(HubsComponent):
             'timeScale': self.timeScale
         }
 
-    @ staticmethod
+    @staticmethod
     def register():
         bpy.utils.register_class(TracksList)
         bpy.utils.register_class(UpdateTrackContextMenu)
@@ -849,7 +849,7 @@ class LoopAnimation(HubsComponent):
 
         register_msgbus()
 
-    @ staticmethod
+    @staticmethod
     def unregister():
         bpy.utils.unregister_class(TracksList)
         bpy.utils.unregister_class(UpdateTrackContextMenu)
