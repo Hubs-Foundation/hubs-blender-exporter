@@ -214,7 +214,7 @@ orig_BlenderMaterial_create = BlenderMaterial.create
 orig_BlenderScene_create = BlenderScene.create
 
 
-@ staticmethod
+@staticmethod
 def patched_BlenderNode_create_object(gltf, vnode_id):
     blender_object = orig_BlenderNode_create_object(gltf, vnode_id)
 
@@ -250,7 +250,7 @@ def patched_BlenderNode_create_object(gltf, vnode_id):
     return blender_object
 
 
-@ staticmethod
+@staticmethod
 def patched_BlenderMaterial_create(gltf, material_idx, vertex_color):
     orig_BlenderMaterial_create(
         gltf, material_idx, vertex_color)
@@ -262,7 +262,7 @@ def patched_BlenderMaterial_create(gltf, material_idx, vertex_color):
     add_lightmap(gltf_material, blender_mat, gltf)
 
 
-@ staticmethod
+@staticmethod
 def patched_BlenderScene_create(gltf):
     global armatures
     global delayed_gathers

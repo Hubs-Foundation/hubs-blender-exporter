@@ -137,7 +137,7 @@ class BakeProbeOperator(Operator):
 
     disabled_message = "Can't bake linked reflection probes.  Please make it local first"
 
-    @ classmethod
+    @classmethod
     def description(cls, context, properties):
         if properties.bake_mode == 'ACTIVE':
             description_text = "Generate a 360 equirectangular HDR environment map of the current area in the scene"
@@ -150,7 +150,7 @@ class BakeProbeOperator(Operator):
 
         return description_text
 
-    @ classmethod
+    @classmethod
     def poll(cls, context):
         if hasattr(context, 'bake_active_probe') and is_linked(context.active_object):
             if bpy.app.version >= (3, 0, 0):
@@ -388,7 +388,7 @@ class OpenReflectionProbeEnvMap(OpenImage):
     bl_label = "Open EnvMap"
     bl_options = {'REGISTER', 'UNDO'}
 
-    @ classmethod
+    @classmethod
     def poll(cls, context):
         if is_linked(context.active_object):
             if bpy.app.version >= (3, 0, 0):
@@ -779,7 +779,7 @@ class ReflectionProbe(HubsComponent):
         assign_property(gltf.vnodes, component,
                         "envMapTexture", component_value["envMapTexture"])
 
-    @ classmethod
+    @classmethod
     def draw_global(cls, context, layout, panel):
         panel_type = PanelType(panel.bl_context)
         probes = get_probes(include_locked=True, include_linked=True)
@@ -848,11 +848,11 @@ class ReflectionProbe(HubsComponent):
                 row.label(text="Baking requires Cycles addon to be enabled.",
                           icon='ERROR')
 
-    @ classmethod
+    @classmethod
     def poll(cls, panel_type, host, ob=None):
         return host.type == 'LIGHT_PROBE'
 
-    @ staticmethod
+    @staticmethod
     def register():
         bpy.utils.register_class(BakeProbeOperator)
         bpy.utils.register_class(ReflectionProbeSceneProps)
@@ -867,7 +867,7 @@ class ReflectionProbe(HubsComponent):
         from ...io.gltf_exporter import glTF2ExportUserExtension
         glTF2ExportUserExtension.add_excluded_property("hubs_scene_reflection_probe_properties")
 
-    @ staticmethod
+    @staticmethod
     def unregister():
         bpy.utils.unregister_class(BakeProbeOperator)
         bpy.utils.unregister_class(ReflectionProbeSceneProps)

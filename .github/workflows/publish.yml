@@ -4,16 +4,21 @@ on:
   push:
     branches:
       - master
+    paths-ignore: ["README.md", "LICENSE", ".gitignore", ".idea", ".vscode", ".github/ISSUE_TEMPLATE"]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
       - name: Python Linter
-        uses: weibullguy/python-lint-plus@v1.9.0
+        uses: weibullguy/python-lint-plus@v1.12.0
         with:
           python-root-list: "addons"
           use-black: false
@@ -55,7 +60,7 @@ jobs:
         version: ["3.5.0", "3.4.0", "3.3.1", "2.93.9"]
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
       # Finds latest Blender build, and outputs the hosted build's download URL.
       - name: Find latest Blender build
         id: blender_version
@@ -70,7 +75,7 @@ jobs:
       # Loads a cached build of Blender if available. If not available, this step
       # enqueues the /opt/blender directory to be cached after tests pass.
       - id: blender_cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: cache-blender
         with:
@@ -101,7 +106,7 @@ jobs:
           cd tests
           OUT_PREFIX=$GITHUB_WORKSPACE/tests/out yarn test-bail --reporter-options reportDir=out/mochawesome
       - name: Upload test artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: test-output-${{ matrix.version }}
           path: tests/out/mochawesome
@@ -112,7 +117,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
       - name: Update build number
         run: |
           sed -i'' 's/"dev_build"/${{ github.run_number }}/g' $GITHUB_WORKSPACE/addons/io_hubs_addon/__init__.py
@@ -122,7 +127,7 @@ jobs:
           VERSION=$(grep '"version"' $GITHUB_WORKSPACE/addons/io_hubs_addon/__init__.py | sed -E 's/.*\(([0-9]+), ([0-9]+), ([0-9]+), ([0-9]+)\).*/\1.\2.\3.\4/')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
       - name: Upload addon artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: io_hubs_addon_${{ steps.get_version.outputs.version }}
           path: addons

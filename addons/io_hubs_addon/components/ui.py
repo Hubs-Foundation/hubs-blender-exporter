@@ -209,7 +209,7 @@ class TooltipLabel(bpy.types.Operator):
 
     tooltip: StringProperty(default=" ")
 
-    @ classmethod
+    @classmethod
     def description(cls, context, properties):
         return properties.tooltip
 
