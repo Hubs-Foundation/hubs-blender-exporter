@@ -845,6 +845,7 @@ class BakeLightmaps(Operator):
                     node.image.file_format = self.image_type
                     node.image.save()
                     node.image.pack()
+                    node.image.reload()
                     # Update the filepath so it unpacks nicely for the user.
                     # TODO: Mechanism taken from reflection_probe.py line 300-306, de-duplicate
                     new_filepath = f"//{node.image.name}.{self.image_type.lower()}"
