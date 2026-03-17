@@ -65,7 +65,7 @@ def register():
         def registration_migration():
             # Passing True as the first argument of the operator forces an undo step to be created.
             bpy.ops.wm.migrate_hubs_components(
-                True, is_registration=True)
+                'EXEC_DEFAULT', True, is_registration=True)
         bpy.app.timers.register(registration_migration)
 
 
