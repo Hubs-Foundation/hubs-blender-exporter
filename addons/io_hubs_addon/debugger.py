@@ -13,7 +13,110 @@ DEMO_SERVER_URL = ""
 ROOM_FLAGS_DOC_URL = "https://github.com/Hubs-Foundation/hubs-docs/blob/master/docs/hubs-query-string-parameters.md"
 
 
+def _is_identity_scale(scale, eps=1e-6):
+    return (
+        abs(scale[0] - 1.0) < eps and
+        abs(scale[1] - 1.0) < eps and
+        abs(scale[2] - 1.0) < eps
+    )
+
+
+def _has_missing_texture_nodes(material):
+    if not material or not material.use_nodes or not material.node_tree:
+        return False
+
+    for node in material.node_tree.nodes:
+        if node.type == 'TEX_IMAGE' and not getattr(node, "image", None):
+            return True
+
+    return False
+
+
+def validate_scene(context):
+    """
+    Conservative pre-export validation.
+
+    Errors:
+      - none currently, but this is the right place to add hard blockers later
+
+    Warnings:
+      - mesh has no material
+      - mesh is very high poly
+      - mesh has unapplied scale
+      - material contains image texture nodes with no image
+      - hidden objects may still export depending on export prefs
+    """
+    errors = []
+    warnings = []
+
+    export_prefs = context.scene.hubs_scene_debugger_room_export_prefs
+
+    for obj in context.scene.objects:
+        if obj.type != 'MESH' or not getattr(obj, "data", None):
+            continue
+
+        mesh = obj.data
+
+        # Warn if mesh has no materials assigned
+        has_materials = len(mesh.materials) > 0 and any(mat is not None for mat in mesh.materials)
+        if not has_materials:
+            warnings.append(f'Mesh "{obj.name}" has no material assigned.')
+
+        # Warn on very dense geometry
+        poly_count = len(mesh.polygons)
+        if poly_count > 100000:
+            warnings.append(f'Mesh "{obj.name}" is very high poly ({poly_count} polygons).')
+
+        # Warn on unapplied scale because it can cause confusing exports
+        if not _is_identity_scale(obj.scale):
+            warnings.append(f'Mesh "{obj.name}" has unapplied scale {tuple(round(v, 4) for v in obj.scale)}.')
+
+        # Warn on broken image texture nodes
+        for mat in mesh.materials:
+            if _has_missing_texture_nodes(mat):
+                mat_name = mat.name if mat else "<None>"
+                warnings.append(f'Mesh "{obj.name}" uses material "{mat_name}" with a missing image texture.')
+                break
+
+        # Warn when hidden objects might still be exported
+        if obj.hide_viewport and not export_prefs.use_visible:
+            warnings.append(
+                f'Mesh "{obj.name}" is hidden in viewport, but "Visible Objects" export filter is off, so it may still export.'
+            )
+
+        if obj.hide_render and not export_prefs.use_renderable:
+            warnings.append(
+                f'Mesh "{obj.name}" is non-renderable, but "Renderable Objects" export filter is off, so it may still export.'
+            )
+
+    return errors, warnings
+
+
+def format_validation_messages(errors, warnings):
+    sections = []
+
+    if errors:
+        sections.append("Validation errors:")
+        sections.extend([f"• {msg}" for msg in errors])
+
+    if warnings:
+        if sections:
+            sections.append("")
+        sections.append("Validation warnings:")
+        sections.extend([f"• {msg}" for msg in warnings])
+
+    return "\n".join(sections) if sections else ""
+
+
 def export_scene(context):
+    errors, warnings = validate_scene(context)
+
+    if errors:
+        raise Exception(format_validation_messages(errors, warnings))
+
+    for warning in warnings:
+        print(f"[Hubs Export Warning] {warning}")
+
     export_prefs = context.scene.hubs_scene_debugger_room_export_prefs
     import os
     extension = '.glb'
@@ -73,18 +176,18 @@ class HubsUpdateRoomOperator(bpy.types.Operator):
         return hubs_session and hubs_session.user_logged_in and hubs_session.user_in_room
 
     def execute(self, context):
+        viewpoint = None
         try:
             selected_obs = bpy.context.selected_objects
             active_ob = bpy.context.active_object
 
-            viewpoint = None
             if context.scene.hubs_scene_debugger_room_export_prefs.avatar_to_viewport:
                 area = find_area("VIEW_3D")
                 if area is not None:
                     r3d = area.spaces[0].region_3d
                     view_mat = r3d.view_matrix.inverted()
                     loc, rot, _ = view_mat.decompose()
-                    from mathutils import Matrix, Vector, Euler
+                    from mathutils import Matrix, Vector
                     from math import radians
                     final_loc = loc + Vector((0, 0, -1.6))
                     rot_offset = Matrix.Rotation(radians(180), 4, 'Z').to_4x4()
@@ -110,7 +213,7 @@ class HubsUpdateRoomOperator(bpy.types.Operator):
 
             if viewpoint:
                 hubs_session.move_to_waypoint("__scene_debugger_viewpoint")
-                ob = bpy.context.scene.objects["__scene_debugger_viewpoint"]
+                ob = bpy.context.scene.objects.get("__scene_debugger_viewpoint")
                 if ob:
                     bpy.data.objects.remove(ob, do_unlink=True)
 
@@ -121,11 +224,18 @@ class HubsUpdateRoomOperator(bpy.types.Operator):
             return {'FINISHED'}
         except Exception as err:
             print(err)
-            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report", report_string='\n\n'.join(
-                ["The scene export has failed", "Check the export logs or quit the browser instance and try again", f'{err}']))
+            bpy.ops.wm.hubs_report_viewer(
+                'INVOKE_DEFAULT',
+                title="Hubs scene debugger report",
+                report_string='\n\n'.join([
+                    "The scene export has failed",
+                    "Check the export logs or quit the browser instance and try again",
+                    f'{err}'
+                ])
+            )
 
             if viewpoint:
-                ob = bpy.context.scene.objects["__scene_debugger_viewpoint"]
+                ob = bpy.context.scene.objects.get("__scene_debugger_viewpoint")
                 if ob:
                     bpy.data.objects.remove(ob, do_unlink=True)
 
@@ -158,8 +268,11 @@ class HubsCreateRoomOperator(bpy.types.Operator):
 
         except Exception as err:
             hubs_session.close()
-            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                          report_string=f'The room creation has failed: {err}')
+            bpy.ops.wm.hubs_report_viewer(
+                'INVOKE_DEFAULT',
+                title="Hubs scene debugger report",
+                report_string=f'The room creation has failed: {err}'
+            )
             return {"CANCELLED"}
 
 
@@ -196,8 +309,11 @@ class HubsOpenRoomOperator(bpy.types.Operator):
 
         except Exception as err:
             hubs_session.close()
-            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                          report_string=f'An error happened while opening the room: {err}')
+            bpy.ops.wm.hubs_report_viewer(
+                'INVOKE_DEFAULT',
+                title="Hubs scene debugger report",
+                report_string=f'An error happened while opening the room: {err}'
+            )
             return {"CANCELLED"}
 
 
@@ -217,8 +333,11 @@ class HubsCloseRoomOperator(bpy.types.Operator):
             return {'FINISHED'}
 
         except Exception as err:
-            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                          report_string=f'An error happened while closing the browser window: {err}')
+            bpy.ops.wm.hubs_report_viewer(
+                'INVOKE_DEFAULT',
+                title="Hubs scene debugger report",
+                report_string=f'An error happened while closing the browser window: {err}'
+            )
             return {"CANCELLED"}
 
 
@@ -262,10 +381,8 @@ class HUBS_PT_ToolsSceneDebuggerCreatePanel(bpy.types.Panel):
         list_row.template_list(HUBS_UL_ToolsSceneDebuggerServers.bl_idname, "", prefs,
                                "hubs_instances", prefs, "hubs_instance_idx", rows=3)
         col = row.column()
-        col.operator(HubsSceneDebuggerInstanceAdd.bl_idname,
-                     icon='ADD', text="")
-        col.operator(HubsSceneDebuggerInstanceRemove.bl_idname,
-                     icon='REMOVE', text="")
+        col.operator(HubsSceneDebuggerInstanceAdd.bl_idname, icon='ADD', text="")
+        col.operator(HubsSceneDebuggerInstanceRemove.bl_idname, icon='REMOVE', text="")
 
         row = box.row()
         row.operator(HubsCreateRoomOperator.bl_idname)
@@ -293,11 +410,9 @@ class HUBS_PT_ToolsSceneDebuggerOpenPanel(bpy.types.Panel):
         list_row.template_list(HUBS_UL_ToolsSceneDebuggerRooms.bl_idname, "", prefs,
                                "hubs_rooms", prefs, "hubs_room_idx", rows=3)
         col = row.column()
-        op = col.operator(HubsSceneDebuggerRoomAdd.bl_idname,
-                          icon='ADD', text="")
+        op = col.operator(HubsSceneDebuggerRoomAdd.bl_idname, icon='ADD', text="")
         op.url = DEMO_SERVER_URL
-        col.operator(HubsSceneDebuggerRoomRemove.bl_idname,
-                     icon='REMOVE', text="")
+        col.operator(HubsSceneDebuggerRoomRemove.bl_idname, icon='REMOVE', text="")
 
         row = box.row()
         row.operator(HubsOpenRoomOperator.bl_idname)
@@ -318,59 +433,50 @@ class HUBS_PT_ToolsSceneDebuggerUpdatePanel(bpy.types.Panel):
     def draw(self, context: Context):
         box = self.layout.box()
         row = box.row()
-        row.label(
-            text="Set the default export options in the glTF export panel")
+        row.label(text="Set the default export options in the glTF export panel")
         row = box.row()
         col = row.column(heading="Limit To:")
         col.use_property_split = True
-        col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
-                 "use_selection")
-        col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
-                 "use_visible")
-        col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
-                 "use_renderable")
-        col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
-                 "use_active_collection")
+        col.prop(context.scene.hubs_scene_debugger_room_export_prefs, "use_selection")
+        col.prop(context.scene.hubs_scene_debugger_room_export_prefs, "use_visible")
+        col.prop(context.scene.hubs_scene_debugger_room_export_prefs, "use_renderable")
+        col.prop(context.scene.hubs_scene_debugger_room_export_prefs, "use_active_collection")
         if bpy.app.version >= (3, 2, 0):
             col_row = col.row()
             col_row.enabled = False
-            col_row.prop(context.scene.hubs_scene_debugger_room_export_prefs,
-                         "use_active_scene")
+            col_row.prop(context.scene.hubs_scene_debugger_room_export_prefs, "use_active_scene")
+
         row = box.row()
         col = row.column(heading="Data:")
         col.use_property_split = True
-        col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
-                 "export_cameras")
-        col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
-                 "export_lights")
+        col.prop(context.scene.hubs_scene_debugger_room_export_prefs, "export_cameras")
+        col.prop(context.scene.hubs_scene_debugger_room_export_prefs, "export_lights")
+
         row = box.row()
         col = row.column(heading="Mesh:")
         col.use_property_split = True
-        col.prop(context.scene.hubs_scene_debugger_room_export_prefs,
-                 "export_apply")
+        col.prop(context.scene.hubs_scene_debugger_room_export_prefs, "export_apply")
 
         row = box.row()
         col = row.column(heading="Animation:")
         col.use_property_split = True
         col_row = col.row()
         col_row.enabled = False
-        col_row.prop(context.scene.hubs_scene_debugger_room_export_prefs,
-                     "export_force_sampling")
+        col_row.prop(context.scene.hubs_scene_debugger_room_export_prefs, "export_force_sampling")
 
         row = box.row()
         if not hubs_session.is_alive() or not hubs_session.user_logged_in:
             row = box.row()
             row.alert = True
-            row.label(
-                text="You need to be signed in to Hubs to update the room scene")
+            row.label(text="You need to be signed in to Hubs to update the room scene")
 
         update_mode = "Update current scene" if context.scene.hubs_scene_debugger_room_create_prefs.debugLocalScene else "Spawn as object"
         if hubs_session.is_alive():
             room_params = hubs_session.room_params
             update_mode = "Update current scene" if "debugLocalScene" in room_params else "Spawn as object"
+
         row = box.row()
-        row.operator(HubsUpdateRoomOperator.bl_idname,
-                     text=f'{update_mode}')
+        row.operator(HubsUpdateRoomOperator.bl_idname, text=f'{update_mode}')
 
         row = box.row()
         row.prop(context.scene.hubs_scene_debugger_room_export_prefs, "avatar_to_viewport")
@@ -396,23 +502,21 @@ class HUBS_PT_ToolsSceneSessionPanel(bpy.types.Panel):
             col.alignment = "LEFT"
             col.label(text="Connection Status:")
             hubs_icons = get_hubs_icons()
+
             if hubs_session.is_alive():
                 if hubs_session.user_logged_in:
                     if hubs_session.user_in_room:
                         col = row.column()
                         col.alignment = "LEFT"
                         col.active_default = True
-                        col.label(
-                            icon_value=hubs_icons["green-dot.png"].icon_id)
+                        col.label(icon_value=hubs_icons["green-dot.png"].icon_id)
                         row = main_box.row(align=True)
                         row.alignment = "CENTER"
                         row.label(text=f'In room: {hubs_session.room_name}')
-
                     else:
                         col = row.column()
                         col.alignment = "LEFT"
-                        col.label(
-                            icon_value=hubs_icons["orange-dot.png"].icon_id)
+                        col.label(icon_value=hubs_icons["orange-dot.png"].icon_id)
                         row = main_box.row(align=True)
                         row.alignment = "CENTER"
                         row.label(text="Entering the room...")
@@ -429,9 +533,7 @@ class HUBS_PT_ToolsSceneSessionPanel(bpy.types.Panel):
                 if ret_instance:
                     row = main_box.row(align=True)
                     row.alignment = "CENTER"
-                    row.label(
-                        text=f'Connected to Instance: {ret_instance}')
-
+                    row.label(text=f'Connected to Instance: {ret_instance}')
             else:
                 col = row.column()
                 col.alignment = "LEFT"
@@ -447,11 +549,9 @@ class HUBS_PT_ToolsSceneSessionPanel(bpy.types.Panel):
         else:
             row = main_box.row()
             row.alert = True
-            row.label(
-                text="Selenium needs to be installed for the scene debugger functionality. Install from preferences.")
+            row.label(text="Selenium needs to be installed for the scene debugger functionality. Install from preferences.")
             row = main_box.row()
-            row.operator(HubsOpenAddonPrefsOperator.bl_idname,
-                         text='Setup')
+            row.operator(HubsOpenAddonPrefsOperator.bl_idname, text='Setup')
 
 
 class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
@@ -482,16 +582,14 @@ class HUBS_PT_ToolsSceneDebuggerPanel(bpy.types.Panel):
         box = self.layout.box()
         row = box.row(align=True)
         row.alignment = "EXPAND"
-        grid = row.grid_flow(columns=2, align=True,
-                             even_rows=False, even_columns=False)
+        grid = row.grid_flow(columns=2, align=True, even_rows=False, even_columns=False)
         grid.alignment = "CENTER"
         flags_row = grid.row()
         flags_row.label(text="Room flags")
         op = flags_row.operator("wm.url_open", text="", icon="HELP")
         op.url = ROOM_FLAGS_DOC_URL
         for key in PARAMS_TO_STRING.keys():
-            grid.prop(context.scene.hubs_scene_debugger_room_create_prefs,
-                      key)
+            grid.prop(context.scene.hubs_scene_debugger_room_create_prefs, key)
         grid.label(text="Is Active?")
         for key in PARAMS_TO_STRING.keys():
             grid.label(icon=params_icons[key])
@@ -502,9 +600,7 @@ def add_instance(context):
     new_instance = prefs.hubs_instances.add()
     new_instance.name = "Demo Hub"
     new_instance.url = DEMO_SERVER_URL
-    prefs.hubs_instance_idx = len(
-        prefs.hubs_instances) - 1
-
+    prefs.hubs_instance_idx = len(prefs.hubs_instances) - 1
     save_prefs(context)
 
 
@@ -515,7 +611,6 @@ class HubsSceneDebuggerInstanceAdd(bpy.types.Operator):
 
     def execute(self, context):
         add_instance(context)
-
         return {'FINISHED'}
 
 
@@ -532,7 +627,6 @@ class HubsSceneDebuggerInstanceRemove(bpy.types.Operator):
             prefs.hubs_instance_idx -= 1
 
         save_prefs(context)
-
         return {'FINISHED'}
 
 
@@ -548,6 +642,7 @@ class HubsSceneDebuggerRoomAdd(bpy.types.Operator):
         prefs = context.window_manager.hubs_scene_debugger_prefs
         new_room = prefs.hubs_rooms.add()
         url = self.url
+
         if hubs_session.is_alive():
             current_url = hubs_session.get_url()
             if current_url:
@@ -562,12 +657,11 @@ class HubsSceneDebuggerRoomAdd(bpy.types.Operator):
             room_name = hubs_session.room_name
             if room_name:
                 new_room.name = room_name
+
         new_room.url = url
-        prefs.hubs_room_idx = len(
-            prefs.hubs_rooms) - 1
+        prefs.hubs_room_idx = len(prefs.hubs_rooms) - 1
 
         save_prefs(context)
-
         return {'FINISHED'}
 
 
@@ -589,7 +683,6 @@ class HubsSceneDebuggerRoomRemove(bpy.types.Operator):
             prefs.hubs_room_idx -= 1
 
         save_prefs(context)
-
         return {'FINISHED'}
 
 
@@ -646,14 +739,15 @@ class HubsPublishSceneOperator(bpy.types.Operator):
             screenshot = context.scene.hubs_scene_debugger_scene_publish_props.screenshot
             if screenshot.type in ['RENDER_RESULT', 'COMPOSITING'] or screenshot.packed_file:
                 screenshot_full = os.path.join(
-                    bpy.app.tempdir, EXPORT_TMP_SCREENSHOT_FILE_NAME +
-                    image_type_to_file_ext(screenshot.file_format))
+                    bpy.app.tempdir,
+                    EXPORT_TMP_SCREENSHOT_FILE_NAME + image_type_to_file_ext(screenshot.file_format)
+                )
                 screenshot.save_render(screenshot_full)
             else:
                 screenshot_full = bpy.path.abspath(screenshot.filepath, library=screenshot.library)
+
             screenshot_norm = os.path.normpath(screenshot_full)
-            screenshot_data = api.upload_media(
-                url, open(screenshot_norm, "rb"))
+            screenshot_data = api.upload_media(url, open(screenshot_norm, "rb"))
             scene_data.update({
                 "screenshot_file_id": screenshot_data["file_id"],
                 "screenshot_file_token": screenshot_data["access_token"]
@@ -669,16 +763,21 @@ class HubsPublishSceneOperator(bpy.types.Operator):
             })
             api.publish_scene(url, hubs_session.get_token(), scene_data)
 
-            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                          report_string=f'Scene {name} successfully published')
+            bpy.ops.wm.hubs_report_viewer(
+                'INVOKE_DEFAULT',
+                title="Hubs scene debugger report",
+                report_string=f'Scene {name} successfully published'
+            )
 
             bpy.ops.hubs_scene.get_scenes()
-
             return {'FINISHED'}
 
         except Exception as err:
-            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                          report_string=f'An error happened while publishing the scene: {err}')
+            bpy.ops.wm.hubs_report_viewer(
+                'INVOKE_DEFAULT',
+                title="Hubs scene debugger report",
+                report_string=f'An error happened while publishing the scene: {err}'
+            )
             return {"CANCELLED"}
 
 
@@ -710,24 +809,28 @@ class HubsUpdateSceneOperator(bpy.types.Operator):
                 "model_file_id": glb_data["file_id"],
                 "model_file_token": glb_data["access_token"]
             })
-            api.publish_scene(url, hubs_session.get_token(),
-                              scene_data, scene.scene_id)
+            api.publish_scene(url, hubs_session.get_token(), scene_data, scene.scene_id)
 
-            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                          report_string=f'Scene {scene.name} successfully updated')
+            bpy.ops.wm.hubs_report_viewer(
+                'INVOKE_DEFAULT',
+                title="Hubs scene debugger report",
+                report_string=f'Scene {scene.name} successfully updated'
+            )
 
             return {'FINISHED'}
 
         except Exception as err:
-            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                          report_string=f'An error happened while updated the scene: {err}')
+            bpy.ops.wm.hubs_report_viewer(
+                'INVOKE_DEFAULT',
+                title="Hubs scene debugger report",
+                report_string=f'An error happened while updated the scene: {err}'
+            )
             return {"CANCELLED"}
 
     def invoke(self, context, event):
         def draw(self, context):
             row = self.layout.row()
-            row.label(
-                text="Are you sure that you want to overwrite the selected scene?")
+            row.label(text="Are you sure that you want to overwrite the selected scene?")
             row = self.layout.row()
             col = row.column()
             col.operator(HubsUpdateSceneOperator.bl_idname, text="Yes")
@@ -751,16 +854,20 @@ class HubsCreateRoomWithSceneOperator(bpy.types.Operator):
             scenes_props = context.window_manager.hubs_scene_debugger_scenes_props
             scene = scenes_props.scenes[scenes_props.scene_idx]
 
-            # Try to create a Hubs with credentials
             response = api.create_room(
-                hubs_session.reticulum_url, token=hubs_session.get_token(),
-                scene_name=scene.name, scene_id=scene.scene_id)
+                hubs_session.reticulum_url,
+                token=hubs_session.get_token(),
+                scene_name=scene.name,
+                scene_id=scene.scene_id
+            )
             if "error" in response:
                 hubs_session.set_credentials(None, None)
 
-                # Try to create a Hubs anonymously
                 response = api.create_room(
-                    hubs_session.reticulum_url, scene_name=scene.name, scene_id=scene.scene_id)
+                    hubs_session.reticulum_url,
+                    scene_name=scene.name,
+                    scene_id=scene.scene_id
+                )
                 if "error" in response:
                     raise Exception(response["error"])
 
@@ -770,8 +877,7 @@ class HubsCreateRoomWithSceneOperator(bpy.types.Operator):
                 if creator_token:
                     if "embed_token" in response:
                         embed_token = response["embed_token"]
-                    hubs_session.set_creator_assignment_token(
-                        creator_token, embed_token)
+                    hubs_session.set_creator_assignment_token(creator_token, embed_token)
 
             was_alive = hubs_session.init(context)
 
@@ -792,8 +898,11 @@ class HubsCreateRoomWithSceneOperator(bpy.types.Operator):
             return {'FINISHED'}
 
         except Exception as err:
-            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                          report_string=f'An error happened while opening the scene: {err}')
+            bpy.ops.wm.hubs_report_viewer(
+                'INVOKE_DEFAULT',
+                title="Hubs scene debugger report",
+                report_string=f'An error happened while opening the scene: {err}'
+            )
             return {"CANCELLED"}
 
 
@@ -828,12 +937,14 @@ class HubsGetScenesOperator(bpy.types.Operator):
                 scenes_props.scene_idx = 0
 
             save_prefs(context)
-
             return {'FINISHED'}
 
         except Exception as err:
-            bpy.ops.wm.hubs_report_viewer('INVOKE_DEFAULT', title="Hubs scene debugger report",
-                                          report_string=f'An error happened while getting the scenes: {err}')
+            bpy.ops.wm.hubs_report_viewer(
+                'INVOKE_DEFAULT',
+                title="Hubs scene debugger report",
+                report_string=f'An error happened while getting the scenes: {err}'
+            )
             return {"CANCELLED"}
 
 
@@ -847,8 +958,8 @@ class HUBS_UL_ToolsSceneDebuggerProjects(bpy.types.UIList):
         filtered = [self.bitflag_filter_item] * len(items)
         ordered = [i for i, item in enumerate(items)]
         ret_instance = hubs_session.reticulum_url if hubs_session.is_alive() else None
-        filter = not scene_props.instance or ret_instance != scene_props.instance
-        if filter:
+        should_filter = not scene_props.instance or ret_instance != scene_props.instance
+        if should_filter:
             for i, item in enumerate(items):
                 filtered[i] &= ~self.bitflag_filter_item
 
@@ -877,12 +988,10 @@ class HUBS_PT_ToolsSceneDebuggerPublishScenePanel(bpy.types.Panel):
             box = self.layout.box()
             row = box.row()
             row.alert = True
-            row.label(
-                text="You need to be signed in to Hubs to get, update or publish scenes")
+            row.label(text="You need to be signed in to Hubs to get, update or publish scenes")
             row = box.row()
             row.alert = True
-            row.label(
-                text="Create or open a room to open a session")
+            row.label(text="Create or open a room to open a session")
 
         box = self.layout.box()
         row = box.row()
@@ -890,8 +999,13 @@ class HUBS_PT_ToolsSceneDebuggerPublishScenePanel(bpy.types.Panel):
         row = box.row()
         list_row = row.row()
         list_row.template_list(
-            HUBS_UL_ToolsSceneDebuggerProjects.bl_idname, "", context.window_manager.hubs_scene_debugger_scenes_props,
-            "scenes", context.window_manager.hubs_scene_debugger_scenes_props, "scene_idx", rows=3)
+            HUBS_UL_ToolsSceneDebuggerProjects.bl_idname, "",
+            context.window_manager.hubs_scene_debugger_scenes_props,
+            "scenes",
+            context.window_manager.hubs_scene_debugger_scenes_props,
+            "scene_idx",
+            rows=3
+        )
 
         row = box.row()
         col = row.column()
@@ -914,57 +1028,74 @@ class HUBS_PT_ToolsSceneDebuggerPublishScenePanel(bpy.types.Panel):
         col = row.column()
         col.prop(context.scene.hubs_scene_debugger_scene_publish_props, "screenshot")
         col = row.column()
-        col.context_pointer_set(
-            "target", context.scene.hubs_scene_debugger_scene_publish_props)
+        col.context_pointer_set("target", context.scene.hubs_scene_debugger_scene_publish_props)
         col.context_pointer_set("host", context.scene)
         op = col.operator("image.hubs_open_image", text='', icon='FILE_FOLDER')
         op.target_property = "screenshot"
         row = box.row()
-        op = row.operator(HubsPublishSceneOperator.bl_idname)
+        row.operator(HubsPublishSceneOperator.bl_idname)
 
 
 class HubsSceneDebuggerRoomCreatePrefs(bpy.types.PropertyGroup):
     newLoader: bpy.props.BoolProperty(
         name=PARAMS_TO_STRING["newLoader"]["name"],
-        default=True, description=PARAMS_TO_STRING["newLoader"]["description"])
+        default=True,
+        description=PARAMS_TO_STRING["newLoader"]["description"]
+    )
     ecsDebug: bpy.props.BoolProperty(
         name=PARAMS_TO_STRING["ecsDebug"]["name"],
-        default=True, description=PARAMS_TO_STRING["ecsDebug"]["description"])
+        default=True,
+        description=PARAMS_TO_STRING["ecsDebug"]["description"]
+    )
     vr_entry_type: bpy.props.BoolProperty(
         name=PARAMS_TO_STRING["vr_entry_type"]["name"],
-        default=True, description=PARAMS_TO_STRING["vr_entry_type"]["description"])
-    debugLocalScene: bpy.props.BoolProperty(name=PARAMS_TO_STRING["debugLocalScene"]["name"], default=True,
-                                            description=PARAMS_TO_STRING["debugLocalScene"]["description"])
+        default=True,
+        description=PARAMS_TO_STRING["vr_entry_type"]["description"]
+    )
+    debugLocalScene: bpy.props.BoolProperty(
+        name=PARAMS_TO_STRING["debugLocalScene"]["name"],
+        default=True,
+        description=PARAMS_TO_STRING["debugLocalScene"]["description"]
+    )
 
 
 class HubsSceneDebuggerRoomExportPrefs(bpy.types.PropertyGroup):
-    export_cameras: bpy.props.BoolProperty(name="Export Cameras", default=False,
-                                           description="Export cameras", options=set())
+    export_cameras: bpy.props.BoolProperty(
+        name="Export Cameras",
+        default=False,
+        description="Export cameras",
+        options=set()
+    )
     export_lights: bpy.props.BoolProperty(
-        name="Punctual Lights", default=False,
-        description="Punctual Lights, Export directional, point, and spot lights. Uses \"KHR_lights_punctual\" glTF extension",
-        options=set())
-    use_selection: bpy.props.BoolProperty(name="Selection Only", default=False,
-                                          description="Selection Only, Export selected objects only.",
-                                          options=set())
+        name="Punctual Lights",
+        default=False,
+        description='Punctual Lights, Export directional, point, and spot lights. Uses "KHR_lights_punctual" glTF extension',
+        options=set()
+    )
+    use_selection: bpy.props.BoolProperty(
+        name="Selection Only",
+        default=False,
+        description="Selection Only, Export selected objects only.",
+        options=set()
+    )
     export_apply: bpy.props.BoolProperty(
-        name="Apply Modifiers", default=True,
+        name="Apply Modifiers",
+        default=True,
         description="Apply Modifiers, Apply modifiers (excluding Armatures) to mesh objects -WARNING: prevents exporting shape keys.",
-        options=set())
+        options=set()
+    )
     use_visible: bpy.props.BoolProperty(
         name='Visible Objects',
         description='Export visible objects only',
         default=False,
         options=set()
     )
-
     use_renderable: bpy.props.BoolProperty(
         name='Renderable Objects',
         description='Export renderable objects only',
         default=False,
         options=set()
     )
-
     use_active_collection: bpy.props.BoolProperty(
         name='Active Collection',
         description='Export objects in the active collection only',
@@ -973,16 +1104,22 @@ class HubsSceneDebuggerRoomExportPrefs(bpy.types.PropertyGroup):
     )
     use_active_scene: bpy.props.BoolProperty(
         name='Active Scene',
-        description='Export objects in the active scene only.  This has been forced ON because Hubs can only use one scene anyway',
-        default=True, options=set())
+        description='Export objects in the active scene only. This has been forced ON because Hubs can only use one scene anyway',
+        default=True,
+        options=set()
+    )
     export_force_sampling: bpy.props.BoolProperty(
         name='Sampling Animations',
-        description='Apply sampling to all animations.  This has been forced OFF because it can break animations in Hubs',
-        default=False, options=set())
+        description='Apply sampling to all animations. This has been forced OFF because it can break animations in Hubs',
+        default=False,
+        options=set()
+    )
     avatar_to_viewport: bpy.props.BoolProperty(
         name='Spawn using viewport transform',
         description='Spawn the avatar in the current viewport camera position/rotation',
-        default=False, options=set())
+        default=False,
+        options=set()
+    )
 
 
 class HubsSceneProject(bpy.types.PropertyGroup):
@@ -1040,11 +1177,8 @@ class HubsSceneDebuggerScenes(bpy.types.PropertyGroup):
         name="Instance",
         description="Instance URL"
     )
-    scenes: bpy.props.CollectionProperty(
-        type=HubsSceneProject)
-
-    scene_idx: bpy.props.IntProperty(
-        default=-1, update=save_prefs_on_prop_update)
+    scenes: bpy.props.CollectionProperty(type=HubsSceneProject)
+    scene_idx: bpy.props.IntProperty(default=-1, update=save_prefs_on_prop_update)
 
 
 def set_url(self, value):
@@ -1063,23 +1197,15 @@ def get_url(self):
 
 class HubsUrl(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty(update=save_prefs_on_prop_update)
-    url: bpy.props.StringProperty(
-        set=set_url, get=get_url, update=save_prefs_on_prop_update)
+    url: bpy.props.StringProperty(set=set_url, get=get_url, update=save_prefs_on_prop_update)
     url_: bpy.props.StringProperty(options={"HIDDEN"})
 
 
 class HubsSceneDebuggerPrefs(bpy.types.PropertyGroup):
-    hubs_instances: bpy.props.CollectionProperty(
-        type=HubsUrl)
-
-    hubs_instance_idx: bpy.props.IntProperty(
-        default=-1, update=save_prefs_on_prop_update)
-
-    hubs_room_idx: bpy.props.IntProperty(
-        default=-1, update=save_prefs_on_prop_update)
-
-    hubs_rooms: bpy.props.CollectionProperty(
-        type=HubsUrl)
+    hubs_instances: bpy.props.CollectionProperty(type=HubsUrl)
+    hubs_instance_idx: bpy.props.IntProperty(default=-1, update=save_prefs_on_prop_update)
+    hubs_room_idx: bpy.props.IntProperty(default=-1, update=save_prefs_on_prop_update)
+    hubs_rooms: bpy.props.CollectionProperty(type=HubsUrl)
 
 
 def init():
@@ -1142,19 +1268,24 @@ def register():
     global hubs_session
     hubs_session = HubsSession()
 
-    for cls in (classes):
+    for cls in classes:
         bpy.utils.register_class(cls)
 
     bpy.types.Scene.hubs_scene_debugger_room_create_prefs = bpy.props.PointerProperty(
-        type=HubsSceneDebuggerRoomCreatePrefs)
+        type=HubsSceneDebuggerRoomCreatePrefs
+    )
     bpy.types.Scene.hubs_scene_debugger_room_export_prefs = bpy.props.PointerProperty(
-        type=HubsSceneDebuggerRoomExportPrefs)
+        type=HubsSceneDebuggerRoomExportPrefs
+    )
     bpy.types.Scene.hubs_scene_debugger_scene_publish_props = bpy.props.PointerProperty(
-        type=HubsSceneDebuggerScenePublishProps)
+        type=HubsSceneDebuggerScenePublishProps
+    )
     bpy.types.WindowManager.hubs_scene_debugger_scenes_props = bpy.props.PointerProperty(
-        type=HubsSceneDebuggerScenes)
+        type=HubsSceneDebuggerScenes
+    )
     bpy.types.WindowManager.hubs_scene_debugger_prefs = bpy.props.PointerProperty(
-        type=HubsSceneDebuggerPrefs)
+        type=HubsSceneDebuggerPrefs
+    )
 
     if load_post not in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.append(load_post)
