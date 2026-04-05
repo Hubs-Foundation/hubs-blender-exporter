@@ -114,7 +114,7 @@ class HubsComponent(PropertyGroup):
 
     def pre_export(self, export_settings, host, ob=None):
         '''This is called by the exporter before starting the export process'''
-        pass
+        return [] 
 
     def gather(self, export_settings, object):
         '''This is called by the exporter and will return all the component properties by default'''
@@ -192,3 +192,4 @@ class HubsComponent(PropertyGroup):
         '''This is called by the Blender runtime when the component is unregistered.
         Here you can unregister any classes that you have registered.'''
         pass
+
