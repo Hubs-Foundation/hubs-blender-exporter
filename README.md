@@ -66,9 +66,9 @@ The Hubs Blender add-on includes a scene debugger, enabling you to see the Blend
 To enable code completion for the Blender Python API you can install the [Fake Blender Python API module collection](https://github.com/nutti/fake-bpy-module/). You can download the modules using the `setup.sh` script from the repository root or using [pip](https://github.com/nutti/fake-bpy-module/#install-via-pip-package).
 ## Code style
 
-Tis repository follows the [PEP8](https://peps.python.org/pep-0008/) style convention for python files. If you use VSCode this repository already includes a setting to autoformat every python file when saved. If you don't use VSCode you can probably add a similar setting in your favorite editor. We are happy to add settings for other editors so feel free to open a PR if you want you editor's settings included.
+This repository follows the [PEP8](https://peps.python.org/pep-0008/) style convention for python files. If you use VSCode this repository already includes a setting to autoformat every python file when saved. If you don't use VSCode you can probably add a similar setting in your favorite editor. We are happy to add settings for other editors so feel free to open a PR if you want you editor's settings included.
 
-We also includes a `format.py` python script that will formats the whole codebase when run. You can run it before pushing the PR to make sure that all the new code follows PEP8.
+We also include a `format.py` python script that will format the whole codebase when run. You can run it before pushing the PR to make sure that all the new code follows PEP8.
 
 Both the python script and the VSCode settings rely on the [autopep8](https://pypi.org/project/autopep8/) command line tool for formatting so make sure that it's installed in your system.
 
@@ -92,9 +92,28 @@ It might be useful while developing to be able to load the addon directly from t
 
 **MacOS and Linux**
 
-`ln -s full_path_to/hubs-blender-exporter/addons/io_hubs_addon full_path_to/blender_user_scrips_dir`
+`ln -s full_path_to/hubs-blender-exporter/addons/io_hubs_addon full_path_to/blender_user_scripts_dir`
 
 You can set or see the current Blender user scripts in the Preferences -> File Paths -> Scripts
+
+## Component export hooks
+
+When adding or modifying Hubs components, the exporter lifecycle uses a few different hooks with different responsibilities (these are defined in hubs_component.py and optionally overridden in specific components):
+
+- `pre_export`
+  - Runs before export starts.
+  - Best used for export setup or preprocessing that must happen before gathering data.
+  - Avoid using this for component data validation that is tied to exported output.
+
+- `gather`
+  - Runs when component data is exported.
+  - Best place for component-specific export logic and export-time validation related to exported data.
+
+- `post_export`
+  - Runs after export finishes.
+  - Best used for cleanup or restoring temporary state.
+
+For user-facing validation or reporting, prefer the existing Hubs report viewer / export reporting flow rather than console-only warnings when appropriate.
 
 # Debugging
 
