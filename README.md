@@ -66,7 +66,7 @@ The Hubs Blender add-on includes a scene debugger, enabling you to see the Blend
 To enable code completion for the Blender Python API you can install the [Fake Blender Python API module collection](https://github.com/nutti/fake-bpy-module/). You can download the modules using the `setup.sh` script from the repository root or using [pip](https://github.com/nutti/fake-bpy-module/#install-via-pip-package).
 ## Code style
 
-Tis repository follows the [PEP8](https://peps.python.org/pep-0008/) style convention for python files. If you use VSCode this repository already includes a setting to autoformat every python file when saved. If you don't use VSCode you can probably add a similar setting in your favorite editor. We are happy to add settings for other editors so feel free to open a PR if you want you editor's settings included.
+This repository follows the [PEP8](https://peps.python.org/pep-0008/) style convention for python files. If you use VSCode this repository already includes a setting to autoformat every python file when saved. If you don't use VSCode you can probably add a similar setting in your favorite editor. We are happy to add settings for other editors so feel free to open a PR if you want your editor's settings included.
 
 We also includes a `format.py` python script that will formats the whole codebase when run. You can run it before pushing the PR to make sure that all the new code follows PEP8.
 
