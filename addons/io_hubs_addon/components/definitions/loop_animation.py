@@ -271,6 +271,25 @@ def is_useable_nla_track(animation_data, nla_track, track):
     action = nla_track.strips[0].action
     nla_track_fcurves = None
     if bpy.app.version >= (4, 4, 0):
+        if not action.slots:
+            Errors.log(track, 'NO_ACTION_SLOTS', "No slots are present in the action.")
+            return False
+
+        if not nla_track.strips[0].action_slot:
+            Errors.log(track, 'NO_ACTION_SLOT_IN_STRIP', "No action slot has been selected for the NLA track strip.")
+            return False
+
+        if not action.layers:
+            # Action layers aren't exposed in anything but the Python API as of Blender 5.0
+            Errors.log(track, 'NO_ACTION_LAYERS',
+                       "The action doesn't have any layers.\nDid you forget to add any keyframes to the action?")
+            return False
+
+        if not action.layers[0].strips:
+            # Action strips aren't exposed in anything but the Python API as of Blender 5.0
+            Errors.log(track, 'NO_ACTION_STRIPS', "No strips are present in the action layer.")
+            return False
+
         channelbag = action.layers[0].strips[0].channelbag(nla_track.strips[0].action_slot)
         nla_track_fcurves = channelbag.fcurves
     else:
@@ -291,8 +310,9 @@ def is_useable_nla_track(animation_data, nla_track, track):
     return True
 
 
-def is_usable_action(track):
+def is_usable_action(ob, track):
     action_name = track.name
+    action = ob.animation_data.action
 
     if action_name == '':
         Errors.log(track, 'FORBIDDEN_NAME', "Action names can't be nothing.")
@@ -303,11 +323,27 @@ def is_usable_action(track):
         Errors.log(track, 'FORBIDDEN_NAME', "Custom action names can't contain commas or spaces.")
         return False
 
+    if bpy.app.version >= (4, 4, 0):
+        if not action.slots:
+            Errors.log(track, 'NO_ACTION_SLOTS', "No slots are present in the action.")
+            return False
+
+        if not action.layers:
+            # Action layers aren't exposed in anything but the Python API as of Blender 5.0
+            Errors.log(track, 'NO_ACTION_LAYERS',
+                       "The action doesn't have any layers.\nDid you forget to add any keyframes to the action?")
+            return False
+
+        if not action.layers[0].strips:
+            # Action strips aren't exposed in anything but the Python API as of Blender 5.0
+            Errors.log(track, 'NO_ACTION_STRIPS', "No strips are present in the action layer.")
+            return False
+
     return True
 
 
 def is_valid_regular_action(ob, track):
-    if ob.animation_data and ob.animation_data.action and is_usable_action(track):
+    if ob.animation_data and ob.animation_data.action and is_usable_action(ob, track):
         action = ob.animation_data.action
         return not action_has_nla_track(ob, action) and track.name == action.name
     return False
