@@ -7,7 +7,20 @@ from io_scene_gltf2.io.com import gltf2_io
 from typing import Optional, Tuple, Union
 
 # Version-specific imports
-if bpy.app.version >= (4, 3, 0):
+if bpy.app.version >= (4, 5, 0):
+    from io_scene_gltf2.blender.com import extras as gltf2_blender_extras
+    from io_scene_gltf2.blender.exp import joints as gltf2_blender_gather_joints
+    from io_scene_gltf2.blender.exp import nodes as gltf2_blender_gather_nodes
+    from io_scene_gltf2.blender.exp.cache import cached
+    from io_scene_gltf2.blender.exp.material import encode_image as gltf2_blender_image
+    from io_scene_gltf2.blender.exp.material import materials as gltf2_blender_gather_materials
+    from io_scene_gltf2.blender.exp.material import search_node_tree as gltf2_blender_search_node_tree
+    from io_scene_gltf2.blender.exp.material import texture_info as gltf2_blender_gather_texture_info
+    from io_scene_gltf2.blender.exp.material.image import set_real_uri as gltf2_blender_set_real_uri
+    from io_scene_gltf2.blender.imp.image import BlenderImage
+    from io_scene_gltf2.io.exp import binary_data as gltf2_io_binary_data
+    from io_scene_gltf2.io.exp import image_data as gltf2_io_image_data
+elif bpy.app.version >= (4, 3, 0):
     from io_scene_gltf2.blender.com import extras as gltf2_blender_extras
     from io_scene_gltf2.blender.exp import joints as gltf2_blender_gather_joints
     from io_scene_gltf2.blender.exp import nodes as gltf2_blender_gather_nodes
@@ -142,8 +155,11 @@ def gather_image(blender_image, export_settings):
         data = data[0]
 
     if export_settings['gltf_format'] == 'GLTF_SEPARATE':
+        # io_scene_gltf2.blender.exp.material.texture.__gather_source can be used as a reference for what's needed here.
         uri = HubsImageData(data=data, mime_type=mime_type, name=name)
         buffer_view = None
+        if bpy.app.version >= (4, 5, 0):
+            gltf2_blender_set_real_uri(uri, export_settings)
     else:
         uri = None
         buffer_view = gltf2_io_binary_data.BinaryData(data=data)
