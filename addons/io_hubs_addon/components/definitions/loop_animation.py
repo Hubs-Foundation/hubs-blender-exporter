@@ -268,7 +268,15 @@ def is_useable_nla_track(animation_data, nla_track, track):
                    "The strip/track doesn't have an action.")
         return False
 
-    if not nla_track.strips[0].action.fcurves:
+    action = nla_track.strips[0].action
+    nla_track_fcurves = None
+    if bpy.app.version >= (4, 4, 0):
+        channelbag = action.layers[0].strips[0].channelbag(nla_track.strips[0].action_slot)
+        nla_track_fcurves = channelbag.fcurves
+    else:
+        nla_track_fcurves = action.fcurves
+
+    if not nla_track_fcurves:
         Errors.log(track, 'NO_FCURVES',
                    "The strip/track's action doesn't have any animation and\nwon't be exported.")
         return False
