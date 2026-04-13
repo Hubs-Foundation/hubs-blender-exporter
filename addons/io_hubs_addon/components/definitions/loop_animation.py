@@ -398,12 +398,16 @@ def is_valid_shape_key_track(ob, track):
     return False
 
 
-def get_animation_name(ob, track):
+def get_animation_name(ob, track, export_settings):
     if is_valid_regular_action(ob, track) or is_valid_shape_key_action(ob, track):
         return track.name
     elif is_valid_regular_nla_track(ob, track) or is_valid_shape_key_nla_track(ob, track):
-        return track.track_name if not is_default_name(
-            track.track_name) else track.action_name
+        if bpy.app.version >= (4, 4, 0) and export_settings['gltf_animation_mode'] == 'ACTIONS':
+            nla_track = ob.animation_data.nla_tracks.get(track.track_name)
+            return nla_track.strips[0].action.name
+        else:
+            return track.track_name if not is_default_name(
+                track.track_name) else track.action_name
     else:
         return track.name
 
@@ -865,7 +869,7 @@ class LoopAnimation(HubsComponent):
     def gather(self, export_settings, object):
         final_track_names = []
         for track in object.hubs_component_loop_animation.tracks_list.values():
-            final_track_names.append(get_animation_name(object, track))
+            final_track_names.append(get_animation_name(object, track, export_settings))
 
         fps = bpy.context.scene.render.fps / bpy.context.scene.render.fps_base
 

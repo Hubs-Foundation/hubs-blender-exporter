@@ -16,9 +16,18 @@ module.exports = {
         assert.strictEqual(utils.checkExtensionAdded(node, 'MOZ_hubs_components'), true);
 
         const ext = node.extensions['MOZ_hubs_components'];
+        const loopAnimation = ext['loop-animation'];
+
+        const clip_names = loopAnimation.clip.split(",").sort();
+        const animation_names = asset.animations.reduce((accumulator, animation) => {
+            accumulator.push(animation.name);
+            return accumulator;
+        }, []).sort();
+        assert.deepStrictEqual(clip_names, animation_names);
+
         assert.deepStrictEqual(ext, {
             "loop-animation": {
-                "clip": "sample_clip_track_name,sample_clip_action_push_down,sample_clip_action_stash",
+                "clip": loopAnimation.clip,
                 "startOffset": 0,
                 "timeScale": 1
             }
