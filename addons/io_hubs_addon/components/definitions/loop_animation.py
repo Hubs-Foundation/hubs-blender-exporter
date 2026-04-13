@@ -229,6 +229,7 @@ def is_matching_track(nla_track_type, nla_track, track):
 
 
 def is_useable_nla_track(animation_data, nla_track, track):
+    # Error checking is handled from top level to bottom level, if something isn't present an error is logged and we return early.  This way we always know that the expected constructs are present, e.g. we verify X is valid, then all checks for properties of X are conducted afterwards and we know they won't crash.
     track_name = nla_track.name
     action_name = get_action_name(nla_track)
 
@@ -249,23 +250,23 @@ def is_useable_nla_track(animation_data, nla_track, track):
                        "Action names can't contain commas or spaces.")
             return False
 
-    if len(nla_track.strips) > 1:
-        Errors.log(track, 'MULTIPLE_STRIPS',
-                   "Only one strip is allowed in the track.")
+    if not nla_track.strips:
+        Errors.log(track, 'NO_NLA_TRACK_STRIPS', "No strips are present in the NLA track.")
         return False
 
-    if not nla_track.strips:
-        Errors.log(track, 'NO_STRIPS', "No strips are present in the track.")
+    if len(nla_track.strips) > 1:
+        Errors.log(track, 'MULTIPLE_NLA_TRACK_STRIPS',
+                   "Only one strip is allowed in the NLA track.")
         return False
 
     if nla_track.strips[0].mute:
-        Errors.log(track, 'MUTED_STRIP',
-                   "The strip is muted and won't export.")
+        Errors.log(track, 'MUTED_NLA_TRACK_STRIP',
+                   "The NLA track strip is muted and won't export.")
         return False
 
     if not action_name:
         Errors.log(track, 'NO_ACTION',
-                   "The strip/track doesn't have an action.")
+                   "The NLA track strip doesn't have an action.")
         return False
 
     action = nla_track.strips[0].action
@@ -297,13 +298,13 @@ def is_useable_nla_track(animation_data, nla_track, track):
 
     if not nla_track_fcurves:
         Errors.log(track, 'NO_FCURVES',
-                   "The strip/track's action doesn't have any animation and\nwon't be exported.")
+                   "The NLA track strip's action doesn't have any animation and\nwon't be exported.")
         return False
 
     if not is_unique_action(animation_data, nla_track):
         Errors.log(
             track, 'NON_UNIQUE_ACTION',
-            "This strip/track contains an action that is present in multiple\nstrips/tracks on this object and may not export correctly.",
+            "The NLA track strip contains an action that is present within\nmultiple NLA tracks on this object and may not export correctly.",
             severity="Warning")
         return False
 
