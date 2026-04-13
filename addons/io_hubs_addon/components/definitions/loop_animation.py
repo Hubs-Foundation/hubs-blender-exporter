@@ -292,13 +292,19 @@ def is_useable_nla_track(animation_data, nla_track, track):
             return False
 
         channelbag = action.layers[0].strips[0].channelbag(nla_track.strips[0].action_slot)
-        nla_track_fcurves = channelbag.fcurves
+        if channelbag:
+            nla_track_fcurves = channelbag.fcurves
     else:
         nla_track_fcurves = action.fcurves
 
     if not nla_track_fcurves:
-        Errors.log(track, 'NO_FCURVES',
-                   "The NLA track strip's action doesn't have any animation and\nwon't be exported.")
+        if bpy.app.version >= (4, 4, 0):
+            Errors.log(
+                track, 'NO_FCURVES',
+                "The NLA track strip's action doesn't have any animation in\nthe active slot and won't be exported.")
+        else:
+            Errors.log(track, 'NO_FCURVES',
+                       "The NLA track strip's action doesn't have any animation and\nwon't be exported.")
         return False
 
     if not is_unique_action(animation_data, nla_track):
@@ -314,6 +320,7 @@ def is_useable_nla_track(animation_data, nla_track, track):
 def is_usable_action(ob, track):
     action_name = track.name
     action = ob.animation_data.action
+    action_fcurves = None
 
     if action_name == '':
         Errors.log(track, 'FORBIDDEN_NAME', "Action names can't be nothing.")
@@ -339,6 +346,26 @@ def is_usable_action(ob, track):
             # Action strips aren't exposed in anything but the Python API as of Blender 5.0
             Errors.log(track, 'NO_ACTION_STRIPS', "No strips are present in the action layer.")
             return False
+
+        try:
+            active_slot = [slot for slot in action.slots if ob in slot.users()][0]
+            channelbag = action.layers[0].strips[0].channelbag(active_slot)
+            if channelbag:
+                action_fcurves = channelbag.fcurves
+        except IndexError:
+            Errors.log(track, 'NO_ACTIVE_ACTION_SLOT', "No active slot is present in the action.")
+            return False
+    else:
+        action_fcurves = action.fcurves
+
+    if not action_fcurves:
+        if bpy.app.version >= (4, 4, 0):
+            Errors.log(track, 'NO_FCURVES',
+                       "The action doesn't have any animation in\nthe active slot and won't be exported.")
+        else:
+            Errors.log(track, 'NO_FCURVES',
+                       "The action doesn't have any animation and\nwon't be exported.")
+        return False
 
     return True
 
