@@ -699,9 +699,8 @@ class BakeLightmaps(Operator):
                          default=1024,
                          description="The number of samples to use for baking. Higher values reduce noise but take longer.")
     bake_margin: IntProperty(name="Bake Margin",
-                            default=4,
-                            description="How far the lightmaps extends the UV bounds. If you encounter black spots on the lightmap, try increasing this value.")
-
+                             default=4,
+                             description="How far the lightmaps extends the UV bounds. If you encounter black spots on the lightmap, try increasing this value.")
 
     def create_uv_layouts(self, context, mesh_objs):
         # set up UV layer structure. The first layer has to be UV0, the second one LIGHTMAP_LAYER_NAME for the lightmap.
