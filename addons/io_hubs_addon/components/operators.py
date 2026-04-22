@@ -698,6 +698,10 @@ class BakeLightmaps(Operator):
     samples: IntProperty(name="Max Samples",
                          default=1024,
                          description="The number of samples to use for baking. Higher values reduce noise but take longer.")
+    bake_margin: IntProperty(name="Bake Margin",
+                            default=4,
+                            description="How far the lightmaps extends the UV bounds. If you encounter black spots on the lightmap, try increasing this value.")
+
 
     def create_uv_layouts(self, context, mesh_objs):
         # set up UV layer structure. The first layer has to be UV0, the second one LIGHTMAP_LAYER_NAME for the lightmap.
@@ -781,7 +785,7 @@ class BakeLightmaps(Operator):
             # Baking needs to happen without the color pass because we only want the direct and indirect light contributions
             ("scene.render.bake.use_pass_color", False),
             # The should be small because otherwise it could overwrite UV islands
-            ("scene.render.bake.margin", 2)
+            ("scene.render.bake.margin", self.bake_margin)
         ]
         if event.type == 'TIMER':
             if not self.bake_started:
