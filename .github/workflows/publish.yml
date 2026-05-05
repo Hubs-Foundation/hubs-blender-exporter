@@ -89,9 +89,11 @@ jobs:
         if: ${{ !steps.blender_cache.outputs.cache-hit }}
         run: |
           mkdir /opt/blender
-          echo "Downloading: ${{ steps.blender_version.outputs.blender-url }}"
-          curl -SL "${{ steps.blender_version.outputs.blender-url }}" | \
+          echo "Downloading: ${STEPS_BLENDER_VERSION_OUTPUTS_BLENDER_URL}"
+          curl -SL "${STEPS_BLENDER_VERSION_OUTPUTS_BLENDER_URL}" | \
             tar -Jx -C /opt/blender --strip-components=1
+        env:
+          STEPS_BLENDER_VERSION_OUTPUTS_BLENDER_URL: ${{ steps.blender_version.outputs.blender-url }}
       - name: Set up workspace
         run: |
           sudo ln -s /opt/blender/blender /usr/local/bin/blender
