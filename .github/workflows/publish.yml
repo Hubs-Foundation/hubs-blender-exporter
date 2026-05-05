@@ -19,7 +19,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Python Linter
-        uses: weibullguy/python-lint-plus@c1913ebcf442cb2901a919858b0146fef4f007fa
+        uses: weibullguy/python-lint-plus@c1913ebcf442cb2901a919858b0146fef4f007fa # v1.12.0
         with:
           python-root-list: "addons"
           use-black: false
