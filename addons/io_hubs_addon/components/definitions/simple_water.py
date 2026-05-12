@@ -11,7 +11,8 @@ class SimpleWater(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'MOD_FLUIDSIM',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'Display an animated water surface in your scene'
     }
 
     color: FloatVectorProperty(name="Color",

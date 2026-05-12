@@ -12,7 +12,8 @@ class NavMesh(HubsComponent):
         'panel_type': [PanelType.OBJECT],
         'icon': 'GRID',
         'version': (1, 0, 1),
-        'deps': ['visible']
+        'deps': ['visible'],
+        'tooltip': 'Designate this as the mesh that determines where avatars can walk'
     }
 
     @classmethod

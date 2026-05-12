@@ -11,6 +11,7 @@ from .handlers import migrate_components
 from .gizmos import update_gizmos
 from .utils import is_linked, redraw_component_ui
 from ..icons import get_hubs_icons
+from .components_registry import get_component_by_name
 import os
 
 
@@ -52,8 +53,24 @@ class AddHubsComponent(Operator):
                         cls.poll_message_set(
                             "Cannot add components to linked bones")
                     return False
-
         return True
+
+    @classmethod
+    def description(cls, context, properties):
+        component = properties.component_name
+        if component == '':
+            panel_type = None
+            for item in properties.items():
+                _, panel_type = item
+                tooltip = "Add a hubs component to this object" if panel_type == "object" \
+                    else "Add a hubs component to the scene" if panel_type == "scene" \
+                    else "Add a hubs component to this bone" if panel_type == "bone" \
+                    else "Add a hubs component to this material" if panel_type == "material" \
+                    else "Add a hubs component to this material"
+
+            return tooltip
+        component_class = get_component_by_name(component)
+        return component_class.get_tooltip()
 
     def execute(self, context):
         if self.component_name == '':
