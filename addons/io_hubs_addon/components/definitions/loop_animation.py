@@ -229,6 +229,7 @@ def is_matching_track(nla_track_type, nla_track, track):
 
 
 def is_useable_nla_track(animation_data, nla_track, track):
+    # Error checking is handled from top level to bottom level, if something isn't present an error is logged and we return early.  This way we always know that the expected constructs are present, e.g. we verify X is valid, then all checks for properties of X are conducted afterwards and we know they won't crash.
     track_name = nla_track.name
     action_name = get_action_name(nla_track)
 
@@ -249,42 +250,77 @@ def is_useable_nla_track(animation_data, nla_track, track):
                        "Action names can't contain commas or spaces.")
             return False
 
-    if len(nla_track.strips) > 1:
-        Errors.log(track, 'MULTIPLE_STRIPS',
-                   "Only one strip is allowed in the track.")
+    if not nla_track.strips:
+        Errors.log(track, 'NO_NLA_TRACK_STRIPS', "No strips are present in the NLA track.")
         return False
 
-    if not nla_track.strips:
-        Errors.log(track, 'NO_STRIPS', "No strips are present in the track.")
+    if len(nla_track.strips) > 1:
+        Errors.log(track, 'MULTIPLE_NLA_TRACK_STRIPS',
+                   "Only one strip is allowed in the NLA track.")
         return False
 
     if nla_track.strips[0].mute:
-        Errors.log(track, 'MUTED_STRIP',
-                   "The strip is muted and won't export.")
+        Errors.log(track, 'MUTED_NLA_TRACK_STRIP',
+                   "The NLA track strip is muted and won't export.")
         return False
 
     if not action_name:
         Errors.log(track, 'NO_ACTION',
-                   "The strip/track doesn't have an action.")
+                   "The NLA track strip doesn't have an action.")
         return False
 
-    if not nla_track.strips[0].action.fcurves:
-        Errors.log(track, 'NO_FCURVES',
-                   "The strip/track's action doesn't have any animation and\nwon't be exported.")
+    action = nla_track.strips[0].action
+    nla_track_fcurves = None
+    if bpy.app.version >= (4, 4, 0):
+        if not action.slots:
+            Errors.log(track, 'NO_ACTION_SLOTS', "No slots are present in the action.")
+            return False
+
+        if not nla_track.strips[0].action_slot:
+            Errors.log(track, 'NO_ACTION_SLOT_IN_STRIP', "No action slot has been selected for the NLA track strip.")
+            return False
+
+        if not action.layers:
+            # Action layers aren't exposed in anything but the Python API as of Blender 5.0
+            Errors.log(track, 'NO_ACTION_LAYERS',
+                       "The action doesn't have any layers.\nDid you forget to add any keyframes to the action?")
+            return False
+
+        if not action.layers[0].strips:
+            # Action strips aren't exposed in anything but the Python API as of Blender 5.0
+            Errors.log(track, 'NO_ACTION_STRIPS', "No strips are present in the action layer.")
+            return False
+
+        channelbag = action.layers[0].strips[0].channelbag(nla_track.strips[0].action_slot)
+        if channelbag:
+            nla_track_fcurves = channelbag.fcurves
+    else:
+        nla_track_fcurves = action.fcurves
+
+    if not nla_track_fcurves:
+        if bpy.app.version >= (4, 4, 0):
+            Errors.log(
+                track, 'NO_FCURVES',
+                "The NLA track strip's action doesn't have any animation in\nthe active slot and won't be exported.")
+        else:
+            Errors.log(track, 'NO_FCURVES',
+                       "The NLA track strip's action doesn't have any animation and\nwon't be exported.")
         return False
 
     if not is_unique_action(animation_data, nla_track):
         Errors.log(
             track, 'NON_UNIQUE_ACTION',
-            "This strip/track contains an action that is present in multiple\nstrips/tracks on this object and may not export correctly.",
+            "The NLA track strip contains an action that is present within\nmultiple NLA tracks on this object and may not export correctly.",
             severity="Warning")
         return False
 
     return True
 
 
-def is_usable_action(track):
+def is_usable_action(ob, track):
     action_name = track.name
+    action = ob.animation_data.action
+    action_fcurves = None
 
     if action_name == '':
         Errors.log(track, 'FORBIDDEN_NAME', "Action names can't be nothing.")
@@ -295,11 +331,47 @@ def is_usable_action(track):
         Errors.log(track, 'FORBIDDEN_NAME', "Custom action names can't contain commas or spaces.")
         return False
 
+    if bpy.app.version >= (4, 4, 0):
+        if not action.slots:
+            Errors.log(track, 'NO_ACTION_SLOTS', "No slots are present in the action.")
+            return False
+
+        if not action.layers:
+            # Action layers aren't exposed in anything but the Python API as of Blender 5.0
+            Errors.log(track, 'NO_ACTION_LAYERS',
+                       "The action doesn't have any layers.\nDid you forget to add any keyframes to the action?")
+            return False
+
+        if not action.layers[0].strips:
+            # Action strips aren't exposed in anything but the Python API as of Blender 5.0
+            Errors.log(track, 'NO_ACTION_STRIPS', "No strips are present in the action layer.")
+            return False
+
+        try:
+            active_slot = [slot for slot in action.slots if ob in slot.users()][0]
+            channelbag = action.layers[0].strips[0].channelbag(active_slot)
+            if channelbag:
+                action_fcurves = channelbag.fcurves
+        except IndexError:
+            Errors.log(track, 'NO_ACTIVE_ACTION_SLOT', "No active slot is present in the action.")
+            return False
+    else:
+        action_fcurves = action.fcurves
+
+    if not action_fcurves:
+        if bpy.app.version >= (4, 4, 0):
+            Errors.log(track, 'NO_FCURVES',
+                       "The action doesn't have any animation in\nthe active slot and won't be exported.")
+        else:
+            Errors.log(track, 'NO_FCURVES',
+                       "The action doesn't have any animation and\nwon't be exported.")
+        return False
+
     return True
 
 
 def is_valid_regular_action(ob, track):
-    if ob.animation_data and ob.animation_data.action and is_usable_action(track):
+    if ob.animation_data and ob.animation_data.action and is_usable_action(ob, track):
         action = ob.animation_data.action
         return not action_has_nla_track(ob, action) and track.name == action.name
     return False
@@ -353,12 +425,16 @@ def is_valid_shape_key_track(ob, track):
     return False
 
 
-def get_animation_name(ob, track):
+def get_animation_name(ob, track, export_settings):
     if is_valid_regular_action(ob, track) or is_valid_shape_key_action(ob, track):
         return track.name
     elif is_valid_regular_nla_track(ob, track) or is_valid_shape_key_nla_track(ob, track):
-        return track.track_name if not is_default_name(
-            track.track_name) else track.action_name
+        if bpy.app.version >= (4, 4, 0) and export_settings['gltf_animation_mode'] == 'ACTIONS':
+            nla_track = ob.animation_data.nla_tracks.get(track.track_name)
+            return nla_track.strips[0].action.name
+        else:
+            return track.track_name if not is_default_name(
+                track.track_name) else track.action_name
     else:
         return track.name
 
@@ -820,7 +896,7 @@ class LoopAnimation(HubsComponent):
     def gather(self, export_settings, object):
         final_track_names = []
         for track in object.hubs_component_loop_animation.tracks_list.values():
-            final_track_names.append(get_animation_name(object, track))
+            final_track_names.append(get_animation_name(object, track, export_settings))
 
         fps = bpy.context.scene.render.fps / bpy.context.scene.render.fps_base
 
