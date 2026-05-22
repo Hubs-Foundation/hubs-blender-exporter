@@ -9,16 +9,19 @@ const OUT_PREFIX = process.env.OUT_PREFIX || '../tests_out';
 process.env['BLENDER_USER_SCRIPTS'] = path.join(process.cwd(), '..');
 
 const blenderVersions = (() => {
-  if (process.platform == 'darwin') {
+  if (process.platform === 'darwin') {
     return [
-      "/Applications/Blender.app/Contents/MacOS/Blender"
+      process.env.BLENDER_PATH || "/Applications/Blender.app/Contents/MacOS/Blender"
+    ];
+  } else if (process.platform === 'linux') {
+    return [
+      process.env.BLENDER_PATH || "blender"
     ];
   }
-  else if (process.platform == 'linux') {
-    return [
-      "blender"
-    ];
-  }
+
+  return [
+    process.env.BLENDER_PATH || "blender"
+  ];
 })();
 
 const basePath = path.join(__dirname);
