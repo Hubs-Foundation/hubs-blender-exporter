@@ -57,7 +57,8 @@ class MediaFrame(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'OBJECT_DATA',
         'deps': ['networked'],
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'Define an area that will reposition and resize in-room media objects when they are placed within it.'
     }
 
     mediaType: EnumProperty(

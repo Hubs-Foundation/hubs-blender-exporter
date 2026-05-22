@@ -16,7 +16,8 @@ class Video(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'deps': ['networked', 'audio-params'],
         'icon': 'FILE_MOVIE',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'Play a video from a URL'
     }
 
     src: StringProperty(

@@ -11,7 +11,8 @@ class Fog(HubsComponent):
         'node_type': NodeType.SCENE,
         'panel_type': [PanelType.SCENE],
         'icon': 'MOD_OCEAN',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'Add fog to the scene'
     }
 
     def draw(self, context, layout, panel):

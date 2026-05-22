@@ -11,7 +11,8 @@ class UVScroll(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT],
         'icon': 'TEXTURE_DATA',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'Scroll the UVs of a material, generating an infinite scrolling effect'
     }
 
     speed: FloatVectorProperty(name="Speed",

@@ -16,7 +16,8 @@ class Image(HubsComponent):
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'FILE_IMAGE',
         'deps': ['networked'],
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': 'Display an image from a URL'
     }
 
     src: StringProperty(
