@@ -148,6 +148,12 @@ class glTF2ExportUserExtension:
     def gather_gltf_extensions_hook(self, gltf2_plan, export_settings):
         self.hubs_gather_gltf_hook(gltf2_plan, export_settings)
 
+    def gather_asset_hook(self, asset, export_settings):
+        props = bpy.context.scene.HubsComponentsExtensionProperties
+
+        if props.original_generator:
+            asset.generator = f"{props.original_generator}; re-exported by {asset.generator}"
+
     def gather_scene_hook(self, gltf2_object, blender_scene, export_settings):
         if not self.properties.enabled:
             return
@@ -238,6 +244,12 @@ class HubsComponentsExtensionProperties(bpy.types.PropertyGroup):
         default=True
     )
 
+    original_generator: bpy.props.StringProperty(
+        name="Original Generator",
+        description='Allows you to specify what the original generator was when re-exporting a GLB',
+        default=""
+    )
+
 
 class HubsGLTFExportPanel(bpy.types.Panel):
 
@@ -271,7 +283,7 @@ class HubsGLTFExportPanel(bpy.types.Panel):
         layout.active = props.enabled
 
         box = layout.box()
-        box.label(text="No options yet")
+        box.prop(props, 'original_generator')
 
 
 def register():
