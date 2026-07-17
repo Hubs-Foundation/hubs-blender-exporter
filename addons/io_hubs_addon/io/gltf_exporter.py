@@ -169,7 +169,6 @@ class glTF2ExportUserExtension:
             # The glTF add-on in Blender 5.2+ no longer passes the actual Blender material, so we need to look it up ourselves
             blender_material = bpy.data.materials[gltf2_object.name]
 
-        blender_material = bpy.data.materials[gltf2_object.name]
         self.export_hubs_components(
             gltf2_object, blender_material, export_settings)
 
