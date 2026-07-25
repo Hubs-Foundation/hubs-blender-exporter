@@ -165,6 +165,10 @@ class glTF2ExportUserExtension:
         if not self.properties.enabled:
             return
 
+        if bpy.app.version >= (5, 2, 0):
+            # The glTF add-on in Blender 5.2+ no longer passes the actual Blender material, so we need to look it up ourselves
+            blender_material = bpy.data.materials[gltf2_object.name]
+
         self.export_hubs_components(
             gltf2_object, blender_material, export_settings)
 
@@ -180,6 +184,10 @@ class glTF2ExportUserExtension:
                 )
 
     def gather_material_unlit_hook(self, gltf2_object, blender_material, export_settings):
+        if bpy.app.version >= (5, 2, 0):
+            # The glTF add-on in Blender 5.2+ no longer passes the actual Blender material, so we need to look it up ourselves
+            blender_material = bpy.data.materials[gltf2_object.name]
+
         self.gather_material_hook(
             gltf2_object, blender_material, export_settings)
 
