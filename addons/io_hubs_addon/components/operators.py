@@ -702,8 +702,12 @@ class BakeLightmaps(Operator):
                              default=4,
                              description="How far the lightmaps extends the UV bounds. If you encounter black spots on the lightmap, try increasing this value.")
 
+    # Handler method to catch when bake is done.
+    def bake_complete_handler(self, context, scene):
+        self.done = True
+
     def create_uv_layouts(self, context, mesh_objs):
-        # set up UV layer structure. The first layer has to be UV0, the second one LIGHTMAP_LAYER_NAME for the lightmap.
+        # Set up UV layer structure. The first layer has to be UV0, the second one LIGHTMAP_LAYER_NAME for the lightmap.
         for obj in mesh_objs:
             obj_uv_layers = obj.data.uv_layers
             # Check whether there are any UV layers and if not, create the two that are required.
@@ -765,8 +769,15 @@ class BakeLightmaps(Operator):
         return objs_to_uv_unwrap
 
     def execute(self, context):
-        # This function manages the handler that will run over and over
+        # This function manages the handler that will run over and over.
+        # First reset state flags.
+        self.done = False
+        self.bake_started = False
         self.saved_props = {}
+        # Then attach the bake complete handler to Blender's app handlers.
+        if self.bake_complete_handler not in bpy.app.handlers.object_bake_complete:
+            bpy.app.handlers.object_bake_complete.append(self.bake_complete_handler)
+        
         self._timer = context.window_manager.event_timer_add(
             0.5, window=context.window)
         context.window_manager.modal_handler_add(self)
@@ -820,26 +831,33 @@ class BakeLightmaps(Operator):
                     # return to old selection state
                     for ob in self.selected_objects:
                         ob.select_set(True)
+
+                    # Clean up timer and bake complete handler
+                    if self.bake_complete_handler in bpy.app.handlers.object_bake_complete:
+                        bpy.app.handlers.object_bake_complete.remove(self.bake_complete_handler)
+                    context.window_manager.event_timer_remove(self._timer)
+
                     return {'CANCELLED'}
 
                 objs_to_uv_unwrap = self.gather_objects_to_unwrap(material_object_associations)
-
                 self.create_uv_layouts(context, objs_to_uv_unwrap)
-
                 self.lightmap_texture_nodes = self.get_lightmap_texture_nodes(material_object_associations)
 
                 # Re-select all the objects that need baking before running the operator
                 for ob in mesh_objs:
                     ob.select_set(True)
-                # store all properties that would be changed, then override them
+                # Store all properties that would be changed, then override them.
                 for (prop, value) in overrides:
                     if prop not in self.saved_props:
                         self.saved_props[prop] = rgetattr(bpy.context, prop)
                     rsetattr(bpy.context, prop, value)
+                # Start the bake process.
                 bpy.ops.object.bake('INVOKE_DEFAULT', type='DIFFUSE')
                 self.bake_started = True
+                # Remain in modal state while baking.
                 return {"PASS_THROUGH"}
-            else:
+            # We only enter this block if the bake_complete_handler has flipped self.done to True.
+            elif self.done:
                 # Pack all newly created or updated images
                 for node in self.lightmap_texture_nodes:
                     file_path = bpy.path.abspath(f"{bpy.app.tempdir}/{node.image.name}.{self.image_type.lower()}")
@@ -863,11 +881,20 @@ class BakeLightmaps(Operator):
                 # return to old settings
                 for prop in self.saved_props:
                     rsetattr(bpy.context, prop, self.saved_props[prop])
+
                 # context.selected_objects is not writable so we have to set the selection state on each individual object
                 for ob in self.selected_objects:
                     ob.select_set(True)
+
+                # Clean up handlers and timer
+                if self.bake_complete_handler in bpy.app.handlers.object_bake_complete:
+                    bpy.app.handlers.object_bake_complete.remove(self.bake_complete_handler)
+                context.window_manager.event_timer_remove(self._timer)
+
+                self.report({'INFO'}, "Baking Hubs lightmaps completed successfully!")
                 return {"FINISHED"}
 
+        # If self.bake_started is True but self.done is false, just wait.
         return {'PASS_THROUGH'}
 
     def invoke(self, context, event):
