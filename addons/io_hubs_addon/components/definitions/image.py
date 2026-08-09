@@ -62,6 +62,14 @@ class Image(HubsComponent):
 
         return migration_occurred
 
+    def pre_export(self, export_settings, host, ob=None):
+        warnings = []
+
+        if hasattr(self, "src") and not self.src:
+            warnings.append(f"{host.name}: Image component missing source")
+
+        return warnings
+
     @classmethod
     def update_gizmo(cls, ob, bone, target, gizmo):
         if bone:
