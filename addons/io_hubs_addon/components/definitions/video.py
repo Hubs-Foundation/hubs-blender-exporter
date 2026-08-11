@@ -19,6 +19,15 @@ class Video(HubsComponent):
         'version': (1, 0, 0)
     }
 
+    def pre_export(self, export_settings, host, ob=None):
+        warnings = []
+
+        # Validate that a video source is provided
+        if not self.src or self.src.strip() == "":
+            warnings.append(f"{host.name}: Video component missing source URL")
+
+        return warnings
+
     src: StringProperty(
         name="Video URL", description="The web address of the video", default='https://example.org/VideoFile.webm')
 
