@@ -25,28 +25,33 @@ bl_info = {
 create_prefs_dir()
 
 
-# Blender 4.2+ glTF Extension Import/Export Settings Panel
-def draw(context, layout):
-    layout_header, layout_body = layout.panel('HBA_PT_Import_Export_Panel', default_closed=True)
-    sfile = context.space_data
-    operator = sfile.active_operator
+# Blender 4.2+ glTF Extension Import/Export Settings Panels
+def draw_import_settings(context, layout):
+    layout_header, layout_body = layout.panel('HBA_PT_Import_Panel', default_closed=True)
 
     # Panel Header
-    if operator.bl_idname == "EXPORT_SCENE_OT_gltf":
-        props = bpy.context.scene.HubsComponentsExtensionProperties
-    elif operator.bl_idname == "IMPORT_SCENE_OT_gltf":
-        props = bpy.context.scene.HubsComponentsExtensionImportProperties
-
+    props = bpy.context.scene.HubsComponentsExtensionImportProperties
     layout_header.use_property_split = False
     layout_header.prop(props, 'enabled', text="")
     layout_header.label(text="Hubs Components")
 
     # Panel Body
     if layout_body:
-        if operator.bl_idname == "EXPORT_SCENE_OT_gltf":
-            gltf_exporter.HubsGLTFExportPanel.draw_body(context, layout_body)
-        elif operator.bl_idname == "IMPORT_SCENE_OT_gltf":
-            gltf_importer.HubsGLTFImportPanel.draw_body(context, layout_body)
+        gltf_importer.HubsGLTFImportPanel.draw_body(context, layout_body)
+
+
+def draw_export_settings(context, layout):
+    layout_header, layout_body = layout.panel('HBA_PT_Export_Panel', default_closed=True)
+
+    # Panel Header
+    props = bpy.context.scene.HubsComponentsExtensionProperties
+    layout_header.use_property_split = False
+    layout_header.prop(props, 'enabled', text="")
+    layout_header.label(text="Hubs Components")
+
+    # Panel Body
+    if layout_body:
+        gltf_exporter.HubsGLTFExportPanel.draw_body(context, layout_body)
 
 
 def register():
@@ -59,6 +64,15 @@ def register():
     panels.register_panels()
     third_party.register()
     debugger.register()
+
+    # Register the glTF Extension Import and Export Settings Panels in Blender 4.2+
+    if bpy.app.version >= (4, 2, 0):
+        from io_scene_gltf2 import (
+            exporter_extension_layout_draw,
+            importer_extension_layout_draw
+        )
+        importer_extension_layout_draw[bl_info["name"]] = draw_import_settings
+        exporter_extension_layout_draw[bl_info["name"]] = draw_export_settings
 
     # Migrate components if the add-on is enabled in the middle of a session.
     if bpy.context.preferences.is_dirty:
@@ -79,6 +93,15 @@ def unregister():
     preferences.unregister()
     debugger.unregister()
     icons.unregister()
+
+    # Unregister the glTF Extension Import and Export Settings Panels in Blender 4.2+
+    if bpy.app.version >= (4, 2, 0):
+        from io_scene_gltf2 import (
+            exporter_extension_layout_draw,
+            importer_extension_layout_draw
+        )
+        del exporter_extension_layout_draw[bl_info["name"]]
+        del importer_extension_layout_draw[bl_info["name"]]
 
 
 # called by gltf-blender-io after it has loaded
