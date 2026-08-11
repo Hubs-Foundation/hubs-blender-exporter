@@ -20,6 +20,8 @@ Ensure the Hubs add-on is checked and enabled.
 
 <img width="494" alt="hubs blender add-on installed" src="https://user-images.githubusercontent.com/4493657/102956859-c9b39880-448d-11eb-9f02-2f529f14c139.png">
 
+Supported Blender versions: 3.6 - 5.1
+
 # Adding Components
 
 To add components, go to the "Hubs" section of the properties panel for the thing you want to add a component to. Currently adding components is supported on Scenes, Objects, Bones, and Materials.
