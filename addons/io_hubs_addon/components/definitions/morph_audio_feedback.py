@@ -66,7 +66,8 @@ class MorphAudioFeedback(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT],
         'icon': 'MOD_SMOOTH',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': "Use the user's transmitted audio to animate a shape key on the avatar. Larger numbers cause more movement"
     }
 
     name: StringProperty(

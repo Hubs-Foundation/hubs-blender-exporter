@@ -13,7 +13,8 @@ class DirectionalLight(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'LIGHT_SUN',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': "Emit parallel light in a specific direction, like how the sun's rays appear on Earth",
     }
 
     color: FloatVectorProperty(name="Color",

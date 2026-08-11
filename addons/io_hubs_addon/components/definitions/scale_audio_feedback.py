@@ -11,7 +11,8 @@ class ScaleAudioFeedback(HubsComponent):
         'node_type': NodeType.NODE,
         'panel_type': [PanelType.OBJECT, PanelType.BONE],
         'icon': 'GRAPH',
-        'version': (1, 0, 0)
+        'version': (1, 0, 0),
+        'tooltip': "Use the user's transmitted audio to animate the scale of an object or bone in the avatar. Larger numbers cause more movement"
     }
 
     minScale: FloatProperty(name="Min Scale",
