@@ -23,6 +23,7 @@ def patched_gather_gltf(exporter, export_settings):
 
 EXTENSION_NAME = HUBS_CONFIG["gltfExtensionName"]
 EXTENSION_VERSION = HUBS_CONFIG["gltfExtensionVersion"]
+OFFSET_ARMATURE_OBJECTS = {}
 
 
 def get_version_string():
@@ -37,6 +38,7 @@ def export_callback(callback_method, export_settings):
     # because a name change will cause Blender to update the host lists in
     # mid iteration and so multiple callbacks could be executed for the same
     # component/host.
+    hubs_export_props = bpy.context.scene.HubsComponentsExtensionProperties
 
     for scene in bpy.data.scenes[:]:
         for component in get_host_components(scene):
@@ -55,6 +57,8 @@ def export_callback(callback_method, export_settings):
                 traceback.print_exc()
 
         if ob.type == 'ARMATURE':
+            if hubs_export_props.fix_offset_armature_animation:
+                fix_offset_armature_animation(callback_method, ob)
             for bone in ob.data.bones[:]:
                 for component in get_host_components(bone):
                     component_callback = getattr(component, callback_method)
@@ -81,6 +85,7 @@ def glTF2_pre_export_callback(export_settings):
         from io_scene_gltf2.blender.com.gltf2_blender_extras import BLACK_LIST
 
     BLACK_LIST.extend(glTF2ExportUserExtension.EXCLUDED_PROPERTIES)
+    OFFSET_ARMATURE_OBJECTS.clear()
     export_callback("pre_export", export_settings)
 
 
@@ -93,9 +98,34 @@ def glTF2_post_export_callback(export_settings):
         from io_scene_gltf2.blender.com.gltf2_blender_extras import BLACK_LIST
 
     export_callback("post_export", export_settings)
+    OFFSET_ARMATURE_OBJECTS.clear()
     for excluded_prop in glTF2ExportUserExtension.EXCLUDED_PROPERTIES:
         if excluded_prop in BLACK_LIST:
             BLACK_LIST.remove(excluded_prop)
+
+
+def fix_offset_armature_animation(callback_method, armature_ob):
+    if not any(armature_ob.matrix_world.to_translation()):
+        return
+
+    if callback_method == "pre_export":
+        for child_ob in armature_ob.children:
+            # unparent the child object but keep its transformation
+            orig_matrix_world = child_ob.matrix_world.copy()
+            child_ob.parent = None
+            child_ob.matrix_world = orig_matrix_world
+
+            # store the child object for reparenting after the export is finished
+            if armature_ob not in OFFSET_ARMATURE_OBJECTS:
+                OFFSET_ARMATURE_OBJECTS[armature_ob] = []
+            OFFSET_ARMATURE_OBJECTS[armature_ob].append(child_ob)
+
+    else:
+        for child_ob in OFFSET_ARMATURE_OBJECTS[armature_ob]:
+            # reparent the child object and keep its transformation
+            orig_matrix_world = child_ob.matrix_world.copy()
+            child_ob.parent = armature_ob
+            child_ob.matrix_world = orig_matrix_world
 
 
 # This class name is specifically looked for by gltf-blender-io and it's hooks are automatically invoked on export
@@ -245,6 +275,10 @@ class HubsComponentsExtensionProperties(bpy.types.PropertyGroup):
         description='Include this extension in the exported glTF file',
         default=True
     )
+    fix_offset_armature_animation: bpy.props.BoolProperty(
+        name="Fix Offset Armature Animation",
+        description='Fixes the animation for non-centered armature animation driven objects by unparenting the objects before export (objects are automatically reparented afterward)',
+        default=True)
 
 
 class HubsGLTFExportPanel(bpy.types.Panel):
@@ -279,7 +313,7 @@ class HubsGLTFExportPanel(bpy.types.Panel):
         layout.active = props.enabled
 
         box = layout.box()
-        box.label(text="No options yet")
+        box.prop(props, "fix_offset_armature_animation")
 
 
 def register():
