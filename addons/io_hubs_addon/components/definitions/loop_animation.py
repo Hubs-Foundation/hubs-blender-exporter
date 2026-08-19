@@ -953,6 +953,15 @@ class LoopAnimation(HubsComponent):
             if property_name == 'clip' and property_value != "":
                 tracks = property_value.split(",")
                 import_tracks(tracks, blender_ob, blender_component)
+            elif property_name == 'activeClipIndex':
+                # Importing from Spoke
+                tracks = [gltf.data.animations[property_value].name]
+                import_tracks(tracks, blender_ob, blender_component)
+            elif property_name == 'activeClipIndices':
+                # Importing from Spoke
+                for index in property_value:
+                    tracks = [gltf.data.animations[index].name]
+                    import_tracks(tracks, blender_ob, blender_component)
             else:
                 if property_name == 'startOffset':
                     fps = bpy.context.scene.render.fps / bpy.context.scene.render.fps_base
