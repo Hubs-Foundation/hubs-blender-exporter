@@ -53,5 +53,6 @@ class Spawner(HubsComponent):
                 setattr(blender_component, "applyGravity",
                         property_value["applyGravity"])
             else:
-                assign_property(gltf.vnodes, blender_component,
-                                property_name, property_value)
+                assign_property(gltf.vnodes,
+                                blender_host, blender_component,
+                                property_name, property_value, import_report)

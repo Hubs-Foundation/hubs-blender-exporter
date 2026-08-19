@@ -12,10 +12,12 @@ class BoxCollider(HubsComponent):
     @classmethod
     def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
         blender_component = import_component('ammo-shape', blender_host)
-        assign_property(gltf.vnodes, blender_component,
-                        "type", 'box')
-        assign_property(gltf.vnodes, blender_component,
-                        "fit", 'manual')
+        assign_property(gltf.vnodes,
+                        blender_host, blender_component,
+                        "type", 'box', import_report)
+        assign_property(gltf.vnodes,
+                        blender_host, blender_component,
+                        "fit", 'manual', import_report)
 
         # These settings don't get applied when set as normal here, so use a timer to set them later.
         def set_half_extents_and_offsets():

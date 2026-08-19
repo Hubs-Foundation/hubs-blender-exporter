@@ -170,9 +170,11 @@ class EnvironmentSettings(HubsComponent):
         for property_name, property_value in component_value.items():
             if property_name == "bloom":
                 for subproperty_name, subproperty_value in property_value.items():
-                    assign_property(gltf.vnodes, component,
+                    assign_property(gltf.vnodes,
+                                    blender_host, component,
                                     f"bloom{subproperty_name.capitalize()}",
-                                    subproperty_value)
+                                    subproperty_value, import_report)
             else:
-                assign_property(gltf.vnodes, component,
-                                property_name, property_value)
+                assign_property(gltf.vnodes,
+                                blender_host, component,
+                                property_name, property_value, import_report)

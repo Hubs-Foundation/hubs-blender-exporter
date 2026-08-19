@@ -958,8 +958,9 @@ class LoopAnimation(HubsComponent):
                     fps = bpy.context.scene.render.fps / bpy.context.scene.render.fps_base
                     property_value = round(property_value * fps)
 
-                assign_property(gltf.vnodes, blender_component,
-                                property_name, property_value)
+                assign_property(gltf.vnodes,
+                                blender_host, blender_component,
+                                property_name, property_value, import_report, blender_ob=blender_ob)
 
     def migrate(self, migration_type, panel_type, instance_version, host, migration_report, ob=None):
         migration_occurred = False

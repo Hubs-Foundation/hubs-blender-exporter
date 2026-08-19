@@ -238,5 +238,6 @@ class Text(HubsComponent):
                 if type(property_value) is int or type(property_value) is float:
                     property_value = str(property_value)
 
-            assign_property(gltf.vnodes, blender_component,
-                            property_name, property_value)
+            assign_property(gltf.vnodes,
+                            blender_host, blender_component,
+                            property_name, property_value, import_report)

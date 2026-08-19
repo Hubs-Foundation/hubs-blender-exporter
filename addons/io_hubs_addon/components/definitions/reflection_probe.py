@@ -776,8 +776,9 @@ class ReflectionProbe(HubsComponent):
         # Import the component
         component = import_component(component_name, lightprobe_object)
         lightprobe_data.influence_distance = component_value["size"]
-        assign_property(gltf.vnodes, component,
-                        "envMapTexture", component_value["envMapTexture"])
+        assign_property(gltf.vnodes,
+                        blender_host, component,
+                        "envMapTexture", component_value["envMapTexture"], import_report)
 
     @classmethod
     def draw_global(cls, context, layout, panel):
