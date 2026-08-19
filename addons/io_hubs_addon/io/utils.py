@@ -141,6 +141,10 @@ def gather_image(blender_image, export_settings):
     name, _extension = os.path.splitext(
         os.path.basename(blender_image.filepath))
 
+    if not name:
+        # No filepath was set, so fall back to using the image datablock's name.  This likely means we are dealing with an image that was imported from a glTF file.
+        name = blender_image.name
+
     if export_settings["gltf_image_format"] == "AUTO":
         if blender_image.file_format == "HDR":
             mime_type = "image/vnd.radiance"
