@@ -26,9 +26,8 @@ EXTENSION_VERSION = HUBS_CONFIG["gltfExtensionVersion"]
 
 
 def get_version_string():
-    from .. import (bl_info)
-    info = bl_info['version']
-    return f"{info[0]}.{info[1]}.{info[2]}"
+    from .. import ADDON_VERSION
+    return ".".join(map(str, ADDON_VERSION))
 
 
 def export_callback(callback_method, export_settings):

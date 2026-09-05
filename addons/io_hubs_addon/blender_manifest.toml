@@ -1,0 +1,24 @@
+schema_version = "1.0.0"
+
+id = "io_hubs_addon"
+version = "1.8.0"
+name = "Hubs Blender Addon"
+tagline = "Tools for developing glTF assets for Hubs"
+maintainer = "The Hubs Community"
+
+type = "add-on"
+
+website = "https://github.com/Hubs-Foundation/hubs-blender-exporter"
+
+blender_version_min = "4.2.0"
+
+license = [
+    "SPDX:GPL-3.0-or-later",
+]
+
+[build]
+paths_exclude_pattern = [
+    "__pycache__/",
+    "*.pyc",
+    "*.zip",
+]
