@@ -44,6 +44,11 @@ This addon works in conjunction with the official glTF add-on, so exporting is d
 
 ![gltf export window](https://user-images.githubusercontent.com/130735/84547591-be9ad700-acb8-11ea-8c58-7b1104f0a3a7.png)
 
+## Options
+
+- Fix Offset Armature Animation
+  - Fixes the animation for non-centered armature animation driven objects by unparenting the objects before export (objects are automatically reparented afterward)
+
 # Import into Hubs
 
 The easiest way to use your scene file is through the Spoke project creation page and selecting _Import From Blender_:
