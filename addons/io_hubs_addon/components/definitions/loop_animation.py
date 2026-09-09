@@ -196,10 +196,11 @@ def has_action(tracks_list, action, invalid_action=None):
 
 def action_has_nla_track(ob, action):
     nla_tracks_with_action = []
-    for nla_track in ob.animation_data.nla_tracks:
-        track_action_name = get_action_name(nla_track)
-        if track_action_name == action.name:
-            nla_tracks_with_action.append(nla_track.name)
+    if ob.animation_data:
+        for nla_track in ob.animation_data.nla_tracks:
+            track_action_name = get_action_name(nla_track)
+            if track_action_name == action.name:
+                nla_tracks_with_action.append(nla_track.name)
     if hasattr(ob.data, 'shape_keys') and ob.data.shape_keys and ob.data.shape_keys.animation_data:
         for nla_track in ob.data.shape_keys.animation_data.nla_tracks:
             track_action_name = get_action_name(nla_track)
@@ -317,9 +318,9 @@ def is_useable_nla_track(animation_data, nla_track, track):
     return True
 
 
-def is_usable_action(ob, track):
+def is_usable_action(ob, animation_data, track):
     action_name = track.name
-    action = ob.animation_data.action
+    action = animation_data.action
     action_fcurves = None
 
     if action_name == '':
@@ -347,14 +348,12 @@ def is_usable_action(ob, track):
             Errors.log(track, 'NO_ACTION_STRIPS', "No strips are present in the action layer.")
             return False
 
-        try:
-            active_slot = [slot for slot in action.slots if ob in slot.users()][0]
-            channelbag = action.layers[0].strips[0].channelbag(active_slot)
-            if channelbag:
-                action_fcurves = channelbag.fcurves
-        except IndexError:
+        if not animation_data.action_slot:
             Errors.log(track, 'NO_ACTIVE_ACTION_SLOT', "No active slot is present in the action.")
             return False
+
+        channelbag = action.layers[0].strips[0].channelbag(animation_data.action_slot)
+        action_fcurves = channelbag.fcurves if channelbag else None
     else:
         action_fcurves = action.fcurves
 
@@ -371,9 +370,11 @@ def is_usable_action(ob, track):
 
 
 def is_valid_regular_action(ob, track):
-    if ob.animation_data and ob.animation_data.action and is_usable_action(ob, track):
-        action = ob.animation_data.action
-        return not action_has_nla_track(ob, action) and track.name == action.name
+    if ob.animation_data and ob.animation_data.action:
+        animation_data = ob.animation_data
+        if is_usable_action(ob, animation_data, track):
+            action = animation_data.action
+            return not action_has_nla_track(ob, action) and track.name == action.name
     return False
 
 
@@ -399,8 +400,9 @@ def is_valid_regular_track(ob, track):
 
 def is_valid_shape_key_action(ob, track):
     if hasattr(ob.data, 'shape_keys') and ob.data.shape_keys and ob.data.shape_keys.animation_data.action:
-        if is_usable_action(track):
-            action = ob.data.shape_keys.animation_data.action
+        animation_data = ob.data.shape_keys.animation_data
+        if is_usable_action(ob, animation_data, track):
+            action = animation_data.action
             return not action_has_nla_track(ob, action) and track.name == action.name
     return False
 
