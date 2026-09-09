@@ -136,5 +136,6 @@ class AudioSettings(HubsComponent):
         for property_name, property_value in component_value.items():
             if property_name in ['mediaConeInnerAngle', 'mediaConeOuterAngle']:
                 property_value = radians(property_value)
-            assign_property(gltf.vnodes, component,
-                            property_name, property_value)
+            assign_property(gltf.vnodes,
+                            blender_host, component,
+                            property_name, property_value, import_report)

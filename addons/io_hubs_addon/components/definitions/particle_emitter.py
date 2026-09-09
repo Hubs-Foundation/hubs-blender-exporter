@@ -188,5 +188,6 @@ class ParticleEmitter(HubsComponent):
             if property_name in ['startVelocity', 'endVelocity'] and gltf_yup:
                 property_value['y'], property_value['z'] = property_value['z'], property_value['y']
 
-            assign_property(gltf.vnodes, blender_component,
-                            property_name, property_value)
+            assign_property(gltf.vnodes,
+                            blender_host, blender_component,
+                            property_name, property_value, import_report)

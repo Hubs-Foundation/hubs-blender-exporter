@@ -184,5 +184,6 @@ class AudioTarget(HubsComponent):
             if property_name == "srcNode" and type(property_value) is int:
                 # This srcNode property was generated from an older version of the exporter which stored the index directly as an integer.
                 property_value = {"__mhc_link_type": "node", "index": property_value}
-            assign_property(gltf.vnodes, component,
-                            property_name, property_value)
+            assign_property(gltf.vnodes,
+                            blender_host, component,
+                            property_name, property_value, import_report)

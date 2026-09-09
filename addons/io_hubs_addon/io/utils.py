@@ -517,7 +517,18 @@ def set_color_from_hex(blender_component, property_name, hexcolor):
         getattr(blender_component, property_name)[x] = rgb_float
 
 
-def assign_property(vnodes, blender_component, property_name, property_value):
+def assign_property(
+        vnodes, blender_host, blender_component, property_name, property_value, import_report, blender_ob=None):
+    if not hasattr(blender_component, property_name):
+        from ..components.utils import get_host_reference_message  # imported here to prevent a circular import
+        blender_component_name = blender_component.get_name()
+        panel_type = get_panel_type_from_host(blender_host)
+        host_reference = get_host_reference_message(panel_type, blender_host, ob=blender_ob)
+        warning = f"Warning: Could not assign property \"{property_name}\" to component \"{blender_component_name}\" on the {panel_type.value} {host_reference}"
+        import_report.append(warning)
+        print(warning)
+        return
+
     if isinstance(property_value, dict):
         if property_value.get('__mhc_link_type'):
             if len(property_value) == 2:
@@ -548,6 +559,16 @@ def assign_property(vnodes, blender_component, property_name, property_value):
         set_color_from_hex(blender_component, property_name, property_value)
 
     else:
-        if not hasattr(blender_component, property_name):
-            return
         setattr(blender_component, property_name, property_value)
+
+
+def get_panel_type_from_host(host):
+    from ..components.types import PanelType  # imported here to prevent a circular import
+    if type(host) in [bpy.types.Bone, bpy.types.EditBone, bpy.types.PoseBone]:
+        return PanelType.BONE
+    elif type(host) is bpy.types.Scene:
+        return PanelType.SCENE
+    elif type(host) is bpy.types.Material:
+        return PanelType.MATERIAL
+    else:
+        return PanelType.OBJECT
