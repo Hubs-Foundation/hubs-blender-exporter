@@ -132,7 +132,7 @@ jobs:
       - name: Get version
         id: get_version
         run: |
-          VERSION=$(grep '"version"' $GITHUB_WORKSPACE/addons/io_hubs_addon/__init__.py | sed -E 's/.*\(([0-9]+), ([0-9]+), ([0-9]+), ([0-9]+)\).*/\1.\2.\3.\4/')
+          VERSION=$(grep '"version"' $GITHUB_WORKSPACE/addons/io_hubs_addon/__init__.py | sed -E 's/.*\((.*)\).*/\1/' | sed -E 's/\"//g' | sed -E 's/\,\s*/./g')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
       - name: Upload addon artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
