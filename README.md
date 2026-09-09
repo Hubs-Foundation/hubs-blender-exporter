@@ -48,6 +48,8 @@ This addon works in conjunction with the official glTF add-on, so exporting is d
 
 - Fix Offset Armature Animation
   - Fixes the animation for non-centered armature animation driven objects by unparenting the objects before export (objects are automatically reparented afterward)
+- Original Generator
+  - Allows you to specify what the original generator was when re-exporting a GLB
 
 # Import into Hubs
 
