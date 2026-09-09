@@ -28,8 +28,7 @@ OFFSET_ARMATURE_OBJECTS = {}
 
 def get_version_string():
     from .. import (bl_info)
-    info = bl_info['version']
-    return f"{info[0]}.{info[1]}.{info[2]}"
+    return ".".join([str(x) for x in bl_info['version']])
 
 
 def export_callback(callback_method, export_settings):
