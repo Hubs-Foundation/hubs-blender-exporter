@@ -12,7 +12,7 @@ bl_info = {
     "author": "The Hubs Community",
     "description": "Tools for developing glTF assets for Hubs",
     "blender": (3, 1, 2),
-    "version": (1, 8, 0, "dev_build-mozilla_branding_removal_sprint_version", 0, 0, 0),
+    "version": (1, 8, 0, "dev_build", "mozilla_branding_removal_sprint_version", 0, 0, 0),
     "location": "",
     "wiki_url": "https://github.com/Hubs-Foundation/hubs-blender-exporter",
     "tracker_url": "https://github.com/Hubs-Foundation/hubs-blender-exporter/issues",
