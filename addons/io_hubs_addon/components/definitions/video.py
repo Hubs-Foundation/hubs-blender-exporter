@@ -5,6 +5,7 @@ from ..hubs_component import HubsComponent
 from ..types import Category, PanelType, NodeType
 from ..consts import PROJECTION_MODE
 from .networked import migrate_networked
+from ...io.utils import import_component, assign_property
 
 
 class Video(HubsComponent):
@@ -48,6 +49,27 @@ class Video(HubsComponent):
             migrate_networked(host)
 
         return migration_occurred
+
+    @classmethod
+    def gather_import(cls, gltf, blender_host, component_name, component_value, import_report, blender_ob=None):
+        component = import_component(component_name, blender_host)
+        audio_params_component = blender_host.hubs_component_audio_params
+        if component_value:
+            for property_name, property_value in component_value.items():
+                if property_name in component.get_properties():
+                    assign_property(gltf.vnodes,
+                                    blender_host, component,
+                                    property_name, property_value,
+                                    import_report, blender_ob=blender_ob)
+                else:
+                    # Some video components have included audio-params properties directly, so if it's not a video component property, try assigning it to the audio-params component.
+                    if property_name == "volume":
+                        property_name = "gain"
+                    audio_params_component.overrideAudioSettings = True
+                    assign_property(gltf.vnodes,
+                                    blender_host, audio_params_component,
+                                    property_name, property_value,
+                                    import_report, blender_ob=blender_ob)
 
     @classmethod
     def update_gizmo(cls, ob, bone, target, gizmo):
